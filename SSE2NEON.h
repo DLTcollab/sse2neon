@@ -20,7 +20,7 @@
 // email and I will probably approve your access to the depot.
 //
 // Project is located here:
-..
+//
 //	https://code.google.com/p/sse2neon/
 //
 // TipJar: 1PzgWDSyq4pmdAXRH8SPUtta4SWGrt4B1p
