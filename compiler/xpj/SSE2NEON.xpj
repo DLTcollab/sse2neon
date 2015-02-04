@@ -1,0 +1,94 @@
+<XPJ version="4">
+
+  <Project name="SSE2NEON" version="1">
+
+    <Export platform="win32" tool="vc9">../vc9win32</Export>
+    <Export platform="win32" tool="vc10">../vc10win32</Export>
+
+    <Export platform="win64" tool="vc9">../vc9win64</Export>
+    <Export platform="win64" tool="vc10">../vc10win64</Export>
+
+    <Target name="SSE2NEON">
+
+      <Export platform="win32" tool="vc9">../vc9win32</Export>
+      <Export platform="win32" tool="vc10">../vc10win32</Export>
+
+      <Export platform="win64" tool="vc9">../vc9win64</Export>
+      <Export platform="win64" tool="vc10">../vc10win64</Export>
+
+      <Files name="SSE2NEON" root="../../" type="header">
+        *.h
+        *.cpp
+        *.c
+      </Files>
+      <Configuration name="default" type="console">
+        <Preprocessor type="define">
+          WIN32
+          _WINDOWS
+          UNICODE=1
+          _CRT_SECURE_NO_DEPRECATE
+          OPEN_SOURCE=1
+        </Preprocessor>
+        <CFlags tool="vc8">/wd4996</CFlags>
+        <LFlags tool="vc8">/NODEFAULTLIB:libcp.lib</LFlags>
+        <SearchPaths type="header">
+        	"../../config"
+        </SearchPaths>
+        <SearchPaths type="library">
+        </SearchPaths>
+        <Libraries>
+        </Libraries>
+      </Configuration>
+
+      <Configuration name="debug" platform="win32">
+        <OutDir>../../</OutDir>
+        <OutFile>SSE2NEON32DEBUG.exe</OutFile>
+        <CFlags>/fp:fast /W4 /WX /MTd /Zi</CFlags>
+        <LFlags>/DEBUG</LFlags>
+        <Preprocessor type="define">
+          _DEBUG
+        </Preprocessor>
+        <Libraries>
+        </Libraries>
+      </Configuration>
+
+      <Configuration name="release" platform="win32">
+        <OutDir>../../</OutDir>
+        <OutFile>SSE2NEON32.exe</OutFile>
+        <CFlags>/fp:fast /WX /W4 /MT /Zi /O2</CFlags>
+        <LFlags>/DEBUG</LFlags>
+        <Preprocessor type="define">NDEBUG</Preprocessor>
+        <Libraries>
+        </Libraries>
+      </Configuration>
+
+      <Configuration name="debug" platform="win64">
+        <OutDir>../../</OutDir>
+        <OutFile>SSE2NEON64DEBUG.exe</OutFile>
+        <CFlags>/fp:fast /W4 /WX /MTd /Zi</CFlags>
+        <LFlags>/DEBUG</LFlags>
+        <Preprocessor type="define">
+          _DEBUG
+        </Preprocessor>
+        <Libraries>
+        </Libraries>
+      </Configuration>
+
+      <Configuration name="release" platform="win64">
+        <OutDir>../../</OutDir>
+        <OutFile>SSE2NEON64.exe</OutFile>
+        <CFlags>/fp:fast /WX /W4 /MT /Zi /O2</CFlags>
+        <LFlags>/DEBUG</LFlags>
+        <Preprocessor type="define">NDEBUG</Preprocessor>
+        <Libraries>
+        </Libraries>
+      </Configuration>
+
+
+      <Libraries>
+      </Libraries>
+      <Dependencies type="link">
+      </Dependencies>
+    </Target>
+  </Project>
+</XPJ>

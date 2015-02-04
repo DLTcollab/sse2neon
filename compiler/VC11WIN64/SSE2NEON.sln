@@ -1,0 +1,22 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 11
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SSE2NEON", "SSE2NEON.vcxproj", "{4D22D468-6380-1EC4-4643-53D05B3CA4C5}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		debug|x64 = debug|x64
+		release|x64 = release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4D22D468-6380-1EC4-4643-53D05B3CA4C5}.debug|x64.ActiveCfg = debug|x64
+		{4D22D468-6380-1EC4-4643-53D05B3CA4C5}.debug|x64.Build.0 = debug|x64
+		{4D22D468-6380-1EC4-4643-53D05B3CA4C5}.release|x64.ActiveCfg = release|x64
+		{4D22D468-6380-1EC4-4643-53D05B3CA4C5}.release|x64.Build.0 = release|x64
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddins) = postSolution
+	EndGlobalSection
+EndGlobal

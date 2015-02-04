@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup Label="ProjectConfigurations">
+		<ProjectConfiguration Include="debug|x64">
+			<Configuration>debug</Configuration>
+			<Platform>x64</Platform>
+	</ProjectConfiguration>
+		<ProjectConfiguration Include="release|x64">
+			<Configuration>release</Configuration>
+			<Platform>x64</Platform>
+	</ProjectConfiguration>
+	</ItemGroup>
+	<PropertyGroup Label="Globals">
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'" Label="Configuration">
+		<ConfigurationType>Application</ConfigurationType>
+		<GenerateManifest>false</GenerateManifest>
+		<CharacterSet>MultiByte</CharacterSet>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'" Label="Configuration">
+		<ConfigurationType>Application</ConfigurationType>
+		<GenerateManifest>false</GenerateManifest>
+		<CharacterSet>MultiByte</CharacterSet>
+	</PropertyGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+	<ImportGroup Label="ExtensionSettings">
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='release|x64'">
+		<Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+	</ImportGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
+		<OutDir>./../..\</OutDir>
+		<IntDir>./x64/SSE2NEON/debug\</IntDir>
+		<TargetExt>.exe</TargetExt>
+		<TargetName>SSE2NEON64DEBUG</TargetName>
+		<CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+		<CodeAnalysisRules />
+		<CodeAnalysisRuleAssemblies />
+	</PropertyGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='debug|x64'">
+		<ClCompile>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<FloatingPointModel>Fast</FloatingPointModel>
+			<AdditionalOptions>/W4</AdditionalOptions>
+			<Optimization>Disabled</Optimization>
+			<AdditionalIncludeDirectories>./../../config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+			<PreprocessorDefinitions>WIN32;_WINDOWS;UNICODE=1;_CRT_SECURE_NO_DEPRECATE;OPEN_SOURCE=1;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<WarningLevel>Level3</WarningLevel>
+			<RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PrecompiledHeaderFile></PrecompiledHeaderFile>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+		</ClCompile>
+		<Link>
+			<AdditionalOptions>/DEBUG</AdditionalOptions>
+			<AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+			<OutputFile>$(OutDir)SSE2NEON64DEBUG.exe</OutputFile>
+			<AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+			<ProgramDatabaseFile>$(OutDir)/SSE2NEON64DEBUG.exe.pdb</ProgramDatabaseFile>
+			<GenerateMapFile>true</GenerateMapFile>
+			<MapFileName>$(OutDir)/SSE2NEON64DEBUG.exe.map</MapFileName>
+			<SubSystem>Console</SubSystem>
+			<ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+			<TargetMachine>MachineX64</TargetMachine>
+		</Link>
+		<ResourceCompile>
+		</ResourceCompile>
+		<ProjectReference>
+		</ProjectReference>
+	</ItemDefinitionGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
+		<OutDir>./../..\</OutDir>
+		<IntDir>./x64/SSE2NEON/release\</IntDir>
+		<TargetExt>.exe</TargetExt>
+		<TargetName>SSE2NEON64</TargetName>
+		<CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+		<CodeAnalysisRules />
+		<CodeAnalysisRuleAssemblies />
+	</PropertyGroup>
+	<ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'">
+		<ClCompile>
+			<TreatWarningAsError>true</TreatWarningAsError>
+			<FloatingPointModel>Fast</FloatingPointModel>
+			<AdditionalOptions>/W4</AdditionalOptions>
+			<Optimization>MaxSpeed</Optimization>
+			<AdditionalIncludeDirectories>./../../config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+			<PreprocessorDefinitions>WIN32;_WINDOWS;UNICODE=1;_CRT_SECURE_NO_DEPRECATE;OPEN_SOURCE=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<WarningLevel>Level3</WarningLevel>
+			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+			<PrecompiledHeader>NotUsing</PrecompiledHeader>
+			<PrecompiledHeaderFile></PrecompiledHeaderFile>
+			<DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+		</ClCompile>
+		<Link>
+			<AdditionalOptions>/DEBUG</AdditionalOptions>
+			<AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+			<OutputFile>$(OutDir)SSE2NEON64.exe</OutputFile>
+			<AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+			<ProgramDatabaseFile>$(OutDir)/SSE2NEON64.exe.pdb</ProgramDatabaseFile>
+			<GenerateMapFile>true</GenerateMapFile>
+			<MapFileName>$(OutDir)/SSE2NEON64.exe.map</MapFileName>
+			<SubSystem>Console</SubSystem>
+			<ImportLibrary>$(OutDir)$(TargetName).lib</ImportLibrary>
+			<TargetMachine>MachineX64</TargetMachine>
+		</Link>
+		<ResourceCompile>
+		</ResourceCompile>
+		<ProjectReference>
+		</ProjectReference>
+	</ItemDefinitionGroup>
+	<ItemGroup>
+		<ClInclude Include="..\..\SSE2NEON.h">
+		</ClInclude>
+		<ClInclude Include="..\..\SSE2NEONTEST.h">
+		</ClInclude>
+		<ClCompile Include="..\..\SSE2NEONTEST.cpp">
+		</ClCompile>
+		<ClCompile Include="..\..\main.cpp">
+		</ClCompile>
+	</ItemGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+	<ImportGroup Label="ExtensionTargets"></ImportGroup>
+</Project>

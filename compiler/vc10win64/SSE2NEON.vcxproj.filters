@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ItemGroup>
+		<Filter Include="SSE2NEON"><!--  -->
+		</Filter>
+	</ItemGroup>
+	<ItemGroup>
+		<ClInclude Include="..\..\SSE2NEON.h">
+			<Filter>SSE2NEON</Filter>
+		</ClInclude>
+		<ClInclude Include="..\..\SSE2NEONTEST.h">
+			<Filter>SSE2NEON</Filter>
+		</ClInclude>
+		<ClCompile Include="..\..\SSE2NEONTEST.cpp">
+			<Filter>SSE2NEON</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\main.cpp">
+			<Filter>SSE2NEON</Filter>
+		</ClCompile>
+	</ItemGroup>
+</Project>
