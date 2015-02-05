@@ -50,15 +50,13 @@ typedef int32x4_t __m128i;
 // Sets the 128-bit value to zero https://msdn.microsoft.com/en-us/library/vstudio/ys7dw0kh(v=vs.100).aspx
 inline __m128i _mm_setzero_si128 ()
 {
-	int32_t __attribute__ ((aligned (16))) zero=0;
-	return vld1q_dup_s32(&zero);
+	return vdupq_n_s32(0);
 }
 
 // Clears the four single-precision, floating-point values. https://msdn.microsoft.com/en-us/library/vstudio/tk1t2tbz(v=vs.100).aspx
 inline __m128 _mm_setzero_ps(void) 
 {
-	float __attribute__ ((aligned (16))) zero=0;
-	return vld1q_dup_f32(&zero);
+	return vdupq_n_f32(0);
 }
 
 // Sets the four single-precision, floating-point values to w. https://msdn.microsoft.com/en-us/library/vstudio/2x1se8ha(v=vs.100).aspx
@@ -196,16 +194,11 @@ inline __m128 _mm_shuffle_ps(__m128 a , __m128 b , int i )
 {
 	__m128 ret;
 
-	int idx0 = i&0x3;
-	int idx1 = (i>>2)&0x3;
-	int idx2 = (i>>4)&0x03;
-	int idx3 = (i>>6)&0x03;
+	ret[0] = a[i&0x3];
+	ret[1] = a[(i>>2)&0x3];
 
-	ret[0] = a[idx0];
-	ret[1] = a[idx1];
-
-	ret[2] = b[idx2];
-	ret[3] = b[idx3];
+	ret[2] = b[(i>>4)&0x03];
+	ret[3] = b[(i>>6)&0x03];
 
 	return ret;
 }
