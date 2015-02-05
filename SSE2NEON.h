@@ -66,9 +66,9 @@ inline __m128 _mm_set1_ps(float _w)
 }
 
 // Sets the four single-precision, floating-point values to the four inputs. https://msdn.microsoft.com/en-us/library/vstudio/afh0zf75(v=vs.100).aspx
-inline __m128 _mm_set_ps(float x, float y , float z , float w ) 
+inline __m128 _mm_set_ps(float w, float z , float y , float x ) 
 {
-	float __attribute__ ((aligned (16))) data[4] = { w, z, y, x };
+	float __attribute__ ((aligned (16))) data[4] = { x, y, z, w };
 	return vld1q_f32(data);
 }
 
@@ -79,9 +79,9 @@ inline __m128i _mm_set1_epi32 (int _i)
 }
 
 // Sets the 4 signed 32-bit integer values. https://msdn.microsoft.com/en-us/library/vstudio/019beekt(v=vs.100).aspx
-inline __m128i _mm_set_epi32 (int i0, int i1,int i2, int i3)
+inline __m128i _mm_set_epi32 (int i3, int i2,int i1, int i0)
 {
-	int32_t __attribute__ ((aligned (16))) data[4] = { i3, i2, i1, i0 };
+	int32_t __attribute__ ((aligned (16))) data[4] = { i0, i1, i2, i3 };
 	return vld1q_s32(data);
 }
 
