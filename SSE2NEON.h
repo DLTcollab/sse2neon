@@ -145,49 +145,48 @@ inline __m128i _mm_or_si128 (__m128i a, __m128i b)
 }
 
 // NEON does not provide this method
-// NOTE: TODO temporarily using C++ implementation
  // Creates a 4-bit mask from the most significant bits of the four single-precision, floating-point values. https://msdn.microsoft.com/en-us/library/vstudio/4490ys29(v=vs.100).aspx
 inline int _mm_movemask_ps( __m128 a )
 {
-	int ret = 0;
-
-	const uint32_t *ip = (const uint32_t *)&a;
-	if ( ip[0] & 0x80000000 )
-	{
-		ret|=1;
-	}
-	if ( ip[1] & 0x80000000 )
-	{
-		ret|=2;
-	}
-	if ( ip[2] & 0x80000000 )
-	{
-		ret|=4;
-	}
-	if ( ip[3] & 0x80000000 )
-	{
-		ret|=8;
-	}
-	return ret;
+#if 0 // I am not yet convinced that the NEON version is faster than the C version of this
+	uint32x4_t &ia = *(uint32x4_t *)&a;
+	return (ia[0]>>31) | ((ia[1]>>30)&2) | ((ia[2]>>29)&4) | ((ia[3]>>28)&8);
+#else
+	static const uint32x4_t movemask = { 1, 2, 4, 8 };
+	static const uint32x4_t highbit = { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+	uint32x4_t t0 = vreinterpretq_u32_f32(a);
+	uint32x4_t t1 = vtstq_u32(t0, highbit);
+	uint32x4_t t2 = vandq_u32(t1, movemask);
+	uint32x2_t t3 = vorr_u32(vget_low_u32(t2), vget_high_u32(t2));
+	return vget_lane_u32(t3, 0) | vget_lane_u32(t3, 1);
+#endif
 }
 
 // NEON does not support a general purpose permute intrinsic
-// This could be emulated in normal C++ code, which would be slow.
-// Not sure the proper fix for this.
-// TODO: Emulated in C++ temporarily
+// Currently I am not sure whether the C implementation is faster or slower than the NEON version.
+// Note, this has to be expanded as a template because the shuffle value must be an immediate value.
+// The same is true on SSE as well.
 // Selects four specific single-precision, floating-point values from a and b, based on the mask i. https://msdn.microsoft.com/en-us/library/vstudio/5f0858x0(v=vs.100).aspx
-inline __m128 _mm_shuffle_ps(__m128 a , __m128 b , int i ) 
+template <int i >
+inline __m128 _mm_shuffle_ps_function(__m128 a , __m128 b)
 {
+#if 0 // I am not convinced that the NEON version is faster than the C version yet.
 	__m128 ret;
-
 	ret[0] = a[i&0x3];
 	ret[1] = a[(i>>2)&0x3];
-
 	ret[2] = b[(i>>4)&0x03];
 	ret[3] = b[(i>>6)&0x03];
-
 	return ret;
+#else
+	__m128 ret = vmovq_n_f32(vgetq_lane_f32(a, i&0x3));
+	ret = vsetq_lane_f32(vgetq_lane_f32(a, (i>>2)&0x3), ret, 1);
+	ret = vsetq_lane_f32(vgetq_lane_f32(b, (i>>4)&0x3), ret, 2);
+	ret = vsetq_lane_f32(vgetq_lane_f32(b, (i>>6)&0x3), ret, 3);
+	return ret;
+#endif
 }
+
+#define _mm_shuffle_ps(a,b,i) _mm_shuffle_ps_function<i>(a,b)
 
 #define _mm_slli_epi32(a,b) (__m128i)vshlq_n_s32(a,b)
 
