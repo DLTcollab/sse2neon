@@ -65,16 +65,11 @@ inline __m128 _mm_set1_ps(float _w)
 	return vdupq_n_f32(_w);
 }
 
-// TODO : Need a NEON version
 // Sets the four single-precision, floating-point values to the four inputs. https://msdn.microsoft.com/en-us/library/vstudio/afh0zf75(v=vs.100).aspx
 inline __m128 _mm_set_ps(float x, float y , float z , float w ) 
 {
-	__m128 ret;
-	ret[0] = w;
-	ret[1] = z;
-	ret[2] = y;
-	ret[3] = x;
-	return ret;
+	float __attribute__ ((aligned (16))) data[4] = { w, z, y, x };
+	return vld1q_f32(data);
 }
 
  // Sets the 4 signed 32-bit integer values to i. https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
@@ -83,16 +78,11 @@ inline __m128i _mm_set1_epi32 (int _i)
 	return vdupq_n_s32(_i);
 }
 
-// TODO : Need a NEON version
 // Sets the 4 signed 32-bit integer values. https://msdn.microsoft.com/en-us/library/vstudio/019beekt(v=vs.100).aspx
 inline __m128i _mm_set_epi32 (int i0, int i1,int i2, int i3)
 {
-	__m128i ret;
-	ret[0] = i3;
-	ret[1] = i2;
-	ret[2] = i1;
-	ret[3] = i0;
-	return ret;
+	int32_t __attribute__ ((aligned (16))) data[4] = { i3, i2, i1, i0 };
+	return vld1q_s32(data);
 }
 
 // TODO : Need a NEON version
