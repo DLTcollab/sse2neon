@@ -191,7 +191,6 @@ inline __m128 _mm_shuffle_ps(__m128 a , __m128 b , int i )
 
 #define _mm_slli_epi32(a,b) (__m128i)vshlq_n_s32(a,b)
 
-// TODO : May need a more effient implementation than the one I found online
 // NEON does not provide a version of this function, here is an article about some ways to repro the results.
 // http://stackoverflow.com/questions/11870910/sse-mm-movemask-epi8-equivalent-method-for-arm-neon
 // Creates a 16-bit mask from the most significant bits of the 16 signed or unsigned 8-bit integers in a and zero extends the upper bits. https://msdn.microsoft.com/en-us/library/vstudio/s090c8fk(v=vs.100).aspx
@@ -303,22 +302,12 @@ inline __m128i _mm_min_epi16 (__m128i a, __m128i b)
 	return (__m128i)vminq_s16((int16x8_t)a,(int16x8_t)b);
 }
 
-// TODO : Needs a NEON implementation
-// Discussion about how there is no exact match for this instruction
-// http://stackoverflow.com/questions/11292884/neon-equivalent-to-sse-intrinsics
  // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit integers from b. https://msdn.microsoft.com/en-us/library/vstudio/59hddw1d(v=vs.100).aspx
 inline __m128i _mm_mulhi_epi16 (__m128i a, __m128i b)
 {
-	__m128i ret;
-	int16_t *d = (int16_t *)&ret;
-	const int16_t *_a = (const int16_t *)&a;
-	const int16_t *_b = (const int16_t *)&b;
-	for (uint32_t i=0; i<8; i++)
-	{
-		int32_t m = (int32_t)_a[i]*(int32_t)_b[i];
-		d[i] = (int16_t)(m>>16);
-	}
-	return ret;
+	int16x8_t ret = vqdmulhq_s16((int16x8_t)a,(int16x8_t)b);
+	ret = vshrq_n_s16(ret,1);
+	return (__m128i)ret;
 }
 
 // ******************************************
