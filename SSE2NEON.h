@@ -383,16 +383,14 @@ inline __m128 _mm_cvtepi32_ps (__m128i a)
 	return vcvtq_f32_s32(a);
 }
 
-// TODO: Need NEON implementation!
 // Converts the four single-precision, floating-point values of a to signed 32-bit integer values. https://msdn.microsoft.com/en-us/library/vstudio/xdc42k5e(v=vs.100).aspx
 inline __m128i _mm_cvtps_epi32 (__m128 a) 
 {
-	__m128i ret;
-	for (uint32_t i=0; i<4; i++)
-	{
-		ret[i] = (int32_t)(roundf(a[i]));
-	}
-	return ret;
+	__m128 half = vdupq_n_f32(0.5f);
+	const __m128 sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(a), 31)));
+	const __m128 aPlusHalf = vaddq_f32(a, half);
+	const __m128 aRound = vsubq_f32(aPlusHalf, sign);
+	return vcvtq_s32_f32(aRound);
 }
 
 
