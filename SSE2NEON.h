@@ -265,7 +265,7 @@ inline __m128 _mm_mul_ps(__m128 a , __m128 b )
 
 // This version does additional iterations to improve accuracy.  Between 1 and 4 recommended.
 // Computes the approximations of reciprocals of the four single-precision, floating-point values of a. https://msdn.microsoft.com/en-us/library/vstudio/796k1tty(v=vs.100).aspx
-__m128 recipq_newton(__m128 in,int n)
+inline __m128 recipq_newton(__m128 in,int n)
 {
 	__m128 recip = vrecpeq_f32(in);
 	for(int i=0; i<n; ++i)
