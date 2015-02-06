@@ -188,6 +188,7 @@ inline __m128 _mm_shuffle_ps_function(__m128 a , __m128 b)
 
 #define _mm_shuffle_ps(a,b,i) _mm_shuffle_ps_function<i>(a,b)
 
+// Shifts the 4 signed or unsigned 32-bit integers in a left by count bits while shifting in zeros. : https://msdn.microsoft.com/en-us/library/z2k3bbtb%28v=vs.90%29.aspx
 #define _mm_slli_epi32(a,b) (__m128i)vshlq_n_s32(a,b)
 
 // NEON does not provide a version of this function, here is an article about some ways to repro the results.
@@ -374,11 +375,15 @@ inline __m128 _mm_cvtepi32_ps (__m128i a)
 // Converts the four single-precision, floating-point values of a to signed 32-bit integer values. https://msdn.microsoft.com/en-us/library/vstudio/xdc42k5e(v=vs.100).aspx
 inline __m128i _mm_cvtps_epi32 (__m128 a) 
 {
+#if __aarch64__
+	return vcvtaq_s32_f32(a);
+#else
 	__m128 half = vdupq_n_f32(0.5f);
 	const __m128 sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(a), 31)));
 	const __m128 aPlusHalf = vaddq_f32(a, half);
 	const __m128 aRound = vsubq_f32(aPlusHalf, sign);
 	return vcvtq_s32_f32(aRound);
+#endif
 }
 
 
