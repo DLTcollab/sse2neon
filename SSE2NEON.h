@@ -8,12 +8,6 @@
 // Since this is in support of a specific porting effort, I have only
 // included the intrinsics I needed to get my port to work.
 //
-// Note, not all methods have yet been converted to NEON
-// Those which have not been converted yet are implemented in
-// standard C code and produce the expected results.
-// The methods still to be converted are designated with a
-// 'TODO' marker.
-//
 // Questions/Comments/Feedback send to: jratcliffscarab@gmail.com
 //
 // If you want to improve or add to this project, send me an
