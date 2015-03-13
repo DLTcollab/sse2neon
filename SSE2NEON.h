@@ -59,6 +59,12 @@ inline __m128 _mm_set1_ps(float _w)
 	return vdupq_n_f32(_w);
 }
 
+// Sets the four single-precision, floating-point values to w. https://msdn.microsoft.com/en-us/library/vstudio/2x1se8ha(v=vs.100).aspx
+inline __m128 _mm_set_ps1(float _w )
+{
+	return vdupq_n_f32(_w);
+}
+
 // Sets the four single-precision, floating-point values to the four inputs. https://msdn.microsoft.com/en-us/library/vstudio/afh0zf75(v=vs.100).aspx
 inline __m128 _mm_set_ps(float w, float z , float y , float x ) 
 {
@@ -378,6 +384,30 @@ inline __m128i _mm_cvtps_epi32 (__m128 a)
 	const __m128 aRound = vsubq_f32(aPlusHalf, sign);
 	return vcvtq_s32_f32(aRound);
 #endif
+}
+
+// Store 128-bit value https://msdn.microsoft.com/en-us/library/edk11s13%28v=vs.90%29.aspx
+inline void _mm_store_si128 (__m128i *p, __m128i a)
+{
+	vst1q_s32((int32_t *)p,a);
+}
+
+// Applies a type cast to reinterpret four 32-bit floating point values passed in as a 128-bit parameter as packed 32-bit integers. https://msdn.microsoft.com/en-us/library/bb514099.aspx
+inline __m128i _mm_castps_si128(__m128 a)
+{
+	return *(const __m128i *)&a;
+}
+
+// Applies a type cast to reinterpret four 32-bit integers passed in as a 128-bit parameter as packed 32-bit floating point values. https://msdn.microsoft.com/en-us/library/bb514029.aspx
+inline __m128 _mm_castsi128_ps(__m128i a)
+{
+	return *(const __m128 *)&a;
+}
+
+// Loads 128-bit value. : https://msdn.microsoft.com/en-us/library/atzzad1h(v=vs.80).aspx
+inline __m128i _mm_load_si128 (__m128i *p)
+{
+	return vld1q_s32((int32_t *)p);
 }
 
 
