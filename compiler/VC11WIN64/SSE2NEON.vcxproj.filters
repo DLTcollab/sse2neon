@@ -11,10 +11,10 @@
 		<ClInclude Include="..\..\SSE2NEONTEST.h">
 			<Filter>SSE2NEON</Filter>
 		</ClInclude>
-		<ClCompile Include="..\..\SSE2NEONTEST.cpp">
+		<ClCompile Include="..\..\main.cpp">
 			<Filter>SSE2NEON</Filter>
 		</ClCompile>
-		<ClCompile Include="..\..\main.cpp">
+		<ClCompile Include="..\..\SSE2NEONTEST.cpp">
 			<Filter>SSE2NEON</Filter>
 		</ClCompile>
 	</ItemGroup>

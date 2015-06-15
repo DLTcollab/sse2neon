@@ -126,9 +126,9 @@
     </ClInclude>
     <ClInclude Include="..\..\SSE2NEONTEST.h">
     </ClInclude>
-    <ClCompile Include="..\..\SSE2NEONTEST.cpp">
-    </ClCompile>
     <ClCompile Include="..\..\main.cpp">
+    </ClCompile>
+    <ClCompile Include="..\..\SSE2NEONTEST.cpp">
     </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
