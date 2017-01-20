@@ -8,10 +8,16 @@
 		<ClInclude Include="..\..\SSE2NEON.h">
 			<Filter>SSE2NEON</Filter>
 		</ClInclude>
+		<ClInclude Include="..\..\SSE2NEONBinding.h">
+			<Filter>SSE2NEON</Filter>
+		</ClInclude>
 		<ClInclude Include="..\..\SSE2NEONTEST.h">
 			<Filter>SSE2NEON</Filter>
 		</ClInclude>
 		<ClCompile Include="..\..\main.cpp">
+			<Filter>SSE2NEON</Filter>
+		</ClCompile>
+		<ClCompile Include="..\..\SSE2NEONBinding.cpp">
 			<Filter>SSE2NEON</Filter>
 		</ClCompile>
 		<ClCompile Include="..\..\SSE2NEONTEST.cpp">

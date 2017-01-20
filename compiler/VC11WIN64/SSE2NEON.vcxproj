@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="debug|x64">
       <Configuration>debug</Configuration>
@@ -22,13 +22,13 @@
     <ConfigurationType>Application</ConfigurationType>
     <GenerateManifest>false</GenerateManifest>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <GenerateManifest>false</GenerateManifest>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -124,9 +124,13 @@
   <ItemGroup>
     <ClInclude Include="..\..\SSE2NEON.h">
     </ClInclude>
+    <ClInclude Include="..\..\SSE2NEONBinding.h">
+    </ClInclude>
     <ClInclude Include="..\..\SSE2NEONTEST.h">
     </ClInclude>
     <ClCompile Include="..\..\main.cpp">
+    </ClCompile>
+    <ClCompile Include="..\..\SSE2NEONBinding.cpp">
     </ClCompile>
     <ClCompile Include="..\..\SSE2NEONTEST.cpp">
     </ClCompile>

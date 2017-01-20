@@ -27,14 +27,63 @@
 // Contributors to this project are:
 //
 // John W. Ratcliff : jratcliffscarab@gmail.com
-// Brandon Rowlett : browlett@nvidia.com
-// Ken Fast : kfast@gdeb.com
+// Brandon Rowlett  : browlett@nvidia.com
+// Ken Fast         : kfast@gdeb.com
+// Eric van Beurden : evanbeurden@nvidia.com
 //
 //
+// *********************************************************************************************************************
+// Release notes for January 20, 2017 version:
+//
+// The unit tests have been refactored.  They no longer assert on an error, instead they return a pass/fail condition
+// The unit-tests now test 10,000 random float and int values against each intrinsic.
+//
+// SSE2NEON now supports 95 SSE intrinsics.  39 of them have formal unit tests which have been implemented and
+// fully tested on NEON/ARM.  The remaining 56 still need unit tests implemented.
+//
+// A struct is now defined in this header file called 'SIMDVec' which can be used by applications which
+// attempt to access the contents of an _m128 struct directly.  It is important to note that accessing the __m128
+// struct directly is bad coding practice by Microsoft: @see: https://msdn.microsoft.com/en-us/library/ayeb3ayc.aspx
+// 
+// However, some legacy source code may try to access the contents of an __m128 struct directly so the developer
+// can use the SIMDVec as an alias for it.  Any casting must be done manually by the developer, as you cannot
+// cast or otherwise alias the base NEON data type for intrinsic operations.
+//
+// A bug was found with the _mm_shuffle_ps intrinsic.  If the shuffle permutation was not one of the ones with
+// a custom/unique implementation causing it to fall through to the default shuffle implementation it was failing
+// to return the correct value.  This is now fixed.
+//
+// A bug was found with the _mm_cvtps_epi32 intrinsic.  This converts floating point values to integers.
+// It was not honoring the correct rounding mode.  In SSE the default rounding mode when converting from float to int
+// is to use 'round to even' otherwise known as 'bankers rounding'.  ARMv7 did not support this feature but ARMv8 does.
+// As it stands today, this header file assumes ARMv8.  If you are trying to target really old ARM devices, you may get
+// a build error.
+//
+// Support for a number of new intrinsics was added, however, none of them yet have unit-tests to 100% confirm they are
+// producing the correct results on NEON.  These unit tests will be added as soon as possible.
+// 
+// Here is the list of new instrinsics which have been added:
+//
+// _mm_cvtss_f32     :  extracts the lower order floating point value from the parameter
+// _mm_add_ss        : adds the scalar single - precision floating point values of a and b
+// _mm_div_ps        : Divides the four single - precision, floating - point values of a and b.
+// _mm_div_ss        : Divides the scalar single - precision floating point value of a by b.
+// _mm_sqrt_ss       : Computes the approximation of the square root of the scalar single - precision floating point value of in.
+// _mm_rsqrt_ps      : Computes the approximations of the reciprocal square roots of the four single - precision floating point values of in.
+// _mm_comilt_ss     : Compares the lower single - precision floating point scalar values of a and b using a less than operation
+// _mm_comigt_ss     : Compares the lower single - precision floating point scalar values of a and b using a greater than operation.
+// _mm_comile_ss     :  Compares the lower single - precision floating point scalar values of a and b using a less than or equal operation.
+// _mm_comige_ss     : Compares the lower single - precision floating point scalar values of a and b using a greater than or equal operation.
+// _mm_comieq_ss     :  Compares the lower single - precision floating point scalar values of a and b using an equality operation.
+// _mm_comineq_s     :  Compares the lower single - precision floating point scalar values of a and b using an inequality operation
+// _mm_unpackhi_epi8 : Interleaves the upper 8 signed or unsigned 8 - bit integers in a with the upper 8 signed or unsigned 8 - bit integers in b.
+// _mm_unpackhi_epi16:  Interleaves the upper 4 signed or unsigned 16 - bit integers in a with the upper 4 signed or unsigned 16 - bit integers in b.
+//
+// *********************************************************************************************************************
 /*
 ** The MIT license:
 **
-** Permission is hereby granted, MEMALLOC_FREE of charge, to any person obtaining a copy
+** Permission is hereby granted, free of charge, to any person obtaining a copy
 ** of this software and associated documentation files (the "Software"), to deal
 ** in the Software without restriction, including without limitation the rights
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
@@ -57,10 +106,13 @@
 
 #if GCC
 #define FORCE_INLINE					inline __attribute__((always_inline))
+#define ALIGN_STRUCT(x)					__attribute__((aligned(x)))
 #else
 #define FORCE_INLINE					inline
+#define ALIGN_STRUCT(x)					__declspec(align(x))
 #endif
 
+#include <stdint.h>
 #include "arm_neon.h"
 
 /*******************************************************/
@@ -79,9 +131,38 @@
 typedef float32x4_t __m128;
 typedef int32x4_t __m128i;
 
+// union intended to allow direct access to an __m128 variable using the names that the MSVC
+// compiler provides.  This union should really only be used when trying to access the members
+// of the vector as integer values.  GCC/clang allow native access to the float members through
+// a simple array access operator (in C since 4.6, in C++ since 4.8).
+//
+// Ideally direct accesses to SIMD vectors should not be used since it can cause a performance
+// hit.  If it really is needed however, the original __m128 variable can be aliased with a
+// pointer to this union and used to access individual components.  The use of this union should
+// be hidden behind a macro that is used throughout the codebase to access the members instead
+// of always declaring this type of variable.
+typedef union ALIGN_STRUCT(16) SIMDVec
+{
+	float       m128_f32[4];    // as floats - do not to use this.  Added for convenience.
+	int8_t      m128_i8[16];    // as signed 8-bit integers.
+	int16_t     m128_i16[8];    // as signed 16-bit integers.
+	int32_t     m128_i32[4];    // as signed 32-bit integers.
+	int64_t     m128_i64[2];    // as signed 64-bit integers.
+	uint8_t     m128_u8[16];    // as unsigned 8-bit integers.
+	uint16_t    m128_u16[8];    // as unsigned 16-bit integers.
+	uint32_t    m128_u32[4];    // as unsigned 32-bit integers.
+	uint64_t    m128_u64[2];    // as unsigned 64-bit integers.
+} SIMDVec;
+
 // ******************************************
 // Set/get methods
 // ******************************************
+
+// extracts the lower order floating point value from the parameter : https://msdn.microsoft.com/en-us/library/bb514059%28v=vs.120%29.aspx?f=255&MSPPError=-2147217396
+FORCE_INLINE float _mm_cvtss_f32(__m128 a)
+{
+    return vgetq_lane_f32(a, 0);
+}
 
 // Sets the 128-bit value to zero https://msdn.microsoft.com/en-us/library/vstudio/ys7dw0kh(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_setzero_si128()
@@ -373,19 +454,41 @@ FORCE_INLINE __m128 _mm_shuffle_ps_function(__m128 a, __m128 b)
 {
 	switch (i)
 	{
-		case _MM_SHUFFLE(1, 0, 3, 2): return _mm_shuffle_ps_1032(a, b); break;
-		case _MM_SHUFFLE(2, 3, 0, 1): return _mm_shuffle_ps_2301(a, b); break;
-		case _MM_SHUFFLE(3, 2, 1, 0): return _mm_shuffle_ps_3210(a, b); break;
-		case _MM_SHUFFLE(0, 0, 1, 1): return _mm_shuffle_ps_0011(a, b); break;
-		case _MM_SHUFFLE(0, 0, 2, 2): return _mm_shuffle_ps_0022(a, b); break;
-		case _MM_SHUFFLE(2, 2, 0, 0): return _mm_shuffle_ps_2200(a, b); break;
-		case _MM_SHUFFLE(3, 2, 0, 2): return _mm_shuffle_ps_3202(a, b); break;
-		case _MM_SHUFFLE(1, 1, 3, 3): return _mm_shuffle_ps_1133(a, b); break;
-		case _MM_SHUFFLE(2, 0, 1, 0): return _mm_shuffle_ps_2010(a, b); break;
-		case _MM_SHUFFLE(2, 0, 0, 1): return _mm_shuffle_ps_2001(a, b); break;
-		case _MM_SHUFFLE(2, 0, 3, 2): return _mm_shuffle_ps_2032(a, b); break;
-		default: _mm_shuffle_ps_default<i>(a, b);
+		case _MM_SHUFFLE(1, 0, 3, 2): 
+            return _mm_shuffle_ps_1032(a, b); 
+            break;
+		case _MM_SHUFFLE(2, 3, 0, 1): 
+            return _mm_shuffle_ps_2301(a, b); 
+            break;
+		case _MM_SHUFFLE(3, 2, 1, 0): 
+            return _mm_shuffle_ps_3210(a, b); 
+            break;
+		case _MM_SHUFFLE(0, 0, 1, 1): 
+            return _mm_shuffle_ps_0011(a, b); 
+            break;
+		case _MM_SHUFFLE(0, 0, 2, 2): 
+            return _mm_shuffle_ps_0022(a, b); 
+            break;
+		case _MM_SHUFFLE(2, 2, 0, 0): 
+            return _mm_shuffle_ps_2200(a, b); 
+            break;
+		case _MM_SHUFFLE(3, 2, 0, 2): 
+            return _mm_shuffle_ps_3202(a, b); 
+            break;
+		case _MM_SHUFFLE(1, 1, 3, 3): 
+            return _mm_shuffle_ps_1133(a, b); 
+            break;
+		case _MM_SHUFFLE(2, 0, 1, 0): 
+            return _mm_shuffle_ps_2010(a, b); 
+            break;
+		case _MM_SHUFFLE(2, 0, 0, 1): 
+            return _mm_shuffle_ps_2001(a, b); 
+            break;
+		case _MM_SHUFFLE(2, 0, 3, 2): 
+            return _mm_shuffle_ps_2032(a, b); 
+            break;
 	}
+    return _mm_shuffle_ps_default<i>(a, b);
 }
 
 #define _mm_shuffle_ps(a,b,i) _mm_shuffle_ps_function<i>(a,b)
@@ -598,6 +701,17 @@ FORCE_INLINE __m128 _mm_add_ps(__m128 a, __m128 b)
 	return vaddq_f32(a, b);
 }
 
+// adds the scalar single-precision floating point values of a and b.  https://msdn.microsoft.com/en-us/library/be94x2y6(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_add_ss(__m128 a, __m128 b)
+{
+	const float32_t     b0 = vgetq_lane_f32(b, 0);
+	float32x4_t         value = vdupq_n_f32(0);
+
+	//the upper values in the result must be the remnants of <a>.
+	value = vsetq_lane_f32(b0, value, 0);
+	return vaddq_f32(a, value);
+}
+
 // Adds the 4 signed or unsigned 32-bit integers in a to the 4 signed or unsigned 32-bit integers in b. https://msdn.microsoft.com/en-us/library/vstudio/09xs4fkk(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_add_epi32(__m128i a, __m128i b)
 {
@@ -626,6 +740,23 @@ FORCE_INLINE __m128i _mm_mullo_epi32 (__m128i a, __m128i b)
 FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 {
 	return vmulq_f32(a, b);
+}
+
+// Divides the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/edaw8147(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
+{
+    __m128 recip = vrecpeq_f32(b);
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, b));
+    return vmulq_f32(a, recip);
+}
+
+// Divides the scalar single-precision floating point value of a by b.  https://msdn.microsoft.com/en-us/library/4y73xa49(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
+{
+	float32x4_t value;
+	float32x4_t result = a;
+	value = _mm_div_ps(a, b);
+	return vsetq_lane_f32(vgetq_lane_f32(value, 0), result, 0);
 }
 
 // This version does additional iterations to improve accuracy.  Between 1 and 4 recommended.
@@ -658,6 +789,21 @@ FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 	return sq;
 }
 
+// Computes the approximation of the square root of the scalar single-precision floating point value of in.  https://msdn.microsoft.com/en-us/library/ahfsc22d(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_sqrt_ss(__m128 in)
+{
+	float32x4_t value;
+	float32x4_t result = in;
+
+	value = _mm_sqrt_ps(in);
+	return vsetq_lane_f32(vgetq_lane_f32(value, 0), result, 0);
+}
+
+// Computes the approximations of the reciprocal square roots of the four single-precision floating point values of in.  https://msdn.microsoft.com/en-us/library/22hfsh53(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
+{
+	return vrsqrteq_f32(in);
+}
 
 // Computes the maximums of the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/vstudio/ff5d607a(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_max_ps(__m128 a, __m128 b)
@@ -669,6 +815,26 @@ FORCE_INLINE __m128 _mm_max_ps(__m128 a, __m128 b)
 FORCE_INLINE __m128 _mm_min_ps(__m128 a, __m128 b)
 {
 	return vminq_f32(a, b);
+}
+
+// Computes the maximum of the two lower scalar single-precision floating point values of a and b.  https://msdn.microsoft.com/en-us/library/s6db5esz(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_max_ss(__m128 a, __m128 b)
+{
+	float32x4_t value;
+	float32x4_t result = a;
+
+	value = vmaxq_f32(a, b);
+	return vsetq_lane_f32(vgetq_lane_f32(value, 0), result, 0);
+}
+
+// Computes the minimum of the two lower scalar single-precision floating point values of a and b.  https://msdn.microsoft.com/en-us/library/0a9y7xaa(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_min_ss(__m128 a, __m128 b)
+{
+	float32x4_t value;
+	float32x4_t result = a;
+
+	value = vminq_f32(a, b);
+	return vsetq_lane_f32(vgetq_lane_f32(value, 0), result, 0);
 }
 
 // Computes the pairwise minima of the 8 signed 16-bit integers from a and the 8 signed 16-bit integers from b. https://msdn.microsoft.com/en-us/library/vstudio/6te997ew(v=vs.100).aspx
@@ -769,11 +935,73 @@ FORCE_INLINE __m128i _mm_cmpgt_epi32(__m128i a, __m128i b)
 // http://stackoverflow.com/questions/29349621/neon-isnanval-intrinsics
 FORCE_INLINE __m128 _mm_cmpord_ps(__m128 a, __m128 b ) 
 {
-        // Note: NEON does not have ordered compare builtin
-        // Need to compare a eq a and b eq b to check for NaN
-        // Do AND of results to get final
+	// Note: NEON does not have ordered compare builtin
+	// Need to compare a eq a and b eq b to check for NaN
+	// Do AND of results to get final
 	return (__m128) vreinterpretq_f32_u32( vandq_u32( vceqq_f32(a,a), vceqq_f32(b,b) ) );
 }
+
+// Compares the lower single-precision floating point scalar values of a and b using a less than operation. : https://msdn.microsoft.com/en-us/library/2kwe606b(v=vs.90).aspx
+FORCE_INLINE int _mm_comilt_ss(__m128 a, __m128 b)
+{
+	uint32x4_t value;
+
+	value = vcltq_f32(a, b);
+	return vgetq_lane_u32(value, 0);
+}
+
+// Compares the lower single-precision floating point scalar values of a and b using a greater than operation. : https://msdn.microsoft.com/en-us/library/b0738e0t(v=vs.100).aspx
+FORCE_INLINE int _mm_comigt_ss(__m128 a, __m128 b)
+{
+	uint32x4_t value;
+
+	value = vcgtq_f32(a, b);
+	return vgetq_lane_u32(value, 0);
+}
+
+// Compares the lower single-precision floating point scalar values of a and b using a less than or equal operation. : https://msdn.microsoft.com/en-us/library/1w4t7c57(v=vs.90).aspx
+FORCE_INLINE int _mm_comile_ss(__m128 a, __m128 b)
+{
+	uint32x4_t value;
+
+	value = vcleq_f32(a, b);
+	return vgetq_lane_u32(value, 0);
+}
+
+// Compares the lower single-precision floating point scalar values of a and b using a greater than or equal operation. : https://msdn.microsoft.com/en-us/library/8t80des6(v=vs.100).aspx
+FORCE_INLINE int _mm_comige_ss(__m128 a, __m128 b)
+{
+	uint32x4_t value;
+
+	value = vcgeq_f32(a, b);
+	return vgetq_lane_u32(value, 0);
+}
+
+// Compares the lower single-precision floating point scalar values of a and b using an equality operation. : https://msdn.microsoft.com/en-us/library/93yx2h2b(v=vs.100).aspx
+FORCE_INLINE int _mm_comieq_ss(__m128 a, __m128 b)
+{
+	uint32x4_t value;
+
+	value = vceqq_f32(a, b);
+	return vgetq_lane_u32(value, 0);
+}
+
+// Compares the lower single-precision floating point scalar values of a and b using an inequality operation. : https://msdn.microsoft.com/en-us/library/bafh5e0a(v=vs.90).aspx
+FORCE_INLINE int _mm_comineq_ss(__m128 a, __m128 b)
+{
+	uint32x4_t value;
+
+	value = vceqq_f32(a, b);
+	return !vgetq_lane_u32(value, 0);
+}
+
+// according to the documentation, these intrinsics behave the same as the non-'u' versions.  We'll just alias them here.
+#define _mm_ucomilt_ss      _mm_comilt_ss
+#define _mm_ucomile_ss      _mm_comile_ss
+#define _mm_ucomigt_ss      _mm_comigt_ss
+#define _mm_ucomige_ss      _mm_comige_ss
+#define _mm_ucomieq_ss      _mm_comieq_ss
+#define _mm_ucomineq_ss     _mm_comineq_ss
 
 // ******************************************
 // Conversions
@@ -792,10 +1020,12 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 }
 
 // Converts the four single-precision, floating-point values of a to signed 32-bit integer values. https://msdn.microsoft.com/en-us/library/vstudio/xdc42k5e(v=vs.100).aspx
+// *NOTE*. The default rounding mode on SSE is 'round to even', which ArmV7 does not support!  
+// It is supported on ARMv8 however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
-#if __aarch64__
-	return vcvtaq_s32_f32(a);
+#if 1 
+	return vcvtnq_s32_f32(a);
 #else
 	__m128 half = vdupq_n_f32(0.5f);
 	const __m128 sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_f32(a), 31)));
@@ -906,6 +1136,28 @@ FORCE_INLINE __m128 _mm_unpackhi_ps(__m128 a, __m128 b)
 	return vcombine_f32(result.val[0], result.val[1]);
 }
 
+// Interleaves the upper 8 signed or unsigned 8-bit integers in a with the upper 8 signed or unsigned 8-bit integers in b.  https://msdn.microsoft.com/en-us/library/t5h7783k(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_unpackhi_epi8(__m128i a, __m128i b)
+{
+	int8x8_t a1 = (int8x8_t)vget_high_s16((int16x8_t)a);
+	int8x8_t b1 = (int8x8_t)vget_high_s16((int16x8_t)b);
+
+	int8x8x2_t result = vzip_s8(a1, b1);
+
+	return (__m128i)vcombine_s8(result.val[0], result.val[1]);
+}
+
+// Interleaves the upper 4 signed or unsigned 16-bit integers in a with the upper 4 signed or unsigned 16-bit integers in b.  https://msdn.microsoft.com/en-us/library/03196cz7(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_unpackhi_epi16(__m128i a, __m128i b)
+{
+	int16x4_t a1 = vget_high_s16((int16x8_t)a);
+	int16x4_t b1 = vget_high_s16((int16x8_t)b);
+
+	int16x4x2_t result = vzip_s16(a1, b1);
+
+	return (__m128i)vcombine_s16(result.val[0], result.val[1]);
+}
+
 // Interleaves the upper 2 signed or unsigned 32-bit integers in a with the upper 2 signed or unsigned 32-bit integers in b.  https://msdn.microsoft.com/en-us/library/65sa7cbs(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpackhi_epi32(__m128i a, __m128i b)
 {
@@ -930,14 +1182,15 @@ FORCE_INLINE void _mm_sfence(void)
 	__sync_synchronize();
 }
 
-// Stores the data in a to the address p without polluting the caches.  If the cache line containing address p is already in the cache, the cache will be updated.Address p must be 16 - byte aligned.  https://msdn.microsoft.com/en-us/library/ba08y07y%28v=vs.90%29.aspx
+// Stores the data in a to the address p without polluting the caches.  If the cache line containing address p is already in the cache, the cache will be updated.Address p must be 16 - byte aligned.  https://msdn.microsoft.com/en-us/library/ba08y07y%28v=vs.90%29.aspx 
 FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 {
 	*p = a;
 }
 
-// Cache line containing p is flushed and invalidated from all caches in the coherency domain.
-FORCE_INLINE void _mm_clflush(void const*p) {
+// Cache line containing p is flushed and invalidated from all caches in the coherency domain. : https://msdn.microsoft.com/en-us/library/ba08y07y(v=vs.100).aspx
+FORCE_INLINE void _mm_clflush(void const*p) 
+{
 	// no corollary for Neon?
 }
 

@@ -115,9 +115,13 @@
 	<ItemGroup>
 		<ClInclude Include="..\..\SSE2NEON.h">
 		</ClInclude>
+		<ClInclude Include="..\..\SSE2NEONBinding.h">
+		</ClInclude>
 		<ClInclude Include="..\..\SSE2NEONTEST.h">
 		</ClInclude>
 		<ClCompile Include="..\..\main.cpp">
+		</ClCompile>
+		<ClCompile Include="..\..\SSE2NEONBinding.cpp">
 		</ClCompile>
 		<ClCompile Include="..\..\SSE2NEONTEST.cpp">
 		</ClCompile>
