@@ -1138,8 +1138,7 @@ public:
         return ret;
     }
 
-
-    virtual bool runTest(InstructionTest test)
+    bool runSingleTest(InstructionTest test,uint32_t i)
     {
         bool ret = true;
 
@@ -1152,516 +1151,116 @@ public:
                 ret = test_mm_setzero_ps();
                 break;
             case IT_MM_SET1_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = test_mm_set1_ps(mTestFloats[i]);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_set1_ps(mTestFloats[i]);
                 break;
             case IT_MM_SET_PS1:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = test_mm_set1_ps(mTestFloats[i]);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_set1_ps(mTestFloats[i]);
                 break;
             case IT_MM_SET_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = test_mm_set_ps(mTestFloats[i], mTestFloats[i + 1], mTestFloats[i + 2], mTestFloats[i + 3]);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_set_ps(mTestFloats[i], mTestFloats[i + 1], mTestFloats[i + 2], mTestFloats[i + 3]);
                 break;
             case IT_MM_SET1_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = test_mm_set1_epi32(mTestInts[i]);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                };
+                ret = test_mm_set1_epi32(mTestInts[i]);
                 break;
             case IT_MM_SET_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = testret_mm_set_epi32(mTestInts[i], mTestInts[i + 1], mTestInts[i + 2], mTestInts[i + 3]);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                };
+                ret = testret_mm_set_epi32(mTestInts[i], mTestInts[i + 1], mTestInts[i + 2], mTestInts[i + 3]);
                 break;
             case IT_MM_STORE_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = test_mm_store_ps(mTestIntPointer1, mTestInts[i], mTestInts[i + 1], mTestInts[i + 2], mTestInts[i + 3]);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                    test_mm_store_ps(mTestFloatPointer2, mTestFloats[i + 4], mTestFloats[i + 5], mTestFloats[i + 6], mTestFloats[i + 7]);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                };
+                ret = test_mm_store_ps(mTestIntPointer1, mTestInts[i], mTestInts[i + 1], mTestInts[i + 2], mTestInts[i + 3]);
                 break;
             case IT_MM_LOAD1_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    loadTestFloatPointers(i);
-                    ret = test_mm_load1_ps(mTestFloatPointer1);
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_load1_ps(mTestFloatPointer1);
                 break;
             case IT_MM_ANDNOT_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if ( ret )
-                    {
-                        ret = test_mm_andnot_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_andnot_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_ANDNOT_SI128:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_andnot_si128(mTestIntPointer1, mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_andnot_si128(mTestIntPointer1, mTestIntPointer2);
                 break;
             case IT_MM_AND_SI128:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_and_si128(mTestIntPointer1, mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_and_si128(mTestIntPointer1, mTestIntPointer2);
                 break;
             case IT_MM_AND_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_and_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_and_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_OR_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_or_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_or_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_OR_SI128:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_or_si128(mTestIntPointer1, mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_or_si128(mTestIntPointer1, mTestIntPointer2);
                 break;
             case IT_MM_MOVEMASK_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_movemask_ps(mTestFloatPointer1);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_movemask_ps(mTestFloatPointer1);
                 break;
             case IT_MM_SHUFFLE_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_shuffle_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        ret = test_mm_shuffle_ps(mTestFloatPointer1, mTestFloatPointer2);
-                        break;
-                    }
-                }
+                ret = test_mm_shuffle_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_MOVEMASK_EPI8:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_movemask_epi8(mTestIntPointer1);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_movemask_epi8(mTestIntPointer1);
                 break;
             case IT_MM_SUB_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_sub_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_sub_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_SUB_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_sub_epi32(mTestIntPointer1, mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_sub_epi32(mTestIntPointer1, mTestIntPointer2);
                 break;
             case IT_MM_ADD_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_add_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_add_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_ADD_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_add_epi32(mTestIntPointer1, mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_add_epi32(mTestIntPointer1, mTestIntPointer2);
                 break;
             case IT_MM_MULLO_EPI16:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        test_mm_mullo_epi16((const int16_t *)mTestIntPointer1, (const int16_t *)mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_mullo_epi16((const int16_t *)mTestIntPointer1, (const int16_t *)mTestIntPointer2);
                 break;
             case IT_MM_MUL_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_mul_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_mul_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_RCP_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    mTestFloatPointer1[0] = 1.0f / mTestFloatPointer1[0];
-                    mTestFloatPointer1[1] = 1.0f / mTestFloatPointer1[1];
-                    mTestFloatPointer1[2] = 1.0f / mTestFloatPointer1[2];
-                    mTestFloatPointer1[3] = 1.0f / mTestFloatPointer1[3];
-
-                    if (ret)
-                    {
-                        ret = test_mm_rcp_ps(mTestFloatPointer1);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_rcp_ps(mTestFloatPointer1);
                 break;
             case IT_MM_MAX_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_max_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_max_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_MIN_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_min_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_min_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_MIN_EPI16:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_min_epi16((const int16_t *)mTestIntPointer1, (const int16_t *)mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_min_epi16((const int16_t *)mTestIntPointer1, (const int16_t *)mTestIntPointer2);
                 break;
             case IT_MM_MULHI_EPI16:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_mulhi_epi16((const int16_t *)mTestIntPointer1, (const int16_t *)mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_mulhi_epi16((const int16_t *)mTestIntPointer1, (const int16_t *)mTestIntPointer2);
                 break;
             case IT_MM_CMPLT_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_cmplt_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cmplt_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_CMPGT_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_cmpgt_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cmpgt_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_CMPGE_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    // Make sure at least one value is the same.
-                    mTestFloatPointer1[3] = mTestFloatPointer2[3];
-                    if (ret)
-                    {
-                        ret = test_mm_cmpge_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cmpge_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_CMPLE_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    // Make sure at least one value is the same.
-                    mTestFloatPointer1[3] = mTestFloatPointer2[3];
-                    if (ret)
-                    {
-                        ret = test_mm_cmple_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cmple_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_CMPEQ_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    // Make sure at least one value is the same.
-                    mTestFloatPointer1[3] = mTestFloatPointer2[3];
-                    if (ret)
-                    {
-                        ret = test_mm_cmpeq_ps(mTestFloatPointer1, mTestFloatPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cmpeq_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_CMPLT_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-
-                    if (ret)
-                    {
-                        ret = test_mm_cmplt_epi32(mTestIntPointer1, mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cmplt_epi32(mTestIntPointer1, mTestIntPointer2);
                 break;
             case IT_MM_CMPGT_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-
-                    if (ret)
-                    {
-                        ret = test_mm_cmpgt_epi32(mTestIntPointer1, mTestIntPointer2);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cmpgt_epi32(mTestIntPointer1, mTestIntPointer2);
                 break;
             case IT_MM_CVTTPS_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_cvttps_epi32(mTestFloatPointer1);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cvttps_epi32(mTestFloatPointer1);
                 break;
             case IT_MM_CVTEPI32_PS:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestIntPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_cvtepi32_ps(mTestIntPointer1);
-                    }
-                    if (!ret)
-                    {
-                        break;
-                    }
-                }
+                ret = test_mm_cvtepi32_ps(mTestIntPointer1);
                 break;
             case IT_MM_CVTPS_EPI32:
-                for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
-                {
-                    ret = loadTestFloatPointers(i);
-                    if (ret)
-                    {
-                        ret = test_mm_cvtps_epi32(mTestFloatPointer1);
-                    }
-                    if (!ret)
-                    {
-                        ret = test_mm_cvtps_epi32(mTestFloatPointer1);
-                        break;
-                    }
-                }
+                ret = test_mm_cvtps_epi32(mTestFloatPointer1);
                 break;
-
             case IT_MM_CMPORD_PS:
                 ret = true;
                 break;
@@ -1830,6 +1429,101 @@ public:
         }
 
 
+        return ret;
+    }
+
+
+    virtual bool runTest(InstructionTest test)
+    {
+        bool ret = true;
+
+
+        // Test a whole bunch of values
+        for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++)
+        {
+            ret = loadTestFloatPointers(i);	// Load some random float values
+            if ( !ret ) break; // load test float failed??
+            ret = loadTestIntPointers(i);	// load some random int values
+            if ( !ret ) break; // load test float failed??
+            // If we are testing the reciprocol, then invert the input data (easier for debugging)
+            if ( test == IT_MM_RCP_PS )
+            {
+
+                mTestFloatPointer1[0] = 1.0f / mTestFloatPointer1[0];
+                mTestFloatPointer1[1] = 1.0f / mTestFloatPointer1[1];
+                mTestFloatPointer1[2] = 1.0f / mTestFloatPointer1[2];
+                mTestFloatPointer1[3] = 1.0f / mTestFloatPointer1[3];
+            }
+            if ( test == IT_MM_CMPGE_PS || test == IT_MM_CMPLE_PS || test == IT_MM_CMPEQ_PS )
+            {
+               // Make sure at least one value is the same.
+               mTestFloatPointer1[3] = mTestFloatPointer2[3];
+            }
+
+            // one out of every random 64 times or so, mix up the test floats to contain some integer values
+            if ((rand() & 63) == 0)
+            {
+                uint32_t option = rand() & 3;
+                switch (option)
+                {
+                    // All integers..
+                    case 0:
+                        mTestFloatPointer1[0] = float(mTestIntPointer1[0]);
+                        mTestFloatPointer1[1] = float(mTestIntPointer1[1]);
+                        mTestFloatPointer1[2] = float(mTestIntPointer1[2]);
+                        mTestFloatPointer1[3] = float(mTestIntPointer1[3]);
+
+                        mTestFloatPointer2[0] = float(mTestIntPointer2[0]);
+                        mTestFloatPointer2[1] = float(mTestIntPointer2[1]);
+                        mTestFloatPointer2[2] = float(mTestIntPointer2[2]);
+                        mTestFloatPointer2[3] = float(mTestIntPointer2[3]);
+
+                        break;
+                    case 1:
+                        {
+                            uint32_t index = rand() & 3;
+                            mTestFloatPointer1[index] = float(mTestIntPointer1[index]);
+                            index = rand() & 3;
+                            mTestFloatPointer2[index] = float(mTestIntPointer2[index]);
+                        }
+                        break;
+                    case 2:
+                        {
+                            uint32_t index1 = rand() & 3;
+                            uint32_t index2 = rand() & 3;
+                            mTestFloatPointer1[index1] = float(mTestIntPointer1[index1]);
+                            mTestFloatPointer1[index2] = float(mTestIntPointer1[index2]);
+                            index1 = rand() & 3;
+                            index2 = rand() & 3;
+                            mTestFloatPointer1[index1] = float(mTestIntPointer1[index1]);
+                            mTestFloatPointer1[index2] = float(mTestIntPointer1[index2]);
+                        }
+                        break;
+                    case 3:
+                        mTestFloatPointer1[0] = float(mTestIntPointer1[0]);
+                        mTestFloatPointer1[1] = float(mTestIntPointer1[1]);
+                        mTestFloatPointer1[2] = float(mTestIntPointer1[2]);
+                        mTestFloatPointer1[3] = float(mTestIntPointer1[3]);
+                        break;
+                }
+                if ((rand() & 3) == 0) // one out of 4 times, make halves
+                {
+                    for (uint32_t j = 0; j < 4; j++)
+                    {
+                        mTestFloatPointer1[j] *= 0.5f;
+                        mTestFloatPointer2[j] *= 0.5f;
+                    }
+                }
+            }
+
+            ret = runSingleTest(test,i);
+            if ( !ret ) // the test failed...
+            {
+                // Set a breakpoint here if you want to step through the failure case in the debugger
+                ret = runSingleTest(test,i);
+                break;
+            }
+        }
         return ret;
     }
 
