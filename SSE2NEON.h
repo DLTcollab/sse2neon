@@ -20,10 +20,10 @@
 // Show your appreciation for open source by sending me a bitcoin tip to the following
 // address.
 //
-// TipJar: 1PzgWDSyq4pmdAXRH8SPUtta4SWGrt4B1p : 
+// TipJar: 1PzgWDSyq4pmdAXRH8SPUtta4SWGrt4B1p :
 // https://blockchain.info/address/1PzgWDSyq4pmdAXRH8SPUtta4SWGrt4B1p
 //
-// 
+//
 // Contributors to this project are:
 //
 // John W. Ratcliff     : jratcliffscarab@gmail.com
@@ -37,7 +37,6 @@
 // apoty: March 17, 2017
 // Current version was changed in most to fix issues and potential issues.
 // All unit tests were rewritten as a part of forge lib project to cover all implemented functions.
-//
 // *********************************************************************************************************************
 // Release notes for January 20, 2017 version:
 //
@@ -1314,20 +1313,7 @@ FORCE_INLINE __m128i _mm_cvtepi16_epi32(__m128i a)
 // It is supported on ARMv8 however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
-#if 0
-	return vcvtnq_s32_f32(a);
-#else
-	//float32x4_t half = vdupq_n_f32(0.5f);
-	//const float32x4_t sign = vcvtq_f32_u32((vshrq_n_u32(vreinterpretq_u32_m128(a), 31)));
-	//const float32x4_t aPlusHalf = vaddq_f32(vreinterpretq_f32_m128(a), half);
-	//const float32x4_t aRound = vsubq_f32(aPlusHalf, sign);
-	//return vreinterpretq_m128i_s32(vcvtq_s32_f32(aRound));
-	uint32x4_t copysignmask = vdupq_n_u32(0x80000000);
-	float32x4_t half = vreinterpretq_f32_u32(vdupq_n_u32(0x3efffffe)); /* 4.9999994e-1, because SSE rounds 0.5 to zero */
-	float32x4_t delta = vbslq_f32(copysignmask, vreinterpretq_f32_m128(a), half); /* +/- 4.9999994e-1 */
-	float32x4_t round = vaddq_f32(vreinterpretq_f32_m128(a), delta);
-	return vreinterpretq_m128i_s32(vcvtq_s32_f32(round));
-#endif
+    return vcvtnq_s32_f32(a);
 }
 
 // Moves the least significant 32 bits of a to a 32-bit integer. https://msdn.microsoft.com/en-us/library/5z7a9642%28v=vs.90%29.aspx
