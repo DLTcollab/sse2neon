@@ -1313,7 +1313,15 @@ FORCE_INLINE __m128i _mm_cvtepi16_epi32(__m128i a)
 // It is supported on ARMv8 however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
-    return vcvtnq_s32_f32(a);
+#if defined(__aarch64__)
+	return vcvtnq_s32_f32(a);
+#else
+	uint32x4_t copysignmask = vdupq_n_u32(0x80000000);
+	float32x4_t half = vreinterpretq_f32_u32(vdupq_n_u32(0x3efffffe)); /* 4.9999994e-1, because SSE rounds 0.5 to zero */
+	float32x4_t delta = vbslq_f32(copysignmask, vreinterpretq_f32_m128(a), half); /* +/- 4.9999994e-1 */
+	float32x4_t round = vaddq_f32(vreinterpretq_f32_m128(a), delta);
+	return vreinterpretq_m128i_s32(vcvtq_s32_f32(round));
+#endif
 }
 
 // Moves the least significant 32 bits of a to a 32-bit integer. https://msdn.microsoft.com/en-us/library/5z7a9642%28v=vs.90%29.aspx
