@@ -1350,7 +1350,7 @@ public:
                 if (!ret)
                 {
                     // Note to Alexander, you need to fix this.
-                    ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
+                    ret = test_mm_cvtps_epi32(mTestFloatPointer1);
                 }
                 break;
             case IT_MM_CMPORD_PS:
