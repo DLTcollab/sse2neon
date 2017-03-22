@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SSE2NEON", "SSE2NEON\SSE2NEON.vcxproj", "{82052143-B781-40EA-BFB0-491904834B89}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Tegra-Android = Debug|Tegra-Android
+		Release|Tegra-Android = Release|Tegra-Android
+		Shipping|Tegra-Android = Shipping|Tegra-Android
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{82052143-B781-40EA-BFB0-491904834B89}.Debug|Tegra-Android.ActiveCfg = Debug|Tegra-Android
+		{82052143-B781-40EA-BFB0-491904834B89}.Debug|Tegra-Android.Build.0 = Debug|Tegra-Android
+		{82052143-B781-40EA-BFB0-491904834B89}.Release|Tegra-Android.ActiveCfg = Release|Tegra-Android
+		{82052143-B781-40EA-BFB0-491904834B89}.Release|Tegra-Android.Build.0 = Release|Tegra-Android
+		{82052143-B781-40EA-BFB0-491904834B89}.Shipping|Tegra-Android.ActiveCfg = Shipping|Tegra-Android
+		{82052143-B781-40EA-BFB0-491904834B89}.Shipping|Tegra-Android.Build.0 = Shipping|Tegra-Android
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="sse2neon.test"
+      android:versionCode="1"
+      android:versionName="1.0">
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="15" />
+    <application android:label="@string/app_name"
+                 android:hasCode="True">
+        <activity android:name=".SSE2NEON"
+                  android:label="@string/app_name">
+            <meta-data android:name="android.app.lib_name"
+                    android:value="SSE2NEON" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest> 

@@ -21,7 +21,7 @@
 
 #else
 
-#include "NsSSE2NEON.h"
+#include "SSE2NEON.h"
 
 #endif
 

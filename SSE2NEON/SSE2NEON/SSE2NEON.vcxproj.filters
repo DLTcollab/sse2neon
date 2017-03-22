@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="res">
+      <UniqueIdentifier>1809a5b3-0e48-4552-907e-2b1b920e5948</UniqueIdentifier>
+    </Filter>
+    <Filter Include="res\values">
+      <UniqueIdentifier>f663d0da-a8fc-4457-bf5e-aab7f1904d2e</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{32a44a3b-1ece-48ec-a181-de7a49d1c972}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\sse2neon">
+      <UniqueIdentifier>{d64092f0-bd97-42f3-8e5a-e3dbc448ef62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\sse2neon\test">
+      <UniqueIdentifier>{dfa22a06-6da7-446e-a1dd-8bd921238984}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="jni">
+      <UniqueIdentifier>{cd15bd6d-0b7f-4bc8-83bc-ff8b30f022ca}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidBuild Include="AndroidManifest.xml" />
+    <AndroidBuild Include="res\values\strings.xml">
+      <Filter>res\values</Filter>
+    </AndroidBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <JCompile Include="src\sse2neon\test\SSE2NEON.java">
+      <Filter>src\sse2neon\test</Filter>
+    </JCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="jni\SSE2NEON_TEST.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SSE2NEONBinding.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\SSE2NEONTEST.cpp">
+      <Filter>jni</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\SSE2NEON.h">
+      <Filter>jni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SSE2NEONBinding.h">
+      <Filter>jni</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\SSE2NEONTEST.h">
+      <Filter>jni</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
