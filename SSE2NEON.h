@@ -1204,9 +1204,9 @@ FORCE_INLINE __m128 _mm_cmpord_ps(__m128 a, __m128 b )
 }
 
 // Compares the lower single-precision floating point scalar values of a and b using a less than operation. : https://msdn.microsoft.com/en-us/library/2kwe606b(v=vs.90).aspx
+// Important note!! The documentation on MSDN is incorrect!  If either of the values is a NAN the docs say you will get a one, but in fact, it will return a zero!!
 FORCE_INLINE int _mm_comilt_ss(__m128 a, __m128 b)
 {
-	//return vgetq_lane_u32(vcltq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)), 0);
 	uint32x4_t a_not_nan = vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
 	uint32x4_t b_not_nan = vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
 	uint32x4_t a_or_b_nan = vmvnq_u32(vandq_u32(a_not_nan, b_not_nan));
