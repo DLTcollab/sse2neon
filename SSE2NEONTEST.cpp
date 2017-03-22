@@ -28,6 +28,21 @@
 namespace SSE2NEON
 {
 
+// hex representation of an IEEE NAN
+const uint32_t inan = 0xffffffff;
+
+static inline float getNAN(void)
+{
+    const float *fn = (const float *)&inan;
+    return *fn;
+}
+
+static inline bool isNAN(float a)
+{
+    const uint32_t *ia = (const uint32_t *)&a;
+    return (*ia) == inan ? true : false;
+}
+
 // Do a round operation that produces results the same as SSE instructions
 static inline float bankersRounding(float val)
 {
@@ -399,14 +414,20 @@ static inline float bankersRounding(float val)
         return true;
     }
 
+    bool validateSingleFloatPair(float a, float b)
+    {
+        const uint32_t *ia = (const uint32_t *)&a;
+        const uint32_t *ib = (const uint32_t *)&b;
+        return (*ia) == (*ib) ? true : false;   // We do an integer (binary) compare rather than a floating point compare to take nands and infinities into account as well.
+    }
 
     bool validateFloat(__m128 a, float x, float y, float z, float w)
     {
         const float *t = (const float *)&a;
-        ASSERT_RETURN(t[3] == x);
-        ASSERT_RETURN(t[2] == y);
-        ASSERT_RETURN(t[1] == z);
-        ASSERT_RETURN(t[0] == w);
+        ASSERT_RETURN(validateSingleFloatPair(t[3],x));
+        ASSERT_RETURN(validateSingleFloatPair(t[2],y));
+        ASSERT_RETURN(validateSingleFloatPair(t[1],z));
+        ASSERT_RETURN(validateSingleFloatPair(t[0],w));
         return true;
     }
 
@@ -1047,6 +1068,42 @@ static inline float bankersRounding(float val)
         return validateInt(iret, result[3], result[2], result[1], result[0]);
     }
 
+
+
+    float compord(float a, float b)
+    {
+        float ret;
+
+        bool isNANA = isNAN(a);
+        bool isNANB = isNAN(b);
+        if ( !isNANA &&  !isNANB)
+        {
+            ret = getNAN();
+        }
+        else
+        {
+            ret = 0.0f;
+        }
+        return ret;
+    }
+
+    bool test_mm_cmpord_ps(const float *_a, const float *_b)
+    {
+        __m128 a = test_mm_load_ps(_a);
+        __m128 b = test_mm_load_ps(_b);
+
+        float result[4];
+
+        for (uint32_t i = 0; i < 4; i++)
+        {
+            result[i] = compord(_a[i], _b[i]);
+        }
+
+        __m128 ret = _mm_cmpord_ps(a, b);
+
+        return validateFloat(ret, result[3], result[2], result[1], result[0]);
+    }
+
     bool test_mm_cvttps_epi32(const float *_a)
     {
         __m128 a = test_mm_load_ps(_a);
@@ -1262,7 +1319,7 @@ public:
                 ret = test_mm_cvtps_epi32(mTestFloatPointer1);
                 break;
             case IT_MM_CMPORD_PS:
-                ret = true;
+                ret = test_mm_cmpord_ps(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_COMILT_SS:
                 ret = true;
@@ -1445,7 +1502,7 @@ public:
             if ( !ret ) break; // load test float failed??
             ret = loadTestIntPointers(i);	// load some random int values
             if ( !ret ) break; // load test float failed??
-            // If we are testing the reciprocol, then invert the input data (easier for debugging)
+            // If we are testing the reciprocal, then invert the input data (easier for debugging)
             if ( test == IT_MM_RCP_PS )
             {
 
@@ -1458,6 +1515,15 @@ public:
             {
                // Make sure at least one value is the same.
                mTestFloatPointer1[3] = mTestFloatPointer2[3];
+            }
+
+            if (test == IT_MM_CMPORD_PS) // if testing for NAN's make sure we have some nans
+            {
+
+                uint32_t r1 = rand() & 3;
+                uint32_t r2 = rand() & 3;
+                mTestFloatPointer1[r1] = getNAN();
+                mTestFloatPointer2[r2] = getNAN();
             }
 
             // one out of every random 64 times or so, mix up the test floats to contain some integer values
