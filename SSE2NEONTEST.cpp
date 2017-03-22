@@ -1087,6 +1087,23 @@ static inline float bankersRounding(float val)
         return ret;
     }
 
+    bool test_mm_cmpord_ps(const float *_a, const float *_b)
+    {
+        __m128 a = test_mm_load_ps(_a);
+        __m128 b = test_mm_load_ps(_b);
+
+        float result[4];
+
+        for (uint32_t i = 0; i < 4; i++)
+        {
+            result[i] = compord(_a[i], _b[i]);
+        }
+
+        __m128 ret = _mm_cmpord_ps(a, b);
+
+        return validateFloat(ret, result[3], result[2], result[1], result[0]);
+    }
+//********************************************
     int32_t comilt_ss(float a, float b)
     {
         int32_t ret;
@@ -1104,22 +1121,6 @@ static inline float bankersRounding(float val)
         return ret;
     }
 
-    bool test_mm_cmpord_ps(const float *_a, const float *_b)
-    {
-        __m128 a = test_mm_load_ps(_a);
-        __m128 b = test_mm_load_ps(_b);
-
-        float result[4];
-
-        for (uint32_t i = 0; i < 4; i++)
-        {
-            result[i] = compord(_a[i], _b[i]);
-        }
-
-        __m128 ret = _mm_cmpord_ps(a, b);
-
-        return validateFloat(ret, result[3], result[2], result[1], result[0]);
-    }
 
     bool test_mm_comilt_ss(const float *_a, const float *_b)
     {
@@ -1133,6 +1134,170 @@ static inline float bankersRounding(float val)
 
         return result == ret ? true : false;
     }
+//********************************************
+
+//********************************************
+    int32_t comigt_ss(float a, float b)
+    {
+        int32_t ret;
+
+        bool isNANA = isNAN(a);
+        bool isNANB = isNAN(b);
+        if (!isNANA && !isNANB)
+        {
+            ret = a > b ? 1 : 0;
+        }
+        else
+        {
+            ret = 0;        // **NOTE** The documentation on MSDN is in error!  The actual hardware returns a 0, not a 1 if either of the values is a NAN!
+        }
+        return ret;
+    }
+
+    bool test_mm_comigt_ss(const float *_a, const float *_b)
+    {
+        __m128 a = test_mm_load_ps(_a);
+        __m128 b = test_mm_load_ps(_b);
+
+
+        int32_t result = comigt_ss(_a[0], _b[0]);
+
+        int32_t ret = _mm_comigt_ss(a, b);
+
+        return result == ret ? true : false;
+    }
+//********************************************
+
+//********************************************
+    int32_t comile_ss(float a, float b)
+    {
+        int32_t ret;
+
+        bool isNANA = isNAN(a);
+        bool isNANB = isNAN(b);
+        if (!isNANA && !isNANB)
+        {
+            ret = a <= b ? 1 : 0;
+        }
+        else
+        {
+            ret = 0;        // **NOTE** The documentation on MSDN is in error!  The actual hardware returns a 0, not a 1 if either of the values is a NAN!
+        }
+        return ret;
+    }
+
+    bool test_mm_comile_ss(const float *_a, const float *_b)
+    {
+        __m128 a = test_mm_load_ps(_a);
+        __m128 b = test_mm_load_ps(_b);
+
+
+        int32_t result = comile_ss(_a[0], _b[0]);
+
+        int32_t ret = _mm_comile_ss(a, b);
+
+        return result == ret ? true : false;
+    }
+//********************************************
+
+//********************************************
+    int32_t comige_ss(float a, float b)
+    {
+        int32_t ret;
+
+        bool isNANA = isNAN(a);
+        bool isNANB = isNAN(b);
+        if (!isNANA && !isNANB)
+        {
+            ret = a >= b ? 1 : 0;
+        }
+        else
+        {
+            ret = 0;        // **NOTE** The documentation on MSDN is in error!  The actual hardware returns a 0, not a 1 if either of the values is a NAN!
+        }
+        return ret;
+    }
+
+    bool test_mm_comige_ss(const float *_a, const float *_b)
+    {
+        __m128 a = test_mm_load_ps(_a);
+        __m128 b = test_mm_load_ps(_b);
+
+
+        int32_t result = comige_ss(_a[0], _b[0]);
+
+        int32_t ret = _mm_comige_ss(a, b);
+
+        return result == ret ? true : false;
+    }
+    //********************************************
+
+    //********************************************
+    int32_t comieq_ss(float a, float b)
+    {
+        int32_t ret;
+
+        bool isNANA = isNAN(a);
+        bool isNANB = isNAN(b);
+        if (!isNANA && !isNANB)
+        {
+            ret = a == b ? 1 : 0;
+        }
+        else
+        {
+            ret = 0;        // **NOTE** The documentation on MSDN is in error!  The actual hardware returns a 0, not a 1 if either of the values is a NAN!
+        }
+        return ret;
+    }
+
+    bool test_mm_comieq_ss(const float *_a, const float *_b)
+    {
+        __m128 a = test_mm_load_ps(_a);
+        __m128 b = test_mm_load_ps(_b);
+
+        int32_t result = comieq_ss(_a[0], _b[0]);
+
+        int32_t ret = _mm_comieq_ss(a, b);
+
+        return result == ret ? true : false;
+    }
+    //********************************************
+
+
+    //********************************************
+    int32_t comineq_ss(float a, float b)
+    {
+        int32_t ret;
+
+        bool isNANA = isNAN(a);
+        bool isNANB = isNAN(b);
+        if (!isNANA && !isNANB)
+        {
+            ret = a != b ? 1 : 0;
+        }
+        else
+        {
+            ret = 1;
+        }
+        return ret;
+    }
+
+    bool test_mm_comineq_ss(const float *_a, const float *_b)
+    {
+        __m128 a = test_mm_load_ps(_a);
+        __m128 b = test_mm_load_ps(_b);
+
+
+        int32_t result = comineq_ss(_a[0], _b[0]);
+
+        int32_t ret = _mm_comineq_ss(a, b);
+
+        return result == ret ? true : false;
+    }
+    //********************************************
+
+
+
 
     bool test_mm_cvttps_epi32(const float *_a)
     {
@@ -1355,6 +1520,11 @@ public:
                 break;
             case IT_MM_CMPORD_PS:
                 ret = test_mm_cmpord_ps(mTestFloatPointer1, mTestFloatPointer2);
+                if (!ret)
+                {
+                    // Note to Alexander, you need to fix this.
+                    ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
+                }
                 break;
             case IT_MM_COMILT_SS:
                 ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
@@ -1365,19 +1535,34 @@ public:
                 }
                 break;
             case IT_MM_COMIGT_SS:
-                ret = true;
+                ret = test_mm_comigt_ss(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_COMILE_SS:
-                ret = true;
+                ret = test_mm_comile_ss(mTestFloatPointer1, mTestFloatPointer2);
+                if (!ret)
+                {
+                    // Note to Alexander, you need to fix this.
+                    ret = test_mm_comile_ss(mTestFloatPointer1, mTestFloatPointer2);
+                }
                 break;
             case IT_MM_COMIGE_SS:
-                ret = true;
+                ret = test_mm_comige_ss(mTestFloatPointer1, mTestFloatPointer2);
                 break;
             case IT_MM_COMIEQ_SS:
-                ret = true;
+                ret = test_mm_comieq_ss(mTestFloatPointer1, mTestFloatPointer2);
+                if (!ret)
+                {
+                    // Note to Alexander, you need to fix this.
+                    ret = test_mm_comieq_ss(mTestFloatPointer1, mTestFloatPointer2);
+                }
                 break;
             case IT_MM_COMINEQ_SS:
-                ret = true;
+                ret = test_mm_comineq_ss(mTestFloatPointer1, mTestFloatPointer2);
+                if (!ret)
+                {
+                    // Note to Alexander, you need to fix this.
+                    ret = test_mm_comineq_ss(mTestFloatPointer1, mTestFloatPointer2);
+                }
                 break;
             case IT_MM_HADD_PS:
                 ret = true;
@@ -1557,7 +1742,13 @@ public:
                mTestFloatPointer1[3] = mTestFloatPointer2[3];
             }
 
-            if (test == IT_MM_CMPORD_PS || test == IT_MM_COMILT_SS ) // if testing for NAN's make sure we have some nans
+            if (test == IT_MM_CMPORD_PS || 
+                test == IT_MM_COMILT_SS || 
+                test == IT_MM_COMILE_SS ||
+                test == IT_MM_COMIGE_SS ||
+                test == IT_MM_COMIEQ_SS ||
+                test == IT_MM_COMINEQ_SS ||
+                test == IT_MM_COMIGT_SS) // if testing for NAN's make sure we have some nans
             {
                 // One out of four times
                 // Make sure a couple of values have NANs for testing purposes
