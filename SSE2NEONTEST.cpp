@@ -1512,19 +1512,9 @@ public:
                 break;
             case IT_MM_CVTPS_EPI32:
                 ret = test_mm_cvtps_epi32(mTestFloatPointer1);
-                if (!ret)
-                {
-                    // Note to Alexander, you need to fix this.
-                    ret = test_mm_cvtps_epi32(mTestFloatPointer1);
-                }
                 break;
             case IT_MM_CMPORD_PS:
                 ret = test_mm_cmpord_ps(mTestFloatPointer1, mTestFloatPointer2);
-                if (!ret)
-                {
-                    // Note to Alexander, you need to fix this.
-                    ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
-                }
                 break;
             case IT_MM_COMILT_SS:
                 ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
@@ -1816,7 +1806,17 @@ public:
                     }
                 }
             }
-
+#if 0
+            {
+                mTestFloatPointer1[0] = getNAN();
+                mTestFloatPointer2[0] = getNAN();
+                bool ok = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer1);
+                if (!ok)
+                {
+                    printf("Debug me");
+                }
+            }
+#endif
             ret = runSingleTest(test,i);
             if ( !ret ) // the test failed...
             {

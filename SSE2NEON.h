@@ -1316,11 +1316,15 @@ FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 #if defined(__aarch64__)
 	return vcvtnq_s32_f32(a);
 #else
-	uint32x4_t copysignmask = vdupq_n_u32(0x80000000);
-	float32x4_t half = vreinterpretq_f32_u32(vdupq_n_u32(0x3efffffe)); /* 4.9999994e-1, because SSE rounds 0.5 to zero */
-	float32x4_t delta = vbslq_f32(copysignmask, vreinterpretq_f32_m128(a), half); /* +/- 4.9999994e-1 */
-	float32x4_t round = vaddq_f32(vreinterpretq_f32_m128(a), delta);
-	return vreinterpretq_m128i_s32(vcvtq_s32_f32(round));
+    uint32x4_t signmask = vdupq_n_u32(0x80000000);
+    float32x4_t half = vbslq_f32(signmask, vreinterpretq_f32_m128(a), vdupq_n_f32(0.5f)); /* +/- 0.5 */
+    int32x4_t r_normal = vcvtq_s32_f32(vaddq_f32(vreinterpretq_f32_m128(a), half)); /* round to integer: [a + 0.5]*/
+    int32x4_t r_trunc = vcvtq_s32_f32(vreinterpretq_f32_m128(a)); /* truncate to integer: [a] */
+    int32x4_t plusone = vreinterpretq_s32_u32(vshrq_n_u32(vreinterpretq_u32_s32(vnegq_s32(r_trunc)), 31)); /* 1 or 0 */
+    int32x4_t r_even = vbicq_s32(vaddq_s32(r_trunc, plusone), vdupq_n_s32(1)); /* ([a] + {0,1}) & ~1 */
+    float32x4_t delta = vsubq_f32(vreinterpretq_f32_m128(a), vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
+    uint32x4_t is_delta_half = vceqq_f32(delta, half); /* delta == +/- 0.5 */
+    return vreinterpretq_m128i_s32(vbslq_s32(is_delta_half, r_even, r_normal));
 #endif
 }
 
