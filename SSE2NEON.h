@@ -344,6 +344,23 @@ FORCE_INLINE __m128 _mm_setr_ps(float w, float z , float y , float x )
 	return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
+
+//following added by hasindu (need to do unit tests)
+//Sets the 8 signed 16-bit integer values to w. https://msdn.microsoft.com/en-us/library/k0ya3x0e(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_set1_epi16(short w)
+{
+	return vreinterpretq_m128i_s16(vdupq_n_s16(w));
+}
+
+//following added by hasindu (need to do unit tests)
+//Sets the 8 signed 16-bit integer values. https://msdn.microsoft.com/en-au/library/3e0fek84(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_set_epi16(short i7, short i6, short i5, short i4, short i3, short i2, short i1, short i0)
+{
+	int16_t __attribute__((aligned(16))) data[8] = { i0, i1, i2, i3, i4, i5, i6, i7 };
+	return vreinterpretq_m128i_s16(vld1q_s16(data));	
+}
+
+
 // Sets the 4 signed 32-bit integer values to i. https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set1_epi32(int _i)
 {
@@ -826,6 +843,25 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255) in
 	_mm_shufflehi_epi16_function((a), (imm))
 
 
+//added by hasindu (need to do unit tests)
+//Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while shifting in zeros.	https://msdn.microsoft.com/en-us/library/es73bcsy(v=vs.90).aspx
+#define _mm_slli_epi16(a, imm) \
+({ \
+	__m128i ret; \
+	if ((imm) <= 0) {\
+		ret = a; \
+	} \
+	else if ((imm) > 31) { \
+		ret = _mm_setzero_si128(); \
+	} \
+	else { \
+		ret = vreinterpretq_m128i_s16(vshlq_n_s16(vreinterpretq_s16_m128i(a), (imm))); \
+	} \
+	ret; \
+})
+	    
+    
+
 // Shifts the 4 signed or unsigned 32-bit integers in a left by count bits while shifting in zeros. : https://msdn.microsoft.com/en-us/library/z2k3bbtb%28v=vs.90%29.aspx
 //FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_slli_epi32(a, imm) \
@@ -842,6 +878,26 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255) in
 	} \
 	ret; \
 })
+
+
+//added by hasindu (need unit tests)
+// Shifts the 8 signed or unsigned 16-bit integers in a right by count bits while shifting in zeros.
+//https://msdn.microsoft.com/en-us/library/6tcwd38t(v=vs.90).aspx
+#define _mm_srli_epi16(a, imm) \
+({ \
+	__m128i ret; \
+	if ((imm) <= 0) { \
+		ret = a; \
+	} \
+	else if ((imm)> 31) { \
+		ret = _mm_setzero_si128(); \
+	} \
+	else { \
+		ret = vreinterpretq_m128i_u16(vshrq_n_u16(vreinterpretq_u16_m128i(a), (imm))); \
+	} \
+	ret; \
+})
+
 
 //Shifts the 4 signed or unsigned 32-bit integers in a right by count bits while shifting in zeros.  https://msdn.microsoft.com/en-us/library/w486zcfa(v=vs.100).aspx
 //FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
@@ -1176,6 +1232,16 @@ FORCE_INLINE __m128 _mm_cmpeq_ps(__m128 a, __m128 b)
 {
 	return vreinterpretq_m128_u32(vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
+
+
+//added by hasindu (need to do unit tests)
+//Compares the 8 signed or unsigned 16-bit integers in a and the 8 signed or unsigned 16-bit integers in b for equality. 
+//https://msdn.microsoft.com/en-us/library/2ay060te(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_cmpeq_epi16 (__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u16(vceqq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+}
+
 
 // Compares the 4 signed 32-bit integers in a and the 4 signed 32-bit integers in b for less than. https://msdn.microsoft.com/en-us/library/vstudio/4ak0bf5d(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_cmplt_epi32(__m128i a, __m128i b)
