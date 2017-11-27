@@ -25,4 +25,4 @@ $(BINARY) : $(SRCS) $(DEPS)
 
 .PHONY: clean    
 clean :
-	-rm $(BINARY) *.o  *.out 
+	-rm $(BINARY) *.o  *.out 2> /dev/null

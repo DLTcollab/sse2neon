@@ -114,6 +114,19 @@ enum InstructionTest
     IT_MM_SFENCE,                        // Unit test *not yet implemented*
     IT_MM_STREAM_SI128,                  // Unit test *not yet implemented*
     IT_MM_CLFLUSH,                       // Unit test *not yet implemented*
+    
+    //added by hasindu 
+    IT_MM_SET1_EPI16,
+    IT_MM_SET_EPI16,
+    IT_MM_SLLI_EPI16,
+    IT_MM_SRLI_EPI16,
+    IT_MM_CMPEQ_EPI16,
+    
+    
+    
+    
+    
+    
     IT_LAST
 };
 

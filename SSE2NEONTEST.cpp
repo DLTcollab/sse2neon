@@ -370,9 +370,31 @@ static inline float bankersRounding(float val)
         case IT_MM_SHUFFLE_PS:
             ret = "MM_SHUFFLE_PS";
             break;
-        }
+            
+        case IT_MM_CVTSS_F32:
+            ret = "MM_CVTSS_F32";
+            break;
 
-
+        //added by hasindu
+        case IT_MM_SET1_EPI16:
+            ret = "MM_SET1_EPI16";
+            break;
+        case IT_MM_SET_EPI16:
+            ret = "MM_SET_EPI16";
+            break;       
+        case IT_MM_SLLI_EPI16:
+            ret = "MM_SLLI_EPI16";
+            break;
+        case IT_MM_SRLI_EPI16:
+            ret = "MM_SRLI_EPI16";
+            break;
+        case IT_MM_CMPEQ_EPI16:
+            ret = "MM_CMPEQ_EPI16";
+            break;
+            
+          
+        }        
+        
         return ret;
     }
 
@@ -1338,7 +1360,90 @@ static inline float bankersRounding(float val)
         __m128i ret = _mm_cvtps_epi32(a);
         return validateInt(ret, trun[3], trun[2], trun[1], trun[0]);
     }
+    
+    
+    //following tests added by hasindu
+    
+    bool test_mm_set1_epi16(const int16_t *_a)
+    {
+        int16_t d0 = _a[0];
+  
 
+        __m128i c = _mm_set1_epi16(d0);
+        return validateInt16(c, d0, d0, d0, d0, d0, d0, d0, d0);            
+    }   
+    
+    
+    bool test_mm_set_epi16(const int16_t *_a)
+    {
+        int16_t d0 = _a[0];
+        int16_t d1 = _a[1];
+        int16_t d2 = _a[2];
+        int16_t d3 = _a[3];
+        int16_t d4 = _a[4];
+        int16_t d5 = _a[5];
+        int16_t d6 = _a[6];
+        int16_t d7 = _a[7];   
+
+        __m128i c = _mm_set_epi16(d7, d6, d5, d4, d3, d2, d1, d0);
+        return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);            
+    }
+    
+    bool test_mm_slli_epi16(const int16_t *_a)
+    {
+        
+        const int count = 3;
+        
+        int16_t d0 = _a[0]<<count;
+        int16_t d1 = _a[1]<<count;
+        int16_t d2 = _a[2]<<count;
+        int16_t d3 = _a[3]<<count;
+        int16_t d4 = _a[4]<<count;
+        int16_t d5 = _a[5]<<count;
+        int16_t d6 = _a[6]<<count;
+        int16_t d7 = _a[7]<<count;   
+
+        
+        __m128i a = test_mm_load_ps((const int32_t *)_a);
+        __m128i c = _mm_slli_epi16(a,count);
+        return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);            
+    }    
+    
+    bool test_mm_srli_epi16(const int16_t *_a)
+    {
+        const int count = 3;
+        
+        int16_t d0 = (uint16_t)(_a[0])>>count;
+        int16_t d1 = (uint16_t)(_a[1])>>count;
+        int16_t d2 = (uint16_t)(_a[2])>>count;
+        int16_t d3 = (uint16_t)(_a[3])>>count;
+        int16_t d4 = (uint16_t)(_a[4])>>count;
+        int16_t d5 = (uint16_t)(_a[5])>>count;
+        int16_t d6 = (uint16_t)(_a[6])>>count;
+        int16_t d7 = (uint16_t)(_a[7])>>count;   
+
+        
+        __m128i a = test_mm_load_ps((const int32_t *)_a);
+        __m128i c = _mm_srli_epi16(a,count);
+        return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);                   
+    } 
+    
+    bool test_mm_cmpeq_epi16(const int16_t *_a, const int16_t *_b)
+    {
+        int16_t d0 = (_a[0]==_b[0]) ? 0xffff : 0x0;
+        int16_t d1 = (_a[1]==_b[1]) ? 0xffff : 0x0;
+        int16_t d2 = (_a[2]==_b[2]) ? 0xffff : 0x0;
+        int16_t d3 = (_a[3]==_b[3]) ? 0xffff : 0x0;;
+        int16_t d4 = (_a[4]==_b[4]) ? 0xffff : 0x0;;
+        int16_t d5 = (_a[5]==_b[5]) ? 0xffff : 0x0;
+        int16_t d6 = (_a[6]==_b[6]) ? 0xffff : 0x0;;
+        int16_t d7 = (_a[7]==_b[7]) ? 0xffff : 0x0;   
+
+        __m128i a = test_mm_load_ps((const int32_t *)_a);
+        __m128i b = test_mm_load_ps((const int32_t *)_b);
+        __m128i c = _mm_cmpeq_epi16(a,b);
+        return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);            
+    }     
 
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
@@ -1698,6 +1803,28 @@ public:
             case IT_MM_CLFLUSH:
                 ret = true;
                 break;
+                
+                
+            case IT_MM_CVTSS_F32:
+                ret = true;
+                break;
+                
+            //added by hasindu
+            case IT_MM_SET1_EPI16:
+                ret = test_mm_set1_epi16((const int16_t *)mTestIntPointer1);;
+                break;                
+            case IT_MM_SET_EPI16:
+                ret = test_mm_set_epi16((const int16_t *)mTestIntPointer1);
+                break;
+            case IT_MM_SLLI_EPI16:
+                ret = test_mm_slli_epi16((const int16_t *)mTestIntPointer1);
+                break;
+            case IT_MM_SRLI_EPI16:
+                ret = test_mm_srli_epi16((const int16_t *)mTestIntPointer1);
+                break;
+            case IT_MM_CMPEQ_EPI16:
+                ret = test_mm_cmpeq_epi16((const int16_t *)mTestIntPointer1,(const int16_t *)mTestIntPointer2);
+                break;                
         }
 
 
