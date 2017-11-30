@@ -344,6 +344,15 @@ FORCE_INLINE __m128 _mm_setr_ps(float w, float z , float y , float x )
 	return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
+
+//added by hasindu
+//Sets the 4 signed 32-bit integer values in reverse order https://technet.microsoft.com/en-us/library/security/27yb3ee5(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
+{
+	int32_t __attribute__((aligned(16))) data[4] = { i3, i2, i1, i0 };
+	return vreinterpretq_m128i_s32(vld1q_s32(data));
+}
+
 //following added by hasindu 
 //Sets the 16 signed 8-bit integer values to b.https://msdn.microsoft.com/en-us/library/6e14xhyf(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set1_epi8(char w)
@@ -395,6 +404,13 @@ FORCE_INLINE void _mm_storeu_ps(float *p, __m128 a)
 
 // Stores four 32-bit integer values as (as a __m128i value) at the address p. https://msdn.microsoft.com/en-us/library/vstudio/edk11s13(v=vs.100).aspx
 FORCE_INLINE void _mm_store_si128(__m128i *p, __m128i a)
+{
+	vst1q_s32((int32_t*) p, vreinterpretq_s32_m128i(a));
+}
+
+//added by hasindu (verify this for requirement of alignment)
+// Stores four 32-bit integer values as (as a __m128i value) at the address p. https://msdn.microsoft.com/en-us/library/vstudio/edk11s13(v=vs.100).aspx
+FORCE_INLINE void _mm_storeu_si128(__m128i *p, __m128i a)
 {
 	vst1q_s32((int32_t*) p, vreinterpretq_s32_m128i(a));
 }
@@ -1028,6 +1044,12 @@ FORCE_INLINE __m128i _mm_sub_epi16(__m128i a, __m128i b)
 }
 
 //added by hasindu
+FORCE_INLINE __m128i _mm_sub_epi8(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_s8(vsubq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+}
+
+//added by hasindu
 //Subtracts the 8 unsigned 16-bit integers of bfrom the 8 unsigned 16-bit integers of a and saturates.. https://technet.microsoft.com/en-us/subscriptions/index/f44y0s19(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b)
 {
@@ -1066,6 +1088,13 @@ FORCE_INLINE __m128i _mm_add_epi32(__m128i a, __m128i b)
 FORCE_INLINE __m128i _mm_add_epi16(__m128i a, __m128i b)
 {
 	return vreinterpretq_m128i_s16(vaddq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+}
+
+//added by hasindu
+// Adds the 16 signed or unsigned 8-bit integers in a to the 16 signed or unsigned 8-bit integers in b. https://technet.microsoft.com/en-us/subscriptions/yc7tcyzs(v=vs.90)
+FORCE_INLINE __m128i _mm_add_epi8(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_s8(vaddq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
 //added by hasindu
@@ -1189,6 +1218,13 @@ FORCE_INLINE __m128 _mm_min_ss(__m128 a, __m128 b)
 //Computes the pairwise maxima of the 16 unsigned 8-bit integers from a and the 16 unsigned 8-bit integers from b. https://msdn.microsoft.com/en-us/library/st6634za(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_max_epu8(__m128i a, __m128i b)
 {
+	return vreinterpretq_m128i_u8(vmaxq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
+}
+
+//added by hasindu
+//Computes the pairwise minima of the 16 unsigned 8-bit integers from a and the 16 unsigned 8-bit integers from b. https://msdn.microsoft.com/ko-kr/library/17k8cf58(v=vs.100).aspxx
+FORCE_INLINE __m128i _mm_min_epu8(__m128i a, __m128i b)
+{
 	return vreinterpretq_m128i_u8(vminq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
@@ -1299,6 +1335,21 @@ FORCE_INLINE __m128i _mm_cmpeq_epi8 (__m128i a, __m128i b)
 FORCE_INLINE __m128i _mm_cmpeq_epi16 (__m128i a, __m128i b)
 {
 	return vreinterpretq_m128i_u16(vceqq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+}
+
+//added by hasindu 
+//Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers in b for lesser than. https://msdn.microsoft.com/en-us/library/windows/desktop/9s46csht(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_cmplt_epi8 (__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u8(vcltq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+}
+
+
+//added by hasindu 
+//Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers in b for greater than. https://msdn.microsoft.com/zh-tw/library/wf45zt2b(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_cmpgt_epi8 (__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u8(vcgtq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
 //added by hasindu 
@@ -1490,6 +1541,14 @@ FORCE_INLINE __m128i _mm_load_si128(const __m128i *p)
 {
 	return vreinterpretq_m128i_s32(vld1q_s32((int32_t *)p));
 }
+
+//added by hasindu (verify this for requirement of alignment)
+// Loads 128-bit value. : https://msdn.microsoft.com/zh-cn/library/f4k12ae8(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
+{
+	return vreinterpretq_m128i_s32(vld1q_s32((int32_t *)p));
+}
+
 
 // ******************************************
 // Miscellaneous Operations
