@@ -344,6 +344,13 @@ FORCE_INLINE __m128 _mm_setr_ps(float w, float z , float y , float x )
 	return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
+//following added by hasindu 
+//Sets the 16 signed 8-bit integer values to b.https://msdn.microsoft.com/en-us/library/6e14xhyf(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_set1_epi8(char w)
+{
+	return vreinterpretq_m128i_s8(vdupq_n_s8(w));
+}
+
 
 //following added by hasindu 
 //Sets the 8 signed 16-bit integer values to w. https://msdn.microsoft.com/en-us/library/k0ya3x0e(v=vs.90).aspx
@@ -1027,6 +1034,12 @@ FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b)
 	return vreinterpretq_m128i_u16(vqsubq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
 }
 
+//added by hasindu
+//Subtracts the 16 unsigned 8-bit integers of b from the 16 unsigned 8-bit integers of a and saturates.. https://technet.microsoft.com/en-us/subscriptions/yadkxc18(v=vs.90)
+FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u8(vqsubq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
+}
 
 // Adds the four single-precision, floating-point values of a and b. https://msdn.microsoft.com/en-us/library/vstudio/c9848chc(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_add_ps(__m128 a, __m128 b)
@@ -1060,6 +1073,13 @@ FORCE_INLINE __m128i _mm_add_epi16(__m128i a, __m128i b)
 FORCE_INLINE __m128i _mm_adds_epi16(__m128i a, __m128i b)
 {
 	return vreinterpretq_m128i_s16(vqaddq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+}
+
+//added by hasindu
+//Adds the 16 unsigned 8-bit integers in a to the 16 unsigned 8-bit integers in b and saturates.. https://msdn.microsoft.com/en-us/library/9hahyddy(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_adds_epu8(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u8(vqaddq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
 
@@ -1165,6 +1185,14 @@ FORCE_INLINE __m128 _mm_min_ss(__m128 a, __m128 b)
 	return vreinterpretq_m128_f32(vsetq_lane_f32(value, vreinterpretq_f32_m128(a), 0));
 }
 
+//added by hasindu
+//Computes the pairwise maxima of the 16 unsigned 8-bit integers from a and the 16 unsigned 8-bit integers from b. https://msdn.microsoft.com/en-us/library/st6634za(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_max_epu8(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u8(vminq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
+}
+
+
 // Computes the pairwise minima of the 8 signed 16-bit integers from a and the 8 signed 16-bit integers from b. https://msdn.microsoft.com/en-us/library/vstudio/6te997ew(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_min_epi16(__m128i a, __m128i b)
 {
@@ -1257,6 +1285,13 @@ FORCE_INLINE __m128 _mm_cmpeq_ps(__m128 a, __m128 b)
 	return vreinterpretq_m128_u32(vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+
+//added by hasindu 
+//Compares the 16 signed or unsigned 8-bit integers in a and the 16 signed or unsigned 8-bit integers in b for equality. https://msdn.microsoft.com/en-us/library/windows/desktop/bz5xk21a(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_cmpeq_epi8 (__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_u8(vceqq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+}
 
 //added by hasindu 
 //Compares the 8 signed or unsigned 16-bit integers in a and the 8 signed or unsigned 16-bit integers in b for equality. 
