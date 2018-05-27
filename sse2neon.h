@@ -4,50 +4,15 @@
 // This header file provides a simple API translation layer
 // between SSE intrinsics to their corresponding ARM NEON versions
 //
-// This header file does not (yet) translate *all* of the SSE intrinsics.
-// Since this is in support of a specific porting effort, I have only
-// included the intrinsics I needed to get my port to work.
-//
-// Questions/Comments/Feedback send to: jratcliffscarab@gmail.com
-//
-// If you want to improve or add to this project, send me an
-// email and I will probably approve your access to the depot.
-//
-// Project is located here:
-//
-//	https://github.com/jratcliff63367/sse2neon
-//
-// Show your appreciation for open source by sending me a bitcoin tip to the
-// following address.
-//
-// TipJar: 1PzgWDSyq4pmdAXRH8SPUtta4SWGrt4B1p :
-// https://blockchain.info/address/1PzgWDSyq4pmdAXRH8SPUtta4SWGrt4B1p
-//
+// This header file does not yet translate all of the SSE intrinsics.
 //
 // Contributors to this project are:
-//
-// John W. Ratcliff     : jratcliffscarab@gmail.com
-// Brandon Rowlett      : browlett@nvidia.com
-// Ken Fast             : kfast@gdeb.com
-// Eric van Beurden     : evanbeurden@nvidia.com
-// Alexander Potylitsin : apotylitsin@nvidia.com
-//
-//
-// *********************************************************************************************************************
-// apoty: March 17, 2017
-// Current version was changed in most to fix issues and potential issues.
-// All unit tests were rewritten as a part of forge lib project to cover all
-// implemented functions.
-// *********************************************************************************************************************
-// Release notes for January 20, 2017 version:
-//
-// The unit tests have been refactored.  They no longer assert on an error,
-// instead they return a pass/fail condition The unit-tests now test 10,000
-// random float and int values against each intrinsic.
-//
-// SSE2NEON now supports 95 SSE intrinsics.  39 of them have formal unit tests
-// which have been implemented and fully tested on NEON/ARM.  The remaining 56
-// still need unit tests implemented.
+//   John W. Ratcliff     : jratcliffscarab@gmail.com
+//   Brandon Rowlett      : browlett@nvidia.com
+//   Ken Fast             : kfast@gdeb.com
+//   Eric van Beurden     : evanbeurden@nvidia.com
+//   Alexander Potylitsin : apotylitsin@nvidia.com
+//   Hasindu Gamaarachchi : hasindu2008@gmail.com
 //
 // A struct is now defined in this header file called 'SIMDVec' which can be
 // used by applications which attempt to access the contents of an _m128 struct
@@ -76,34 +41,7 @@
 // Support for a number of new intrinsics was added, however, none of them yet
 // have unit-tests to 100% confirm they are producing the correct results on
 // NEON.  These unit tests will be added as soon as possible.
-//
-// Here is the list of new instrinsics which have been added:
-//
-// _mm_cvtss_f32     :  extracts the lower order floating point value from the
-// parameter _mm_add_ss        : adds the scalar single - precision floating
-// point values of a and b _mm_div_ps        : Divides the four single -
-// precision, floating - point values of a and b. _mm_div_ss        : Divides
-// the scalar single - precision floating point value of a by b. _mm_sqrt_ss :
-// Computes the approximation of the square root of the scalar single -
-// precision floating point value of in. _mm_rsqrt_ps      : Computes the
-// approximations of the reciprocal square roots of the four single - precision
-// floating point values of in. _mm_comilt_ss     : Compares the lower single -
-// precision floating point scalar values of a and b using a less than operation
-// _mm_comigt_ss     : Compares the lower single - precision floating point
-// scalar values of a and b using a greater than operation. _mm_comile_ss     :
-// Compares the lower single - precision floating point scalar values of a and b
-// using a less than or equal operation. _mm_comige_ss     : Compares the lower
-// single - precision floating point scalar values of a and b using a greater
-// than or equal operation. _mm_comieq_ss     :  Compares the lower single -
-// precision floating point scalar values of a and b using an equality
-// operation. _mm_comineq_s     :  Compares the lower single - precision
-// floating point scalar values of a and b using an inequality operation
-// _mm_unpackhi_epi8 : Interleaves the upper 8 signed or unsigned 8 - bit
-// integers in a with the upper 8 signed or unsigned 8 - bit integers in b.
-// _mm_unpackhi_epi16:  Interleaves the upper 4 signed or unsigned 16 - bit
-// integers in a with the upper 4 signed or unsigned 16 - bit integers in b.
-//
-// *********************************************************************************************************************
+
 /*
 ** The MIT license:
 **
@@ -112,24 +50,19 @@
 ** in the Software without restriction, including without limitation the rights
 ** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 ** copies of the Software, and to permit persons to whom the Software is
-furnished
-** to do so, subject to the following conditions:
+** furnished to do so, subject to the following conditions:
 **
 ** The above copyright notice and this permission notice shall be included in
-all
-** copies or substantial portions of the Software.
-
+** all copies or substantial portions of the Software.
+**
 ** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 ** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 ** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 ** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY,
-** WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
-IN
-** CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+** SOFTWARE.
 */
-
-#define ENABLE_CPP_VERSION 0
 
 #if defined(__GNUC__) || defined(__clang__)
 
@@ -615,12 +548,11 @@ FORCE_INLINE __m128 _mm_movelh_ps(__m128 __A, __m128 __B)
 // https://msdn.microsoft.com/en-us/library/vstudio/4490ys29(v=vs.100).aspx
 FORCE_INLINE int _mm_movemask_ps(__m128 a)
 {
-#if ENABLE_CPP_VERSION  // I am not yet convinced that the NEON version is
-                        // faster than the C version of this
+#if 0 /* C version */
     uint32x4_t &ia = *(uint32x4_t *) &a;
     return (ia[0] >> 31) | ((ia[1] >> 30) & 2) | ((ia[2] >> 29) & 4) |
            ((ia[3] >> 28) & 8);
-#else
+#endif
     static const uint32x4_t movemask = {1, 2, 4, 8};
     static const uint32x4_t highbit = {0x80000000, 0x80000000, 0x80000000,
                                        0x80000000};
@@ -629,7 +561,6 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
     uint32x4_t t2 = vandq_u32(t1, movemask);
     uint32x2_t t3 = vorr_u32(vget_low_u32(t2), vget_high_u32(t2));
     return vget_lane_u32(t3, 0) | vget_lane_u32(t3, 1);
-#endif
 }
 
 // Takes the upper 64 bits of a and places it in the low end of the result
@@ -774,8 +705,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2032(__m128 a, __m128 b)
 // Selects four specific single-precision, floating-point values from a and b,
 // based on the mask i.
 // https://msdn.microsoft.com/en-us/library/vstudio/5f0858x0(v=vs.100).aspx
-#if ENABLE_CPP_VERSION  // I am not convinced that the NEON version is faster
-                        // than the C version yet.
+#if 0 /* C version */
 FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
                                            __m128 b,
                                            __constrange(0, 255) int imm)
@@ -787,7 +717,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
     ret[3] = b[(imm >> 6) & 0x03];
     return ret;
 }
-#else
+#endif
 #define _mm_shuffle_ps_default(a, b, imm)                                  \
     ({                                                                     \
         float32x4_t ret;                                                   \
@@ -804,7 +734,6 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
             ret, 3);                                                       \
         vreinterpretq_m128_f32(ret);                                       \
     })
-#endif
 
 // FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255)
 // int imm)
@@ -951,7 +880,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 
 // FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255)
 // int imm)
-#if ENABLE_CPP_VERSION
+#if 0 /* C version */
 FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
                                                __constrange(0, 255) int imm)
 {
@@ -962,7 +891,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
     ret[3] = a[(imm >> 6) & 0x03];
     return ret;
 }
-#else
+#endif
 #define _mm_shuffle_epi32_default(a, imm)                                   \
     ({                                                                      \
         int32x4_t ret;                                                      \
@@ -979,7 +908,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
             ret, 3);                                                        \
         vreinterpretq_m128i_s32(ret);                                       \
     })
-#endif
 
 // FORCE_INLINE __m128i _mm_shuffle_epi32_splat(__m128i a, __constrange(0,255)
 // int imm)
