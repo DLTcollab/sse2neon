@@ -399,6 +399,13 @@ FORCE_INLINE __m128i _mm_set1_epi32(int _i)
     return vreinterpretq_m128i_s32(vdupq_n_s32(_i));
 }
 
+// Sets the 4 signed 64-bit integer values to i.
+// https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_set1_epi64(int64_t _i)
+{
+    return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
+}
+
 // Sets the 4 signed 32-bit integer values.
 // https://msdn.microsoft.com/en-us/library/vstudio/019beekt(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set_epi32(int i3, int i2, int i1, int i0)
@@ -566,6 +573,22 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s32(
         veorq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+}
+
+/* Moves the upper two values of B into the lower two values of A.  */
+FORCE_INLINE __m128 _mm_movehl_ps(__m128 __A, __m128 __B)
+{
+    float32x2_t a32 = vget_high_f32(vreinterpretq_f32_m128(__A));
+    float32x2_t b32 = vget_high_f32(vreinterpretq_f32_m128(__B));
+    return vreinterpretq_m128_f32(vcombine_f32(a32, b32));
+}
+
+/* Moves the lower two values of B into the upper two values of A.  */
+FORCE_INLINE __m128 _mm_movelh_ps(__m128 __A, __m128 __B)
+{
+    float32x2_t a10 = vget_low_f32(vreinterpretq_f32_m128(__A));
+    float32x2_t b10 = vget_low_f32(vreinterpretq_f32_m128(__B));
+    return vreinterpretq_m128_f32(vcombine_f32(a10, b10));
 }
 
 // NEON does not provide this method
@@ -1017,6 +1040,28 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // by imm.  https://msdn.microsoft.com/en-us/library/13ywktbs(v=vs.100).aspx
 // FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a,
 // __constrange(0,255) int imm)
+#define _mm_shufflelo_epi16_function(a, imm)                                  \
+    ({                                                                        \
+        int16x8_t ret = vreinterpretq_s16_s32(a);                             \
+        int16x4_t lowBits = vget_low_s16(ret);                                \
+        ret = vsetq_lane_s16(vget_lane_s16(lowBits, (imm) &0x3), ret, 4);     \
+        ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 2) & 0x3), ret, \
+                             5);                                              \
+        ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 4) & 0x3), ret, \
+                             6);                                              \
+        ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 6) & 0x3), ret, \
+                             7);                                              \
+        vreinterpretq_s32_s16(ret);                                           \
+    })
+
+// FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a, __constrange(0,255) int
+// imm)
+#define _mm_shufflelo_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
+
+// Shuffles the upper 4 signed or unsigned 16 - bit integers in a as specified
+// by imm.  https://msdn.microsoft.com/en-us/library/13ywktbs(v=vs.100).aspx
+// FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a,
+// __constrange(0,255) int imm)
 #define _mm_shufflehi_epi16_function(a, imm)                                   \
     ({                                                                         \
         int16x8_t ret = vreinterpretq_s16_s32(a);                              \
@@ -1111,6 +1156,8 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         }                                                        \
         ret;                                                     \
     })
+
+
 
 // Shifts the 4 signed 32 - bit integers in a right by count bits while shifting
 // in the sign bit.
@@ -1274,6 +1321,14 @@ FORCE_INLINE __m128 _mm_add_ss(__m128 a, __m128 b)
     float32x4_t value = vsetq_lane_f32(b0, vdupq_n_f32(0), 0);
     // the upper values in the result must be the remnants of <a>.
     return vreinterpretq_m128_f32(vaddq_f32(a, value));
+}
+
+// Adds the 4 signed or unsigned 64-bit integers in a to the 4 signed or
+// unsigned 32-bit integers in b.
+// https://msdn.microsoft.com/en-us/library/vstudio/09xs4fkk(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_add_epi64(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_s64(vaddq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
 }
 
 // Adds the 4 signed or unsigned 32-bit integers in a to the 4 signed or
