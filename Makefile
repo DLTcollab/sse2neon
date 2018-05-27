@@ -1,11 +1,12 @@
 CXX = g++
 ARCH_CFLAGS = -march=armv8-a+fp+simd -mtune=thunderx
-CXXFLAGS = -Wall -I. $(ARCH_CFLAGS)
+CXXFLAGS = -Wall -I. $(ARCH_CFLAGS) -MMD
 LDFLAGS	= -lm
 OBJS = \
     tests/binding.o \
     tests/impl.o \
     tests/main.o
+deps := $(OBJS:%.o=%.d)
 
 EXEC = tests/main
 
@@ -17,4 +18,6 @@ check: tests/main
 
 .PHONY: clean    
 clean:
-	$(RM) $(OBJS) $(EXEC)
+	$(RM) $(OBJS) $(EXEC) $(deps)
+
+-include $(deps)
