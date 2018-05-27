@@ -22,7 +22,7 @@
 
 #else
 
-#include "SSE2NEON.h"
+#include "sse2neon.h"
 
 #endif
 
