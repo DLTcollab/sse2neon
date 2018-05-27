@@ -443,7 +443,8 @@ static inline float bankersRounding(float val)
         case IT_MM_MIN_EPU8:
             ret = "MM_MIN_EPU8";
             break;
-               
+	case IT_LAST: /* should not happend */
+	    break;
         }        
         
         return ret;
@@ -2276,7 +2277,8 @@ public:
             case IT_MM_MIN_EPU8:
                 ret = test_mm_min_epu8((const int8_t *)mTestIntPointer1,(const int8_t *)mTestIntPointer2);
                 break;
-
+	    case IT_LAST: /* should not happend */
+		break;
 
                 
         }
