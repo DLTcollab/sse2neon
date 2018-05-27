@@ -1,28 +1,20 @@
-#makefile to compile multiple Cpp files
+CXX = g++
+ARCH_CFLAGS = -march=armv8-a+fp+simd -mtune=thunderx
+CXXFLAGS = -Wall -I. $(ARCH_CFLAGS)
+LDFLAGS	= -lm
+OBJS = \
+    tests/binding.o \
+    tests/impl.o \
+    tests/main.o
 
-#user defined variables
+EXEC = tests/main
 
-#The C compiler to use 
-CC = g++
-#C flags
-CFLAGS = -Wall -mfpu=neon
-#Preprocessor flags like include paths
-CPPFLAGS+=	-I. 
-#Add libraries to this, e.g. -lm for the math library
-LDFLAGS	:= -lm
-#List of C source files
-SRCS	:=	$(wildcard *.cpp)
-#program name
-BINARY = test.out
-#header files and dependcies
-DEPS = SSE2NEON.h SSE2NEONBinding.h SSE2NEONTEST.h
+$(EXEC): $(OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^
 
-
-$(BINARY) : $(SRCS) $(DEPS) 
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(SRCS) -o $@
-# $@ is an inbuilt (automatic) variable that gives the name of the target
-#$< is an inbuilt (automatic) variable that gives the name of the first (or only) prerequisite.
+check: tests/main
+	$^
 
 .PHONY: clean    
-clean :
-	-rm $(BINARY) *.o  *.out 2> /dev/null
+clean:
+	$(RM) $(OBJS) $(EXEC)

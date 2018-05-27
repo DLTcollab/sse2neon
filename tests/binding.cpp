@@ -1,5 +1,4 @@
-#include "SSE2NEONBinding.h"
-
+#include "binding.h"
 
 #ifdef WIN32
 #include <xmmintrin.h>
@@ -7,8 +6,6 @@
 
 #include <malloc.h>
 #include <crtdbg.h>
-
-
 
 #else
 
