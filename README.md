@@ -3,26 +3,37 @@
 A C/C++ header file that converts Intel SSE intrinsics to ARN NEON intrinsics.
 
 ## Info
-The SIMD instruction set of Intel, which is known as SSE is used in many applications for improved performance.  ARM also have introduced an SIMD instruction set called Neon to their processors.
-Rewriting code written for SSE to work on Neon is very time consuming.  This is a header file that can automatically convert some of the SSE instricts into NEON instricts.
-
+The SIMD instruction set of Intel, which is known as SSE is used in many
+applications for improved performance.  ARM also have introduced an SIMD
+instruction set called Neon to their processors.
+Rewriting code written for SSE to work on Neon is very time consuming. and
+this is a header file that can automatically convert some of the SSE
+instricts into NEON instricts.
 
 ## Usage
 
-- Put the *SSE2NEON.h* file in to your source code directory.
+- Put the file `sse2neon.h` in to your source code directory.
 
 - Locate the following SSE header files included in the code: 
-```    
-    #include <xmmintrin.h>
-    #include <emmintrin.h>
+```C
+#include <xmmintrin.h>
+#include <emmintrin.h>
 ```
 
 - Replace them with : 
-```
-#include "SSE2NEON.h"
+```C
+#include "sse2neon.h"
 ```
 
-- On Linux compile your code with the following gcc/g++ flag:   
- ```
- -mfpu=neon 
- ```
+- On ARMv7-A targets, you need to append the following compiler option:
+```shell
+-mfpu=neon
+```
+
+## Reference
+* [SSE2NEON.h : A porting guide and header file to convert SSE intrinsics to their ARM NEON equivalent](https://codesuppository.blogspot.tw/2015/02/sse2neonh-porting-guide-and-header-file.html)
+* [ARM_NEON_2_x86_SSE](https://github.com/intel/ARM_NEON_2_x86_SSE)
+
+## Licensing
+
+`sse2neon` is freely redistributable under the MIT License.
