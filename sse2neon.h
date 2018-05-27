@@ -132,14 +132,23 @@ IN
 #define ENABLE_CPP_VERSION 0
 
 #if defined(__GNUC__) || defined(__clang__)
+
 #pragma push_macro("FORCE_INLINE")
 #pragma push_macro("ALIGN_STRUCT")
 #define FORCE_INLINE static inline __attribute__((always_inline))
 #define ALIGN_STRUCT(x) __attribute__((aligned(x)))
+
 #else
+
 #error "Macro name collisions may happens with unknown compiler"
+#ifdef FORCE_INLINE
+#undef FORCE_INLINE
+#endif
 #define FORCE_INLINE static inline
+#ifndef ALIGN_STRUCT
 #define ALIGN_STRUCT(x) __declspec(align(x))
+#endif
+
 #endif
 
 #include <stdint.h>
