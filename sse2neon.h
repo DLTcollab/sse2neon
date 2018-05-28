@@ -1349,22 +1349,23 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 /* Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
  * integers from b.
  * PMADDWD
- * Return Value
- * Adds the signed 32-bit integer results pairwise and packs the 4 signed
- * 32-bit integer results.
  * r0 := (a0 * b0) + (a1 * b1)
  * r1 := (a2 * b2) + (a3 * b3)
  * r2 := (a4 * b4) + (a5 * b5)
  * r3 := (a6 * b6) + (a7 * b7)
- * */
+ * https://msdn.microsoft.com/en-us/library/yht36sa6(v=vs.90).aspx
+ */
 FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
 {
-    int32x4_t r_l =
-        vmull_s16(vget_low_s16((int16x8_t) a), vget_low_s16((int16x8_t) b));
-    int32x4_t r_h =
-        vmull_s16(vget_high_s16((int16x8_t) a), vget_high_s16((int16x8_t) b));
-    return vcombine_s32(vpadd_s32(vget_low_s32(r_l), vget_high_s32(r_l)),
-                        vpadd_s32(vget_low_s32(r_h), vget_high_s32(r_h)));
+    int32x4_t low = vmull_s16(vget_low_s16(vreinterpretq_s16_m128i(a)),
+                              vget_low_s16(vreinterpretq_s16_m128i(b)));
+    int32x4_t high = vmull_s16(vget_high_s16(vreinterpretq_s16_m128i(a)),
+                               vget_high_s16(vreinterpretq_s16_m128i(b)));
+
+    int32x2_t low_sum = vpadd_s32(vget_low_s32(low), vget_high_s32(low));
+    int32x2_t high_sum = vpadd_s32(vget_low_s32(high), vget_high_s32(high));
+
+    return vreinterpretq_s32_m128i(vcombine_s32(low_sum, high_sum));
 }
 
 /* Computes the absolute difference of the 16 unsigned 8-bit integers from a

@@ -207,6 +207,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_ADD_EPI16:
         ret = "MM_ADD_EPI16";
         break;
+    case IT_MM_MADD_EPI16:
+        ret = "MM_MADD_EPI16";
+        break;
     case IT_MM_MULLO_EPI16:
         ret = "MM_MULLO_EPI16";
         break;
@@ -998,6 +1001,30 @@ bool test_mm_mullo_epi16(const int16_t *_a, const int16_t *_b)
 
     __m128i c = _mm_mullo_epi16(a, b);
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
+bool test_mm_madd_epi16(const int16_t *_a, const int16_t *_b)
+{
+    int32_t d0 = (int32_t) _a[0] * _b[0];
+    int32_t d1 = (int32_t) _a[1] * _b[1];
+    int32_t d2 = (int32_t) _a[2] * _b[2];
+    int32_t d3 = (int32_t) _a[3] * _b[3];
+    int32_t d4 = (int32_t) _a[4] * _b[4];
+    int32_t d5 = (int32_t) _a[5] * _b[5];
+    int32_t d6 = (int32_t) _a[6] * _b[6];
+    int32_t d7 = (int32_t) _a[7] * _b[7];
+
+    int32_t e0 = d0 + d1;
+    int32_t e1 = d2 + d3;
+    int32_t e2 = d4 + d5;
+    int32_t e3 = d6 + d7;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+
+    __m128i c = _mm_madd_epi16(a, b);
+
+    return validateInt(c, e3, e2, e1, e0);
 }
 
 bool test_mm_mul_ps(const float *_a, const float *_b)
@@ -2272,6 +2299,10 @@ public:
             break;
         case IT_MM_ADD_EPI16:
             ret = true;
+            break;
+        case IT_MM_MADD_EPI16:
+            ret = test_mm_madd_epi16((const int16_t *) mTestIntPointer1,
+                                     (const int16_t *) mTestIntPointer2);
             break;
         case IT_MM_ADD_SS:
             ret = true;

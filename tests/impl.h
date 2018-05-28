@@ -78,43 +78,44 @@ enum InstructionTest {
     IT_MM_SHUFFLEHI_EPI16_FUNCTION,  // Unit test *not yet implemented*
     IT_MM_ADD_SS,                    // Unit test *not yet implemented*
     IT_MM_ADD_EPI16,                 // Unit test *not yet implemented*
-    IT_MM_MULLO_EPI32,               // Unit test *not yet implemented*
-    IT_MM_DIV_PS,                    // Unit test *not yet implemented*
-    IT_MM_DIV_SS,                    // Unit test *not yet implemented*
-    IT_MM_SQRT_PS,                   // Unit test *not yet implemented*
-    IT_MM_SQRT_SS,                   // Unit test *not yet implemented*
-    IT_MM_RSQRT_PS,                  // Unit test *not yet implemented*
-    IT_MM_MAX_SS,                    // Unit test *not yet implemented*
-    IT_MM_MIN_SS,                    // Unit test *not yet implemented*
-    IT_MM_MAX_EPI32,                 // Unit test *not yet implemented*
-    IT_MM_MIN_EPI32,                 // Unit test *not yet implemented*
-    IT_MM_HADD_PS,                   // Unit test *not yet implemented*
-    IT_MM_CMPORD_PS,                 // Unit test *not yet implemented*
-    IT_MM_COMILT_SS,                 // Unit test *not yet implemented*
-    IT_MM_COMIGT_SS,                 // Unit test *not yet implemented*
-    IT_MM_COMILE_SS,                 // Unit test *not yet implemented*
-    IT_MM_COMIGE_SS,                 // Unit test *not yet implemented*
-    IT_MM_COMIEQ_SS,                 // Unit test *not yet implemented*
-    IT_MM_COMINEQ_SS,                // Unit test *not yet implemented*
-    IT_MM_CVTSI128_SI32,             // Unit test *not yet implemented*
-    IT_MM_CVTSI32_SI128,             // Unit test *not yet implemented*
-    IT_MM_CASTPS_SI128,              // Unit test *not yet implemented*
-    IT_MM_CASTSI128_PS,              // Unit test *not yet implemented*
-    IT_MM_LOAD_SI128,                // Unit test *not yet implemented*
-    IT_MM_PACKS_EPI16,               // Unit test *not yet implemented*
-    IT_MM_PACKUS_EPI16,              // Unit test *not yet implemented*
-    IT_MM_PACKS_EPI32,               // Unit test *not yet implemented*
-    IT_MM_UNPACKLO_EPI8,             // Unit test *not yet implemented*
-    IT_MM_UNPACKLO_EPI16,            // Unit test *not yet implemented*
-    IT_MM_UNPACKLO_EPI32,            // Unit test *not yet implemented*
-    IT_MM_UNPACKLO_PS,               // Unit test *not yet implemented*
-    IT_MM_UNPACKHI_PS,               // Unit test *not yet implemented*
-    IT_MM_UNPACKHI_EPI8,             // Unit test *not yet implemented*
-    IT_MM_UNPACKHI_EPI16,            // Unit test *not yet implemented*
-    IT_MM_UNPACKHI_EPI32,            // Unit test *not yet implemented*
-    IT_MM_SFENCE,                    // Unit test *not yet implemented*
-    IT_MM_STREAM_SI128,              // Unit test *not yet implemented*
-    IT_MM_CLFLUSH,                   // Unit test *not yet implemented*
+    IT_MM_MADD_EPI16,     // Unit test implemented and verified as fully working
+    IT_MM_MULLO_EPI32,    // Unit test *not yet implemented*
+    IT_MM_DIV_PS,         // Unit test *not yet implemented*
+    IT_MM_DIV_SS,         // Unit test *not yet implemented*
+    IT_MM_SQRT_PS,        // Unit test *not yet implemented*
+    IT_MM_SQRT_SS,        // Unit test *not yet implemented*
+    IT_MM_RSQRT_PS,       // Unit test *not yet implemented*
+    IT_MM_MAX_SS,         // Unit test *not yet implemented*
+    IT_MM_MIN_SS,         // Unit test *not yet implemented*
+    IT_MM_MAX_EPI32,      // Unit test *not yet implemented*
+    IT_MM_MIN_EPI32,      // Unit test *not yet implemented*
+    IT_MM_HADD_PS,        // Unit test *not yet implemented*
+    IT_MM_CMPORD_PS,      // Unit test *not yet implemented*
+    IT_MM_COMILT_SS,      // Unit test *not yet implemented*
+    IT_MM_COMIGT_SS,      // Unit test *not yet implemented*
+    IT_MM_COMILE_SS,      // Unit test *not yet implemented*
+    IT_MM_COMIGE_SS,      // Unit test *not yet implemented*
+    IT_MM_COMIEQ_SS,      // Unit test *not yet implemented*
+    IT_MM_COMINEQ_SS,     // Unit test *not yet implemented*
+    IT_MM_CVTSI128_SI32,  // Unit test *not yet implemented*
+    IT_MM_CVTSI32_SI128,  // Unit test *not yet implemented*
+    IT_MM_CASTPS_SI128,   // Unit test *not yet implemented*
+    IT_MM_CASTSI128_PS,   // Unit test *not yet implemented*
+    IT_MM_LOAD_SI128,     // Unit test *not yet implemented*
+    IT_MM_PACKS_EPI16,    // Unit test *not yet implemented*
+    IT_MM_PACKUS_EPI16,   // Unit test *not yet implemented*
+    IT_MM_PACKS_EPI32,    // Unit test *not yet implemented*
+    IT_MM_UNPACKLO_EPI8,  // Unit test *not yet implemented*
+    IT_MM_UNPACKLO_EPI16,  // Unit test *not yet implemented*
+    IT_MM_UNPACKLO_EPI32,  // Unit test *not yet implemented*
+    IT_MM_UNPACKLO_PS,     // Unit test *not yet implemented*
+    IT_MM_UNPACKHI_PS,     // Unit test *not yet implemented*
+    IT_MM_UNPACKHI_EPI8,   // Unit test *not yet implemented*
+    IT_MM_UNPACKHI_EPI16,  // Unit test *not yet implemented*
+    IT_MM_UNPACKHI_EPI32,  // Unit test *not yet implemented*
+    IT_MM_SFENCE,          // Unit test *not yet implemented*
+    IT_MM_STREAM_SI128,    // Unit test *not yet implemented*
+    IT_MM_CLFLUSH,         // Unit test *not yet implemented*
 
     // added by hasindu
     IT_MM_SET1_EPI16,
