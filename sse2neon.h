@@ -1248,6 +1248,28 @@ FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b)
         vqaddq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
 }
 
+FORCE_INLINE __m128i _mm_sign_epi32(__m128i a, __m128i b)
+{
+    __m128i zer0 = vdupq_n_s32(0);
+    __m128i ltMask = vreinterpretq_s32_u32(vcltq_s32(b, zer0));
+    __m128i gtMask = vreinterpretq_s32_u32(vcgtq_s32(b, zer0));
+    __m128i neg = vnegq_s32(a);
+    __m128i tmp = vandq_s32(a, gtMask);
+    return vorrq_s32(tmp, vandq_s32(neg, ltMask));
+}
+
+FORCE_INLINE __m128i _mm_sign_epi16(__m128i a, __m128i b)
+{
+    int16x8_t zer0 = vdupq_n_s16(0);
+    int16x8_t ltMask =
+        vreinterpretq_s16_u16(vcltq_s16(vreinterpretq_s16_s32(b), zer0));
+    int16x8_t gtMask =
+        vreinterpretq_s16_u16(vcgtq_s16(vreinterpretq_s16_s32(b), zer0));
+    int16x8_t neg = vnegq_s16(vreinterpretq_s16_s32(a));
+    int16x8_t tmp = vandq_s16(vreinterpretq_s16_s32(a), gtMask);
+    return vreinterpretq_s32_s16(vorrq_s16(tmp, vandq_s16(neg, ltMask)));
+}
+
 // Adds the four single-precision, floating-point values of a and b.
 // https://msdn.microsoft.com/en-us/library/vstudio/c9848chc(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_add_ps(__m128 a, __m128 b)
