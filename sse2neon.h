@@ -965,6 +965,30 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // imm)
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
 
+/* Shifts the 4 signed 32-bit integers in a right by count bits while shifting
+ * in the sign bit.
+ * r0 := a0 >> count
+ * r1 := a1 >> count
+ * r2 := a2 >> count
+ * r3 := a3 >> count immediate
+ */
+FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, int count)
+{
+    return vshlq_s32(a, vdupq_n_s32(-count));
+}
+
+/* Shifts the 8 signed 16-bit integers in a right by count bits while shifting
+ * in the sign bit.
+ * r0 := a0 >> count
+ * r1 := a1 >> count
+ *  ...
+ * r7 := a7 >> count
+ */
+FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
+{
+    return (__m128i) vshlq_s16((int16x8_t) a, vdupq_n_s16(-count));
+}
+
 // Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while
 // shifting in zeros.
 // https://msdn.microsoft.com/en-us/library/es73bcsy(v=vs.90).aspx
@@ -1273,6 +1297,52 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_f32(
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+}
+
+/* Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
+ * integers from b.
+ * PMADDWD
+ * Return Value
+ * Adds the signed 32-bit integer results pairwise and packs the 4 signed
+ * 32-bit integer results.
+ * r0 := (a0 * b0) + (a1 * b1)
+ * r1 := (a2 * b2) + (a3 * b3)
+ * r2 := (a4 * b4) + (a5 * b5)
+ * r3 := (a6 * b6) + (a7 * b7)
+ * */
+FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
+{
+    int32x4_t r_l =
+        vmull_s16(vget_low_s16((int16x8_t) a), vget_low_s16((int16x8_t) b));
+    int32x4_t r_h =
+        vmull_s16(vget_high_s16((int16x8_t) a), vget_high_s16((int16x8_t) b));
+    return vcombine_s32(vpadd_s32(vget_low_s32(r_l), vget_high_s32(r_l)),
+                        vpadd_s32(vget_low_s32(r_h), vget_high_s32(r_h)));
+}
+
+/* Computes the absolute difference of the 16 unsigned 8-bit integers from a
+ * and the 16 unsigned 8-bit integers from b.
+ * PSADBW
+ * Return Value
+ * Sums the upper 8 differences and lower 8 differences and packs the
+ * resulting 2 unsigned 16-bit integers into the upper and lower 64-bit
+ * elements.
+ * r0 := abs(a0 - b0) + abs(a1 - b1) +...+ abs(a7 - b7)
+ * r1 := 0x0
+ * r2 := 0x0
+ * r3 := 0x0
+ * r4 := abs(a8 - b8) + abs(a9 - b9) +...+ abs(a15 - b15)
+ * r5 := 0x0
+ * r6 := 0x0
+ * r7 := 0x0
+ */
+FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
+{
+    uint16x8_t t = vpaddlq_u8(vabdq_u8((uint8x16_t) a, (uint8x16_t) b));
+    uint16_t r0 = t[0] + t[1] + t[2] + t[3];
+    uint16_t r4 = t[4] + t[5] + t[6] + t[7];
+    uint16x8_t r = vsetq_lane_u16(r0, vdupq_n_u16(0), 0);
+    return (__m128i) vsetq_lane_u16(r4, r, 4);
 }
 
 // Divides the four single-precision, floating-point values of a and b.
