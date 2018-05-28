@@ -12,19 +12,7 @@
 // provides the output we expect.  If this fires an assert, then something
 // didn't match up.
 
-
-#ifdef WIN32
-
-#pragma warning(disable : 4211)
-
-#include <emmintrin.h>
-#include <xmmintrin.h>
-
-#else
-
 #include "sse2neon.h"
-
-#endif
 
 namespace SSE2NEON
 {
@@ -77,7 +65,6 @@ static inline float bankersRounding(float val)
     }
     return ret;
 }
-
 
 const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
 {
@@ -380,7 +367,6 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         ret = "MM_CVTSS_F32";
         break;
 
-    // added by hasindu
     case IT_MM_SET1_EPI16:
         ret = "MM_SET1_EPI16";
         break;
@@ -454,7 +440,6 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
 
     return ret;
 }
-
 
 #define ASSERT_RETURN(x) \
     if (!(x))            \
@@ -694,7 +679,6 @@ __m128i test_mm_load_ps(const int32_t *p)
     return ia;
 }
 
-
 // r0 := ~a0 & b0
 // r1 := ~a1 & b1
 // r2 := ~a2 & b2
@@ -760,7 +744,6 @@ bool test_mm_or_ps(const float *_a, const float *_b)
     }
     return r;
 }
-
 
 bool test_mm_andnot_si128(const int32_t *_a, const int32_t *_b)
 {
@@ -1196,7 +1179,6 @@ bool test_mm_cmpeq_ps(const float *_a, const float *_b)
     return validateInt(iret, result[3], result[2], result[1], result[0]);
 }
 
-
 bool test_mm_cmplt_epi32(const int32_t *_a, const int32_t *_b)
 {
     __m128i a = test_mm_load_ps(_a);
@@ -1227,8 +1209,6 @@ bool test_mm_cmpgt_epi32(const int32_t *_a, const int32_t *_b)
     __m128i iret = _mm_cmpgt_epi32(a, b);
     return validateInt(iret, result[3], result[2], result[1], result[0]);
 }
-
-
 
 float compord(float a, float b)
 {
@@ -1468,9 +1448,6 @@ bool test_mm_cvtps_epi32(const float _a[4])
     return validateInt(ret, trun[3], trun[2], trun[1], trun[0]);
 }
 
-
-// following tests added by hasindu
-
 bool test_mm_set1_epi16(const int16_t *_a)
 {
     int16_t d0 = _a[0];
@@ -1478,7 +1455,6 @@ bool test_mm_set1_epi16(const int16_t *_a)
     __m128i c = _mm_set1_epi16(d0);
     return validateInt16(c, d0, d0, d0, d0, d0, d0, d0, d0);
 }
-
 
 bool test_mm_set_epi16(const int16_t *_a)
 {
@@ -2039,7 +2015,6 @@ bool test_mm_min_epu8(const int8_t *_a, const int8_t *_b)
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
 
-
 class SSE2NEONTestImpl : public SSE2NEONTest
 {
 public:
@@ -2418,7 +2393,6 @@ public:
             ret = true;
             break;
 
-        // added by hasindu
         case IT_MM_SET1_EPI16:
             ret = test_mm_set1_epi16((const int16_t *) mTestIntPointer1);
             break;
@@ -2507,11 +2481,9 @@ public:
         return ret;
     }
 
-
     virtual bool runTest(InstructionTest test)
     {
         bool ret = true;
-
 
         // Test a whole bunch of values
         for (uint32_t i = 0; i < (MAX_TEST_VALUE - 8); i++) {
