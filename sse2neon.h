@@ -535,6 +535,16 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
     return vget_lane_u32(t3, 0) | vget_lane_u32(t3, 1);
 }
 
+FORCE_INLINE __m128i _mm_abs_epi32(__m128i a)
+{
+    return vqabsq_s32(a);
+}
+
+FORCE_INLINE __m128i _mm_abs_epi16(__m128i a)
+{
+    return vreinterpretq_s32_s16(vqabsq_s16(vreinterpretq_s16_s32(a)));
+}
+
 // Takes the upper 64 bits of a and places it in the low end of the result
 // Takes the lower 64 bits of b and places it into the high end of the result.
 FORCE_INLINE __m128 _mm_shuffle_ps_1032(__m128 a, __m128 b)
