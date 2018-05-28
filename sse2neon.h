@@ -1201,6 +1201,19 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
         vqsubq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
+/* Subtracts the 8 signed 16-bit integers of b from the 8 signed 16-bit integers
+ * of a and saturates.
+ * r0 := SignedSaturate(a0 - b0)
+ * r1 := SignedSaturate(a1 - b1)
+ * ...
+ * r7 := SignedSaturate(a7 - b7)
+ */
+FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_s16(
+        vqsubq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+}
+
 FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_u16(
