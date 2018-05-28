@@ -234,6 +234,25 @@ FORCE_INLINE __m128 _mm_setr_ps(float w, float z, float y, float x)
     return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
+// Sets the 8 signed 16-bit integer values in reverse order.
+// r0 := w0
+// r1 := w1
+// ...
+// r7 := w7
+FORCE_INLINE __m128i _mm_setr_epi16(short w0,
+                                    short w1,
+                                    short w2,
+                                    short w3,
+                                    short w4,
+                                    short w5,
+                                    short w6,
+                                    short w7)
+{
+    int16_t __attribute__((aligned(16)))
+    data[8] = {w0, w1, w2, w3, w4, w5, w6, w7};
+    return vreinterpretq_m128i_s16(vld1q_s16((int16_t *) data));
+}
+
 // Sets the 4 signed 32-bit integer values in reverse order
 // https://technet.microsoft.com/en-us/library/security/27yb3ee5(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
@@ -1903,7 +1922,6 @@ FORCE_INLINE __m128i _mm_cvtsi32_si128(int a)
 {
     return vreinterpretq_m128i_s32(vsetq_lane_s32(a, vdupq_n_s32(0), 0));
 }
-
 
 // Applies a type cast to reinterpret four 32-bit floating point values passed
 // in as a 128-bit parameter as packed 32-bit integers.
