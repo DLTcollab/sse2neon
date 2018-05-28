@@ -6,7 +6,7 @@
 //
 // This header file does not yet translate all of the SSE intrinsics.
 //
-// Contributors to this project are:
+// Contributors to this work are:
 //   John W. Ratcliff     : jratcliffscarab@gmail.com
 //   Brandon Rowlett      : browlett@nvidia.com
 //   Ken Fast             : kfast@gdeb.com
@@ -37,32 +37,28 @@
 // this feature but ARMv8 does. As it stands today, this header file assumes
 // ARMv8.  If you are trying to target really old ARM devices, you may get a
 // build error.
-//
-// Support for a number of new intrinsics was added, however, none of them yet
-// have unit-tests to 100% confirm they are producing the correct results on
-// NEON.  These unit tests will be added as soon as possible.
 
 /*
-** The MIT license:
-**
-** Permission is hereby granted, free of charge, to any person obtaining a copy
-** of this software and associated documentation files (the "Software"), to deal
-** in the Software without restriction, including without limitation the rights
-** to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-** copies of the Software, and to permit persons to whom the Software is
-** furnished to do so, subject to the following conditions:
-**
-** The above copyright notice and this permission notice shall be included in
-** all copies or substantial portions of the Software.
-**
-** THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-** IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-** FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-** AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-** LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-** OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-** SOFTWARE.
-*/
+ * The MIT license:
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 #if defined(__GNUC__) || defined(__clang__)
 
@@ -87,17 +83,14 @@
 #include <stdint.h>
 #include "arm_neon.h"
 
-
-/*******************************************************/
-/* MACRO for shuffle parameter for _mm_shuffle_ps().   */
-/* Argument fp3 is a digit[0123] that represents the fp*/
-/* from argument "b" of mm_shuffle_ps that will be     */
-/* placed in fp3 of result. fp2 is the same for fp2 in */
-/* result. fp1 is a digit[0123] that represents the fp */
-/* from argument "a" of mm_shuffle_ps that will be     */
-/* places in fp1 of result. fp0 is the same for fp0 of */
-/* result                                              */
-/*******************************************************/
+/**
+ * MACRO for shuffle parameter for _mm_shuffle_ps().
+ * Argument fp3 is a digit[0123] that represents the fp from argument "b"
+ * of mm_shuffle_ps that will be placed in fp3 of result. fp2 is the same
+ * for fp2 in result. fp1 is a digit[0123] that represents the fp from
+ * argument "a" of mm_shuffle_ps that will be places in fp1 of result.
+ * fp0 is the same for fp0 of result.
+ */
 #define _MM_SHUFFLE(fp3, fp2, fp1, fp0) \
     (((fp3) << 6) | ((fp2) << 4) | ((fp1) << 2) | ((fp0)))
 
@@ -108,96 +101,57 @@ typedef float32x2_t __m64;
 typedef float32x4_t __m128;
 typedef int32x4_t __m128i;
 
-
 // ******************************************
 // type-safe casting between types
 // ******************************************
 
 #define vreinterpretq_m128_f16(x) vreinterpretq_f32_f16(x)
-
 #define vreinterpretq_m128_f32(x) (x)
-
 #define vreinterpretq_m128_f64(x) vreinterpretq_f32_f64(x)
 
-
 #define vreinterpretq_m128_u8(x) vreinterpretq_f32_u8(x)
-
 #define vreinterpretq_m128_u16(x) vreinterpretq_f32_u16(x)
-
 #define vreinterpretq_m128_u32(x) vreinterpretq_f32_u32(x)
-
 #define vreinterpretq_m128_u64(x) vreinterpretq_f32_u64(x)
 
-
 #define vreinterpretq_m128_s8(x) vreinterpretq_f32_s8(x)
-
 #define vreinterpretq_m128_s16(x) vreinterpretq_f32_s16(x)
-
 #define vreinterpretq_m128_s32(x) vreinterpretq_f32_s32(x)
-
 #define vreinterpretq_m128_s64(x) vreinterpretq_f32_s64(x)
 
-
 #define vreinterpretq_f16_m128(x) vreinterpretq_f16_f32(x)
-
 #define vreinterpretq_f32_m128(x) (x)
-
 #define vreinterpretq_f64_m128(x) vreinterpretq_f64_f32(x)
 
-
 #define vreinterpretq_u8_m128(x) vreinterpretq_u8_f32(x)
-
 #define vreinterpretq_u16_m128(x) vreinterpretq_u16_f32(x)
-
 #define vreinterpretq_u32_m128(x) vreinterpretq_u32_f32(x)
-
 #define vreinterpretq_u64_m128(x) vreinterpretq_u64_f32(x)
 
-
 #define vreinterpretq_s8_m128(x) vreinterpretq_s8_f32(x)
-
 #define vreinterpretq_s16_m128(x) vreinterpretq_s16_f32(x)
-
 #define vreinterpretq_s32_m128(x) vreinterpretq_s32_f32(x)
-
 #define vreinterpretq_s64_m128(x) vreinterpretq_s64_f32(x)
 
-
 #define vreinterpretq_m128i_s8(x) vreinterpretq_s32_s8(x)
-
 #define vreinterpretq_m128i_s16(x) vreinterpretq_s32_s16(x)
-
 #define vreinterpretq_m128i_s32(x) (x)
-
 #define vreinterpretq_m128i_s64(x) vreinterpretq_s32_s64(x)
 
-
 #define vreinterpretq_m128i_u8(x) vreinterpretq_s32_u8(x)
-
 #define vreinterpretq_m128i_u16(x) vreinterpretq_s32_u16(x)
-
 #define vreinterpretq_m128i_u32(x) vreinterpretq_s32_u32(x)
-
 #define vreinterpretq_m128i_u64(x) vreinterpretq_s32_u64(x)
 
-
 #define vreinterpretq_s8_m128i(x) vreinterpretq_s8_s32(x)
-
 #define vreinterpretq_s16_m128i(x) vreinterpretq_s16_s32(x)
-
 #define vreinterpretq_s32_m128i(x) (x)
-
 #define vreinterpretq_s64_m128i(x) vreinterpretq_s64_s32(x)
 
-
 #define vreinterpretq_u8_m128i(x) vreinterpretq_u8_s32(x)
-
 #define vreinterpretq_u16_m128i(x) vreinterpretq_u16_s32(x)
-
 #define vreinterpretq_u32_m128i(x) vreinterpretq_u32_s32(x)
-
 #define vreinterpretq_u64_m128i(x) vreinterpretq_u64_s32(x)
-
 
 // union intended to allow direct access to an __m128 variable using the names
 // that the MSVC compiler provides.  This union should really only be used when
@@ -223,7 +177,6 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
     uint32_t m128_u32[4];  // as unsigned 32-bit integers.
     uint64_t m128_u64[2];  // as unsigned 64-bit integers.
 } SIMDVec;
-
 
 // ******************************************
 // Set/get methods
@@ -281,8 +234,6 @@ FORCE_INLINE __m128 _mm_setr_ps(float w, float z, float y, float x)
     return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
-
-// added by hasindu
 // Sets the 4 signed 32-bit integer values in reverse order
 // https://technet.microsoft.com/en-us/library/security/27yb3ee5(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
@@ -291,7 +242,6 @@ FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
     return vreinterpretq_m128i_s32(vld1q_s32(data));
 }
 
-// following added by hasindu
 // Sets the 16 signed 8-bit integer values to
 // b.https://msdn.microsoft.com/en-us/library/6e14xhyf(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set1_epi8(char w)
@@ -299,8 +249,6 @@ FORCE_INLINE __m128i _mm_set1_epi8(char w)
     return vreinterpretq_m128i_s8(vdupq_n_s8(w));
 }
 
-
-// following added by hasindu
 // Sets the 8 signed 16-bit integer values to w.
 // https://msdn.microsoft.com/en-us/library/k0ya3x0e(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_set1_epi16(short w)
@@ -308,7 +256,6 @@ FORCE_INLINE __m128i _mm_set1_epi16(short w)
     return vreinterpretq_m128i_s16(vdupq_n_s16(w));
 }
 
-// following added by hasindu
 // Sets the 8 signed 16-bit integer values.
 // https://msdn.microsoft.com/en-au/library/3e0fek84(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_set_epi16(short i7,
@@ -324,7 +271,6 @@ FORCE_INLINE __m128i _mm_set_epi16(short i7,
     data[8] = {i0, i1, i2, i3, i4, i5, i6, i7};
     return vreinterpretq_m128i_s16(vld1q_s16(data));
 }
-
 
 // Sets the 4 signed 32-bit integer values to i.
 // https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
@@ -369,7 +315,6 @@ FORCE_INLINE void _mm_store_si128(__m128i *p, __m128i a)
     vst1q_s32((int32_t *) p, vreinterpretq_s32_m128i(a));
 }
 
-// added by hasindu (verify this for requirement of alignment)
 // Stores four 32-bit integer values as (as a __m128i value) at the address p.
 // https://msdn.microsoft.com/en-us/library/vstudio/edk11s13(v=vs.100).aspx
 FORCE_INLINE void _mm_storeu_si128(__m128i *p, __m128i a)
@@ -441,7 +386,6 @@ FORCE_INLINE __m128 _mm_load_ss(const float *p)
 {
     return vreinterpretq_m128_f32(vsetq_lane_f32(*p, vdupq_n_f32(0), 0));
 }
-
 
 // ******************************************
 // Logic/Binary operations
@@ -658,7 +602,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_3202(__m128 a, __m128 b)
     float32_t a0 = vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
     float32x2_t a22 =
         vdup_lane_f32(vget_high_f32(vreinterpretq_f32_m128(a)), 0);
-    float32x2_t a02 = vset_lane_f32(a0, a22, 1); /* apoty: TODO: use vzip ?*/
+    float32x2_t a02 = vset_lane_f32(a0, a22, 1); /* TODO: use vzip ?*/
     float32x2_t b32 = vget_high_f32(vreinterpretq_f32_m128(b));
     return vreinterpretq_m128_f32(vcombine_f32(a02, b32));
 }
@@ -699,9 +643,6 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2032(__m128 a, __m128 b)
 }
 
 // NEON does not support a general purpose permute intrinsic
-// Currently I am not sure whether the C implementation is faster or slower than
-// the NEON version. Note, this has to be expanded as a template because the
-// shuffle value must be an immediate value. The same is true on SSE as well.
 // Selects four specific single-precision, floating-point values from a and b,
 // based on the mask i.
 // https://msdn.microsoft.com/en-us/library/vstudio/5f0858x0(v=vs.100).aspx
@@ -878,8 +819,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
     return vreinterpretq_m128i_s32(vcombine_s32(a32, a33));
 }
 
-// FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a, __constrange(0,255)
-// int imm)
 #if 0 /* C version */
 FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
                                                __constrange(0, 255) int imm)
@@ -1026,8 +965,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // imm)
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
 
-
-// added by hasindu
 // Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while
 // shifting in zeros.
 // https://msdn.microsoft.com/en-us/library/es73bcsy(v=vs.90).aspx
@@ -1044,8 +981,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         }                                                        \
         ret;                                                     \
     })
-
-
 
 // Shifts the 4 signed or unsigned 32-bit integers in a left by count bits while
 // shifting in zeros. :
@@ -1065,8 +1000,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         ret;                                                     \
     })
 
-
-// added by hasindu
 // Shifts the 8 signed or unsigned 16-bit integers in a right by count bits
 // while shifting in zeros.
 // https://msdn.microsoft.com/en-us/library/6tcwd38t(v=vs.90).aspx
@@ -1083,7 +1016,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         }                                                        \
         ret;                                                     \
     })
-
 
 // Shifts the 4 signed or unsigned 32-bit integers in a right by count bits
 // while shifting in zeros.
@@ -1102,8 +1034,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         }                                                        \
         ret;                                                     \
     })
-
-
 
 // Shifts the 4 signed 32 - bit integers in a right by count bits while shifting
 // in the sign bit.
@@ -1196,7 +1126,6 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i _a)
     return ((hi[0] << 8) | (lo[0] & 0xFF));
 }
 
-
 // ******************************************
 // Math operations
 // ******************************************
@@ -1224,14 +1153,12 @@ FORCE_INLINE __m128i _mm_sub_epi16(__m128i a, __m128i b)
         vsubq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
-// added by hasindu
 FORCE_INLINE __m128i _mm_sub_epi8(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s8(
         vsubq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
-// added by hasindu
 // Subtracts the 8 unsigned 16-bit integers of bfrom the 8 unsigned 16-bit
 // integers of a and saturates..
 // https://technet.microsoft.com/en-us/subscriptions/index/f44y0s19(v=vs.90).aspx
@@ -1241,7 +1168,6 @@ FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b)
         vqsubq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
 }
 
-// added by hasindu
 // Subtracts the 16 unsigned 8-bit integers of b from the 16 unsigned 8-bit
 // integers of a and saturates..
 // https://technet.microsoft.com/en-us/subscriptions/yadkxc18(v=vs.90)
@@ -1296,7 +1222,6 @@ FORCE_INLINE __m128i _mm_add_epi16(__m128i a, __m128i b)
         vaddq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
-// added by hasindu
 // Adds the 16 signed or unsigned 8-bit integers in a to the 16 signed or
 // unsigned 8-bit integers in b.
 // https://technet.microsoft.com/en-us/subscriptions/yc7tcyzs(v=vs.90)
@@ -1306,7 +1231,6 @@ FORCE_INLINE __m128i _mm_add_epi8(__m128i a, __m128i b)
         vaddq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
-// added by hasindu
 // Adds the 8 signed 16-bit integers in a to the 8 signed 16-bit integers in b
 // and saturates.
 // https://msdn.microsoft.com/en-us/library/1a306ef8(v=vs.100).aspx
@@ -1316,7 +1240,6 @@ FORCE_INLINE __m128i _mm_adds_epi16(__m128i a, __m128i b)
         vqaddq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
-// added by hasindu
 // Adds the 16 unsigned 8-bit integers in a to the 16 unsigned 8-bit integers in
 // b and saturates..
 // https://msdn.microsoft.com/en-us/library/9hahyddy(v=vs.100).aspx
@@ -1325,7 +1248,6 @@ FORCE_INLINE __m128i _mm_adds_epu8(__m128i a, __m128i b)
     return vreinterpretq_m128i_u8(
         vqaddq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
-
 
 // Multiplies the 8 signed or unsigned 16-bit integers from a by the 8 signed or
 // unsigned 16-bit integers from b.
@@ -1469,7 +1391,6 @@ FORCE_INLINE __m128 _mm_min_ss(__m128 a, __m128 b)
         vsetq_lane_f32(value, vreinterpretq_f32_m128(a), 0));
 }
 
-// added by hasindu
 // Computes the pairwise maxima of the 16 unsigned 8-bit integers from a and the
 // 16 unsigned 8-bit integers from b.
 // https://msdn.microsoft.com/en-us/library/st6634za(v=vs.100).aspx
@@ -1479,7 +1400,6 @@ FORCE_INLINE __m128i _mm_max_epu8(__m128i a, __m128i b)
         vmaxq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
-// added by hasindu
 // Computes the pairwise minima of the 16 unsigned 8-bit integers from a and the
 // 16 unsigned 8-bit integers from b.
 // https://msdn.microsoft.com/ko-kr/library/17k8cf58(v=vs.100).aspxx
@@ -1488,7 +1408,6 @@ FORCE_INLINE __m128i _mm_min_epu8(__m128i a, __m128i b)
     return vreinterpretq_m128i_u8(
         vminq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
-
 
 // Computes the pairwise minima of the 8 signed 16-bit integers from a and the 8
 // signed 16-bit integers from b.
@@ -1499,7 +1418,6 @@ FORCE_INLINE __m128i _mm_min_epi16(__m128i a, __m128i b)
         vminq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
-// added by hasindu
 // Computes the pairwise maxima of the 8 signed 16-bit integers from a and the 8
 // signed 16-bit integers from b.
 // https://msdn.microsoft.com/en-us/LIBRary/3x060h7c(v=vs.100).aspx
@@ -1508,7 +1426,6 @@ FORCE_INLINE __m128i _mm_max_epi16(__m128i a, __m128i b)
     return vreinterpretq_m128i_s16(
         vmaxq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
-
 
 // epi versions of min/max
 // Computes the pariwise maximums of the four signed 32-bit integer values of a
@@ -1534,7 +1451,7 @@ FORCE_INLINE __m128i _mm_min_epi32(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/vstudio/59hddw1d(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_mulhi_epi16(__m128i a, __m128i b)
 {
-    /* apoty: issue with large values because of result saturation */
+    /* FIXME: issue with large values because of result saturation */
     // int16x8_t ret = vqdmulhq_s16(vreinterpretq_s16_m128i(a),
     // vreinterpretq_s16_m128i(b)); /* =2*a*b */ return
     // vreinterpretq_m128i_s16(vshrq_n_s16(ret, 1));
@@ -1611,8 +1528,6 @@ FORCE_INLINE __m128 _mm_cmpeq_ps(__m128 a, __m128 b)
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
-
-// added by hasindu
 // Compares the 16 signed or unsigned 8-bit integers in a and the 16 signed or
 // unsigned 8-bit integers in b for equality.
 // https://msdn.microsoft.com/en-us/library/windows/desktop/bz5xk21a(v=vs.90).aspx
@@ -1622,7 +1537,6 @@ FORCE_INLINE __m128i _mm_cmpeq_epi8(__m128i a, __m128i b)
         vceqq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
-// added by hasindu
 // Compares the 8 signed or unsigned 16-bit integers in a and the 8 signed or
 // unsigned 16-bit integers in b for equality.
 // https://msdn.microsoft.com/en-us/library/2ay060te(v=vs.100).aspx
@@ -1632,7 +1546,6 @@ FORCE_INLINE __m128i _mm_cmpeq_epi16(__m128i a, __m128i b)
         vceqq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
-// added by hasindu
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for lesser than.
 // https://msdn.microsoft.com/en-us/library/windows/desktop/9s46csht(v=vs.90).aspx
@@ -1642,8 +1555,6 @@ FORCE_INLINE __m128i _mm_cmplt_epi8(__m128i a, __m128i b)
         vcltq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
-
-// added by hasindu
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for greater than.
 // https://msdn.microsoft.com/zh-tw/library/wf45zt2b(v=vs.100).aspx
@@ -1653,7 +1564,6 @@ FORCE_INLINE __m128i _mm_cmpgt_epi8(__m128i a, __m128i b)
         vcgtq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
-// added by hasindu
 // Compares the 8 signed 16-bit integers in a and the 8 signed 16-bit integers
 // in b for greater than.
 // https://technet.microsoft.com/en-us/library/xd43yfsa(v=vs.100).aspx
@@ -1921,14 +1831,12 @@ FORCE_INLINE __m128i _mm_load_si128(const __m128i *p)
     return vreinterpretq_m128i_s32(vld1q_s32((int32_t *) p));
 }
 
-// added by hasindu (verify this for requirement of alignment)
 // Loads 128-bit value. :
 // https://msdn.microsoft.com/zh-cn/library/f4k12ae8(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 {
     return vreinterpretq_m128i_s32(vld1q_s32((int32_t *) p));
 }
-
 
 // ******************************************
 // Miscellaneous Operations
