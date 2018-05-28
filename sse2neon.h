@@ -13,6 +13,7 @@
 //   Eric van Beurden     : evanbeurden@nvidia.com
 //   Alexander Potylitsin : apotylitsin@nvidia.com
 //   Hasindu Gamaarachchi : hasindu2008@gmail.com
+//   Jim Huang            : jserv@biilabs.io
 //
 // A struct is now defined in this header file called 'SIMDVec' which can be
 // used by applications which attempt to access the contents of an _m128 struct
