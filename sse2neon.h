@@ -1201,6 +1201,12 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
         vqsubq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
+FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u16(
+        vqaddq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
+}
+
 // Adds the four single-precision, floating-point values of a and b.
 // https://msdn.microsoft.com/en-us/library/vstudio/c9848chc(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_add_ps(__m128 a, __m128 b)
