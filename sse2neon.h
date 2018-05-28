@@ -2084,6 +2084,18 @@ FORCE_INLINE __m128i _mm_unpackhi_epi32(__m128i a, __m128i b)
     return vreinterpretq_m128i_s32(vcombine_s32(result.val[0], result.val[1]));
 }
 
+// Interleaves the upper signed or unsigned 64-bit integer in a with the
+// upper signed or unsigned 64-bit integer in b.
+// PUNPCKHQDQ
+// r0 := a1
+// r1 := b1
+FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
+{
+    int64x1_t a_h = vget_high_s64(vreinterpretq_s64_m128i(a));
+    int64x1_t b_h = vget_high_s64(vreinterpretq_s64_m128i(b));
+    return vreinterpretq_m128i_s64(vcombine_s64(a_h, b_h));
+}
+
 // Extracts the selected signed or unsigned 16-bit integer from a and zero
 // extends.  https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx
 // FORCE_INLINE int _mm_extract_epi16(__m128i a, __constrange(0,8) int imm)
