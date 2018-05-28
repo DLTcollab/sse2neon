@@ -2132,7 +2132,7 @@ FORCE_INLINE void _mm_sfence(void)
 // https://msdn.microsoft.com/en-us/library/ba08y07y%28v=vs.90%29.aspx
 FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 {
-    *p = a;
+    vst1q_s32((int32_t *) p, a);
 }
 
 // Cache line containing p is flushed and invalidated from all caches in the
