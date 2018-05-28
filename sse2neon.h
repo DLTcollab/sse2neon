@@ -2020,6 +2020,13 @@ FORCE_INLINE __m128i _mm_unpacklo_epi32(__m128i a, __m128i b)
     return vreinterpretq_m128i_s32(vcombine_s32(result.val[0], result.val[1]));
 }
 
+FORCE_INLINE __m128i _mm_unpacklo_epi64(__m128i a, __m128i b)
+{
+    int64x1_t a_l = vget_low_s64(vreinterpretq_s64_m128i(a));
+    int64x1_t b_l = vget_low_s64(vreinterpretq_s64_m128i(b));
+    return vreinterpretq_m128i_s64(vcombine_s64(a_l, b_l));
+}
+
 // Selects and interleaves the lower two single-precision, floating-point values
 // from a and b.
 // https://msdn.microsoft.com/en-us/library/25st103b%28v=vs.90%29.aspx
