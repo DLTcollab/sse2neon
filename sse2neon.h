@@ -387,6 +387,14 @@ FORCE_INLINE __m128 _mm_load_ss(const float *p)
     return vreinterpretq_m128_f32(vsetq_lane_f32(*p, vdupq_n_f32(0), 0));
 }
 
+FORCE_INLINE __m128i _mm_loadl_epi64(__m128i const *p)
+{
+    /* Load the lower 64 bits of the value pointed to by p into the
+     * lower 64 bits of the result, zeroing the upper 64 bits of the result.
+     */
+    return vcombine_s32(vld1_s32((int32_t const *) p), vcreate_s32(0));
+}
+
 // ******************************************
 // Logic/Binary operations
 // ******************************************
