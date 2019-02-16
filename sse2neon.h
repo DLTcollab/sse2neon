@@ -1976,6 +1976,13 @@ FORCE_INLINE int _mm_cvtsi128_si32(__m128i a)
     return vgetq_lane_s32(vreinterpretq_s32_m128i(a), 0);
 }
 
+// Extracts the low order 64-bit integer from the parameter.
+// https://msdn.microsoft.com/en-us/library/bb531384(v=vs.120).aspx
+FORCE_INLINE uint64_t _mm_cvtsi128_si64(__m128i a)
+{
+    return vgetq_lane_s64(vreinterpretq_s64_m128i(a), 0);
+}
+
 // Moves 32-bit integer a to the least significant 32 bits of an __m128 object,
 // zero extending the upper bits.
 // https://msdn.microsoft.com/en-us/library/ct3539ha%28v=vs.90%29.aspx
