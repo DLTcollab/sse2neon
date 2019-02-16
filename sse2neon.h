@@ -183,6 +183,13 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 // Set/get methods
 // ******************************************
 
+// Loads one cache line of data from address p to a location closer to the
+// processor. https://msdn.microsoft.com/en-us/library/84szxsww(v=vs.100).aspx
+FORCE_INLINE void _mm_prefetch(const void *p, int i)
+{
+    __builtin_prefetch(p);
+}
+
 // extracts the lower order floating point value from the parameter :
 // https://msdn.microsoft.com/en-us/library/bb514059%28v=vs.120%29.aspx?f=255&MSPPError=-2147217396
 FORCE_INLINE float _mm_cvtss_f32(__m128 a)
