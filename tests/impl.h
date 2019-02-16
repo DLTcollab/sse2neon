@@ -84,7 +84,7 @@ enum InstructionTest {
     IT_MM_DIV_SS,         // Unit test *not yet implemented*
     IT_MM_SQRT_PS,        // Unit test *not yet implemented*
     IT_MM_SQRT_SS,        // Unit test *not yet implemented*
-    IT_MM_RSQRT_PS,       // Unit test *not yet implemented*
+    IT_MM_RSQRT_PS,       // Unit test implemented and verified as fully working
     IT_MM_MAX_SS,         // Unit test *not yet implemented*
     IT_MM_MIN_SS,         // Unit test *not yet implemented*
     IT_MM_MAX_EPI32,      // Unit test *not yet implemented*
