@@ -1346,8 +1346,8 @@ FORCE_INLINE __m128 _mm_add_ss(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/vstudio/09xs4fkk(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_add_epi64(__m128i a, __m128i b)
 {
-    return vreinterpretq_m128i_s64(
-        vaddq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
+    return vreinterpretq_s32_s64(
+        vaddq_s64(vreinterpretq_s64_s32(a), vreinterpretq_s64_s32(b)));
 }
 
 // Adds the 4 signed or unsigned 32-bit integers in a to the 4 signed or
