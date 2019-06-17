@@ -415,6 +415,7 @@ FORCE_INLINE __m128 _mm_load1_ps(const float *p)
 {
     return vreinterpretq_m128_f32(vld1q_dup_f32(p));
 }
+#define _mm_load_ps1 _mm_load1_ps
 
 // Sets the lower two single-precision, floating-point values with 64
 // bits of data loaded from the address p; the upper two values are passed
