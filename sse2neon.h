@@ -2028,14 +2028,14 @@ FORCE_INLINE __m128 _mm_castsi128_ps(__m128i a)
 // https://msdn.microsoft.com/en-us/library/atzzad1h(v=vs.80).aspx
 FORCE_INLINE __m128i _mm_load_si128(const __m128i *p)
 {
-    return vreinterpretq_m128i_s32(vld1q_s32((int32_t *) p));
+    return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
 }
 
 // Loads 128-bit value. :
 // https://msdn.microsoft.com/zh-cn/library/f4k12ae8(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 {
-    return vreinterpretq_m128i_s32(vld1q_s32((int32_t *) p));
+    return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
 }
 
 // ******************************************
