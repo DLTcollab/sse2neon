@@ -212,6 +212,9 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
 }
 
 // Sets the four single-precision, floating-point values to w.
+//
+//   r0 := r1 := r2 := r3 := w
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/2x1se8ha(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_set1_ps(float _w)
 {
@@ -243,10 +246,12 @@ FORCE_INLINE __m128 _mm_setr_ps(float w, float z, float y, float x)
 }
 
 // Sets the 8 signed 16-bit integer values in reverse order.
-// r0 := w0
-// r1 := w1
-// ...
-// r7 := w7
+//
+// Return Value
+//   r0 := w0
+//   r1 := w1
+//   ...
+//   r7 := w7
 FORCE_INLINE __m128i _mm_setr_epi16(short w0,
                                     short w1,
                                     short w2,
@@ -270,13 +275,26 @@ FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
 }
 
 // Sets the 16 signed 8-bit integer values to
-// b.https://msdn.microsoft.com/en-us/library/6e14xhyf(v=vs.100).aspx
+// b.
+//
+//   r0 := b
+//   r1 := b
+//   ...
+//   r15 := b
+//
+// https://msdn.microsoft.com/en-us/library/6e14xhyf(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set1_epi8(char w)
 {
     return vreinterpretq_m128i_s8(vdupq_n_s8(w));
 }
 
 // Sets the 8 signed 16-bit integer values to w.
+//
+//   r0 := w
+//   r1 := w
+//   ...
+//   r7 := w
+//
 // https://msdn.microsoft.com/en-us/library/k0ya3x0e(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_set1_epi16(short w)
 {
@@ -327,6 +345,12 @@ FORCE_INLINE __m128i _mm_setr_epi8(char b0,
 }
 
 // Sets the 4 signed 32-bit integer values to i.
+//
+//   r0 := i
+//   r1 := i
+//   r2 := i
+//   r3 := I
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set1_epi32(int _i)
 {
@@ -402,7 +426,12 @@ FORCE_INLINE void _mm_storel_epi64(__m128i *a, __m128i b)
 }
 
 // Stores the lower two single-precision floating point values of a to the
-// address p. https://msdn.microsoft.com/en-us/library/h54t98ks(v=vs.90).aspx
+// address p.
+//
+//   *p0 := b0
+//   *p1 := b1
+//
+// https://msdn.microsoft.com/en-us/library/h54t98ks(v=vs.90).aspx
 FORCE_INLINE void _mm_storel_pi(__m64 *p, __m128 a)
 {
     *p = vget_low_f32(a);
@@ -420,6 +449,13 @@ FORCE_INLINE __m128 _mm_load1_ps(const float *p)
 // Sets the lower two single-precision, floating-point values with 64
 // bits of data loaded from the address p; the upper two values are passed
 // through from a.
+//
+// Return Value
+//   r0 := *p0
+//   r1 := *p1
+//   r2 := a2
+//   r3 := a3
+//
 // https://msdn.microsoft.com/en-us/library/s57cyak2(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_loadl_pi(__m128 a, __m64 const *b)
 {
@@ -473,6 +509,12 @@ FORCE_INLINE __m128 _mm_cmpneq_ps(__m128 a, __m128 b)
 
 // Computes the bitwise AND-NOT of the four single-precision, floating-point
 // values of a and b.
+//
+//   r0 := ~a0 & b0
+//   r1 := ~a1 & b1
+//   r2 := ~a2 & b2
+//   r3 := ~a3 & b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/68h7wd02(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_andnot_ps(__m128 a, __m128 b)
 {
@@ -483,6 +525,9 @@ FORCE_INLINE __m128 _mm_andnot_ps(__m128 a, __m128 b)
 
 // Computes the bitwise AND of the 128-bit value in b and the bitwise NOT of the
 // 128-bit value in a.
+//
+//   r := (~a) & b
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/1beaceh8(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_andnot_si128(__m128i a, __m128i b)
 {
@@ -492,7 +537,11 @@ FORCE_INLINE __m128i _mm_andnot_si128(__m128i a, __m128i b)
 }
 
 // Computes the bitwise AND of the 128-bit value in a and the 128-bit value in
-// b. https://msdn.microsoft.com/en-us/library/vstudio/6d1txsa8(v=vs.100).aspx
+// b.
+//
+//   r := a & b
+//
+// https://msdn.microsoft.com/en-us/library/vstudio/6d1txsa8(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_and_si128(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s32(
@@ -501,6 +550,12 @@ FORCE_INLINE __m128i _mm_and_si128(__m128i a, __m128i b)
 
 // Computes the bitwise AND of the four single-precision, floating-point values
 // of a and b.
+//
+//   r0 := a0 & b0
+//   r1 := a1 & b1
+//   r2 := a2 & b2
+//   r3 := a3 & b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/73ck1xc5(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_and_ps(__m128 a, __m128 b)
 {
@@ -527,6 +582,9 @@ FORCE_INLINE __m128 _mm_xor_ps(__m128 a, __m128 b)
 }
 
 // Computes the bitwise OR of the 128-bit value in a and the 128-bit value in b.
+//
+//   r := a | b
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/ew8ty0db(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_or_si128(__m128i a, __m128i b)
 {
@@ -542,7 +600,12 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
         veorq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
-/* Moves the upper two values of B into the lower two values of A.  */
+// Moves the upper two values of B into the lower two values of A.
+//
+//   r3 := a3
+//   r2 := a2
+//   r1 := b3
+//   r0 := b2
 FORCE_INLINE __m128 _mm_movehl_ps(__m128 __A, __m128 __B)
 {
     float32x2_t a32 = vget_high_f32(vreinterpretq_f32_m128(__A));
@@ -550,7 +613,12 @@ FORCE_INLINE __m128 _mm_movehl_ps(__m128 __A, __m128 __B)
     return vreinterpretq_m128_f32(vcombine_f32(a32, b32));
 }
 
-/* Moves the lower two values of B into the upper two values of A.  */
+// Moves the lower two values of B into the upper two values of A.
+//
+//   r3 := b1
+//   r2 := b0
+//   r1 := a1
+//   r0 := a0
 FORCE_INLINE __m128 _mm_movelh_ps(__m128 __A, __m128 __B)
 {
     float32x2_t a10 = vget_low_f32(vreinterpretq_f32_m128(__A));
@@ -1047,25 +1115,25 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // imm)
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
 
-/* Shifts the 4 signed 32-bit integers in a right by count bits while shifting
- * in the sign bit.
- * r0 := a0 >> count
- * r1 := a1 >> count
- * r2 := a2 >> count
- * r3 := a3 >> count immediate
- */
+// Shifts the 4 signed 32-bit integers in a right by count bits while shifting
+// in the sign bit.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   r2 := a2 >> count
+//   r3 := a3 >> count immediate
 FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, int count)
 {
     return vshlq_s32(a, vdupq_n_s32(-count));
 }
 
-/* Shifts the 8 signed 16-bit integers in a right by count bits while shifting
- * in the sign bit.
- * r0 := a0 >> count
- * r1 := a1 >> count
- *  ...
- * r7 := a7 >> count
- */
+// Shifts the 8 signed 16-bit integers in a right by count bits while shifting
+// in the sign bit.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   ...
+//   r7 := a7 >> count
 FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 {
     return (__m128i) vshlq_s16((int16x8_t) a, vdupq_n_s16(-count));
@@ -1073,6 +1141,12 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 
 // Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while
 // shifting in zeros.
+//
+//   r0 := a0 << count
+//   r1 := a1 << count
+//   ...
+//   r7 := a7 << count
+//
 // https://msdn.microsoft.com/en-us/library/es73bcsy(v=vs.90).aspx
 #define _mm_slli_epi16(a, imm)                                   \
     ({                                                           \
@@ -1108,6 +1182,12 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 
 // Shifts the 8 signed or unsigned 16-bit integers in a right by count bits
 // while shifting in zeros.
+//
+//   r0 := srl(a0, count)
+//   r1 := srl(a1, count)
+//   ...
+//   r7 := srl(a7, count)
+//
 // https://msdn.microsoft.com/en-us/library/6tcwd38t(v=vs.90).aspx
 #define _mm_srli_epi16(a, imm)                                   \
     ({                                                           \
@@ -1164,6 +1244,9 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 
 // Shifts the 128 - bit value in a right by imm bytes while shifting in
 // zeros.imm must be an immediate.
+//
+//   r := srl(a, imm*8)
+//
 // https://msdn.microsoft.com/en-us/library/305w28yz(v=vs.100).aspx
 // FORCE_INLINE _mm_srli_si128(__m128i a, __constrange(0,255) int imm)
 #define _mm_srli_si128(a, imm)                                              \
@@ -1182,6 +1265,9 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 
 // Shifts the 128-bit value in a left by imm bytes while shifting in zeros. imm
 // must be an immediate.
+//
+//   r := a << (imm * 8)
+//
 // https://msdn.microsoft.com/en-us/library/34d3k2kt(v=vs.100).aspx
 // FORCE_INLINE __m128i _mm_slli_si128(__m128i a, __constrange(0,255) int imm)
 #define _mm_slli_si128(a, imm)                                          \
@@ -1237,6 +1323,12 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i _a)
 // ******************************************
 
 // Subtracts the four single-precision, floating-point values of a and b.
+//
+//   r0 := a0 - b0
+//   r1 := a1 - b1
+//   r2 := a2 - b2
+//   r3 := a3 - b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/1zad2k61(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_sub_ps(__m128 a, __m128 b)
 {
@@ -1246,6 +1338,12 @@ FORCE_INLINE __m128 _mm_sub_ps(__m128 a, __m128 b)
 
 // Subtracts the 4 signed or unsigned 32-bit integers of b from the 4 signed or
 // unsigned 32-bit integers of a.
+//
+//   r0 := a0 - b0
+//   r1 := a1 - b1
+//   r2 := a2 - b2
+//   r3 := a3 - b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/fhh866h0(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_sub_epi32(__m128i a, __m128i b)
 {
@@ -1275,7 +1373,13 @@ FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b)
 }
 
 // Subtracts the 16 unsigned 8-bit integers of b from the 16 unsigned 8-bit
-// integers of a and saturates..
+// integers of a and saturates.
+//
+//   r0 := UnsignedSaturate(a0 - b0)
+//   r1 := UnsignedSaturate(a1 - b1)
+//   ...
+//   r15 := UnsignedSaturate(a15 - b15)
+//
 // https://technet.microsoft.com/en-us/subscriptions/yadkxc18(v=vs.90)
 FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
 {
@@ -1283,13 +1387,13 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
         vqsubq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
-/* Subtracts the 8 signed 16-bit integers of b from the 8 signed 16-bit integers
- * of a and saturates.
- * r0 := SignedSaturate(a0 - b0)
- * r1 := SignedSaturate(a1 - b1)
- * ...
- * r7 := SignedSaturate(a7 - b7)
- */
+// Subtracts the 8 signed 16-bit integers of b from the 8 signed 16-bit integers
+// of a and saturates.
+//
+//   r0 := SignedSaturate(a0 - b0)
+//   r1 := SignedSaturate(a1 - b1)
+//   ...
+//   r7 := SignedSaturate(a7 - b7)
 FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s16(
@@ -1325,6 +1429,12 @@ FORCE_INLINE __m128i _mm_sign_epi16(__m128i a, __m128i b)
 }
 
 // Adds the four single-precision, floating-point values of a and b.
+//
+//   r0 := a0 + b0
+//   r1 := a1 + b1
+//   r2 := a2 + b2
+//   r3 := a3 + b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/c9848chc(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_add_ps(__m128 a, __m128 b)
 {
@@ -1353,6 +1463,12 @@ FORCE_INLINE __m128i _mm_add_epi64(__m128i a, __m128i b)
 
 // Adds the 4 signed or unsigned 32-bit integers in a to the 4 signed or
 // unsigned 32-bit integers in b.
+//
+//   r0 := a0 + b0
+//   r1 := a1 + b1
+//   r2 := a2 + b2
+//   r3 := a3 + b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/09xs4fkk(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_add_epi32(__m128i a, __m128i b)
 {
@@ -1380,6 +1496,12 @@ FORCE_INLINE __m128i _mm_add_epi8(__m128i a, __m128i b)
 
 // Adds the 8 signed 16-bit integers in a to the 8 signed 16-bit integers in b
 // and saturates.
+//
+//   r0 := SignedSaturate(a0 + b0)
+//   r1 := SignedSaturate(a1 + b1)
+//   ...
+//   r7 := SignedSaturate(a7 + b7)
+//
 // https://msdn.microsoft.com/en-us/library/1a306ef8(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_adds_epi16(__m128i a, __m128i b)
 {
@@ -1398,6 +1520,12 @@ FORCE_INLINE __m128i _mm_adds_epu8(__m128i a, __m128i b)
 
 // Multiplies the 8 signed or unsigned 16-bit integers from a by the 8 signed or
 // unsigned 16-bit integers from b.
+//
+//   r0 := (a0 * b0)[15:0]
+//   r1 := (a1 * b1)[15:0]
+//   ...
+//   r7 := (a7 * b7)[15:0]
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/9ks1472s(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_mullo_epi16(__m128i a, __m128i b)
 {
@@ -1415,6 +1543,12 @@ FORCE_INLINE __m128i _mm_mullo_epi32(__m128i a, __m128i b)
 }
 
 // Multiplies the four single-precision, floating-point values of a and b.
+//
+//   r0 := a0 * b0
+//   r1 := a1 * b1
+//   r2 := a2 * b2
+//   r3 := a3 * b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/22kbk6t9(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 {
@@ -1422,15 +1556,14 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
-/* Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
- * integers from b.
- * PMADDWD
- * r0 := (a0 * b0) + (a1 * b1)
- * r1 := (a2 * b2) + (a3 * b3)
- * r2 := (a4 * b4) + (a5 * b5)
- * r3 := (a6 * b6) + (a7 * b7)
- * https://msdn.microsoft.com/en-us/library/yht36sa6(v=vs.90).aspx
- */
+// Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
+// integers from b.
+//
+//   r0 := (a0 * b0) + (a1 * b1)
+//   r1 := (a2 * b2) + (a3 * b3)
+//   r2 := (a4 * b4) + (a5 * b5)
+//   r3 := (a6 * b6) + (a7 * b7)
+// https://msdn.microsoft.com/en-us/library/yht36sa6(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
 {
     int32x4_t low = vmull_s16(vget_low_s16(vreinterpretq_s16_m128i(a)),
@@ -1444,22 +1577,22 @@ FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
     return vreinterpretq_s32_m128i(vcombine_s32(low_sum, high_sum));
 }
 
-/* Computes the absolute difference of the 16 unsigned 8-bit integers from a
- * and the 16 unsigned 8-bit integers from b.
- * PSADBW
- * Return Value
- * Sums the upper 8 differences and lower 8 differences and packs the
- * resulting 2 unsigned 16-bit integers into the upper and lower 64-bit
- * elements.
- * r0 := abs(a0 - b0) + abs(a1 - b1) +...+ abs(a7 - b7)
- * r1 := 0x0
- * r2 := 0x0
- * r3 := 0x0
- * r4 := abs(a8 - b8) + abs(a9 - b9) +...+ abs(a15 - b15)
- * r5 := 0x0
- * r6 := 0x0
- * r7 := 0x0
- */
+// Computes the absolute difference of the 16 unsigned 8-bit integers from a
+// and the 16 unsigned 8-bit integers from b.
+//
+// Return Value
+// Sums the upper 8 differences and lower 8 differences and packs the
+// resulting 2 unsigned 16-bit integers into the upper and lower 64-bit
+// elements.
+//
+//   r0 := abs(a0 - b0) + abs(a1 - b1) +...+ abs(a7 - b7)
+//   r1 := 0x0
+//   r2 := 0x0
+//   r3 := 0x0
+//   r4 := abs(a8 - b8) + abs(a9 - b9) +...+ abs(a15 - b15)
+//   r5 := 0x0
+//   r6 := 0x0
+//   r7 := 0x0
 FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 {
     uint16x8_t t = vpaddlq_u8(vabdq_u8((uint8x16_t) a, (uint8x16_t) b));
@@ -1470,6 +1603,12 @@ FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 }
 
 // Divides the four single-precision, floating-point values of a and b.
+//
+//   r0 := a0 / b0
+//   r1 := a1 / b1
+//   r2 := a2 / b2
+//   r3 := a3 / b3
+//
 // https://msdn.microsoft.com/en-us/library/edaw8147(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
 {
@@ -1517,6 +1656,12 @@ FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
 // Computes the approximations of square roots of the four single-precision,
 // floating-point values of a. First computes reciprocal square roots and then
 // reciprocals of the four values.
+//
+//   r0 := sqrt(a0)
+//   r1 := sqrt(a1)
+//   r2 := sqrt(a2)
+//   r3 := sqrt(a3)
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/8z67bwwk(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 {
@@ -1624,6 +1769,13 @@ FORCE_INLINE __m128i _mm_max_epi16(__m128i a, __m128i b)
 // epi versions of min/max
 // Computes the pariwise maximums of the four signed 32-bit integer values of a
 // and b.
+//
+// A 128-bit parameter that can be defined with the following equations:
+//   r0 := (a0 > b0) ? a0 : b0
+//   r1 := (a1 > b1) ? a1 : b1
+//   r2 := (a2 > b2) ? a2 : b2
+//   r3 := (a3 > b3) ? a3 : b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/bb514055(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_max_epi32(__m128i a, __m128i b)
 {
@@ -1633,6 +1785,13 @@ FORCE_INLINE __m128i _mm_max_epi32(__m128i a, __m128i b)
 
 // Computes the pariwise minima of the four signed 32-bit integer values of a
 // and b.
+//
+// A 128-bit parameter that can be defined with the following equations:
+//   r0 := (a0 < b0) ? a0 : b0
+//   r1 := (a1 < b1) ? a1 : b1
+//   r2 := (a2 < b2) ? a2 : b2
+//   r3 := (a3 < b3) ? a3 : b3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/bb531476(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_min_epi32(__m128i a, __m128i b)
 {
@@ -1642,6 +1801,12 @@ FORCE_INLINE __m128i _mm_min_epi32(__m128i a, __m128i b)
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
 // integers from b.
+//
+//   r0 := (a0 * b0)[31:16]
+//   r1 := (a1 * b1)[31:16]
+//   ...
+//   r7 := (a7 * b7)[31:16]
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/59hddw1d(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_mulhi_epi16(__m128i a, __m128i b)
 {
@@ -1691,6 +1856,12 @@ FORCE_INLINE __m128 _mm_cmplt_ps(__m128 a, __m128 b)
 }
 
 // Compares for greater than.
+//
+//   r0 := (a0 > b0) ? 0xffffffff : 0x0
+//   r1 := (a1 > b1) ? 0xffffffff : 0x0
+//   r2 := (a2 > b2) ? 0xffffffff : 0x0
+//   r3 := (a3 > b3) ? 0xffffffff : 0x0
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/11dy102s(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_cmpgt_ps(__m128 a, __m128 b)
 {
@@ -1707,6 +1878,12 @@ FORCE_INLINE __m128 _mm_cmpge_ps(__m128 a, __m128 b)
 }
 
 // Compares for less than or equal.
+//
+//   r0 := (a0 <= b0) ? 0xffffffff : 0x0
+//   r1 := (a1 <= b1) ? 0xffffffff : 0x0
+//   r2 := (a2 <= b2) ? 0xffffffff : 0x0
+//   r3 := (a3 <= b3) ? 0xffffffff : 0x0
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/1s75w83z(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_cmple_ps(__m128 a, __m128 b)
 {
@@ -1751,6 +1928,12 @@ FORCE_INLINE __m128i _mm_cmplt_epi8(__m128i a, __m128i b)
 
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for greater than.
+//
+//   r0 := (a0 > b0) ? 0xff : 0x0
+//   r1 := (a1 > b1) ? 0xff : 0x0
+//   ...
+//   r15 := (a15 > b15) ? 0xff : 0x0
+//
 // https://msdn.microsoft.com/zh-tw/library/wf45zt2b(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_cmpgt_epi8(__m128i a, __m128i b)
 {
@@ -1760,6 +1943,12 @@ FORCE_INLINE __m128i _mm_cmpgt_epi8(__m128i a, __m128i b)
 
 // Compares the 8 signed 16-bit integers in a and the 8 signed 16-bit integers
 // in b for greater than.
+//
+//   r0 := (a0 > b0) ? 0xffff : 0x0
+//   r1 := (a1 > b1) ? 0xffff : 0x0
+//   ...
+//   r7 := (a7 > b7) ? 0xffff : 0x0
+//
 // https://technet.microsoft.com/en-us/library/xd43yfsa(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_cmpgt_epi16(__m128i a, __m128i b)
 {
@@ -1959,9 +2148,15 @@ FORCE_INLINE __m128i _mm_cvtepi16_epi32(__m128i a)
 
 // Converts the four single-precision, floating-point values of a to signed
 // 32-bit integer values.
+//
+//   r0 := (int) a0
+//   r1 := (int) a1
+//   r2 := (int) a2
+//   r3 := (int) a3
+//
 // https://msdn.microsoft.com/en-us/library/vstudio/xdc42k5e(v=vs.100).aspx
-// *NOTE*. The default rounding mode on SSE is 'round to even', which ArmV7 does
-// not support! It is supported on ARMv8 however.
+// *NOTE*. The default rounding mode on SSE is 'round to even', which ArmV7-A
+// does not support! It is supported on ARMv8-A however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
 #if defined(__aarch64__)
@@ -2002,6 +2197,12 @@ FORCE_INLINE uint64_t _mm_cvtsi128_si64(__m128i a)
 
 // Moves 32-bit integer a to the least significant 32 bits of an __m128 object,
 // zero extending the upper bits.
+//
+//   r0 := a
+//   r1 := 0x0
+//   r2 := 0x0
+//   r3 := 0x0
+//
 // https://msdn.microsoft.com/en-us/library/ct3539ha%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_cvtsi32_si128(int a)
 {
@@ -2054,6 +2255,16 @@ FORCE_INLINE __m128i _mm_packs_epi16(__m128i a, __m128i b)
 
 // Packs the 16 signed 16 - bit integers from a and b into 8 - bit unsigned
 // integers and saturates.
+//
+//   r0 := UnsignedSaturate(a0)
+//   r1 := UnsignedSaturate(a1)
+//   ...
+//   r7 := UnsignedSaturate(a7)
+//   r8 := UnsignedSaturate(b0)
+//   r9 := UnsignedSaturate(b1)
+//   ...
+//   r15 := UnsignedSaturate(b7)
+//
 // https://msdn.microsoft.com/en-us/library/07ad1wx4(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_packus_epi16(const __m128i a, const __m128i b)
 {
@@ -2064,6 +2275,16 @@ FORCE_INLINE __m128i _mm_packus_epi16(const __m128i a, const __m128i b)
 
 // Packs the 8 signed 32-bit integers from a and b into signed 16-bit integers
 // and saturates.
+//
+//   r0 := SignedSaturate(a0)
+//   r1 := SignedSaturate(a1)
+//   r2 := SignedSaturate(a2)
+//   r3 := SignedSaturate(a3)
+//   r4 := SignedSaturate(b0)
+//   r5 := SignedSaturate(b1)
+//   r6 := SignedSaturate(b2)
+//   r7 := SignedSaturate(b3)
+//
 // https://msdn.microsoft.com/en-us/library/393t56f9%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_packs_epi32(__m128i a, __m128i b)
 {
@@ -2074,6 +2295,15 @@ FORCE_INLINE __m128i _mm_packs_epi32(__m128i a, __m128i b)
 
 // Interleaves the lower 8 signed or unsigned 8-bit integers in a with the lower
 // 8 signed or unsigned 8-bit integers in b.
+//
+//   r0 := a0
+//   r1 := b0
+//   r2 := a1
+//   r3 := b1
+//   ...
+//   r14 := a7
+//   r15 := b7
+//
 // https://msdn.microsoft.com/en-us/library/xf7k860c%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_unpacklo_epi8(__m128i a, __m128i b)
 {
@@ -2085,6 +2315,16 @@ FORCE_INLINE __m128i _mm_unpacklo_epi8(__m128i a, __m128i b)
 
 // Interleaves the lower 4 signed or unsigned 16-bit integers in a with the
 // lower 4 signed or unsigned 16-bit integers in b.
+//
+//   r0 := a0
+//   r1 := b0
+//   r2 := a1
+//   r3 := b1
+//   r4 := a2
+//   r5 := b2
+//   r6 := a3
+//   r7 := b3
+//
 // https://msdn.microsoft.com/en-us/library/btxb17bw%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_unpacklo_epi16(__m128i a, __m128i b)
 {
@@ -2096,6 +2336,12 @@ FORCE_INLINE __m128i _mm_unpacklo_epi16(__m128i a, __m128i b)
 
 // Interleaves the lower 2 signed or unsigned 32 - bit integers in a with the
 // lower 2 signed or unsigned 32 - bit integers in b.
+//
+//   r0 := a0
+//   r1 := b0
+//   r2 := a1
+//   r3 := b1
+//
 // https://msdn.microsoft.com/en-us/library/x8atst9d(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpacklo_epi32(__m128i a, __m128i b)
 {
@@ -2114,6 +2360,12 @@ FORCE_INLINE __m128i _mm_unpacklo_epi64(__m128i a, __m128i b)
 
 // Selects and interleaves the lower two single-precision, floating-point values
 // from a and b.
+//
+//   r0 := a0
+//   r1 := b0
+//   r2 := a1
+//   r3 := b1
+//
 // https://msdn.microsoft.com/en-us/library/25st103b%28v=vs.90%29.aspx
 FORCE_INLINE __m128 _mm_unpacklo_ps(__m128 a, __m128 b)
 {
@@ -2125,6 +2377,12 @@ FORCE_INLINE __m128 _mm_unpacklo_ps(__m128 a, __m128 b)
 
 // Selects and interleaves the upper two single-precision, floating-point values
 // from a and b.
+//
+//   r0 := a2
+//   r1 := b2
+//   r2 := a3
+//   r3 := b3
+//
 // https://msdn.microsoft.com/en-us/library/skccxx7d%28v=vs.90%29.aspx
 FORCE_INLINE __m128 _mm_unpackhi_ps(__m128 a, __m128 b)
 {
@@ -2136,6 +2394,15 @@ FORCE_INLINE __m128 _mm_unpackhi_ps(__m128 a, __m128 b)
 
 // Interleaves the upper 8 signed or unsigned 8-bit integers in a with the upper
 // 8 signed or unsigned 8-bit integers in b.
+//
+//   r0 := a8
+//   r1 := b8
+//   r2 := a9
+//   r3 := b9
+//   ...
+//   r14 := a15
+//   r15 := b15
+//
 // https://msdn.microsoft.com/en-us/library/t5h7783k(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpackhi_epi8(__m128i a, __m128i b)
 {
@@ -2149,6 +2416,16 @@ FORCE_INLINE __m128i _mm_unpackhi_epi8(__m128i a, __m128i b)
 
 // Interleaves the upper 4 signed or unsigned 16-bit integers in a with the
 // upper 4 signed or unsigned 16-bit integers in b.
+//
+//   r0 := a4
+//   r1 := b4
+//   r2 := a5
+//   r3 := b5
+//   r4 := a6
+//   r5 := b6
+//   r6 := a7
+//   r7 := b7
+//
 // https://msdn.microsoft.com/en-us/library/03196cz7(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpackhi_epi16(__m128i a, __m128i b)
 {
@@ -2171,9 +2448,9 @@ FORCE_INLINE __m128i _mm_unpackhi_epi32(__m128i a, __m128i b)
 
 // Interleaves the upper signed or unsigned 64-bit integer in a with the
 // upper signed or unsigned 64-bit integer in b.
-// PUNPCKHQDQ
-// r0 := a1
-// r1 := b1
+//
+//   r0 := a1
+//   r1 := b1
 FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 {
     int64x1_t a_h = vget_high_s64(vreinterpretq_s64_m128i(a));
