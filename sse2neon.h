@@ -1232,6 +1232,17 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i _a)
     return ((hi[0] << 8) | (lo[0] & 0xFF));
 }
 
+// Compute the bitwise AND of 128 bits (representing integer data) in a and
+// mask, and return 1 if the result is zero, otherwise return 0.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_test_all_zeros&expand=5871
+FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
+{
+    int64x2_t a_and_mask =
+        vandq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(mask));
+    return (vgetq_lane_s64(a_and_mask, 0) | vgetq_lane_s64(a_and_mask, 1)) ? 0
+                                                                           : 1;
+}
+
 // ******************************************
 // Math operations
 // ******************************************
