@@ -199,7 +199,7 @@ FORCE_INLINE float _mm_cvtss_f32(__m128 a)
 
 // Sets the 128-bit value to zero
 // https://msdn.microsoft.com/en-us/library/vstudio/ys7dw0kh(v=vs.100).aspx
-FORCE_INLINE __m128i _mm_setzero_si128()
+FORCE_INLINE __m128i _mm_setzero_si128(void)
 {
     return vreinterpretq_m128i_s32(vdupq_n_s32(0));
 }
