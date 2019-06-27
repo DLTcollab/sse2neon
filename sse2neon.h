@@ -610,7 +610,7 @@ FORCE_INLINE __m128 _mm_movehl_ps(__m128 __A, __m128 __B)
 {
     float32x2_t a32 = vget_high_f32(vreinterpretq_f32_m128(__A));
     float32x2_t b32 = vget_high_f32(vreinterpretq_f32_m128(__B));
-    return vreinterpretq_m128_f32(vcombine_f32(a32, b32));
+    return vreinterpretq_m128_f32(vcombine_f32(b32, a32));
 }
 
 // Moves the lower two values of B into the upper two values of A.
@@ -845,7 +845,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
             ret = _mm_shuffle_ps_2103((a), (b));           \
             break;                                         \
         case _MM_SHUFFLE(1, 0, 1, 0):                      \
-            ret = _mm_shuffle_ps_1010((a), (b));           \
+            ret = _mm_movelh_ps((a), (b));                 \
             break;                                         \
         case _MM_SHUFFLE(1, 0, 0, 1):                      \
             ret = _mm_shuffle_ps_1001((a), (b));           \
@@ -867,6 +867,9 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
             break;                                         \
         case _MM_SHUFFLE(3, 2, 0, 2):                      \
             ret = _mm_shuffle_ps_3202((a), (b));           \
+            break;                                         \
+        case _MM_SHUFFLE(3, 2, 3, 2):                      \
+            ret = _mm_movehl_ps((b), (a));                 \
             break;                                         \
         case _MM_SHUFFLE(1, 1, 3, 3):                      \
             ret = _mm_shuffle_ps_1133((a), (b));           \
