@@ -434,6 +434,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_MIN_EPU8:
         ret = "MM_MIN_EPU8";
         break;
+    case IT_MM_TEST_ALL_ZEROS:
+        ret = "MM_TEST_ALL_ZEROS";
+        break;
     case IT_LAST: /* should not happend */
         break;
     }
@@ -2011,6 +2014,21 @@ bool test_mm_min_epu8(const int8_t *_a, const int8_t *_b)
                         d12, d13, d14, d15);
 }
 
+bool test_mm_test_all_zeros(const int32_t *_a, const int32_t *_mask)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i mask = test_mm_load_ps(_mask);
+
+    int32_t d0 = a[0] & mask[0];
+    int32_t d1 = a[1] & mask[1];
+    int32_t d2 = a[2] & mask[2];
+    int32_t d3 = a[3] & mask[3];
+    int32_t result = ((d0 | d1 | d2 | d3) == 0) ? 1 : 0;
+
+    int32_t ret = _mm_test_all_zeros(a, mask);
+
+    return result == ret ? true : false;
+}
 
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
@@ -2472,6 +2490,10 @@ public:
         case IT_MM_MIN_EPU8:
             ret = test_mm_min_epu8((const int8_t *) mTestIntPointer1,
                                    (const int8_t *) mTestIntPointer2);
+            break;
+        case IT_MM_TEST_ALL_ZEROS:
+            ret = test_mm_test_all_zeros((const int32_t *) mTestIntPointer1,
+                                         (const int32_t *) mTestIntPointer2);
             break;
         case IT_LAST: /* should not happend */
             break;

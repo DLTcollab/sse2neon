@@ -141,6 +141,7 @@ enum InstructionTest {
     IT_MM_SUB_EPI8,
     IT_MM_SETR_EPI32,
     IT_MM_MIN_EPU8,
+    IT_MM_TEST_ALL_ZEROS,
 
     IT_LAST
 };
