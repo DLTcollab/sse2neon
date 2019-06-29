@@ -8,9 +8,8 @@
 #include "binding.h"
 #include "impl.h"
 
-// SSE2NEONTEST performs a set of 'unit tests' making sure that each SSE call
-// provides the output we expect.  If this fires an assert, then something
-// didn't match up.
+// This program a set of unit tests to ensure that each SSE call provide the
+// output we expect.  If this fires an assert, then something didn't match up.
 
 #include "sse2neon.h"
 
@@ -34,9 +33,9 @@ static inline bool isNAN(float a)
 // Do a round operation that produces results the same as SSE instructions
 static inline float bankersRounding(float val)
 {
-    if (val < 0) {
+    if (val < 0)
         return -bankersRounding(-val);
-    }
+
     float ret;
     int32_t truncateInteger = int32_t(val);
     int32_t roundInteger = int32_t(val + 0.5f);
@@ -48,15 +47,13 @@ static inline float bankersRounding(float val)
     if (diff1 < diff2) {
         ret = float(truncateInteger);
     } else if (diff2 <
-               diff1)  // if it's closest to the round-up integer; use it
-    {
+               diff1) {  // if it's closest to the round-up integer; use it
         ret = float(roundInteger);
     } else {
         // If it's equidistant between rounding up and rounding down, pick the
         // one which is an even number
         if (truncateInteger &
-            1)  // If truncate is odd, then return the rounded integer
-        {
+            1) {  // If truncate is odd, then return the rounded integer
             ret = float(roundInteger);
         } else {
             // If the rounded up value is odd, use return the truncated integer
@@ -569,7 +566,6 @@ bool validateFloatEpsilon(__m128 a,
     return true;
 }
 
-
 bool test_mm_setzero_si128(void)
 {
     __m128i a = _mm_setzero_si128();
@@ -925,9 +921,9 @@ bool test_mm_sub_ps(const float *_a, const float *_b)
     float dy = _a[1] - _b[1];
     float dz = _a[2] - _b[2];
     float dw = _a[3] - _b[3];
+
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
-
     __m128 c = _mm_sub_ps(a, b);
     return validateFloat(c, dw, dz, dy, dx);
 }
@@ -938,9 +934,9 @@ bool test_mm_sub_epi32(const int32_t *_a, const int32_t *_b)
     int32_t dy = _a[1] - _b[1];
     int32_t dz = _a[2] - _b[2];
     int32_t dw = _a[3] - _b[3];
+
     __m128i a = test_mm_load_ps(_a);
     __m128i b = test_mm_load_ps(_b);
-
     __m128i c = _mm_sub_epi32(a, b);
     return validateInt(c, dw, dz, dy, dx);
 }
@@ -951,9 +947,9 @@ bool test_mm_add_ps(const float *_a, const float *_b)
     float dy = _a[1] + _b[1];
     float dz = _a[2] + _b[2];
     float dw = _a[3] + _b[3];
+
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
-
     __m128 c = _mm_add_ps(a, b);
     return validateFloat(c, dw, dz, dy, dx);
 }
@@ -964,9 +960,9 @@ bool test_mm_add_epi32(const int32_t *_a, const int32_t *_b)
     int32_t dy = _a[1] + _b[1];
     int32_t dz = _a[2] + _b[2];
     int32_t dw = _a[3] + _b[3];
+
     __m128i a = test_mm_load_ps(_a);
     __m128i b = test_mm_load_ps(_b);
-
     __m128i c = _mm_add_epi32(a, b);
     return validateInt(c, dw, dz, dy, dx);
 }
@@ -984,7 +980,6 @@ bool test_mm_mullo_epi16(const int16_t *_a, const int16_t *_b)
 
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i b = test_mm_load_ps((const int32_t *) _b);
-
     __m128i c = _mm_mullo_epi16(a, b);
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
@@ -1007,9 +1002,7 @@ bool test_mm_madd_epi16(const int16_t *_a, const int16_t *_b)
 
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i b = test_mm_load_ps((const int32_t *) _b);
-
     __m128i c = _mm_madd_epi16(a, b);
-
     return validateInt(c, e3, e2, e1, e0);
 }
 
@@ -1019,9 +1012,9 @@ bool test_mm_mul_ps(const float *_a, const float *_b)
     float dy = _a[1] * _b[1];
     float dz = _a[2] * _b[2];
     float dw = _a[3] * _b[3];
+
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
-
     __m128 c = _mm_mul_ps(a, b);
     return validateFloat(c, dw, dz, dy, dx);
 }
@@ -1032,6 +1025,7 @@ bool test_mm_rcp_ps(const float *_a)
     float dy = 1.0f / _a[1];
     float dz = 1.0f / _a[2];
     float dw = 1.0f / _a[3];
+
     __m128 a = test_mm_load_ps(_a);
     __m128 c = _mm_rcp_ps(a);
     return validateFloatEpsilon(c, dw, dz, dy, dx, 300.0f);
@@ -1048,7 +1042,6 @@ bool test_mm_max_ps(const float *_a, const float *_b)
 
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
-
     __m128 ret = _mm_max_ps(a, b);
     return validateFloat(ret, c[3], c[2], c[1], c[0]);
 }
@@ -1064,7 +1057,6 @@ bool test_mm_min_ps(const float *_a, const float *_b)
 
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
-
     __m128 ret = _mm_min_ps(a, b);
     return validateFloat(ret, c[3], c[2], c[1], c[0]);
 }
@@ -1082,7 +1074,6 @@ bool test_mm_min_epi16(const int16_t *_a, const int16_t *_b)
 
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i b = test_mm_load_ps((const int32_t *) _b);
-
     __m128i c = _mm_min_epi16(a, b);
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
@@ -1097,7 +1088,6 @@ bool test_mm_mulhi_epi16(const int16_t *_a, const int16_t *_b)
 
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i b = test_mm_load_ps((const int32_t *) _b);
-
     __m128i c = _mm_mulhi_epi16(a, b);
     return validateInt16(c, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
 }
@@ -1264,7 +1254,6 @@ bool test_mm_comilt_ss(const float *_a, const float *_b)
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
 
-
     int32_t result = comilt_ss(_a[0], _b[0]);
 
     int32_t ret = _mm_comilt_ss(a, b);
@@ -1293,9 +1282,7 @@ bool test_mm_comigt_ss(const float *_a, const float *_b)
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
 
-
     int32_t result = comigt_ss(_a[0], _b[0]);
-
     int32_t ret = _mm_comigt_ss(a, b);
 
     return result == ret ? true : false;
@@ -1324,7 +1311,6 @@ bool test_mm_comile_ss(const float *_a, const float *_b)
 
 
     int32_t result = comile_ss(_a[0], _b[0]);
-
     int32_t ret = _mm_comile_ss(a, b);
 
     return result == ret ? true : false;
@@ -1351,9 +1337,7 @@ bool test_mm_comige_ss(const float *_a, const float *_b)
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
 
-
     int32_t result = comige_ss(_a[0], _b[0]);
-
     int32_t ret = _mm_comige_ss(a, b);
 
     return result == ret ? true : false;
@@ -1381,7 +1365,6 @@ bool test_mm_comieq_ss(const float *_a, const float *_b)
     __m128 b = test_mm_load_ps(_b);
 
     int32_t result = comieq_ss(_a[0], _b[0]);
-
     int32_t ret = _mm_comieq_ss(a, b);
 
     return result == ret ? true : false;
@@ -1406,9 +1389,7 @@ bool test_mm_comineq_ss(const float *_a, const float *_b)
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
 
-
     int32_t result = comineq_ss(_a[0], _b[0]);
-
     int32_t ret = _mm_comineq_ss(a, b);
 
     return result == ret ? true : false;
@@ -1487,7 +1468,6 @@ bool test_mm_slli_epi16(const int16_t *_a)
     int16_t d6 = _a[6] << count;
     int16_t d7 = _a[7] << count;
 
-
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i c = _mm_slli_epi16(a, count);
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
@@ -1505,7 +1485,6 @@ bool test_mm_srli_epi16(const int16_t *_a)
     int16_t d5 = (uint16_t)(_a[5]) >> count;
     int16_t d6 = (uint16_t)(_a[6]) >> count;
     int16_t d7 = (uint16_t)(_a[7]) >> count;
-
 
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i c = _mm_srli_epi16(a, count);
@@ -1841,8 +1820,8 @@ bool test_mm_cmpgt_epi16(const int16_t *_a, const int16_t *_b)
 
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i b = test_mm_load_ps((const int32_t *) _b);
-
     __m128i c = _mm_cmpgt_epi16(a, b);
+
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
@@ -2225,7 +2204,7 @@ public:
         case IT_MM_COMILT_SS:
             ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
             if (!ret) {
-                // Note to Alexander, you need to fix this.
+                // FIXME: incomplete
                 ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
             }
             break;
@@ -2235,7 +2214,7 @@ public:
         case IT_MM_COMILE_SS:
             ret = test_mm_comile_ss(mTestFloatPointer1, mTestFloatPointer2);
             if (!ret) {
-                // Note to Alexander, you need to fix this.
+                // FIXME: incomplete
                 ret = test_mm_comile_ss(mTestFloatPointer1, mTestFloatPointer2);
             }
             break;
@@ -2245,14 +2224,14 @@ public:
         case IT_MM_COMIEQ_SS:
             ret = test_mm_comieq_ss(mTestFloatPointer1, mTestFloatPointer2);
             if (!ret) {
-                // Note to Alexander, you need to fix this.
+                // FIXME: incomplete
                 ret = test_mm_comieq_ss(mTestFloatPointer1, mTestFloatPointer2);
             }
             break;
         case IT_MM_COMINEQ_SS:
             ret = test_mm_comineq_ss(mTestFloatPointer1, mTestFloatPointer2);
             if (!ret) {
-                // Note to Alexander, you need to fix this.
+                // FIXME: incomplete
                 ret =
                     test_mm_comineq_ss(mTestFloatPointer1, mTestFloatPointer2);
             }
@@ -2406,7 +2385,6 @@ public:
             ret = true;
             break;
 
-
         case IT_MM_CVTSS_F32:
             ret = true;
             break;
@@ -2499,7 +2477,6 @@ public:
             break;
         }
 
-
         return ret;
     }
 
@@ -2532,9 +2509,8 @@ public:
             if (test == IT_MM_CMPORD_PS || test == IT_MM_COMILT_SS ||
                 test == IT_MM_COMILE_SS || test == IT_MM_COMIGE_SS ||
                 test == IT_MM_COMIEQ_SS || test == IT_MM_COMINEQ_SS ||
-                test == IT_MM_COMIGT_SS)  // if testing for NAN's make sure we
-                                          // have some nans
-            {
+                test == IT_MM_COMIGT_SS) {  // if testing for NAN's make sure we
+                                            // have some nans
                 // One out of four times
                 // Make sure a couple of values have NANs for testing purposes
                 if ((rand() & 3) == 0) {
@@ -2590,8 +2566,7 @@ public:
                     mTestFloatPointer1[3] = float(mTestIntPointer1[3]);
                     break;
                 }
-                if ((rand() & 3) == 0)  // one out of 4 times, make halves
-                {
+                if ((rand() & 3) == 0) {  // one out of 4 times, make halves
                     for (uint32_t j = 0; j < 4; j++) {
                         mTestFloatPointer1[j] *= 0.5f;
                         mTestFloatPointer2[j] *= 0.5f;
@@ -2603,8 +2578,7 @@ public:
                 mTestFloatPointer1[0] = getNAN();
                 mTestFloatPointer2[0] = getNAN();
                 bool ok = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer1);
-                if (!ok)
-                {
+                if (!ok) {
                     printf("Debug me");
                 }
             }

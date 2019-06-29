@@ -1,9 +1,6 @@
 #ifndef SSE2NEONTEST_H
 #define SSE2NEONTEST_H
 
-// SSE2NEONTEST performs a set of 'unit tests' making sure that each SSE call
-// provides the output we expect.  If this fires an assert, then something
-// didn't match up.
 namespace SSE2NEON
 {
 // Currently 39 SSE intrinsics have unit tests fully implemented and verified.
@@ -117,7 +114,6 @@ enum InstructionTest {
     IT_MM_STREAM_SI128,    // Unit test *not yet implemented*
     IT_MM_CLFLUSH,         // Unit test *not yet implemented*
 
-    // added by hasindu
     IT_MM_SET1_EPI16,
     IT_MM_SET_EPI16,
     IT_MM_SLLI_EPI16,

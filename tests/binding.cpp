@@ -5,7 +5,6 @@
 
 namespace SSE2NEON
 {
-
 void *platformAlignedAlloc(size_t size)
 {
     void *address;
