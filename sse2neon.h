@@ -1209,6 +1209,22 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
         ret;                                                     \
     })
 
+// Shift packed 64-bit integers in a left by imm8 while shifting in zeros, and
+// store the results in dst.
+#define _mm_slli_epi64(a, imm)                                   \
+    ({                                                           \
+        __m128i ret;                                             \
+        if ((imm) <= 0) {                                        \
+            ret = a;                                             \
+        } else if ((imm) > 63) {                                 \
+            ret = _mm_setzero_si128();                           \
+        } else {                                                 \
+            ret = vreinterpretq_m128i_s64(                       \
+                vshlq_n_s64(vreinterpretq_s64_m128i(a), (imm))); \
+        }                                                        \
+        ret;                                                     \
+    })
+
 // Shifts the 8 signed or unsigned 16-bit integers in a right by count bits
 // while shifting in zeros.
 //
