@@ -301,29 +301,29 @@ FORCE_INLINE __m128i _mm_set1_epi16(short w)
 }
 
 // Sets the 16 signed 8-bit integer values.
-// https://msdn.microsoft.com/en-us/library//x0cx8zd3(v=vs.90).aspx
-FORCE_INLINE __m128i _mm_set_epi8(char b0,
-                                  char b1,
-                                  char b2,
-                                  char b3,
-                                  char b4,
-                                  char b5,
-                                  char b6,
-                                  char b7,
-                                  char b8,
-                                  char b9,
-                                  char b10,
-                                  char b11,
-                                  char b12,
-                                  char b13,
+// https://msdn.microsoft.com/en-us/library/x0cx8zd3(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_set_epi8(char b15,
                                   char b14,
-                                  char b15)
+                                  char b13,
+                                  char b12,
+                                  char b11,
+                                  char b10,
+                                  char b9,
+                                  char b8,
+                                  char b7,
+                                  char b6,
+                                  char b5,
+                                  char b4,
+                                  char b3,
+                                  char b2,
+                                  char b1,
+                                  char b0)
 {
     int8_t __attribute__((aligned(16)))
-    data[16] = {(int8_t) b15, (int8_t) b14, (int8_t) b13, (int8_t) b12,
-                (int8_t) b11, (int8_t) b10, (int8_t) b9,  (int8_t) b8,
-                (int8_t) b7,  (int8_t) b6,  (int8_t) b5,  (int8_t) b4,
-                (int8_t) b3,  (int8_t) b2,  (int8_t) b1,  (int8_t) b0};
+    data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
+                (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
+                (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
+                (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
     return (__m128i) vld1q_s8(data);
 }
 
