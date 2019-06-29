@@ -1266,6 +1266,22 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
         ret;                                                     \
     })
 
+// Shift packed 64-bit integers in a right by imm8 while shifting in zeros, and
+// store the results in dst.
+#define _mm_srli_epi64(a, imm)                                   \
+    ({                                                           \
+        __m128i ret;                                             \
+        if ((imm) <= 0) {                                        \
+            ret = a;                                             \
+        } else if ((imm) > 63) {                                 \
+            ret = _mm_setzero_si128();                           \
+        } else {                                                 \
+            ret = vreinterpretq_m128i_u64(                       \
+                vshrq_n_u64(vreinterpretq_u64_m128i(a), (imm))); \
+        }                                                        \
+        ret;                                                     \
+    })
+
 // Shifts the 4 signed 32 - bit integers in a right by count bits while shifting
 // in the sign bit.
 // https://msdn.microsoft.com/en-us/library/z1939387(v=vs.100).aspx
