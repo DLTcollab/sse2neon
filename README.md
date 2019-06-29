@@ -33,9 +33,9 @@ instricts into NEON instricts.
 ## Reference
 * [SIMDe](https://github.com/nemequ/simde): fast and portable implementations of SIMD
   intrinsics on hardware which doesn't natively support them, such as calling SSE functions on ARM.
-* [SSE2NEON.h : A porting guide and header file to convert SSE intrinsics to their ARM NEON equivalent](https://codesuppository.blogspot.tw/2015/02/sse2neonh-porting-guide-and-header-file.html)
+* [SSE2NEON.h : A porting guide and header file to convert SSE intrinsics to their ARM NEON equivalent](https://codesuppository.blogspot.com/2015/02/sse2neonh-porting-guide-and-header-file.html)
 * [CatBoost's sse2neon](https://github.com/catboost/catboost/blob/master/library/sse/sse2neon.h)
-* [ARM_NEON_2_x86_SSE](https://github.com/intel/ARM_NEON_2_x86_SSE)
+* [ARM\_NEON\_2\_x86\_SSE](https://github.com/intel/ARM_NEON_2_x86_SSE)
 
 ## Licensing
 
