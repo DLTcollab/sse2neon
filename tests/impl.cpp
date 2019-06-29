@@ -86,6 +86,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SETR_PS:
         ret = "MM_SETR_PS";
         break;
+    case IT_MM_SET_EPI8:
+        ret = "MM_SET_EPI8";
+        break;
     case IT_MM_SET1_EPI32:
         ret = "MM_SET1_EPI32";
         break;
@@ -588,6 +591,31 @@ bool test_mm_set_ps(float x, float y, float z, float w)
 {
     __m128 a = _mm_set_ps(x, y, z, w);
     return validateFloat(a, x, y, z, w);
+}
+
+bool test_mm_set_epi8(const int8_t *_a)
+{
+    int8_t d0 = _a[0];
+    int8_t d1 = _a[1];
+    int8_t d2 = _a[2];
+    int8_t d3 = _a[3];
+    int8_t d4 = _a[4];
+    int8_t d5 = _a[5];
+    int8_t d6 = _a[6];
+    int8_t d7 = _a[7];
+    int8_t d8 = _a[8];
+    int8_t d9 = _a[9];
+    int8_t d10 = _a[10];
+    int8_t d11 = _a[11];
+    int8_t d12 = _a[12];
+    int8_t d13 = _a[13];
+    int8_t d14 = _a[14];
+    int8_t d15 = _a[15];
+
+    __m128i c = _mm_set_epi8(d15, d14, d13, d12, d11, d10, d9, d8, d7, d6, d5,
+                             d4, d3, d2, d1, d0);
+    return validateInt8(c, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11,
+                        d12, d13, d14, d15);
 }
 
 bool test_mm_set1_epi32(int32_t i)
@@ -2083,6 +2111,9 @@ public:
         case IT_MM_SET_PS:
             ret = test_mm_set_ps(mTestFloats[i], mTestFloats[i + 1],
                                  mTestFloats[i + 2], mTestFloats[i + 3]);
+            break;
+        case IT_MM_SET_EPI8:
+            ret = test_mm_set_epi8((const int8_t *) mTestIntPointer1);
             break;
         case IT_MM_SET1_EPI32:
             ret = test_mm_set1_epi32(mTestInts[i]);

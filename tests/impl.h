@@ -20,6 +20,7 @@ enum InstructionTest {
     IT_MM_SET1_PS,        // Unit test implemented and verified as fully working
     IT_MM_SET_PS1,        // Unit test implemented and verified as fully working
     IT_MM_SET_PS,         // Unit test implemented and verified as fully working
+    IT_MM_SET_EPI8,       // Unit test implemented and verified as fully working
     IT_MM_SET1_EPI32,     // Unit test implemented and verified as fully working
     IT_MM_SET_EPI32,      // Unit test implemented and verified as fully working
     IT_MM_STORE_PS,       // Unit test implemented and verified as fully working
