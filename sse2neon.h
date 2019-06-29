@@ -1989,6 +1989,14 @@ FORCE_INLINE __m128i _mm_cmpeq_epi16(__m128i a, __m128i b)
         vceqq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
+// Compare packed 32-bit integers in a and b for equality, and store the results
+// in dst
+FORCE_INLINE __m128i _mm_cmpeq_epi32(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u32(
+        vceqq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+}
+
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for lesser than.
 // https://msdn.microsoft.com/en-us/library/windows/desktop/9s46csht(v=vs.90).aspx
