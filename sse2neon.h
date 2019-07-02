@@ -1000,33 +1000,18 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 
 // Shuffle packed 8-bit integers in a according to shuffle control mask in the
 // corresponding 8-bit element of b, and store the results in dst.
-FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i ia, __m128i ib)
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_epi8&expand=5146
+FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 {
-    uint8_t *a = (uint8_t *) &ia;  // input a
-    uint8_t *b = (uint8_t *) &ib;  // input b
-    int32_t r[4];
+    int8x16_t tbl = vreinterpretq_s8_m128i(a);   // input a
+    uint8x16_t idx = vreinterpretq_u8_m128i(b);  // input b
+    uint8_t __attribute__((aligned(16)))
+    mask[16] = {0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F,
+                0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F, 0x8F};
+    uint8x16_t idx_masked =
+        vandq_u8(idx, vld1q_u8(mask));  // avoid using meaningless bits
 
-    r[0] = ((b[3] & 0x80) ? 0 : a[b[3] % 16]) << 24;
-    r[0] |= ((b[2] & 0x80) ? 0 : a[b[2] % 16]) << 16;
-    r[0] |= ((b[1] & 0x80) ? 0 : a[b[1] % 16]) << 8;
-    r[0] |= ((b[0] & 0x80) ? 0 : a[b[0] % 16]);
-
-    r[1] = ((b[7] & 0x80) ? 0 : a[b[7] % 16]) << 24;
-    r[1] |= ((b[6] & 0x80) ? 0 : a[b[6] % 16]) << 16;
-    r[1] |= ((b[5] & 0x80) ? 0 : a[b[5] % 16]) << 8;
-    r[1] |= ((b[4] & 0x80) ? 0 : a[b[4] % 16]);
-
-    r[2] = ((b[11] & 0x80) ? 0 : a[b[11] % 16]) << 24;
-    r[2] |= ((b[10] & 0x80) ? 0 : a[b[10] % 16]) << 16;
-    r[2] |= ((b[9] & 0x80) ? 0 : a[b[9] % 16]) << 8;
-    r[2] |= ((b[8] & 0x80) ? 0 : a[b[8] % 16]);
-
-    r[3] = ((b[15] & 0x80) ? 0 : a[b[15] % 16]) << 24;
-    r[3] |= ((b[14] & 0x80) ? 0 : a[b[14] % 16]) << 16;
-    r[3] |= ((b[13] & 0x80) ? 0 : a[b[13] % 16]) << 8;
-    r[3] |= ((b[12] & 0x80) ? 0 : a[b[12] % 16]);
-
-    return vld1q_s32(r);
+    return vreinterpretq_m128i_s8(vqtbl1q_s8(tbl, idx_masked));
 }
 
 

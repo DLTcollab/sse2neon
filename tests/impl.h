@@ -69,6 +69,7 @@ enum InstructionTest {
     IT_MM_CMPNEQ_PS,      // Unit test *not yet implemented*
     IT_MM_XOR_PS,         // Unit test *not yet implemented*
     IT_MM_XOR_SI128,      // Unit test *not yet implemented*
+    IT_MM_SHUFFLE_EPI8,   // Unit test implemented and verified as fully working
     IT_MM_SHUFFLE_EPI32_DEFAULT,     // Unit test *not yet implemented*
     IT_MM_SHUFFLE_EPI32_FUNCTION,    // Unit test *not yet implemented*
     IT_MM_SHUFFLE_EPI32_SPLAT,       // Unit test *not yet implemented*
