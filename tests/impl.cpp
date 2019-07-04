@@ -158,6 +158,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_MOVEMASK_PS:
         ret = "MM_MOVEMASK_PS";
         break;
+    case IT_MM_SHUFFLE_EPI8:
+        ret = "MM_SHUFFLE_EPI8";
+        break;
     case IT_MM_SHUFFLE_EPI32_DEFAULT:
         ret = "MM_SHUFFLE_EPI32_DEFAULT";
         break;
@@ -1032,6 +1035,37 @@ bool test_mm_madd_epi16(const int16_t *_a, const int16_t *_b)
     __m128i b = test_mm_load_ps((const int32_t *) _b);
     __m128i c = _mm_madd_epi16(a, b);
     return validateInt(c, e3, e2, e1, e0);
+}
+
+bool test_mm_shuffle_epi8(const int32_t *a, const int32_t *b)
+{
+    const uint8_t *tbl = (const uint8_t *) a;
+    const uint8_t *idx = (const uint8_t *) b;
+    int32_t r[4];
+
+    r[0] = ((idx[3] & 0x80) ? 0 : tbl[idx[3] % 16]) << 24;
+    r[0] |= ((idx[2] & 0x80) ? 0 : tbl[idx[2] % 16]) << 16;
+    r[0] |= ((idx[1] & 0x80) ? 0 : tbl[idx[1] % 16]) << 8;
+    r[0] |= ((idx[0] & 0x80) ? 0 : tbl[idx[0] % 16]);
+
+    r[1] = ((idx[7] & 0x80) ? 0 : tbl[idx[7] % 16]) << 24;
+    r[1] |= ((idx[6] & 0x80) ? 0 : tbl[idx[6] % 16]) << 16;
+    r[1] |= ((idx[5] & 0x80) ? 0 : tbl[idx[5] % 16]) << 8;
+    r[1] |= ((idx[4] & 0x80) ? 0 : tbl[idx[4] % 16]);
+
+    r[2] = ((idx[11] & 0x80) ? 0 : tbl[idx[11] % 16]) << 24;
+    r[2] |= ((idx[10] & 0x80) ? 0 : tbl[idx[10] % 16]) << 16;
+    r[2] |= ((idx[9] & 0x80) ? 0 : tbl[idx[9] % 16]) << 8;
+    r[2] |= ((idx[8] & 0x80) ? 0 : tbl[idx[8] % 16]);
+
+    r[3] = ((idx[15] & 0x80) ? 0 : tbl[idx[15] % 16]) << 24;
+    r[3] |= ((idx[14] & 0x80) ? 0 : tbl[idx[14] % 16]) << 16;
+    r[3] |= ((idx[13] & 0x80) ? 0 : tbl[idx[13] % 16]) << 8;
+    r[3] |= ((idx[12] & 0x80) ? 0 : tbl[idx[12] % 16]);
+
+    __m128i ret = _mm_shuffle_epi8(test_mm_load_ps(a), test_mm_load_ps(b));
+
+    return validateInt(ret, r[3], r[2], r[1], r[0]);
 }
 
 bool test_mm_mul_ps(const float *_a, const float *_b)
@@ -2309,6 +2343,9 @@ public:
             break;
         case IT_MM_ADD_SS:
             ret = true;
+            break;
+        case IT_MM_SHUFFLE_EPI8:
+            ret = test_mm_shuffle_epi8(mTestIntPointer1, mTestIntPointer2);
             break;
         case IT_MM_SHUFFLE_EPI32_DEFAULT:
             ret = true;
