@@ -1003,6 +1003,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_epi8&expand=5146
 FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 {
+#if __aarch64__
     int8x16_t tbl = vreinterpretq_s8_m128i(a);   // input a
     uint8x16_t idx = vreinterpretq_u8_m128i(b);  // input b
     uint8_t __attribute__((aligned(16)))
@@ -1012,6 +1013,33 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
         vandq_u8(idx, vld1q_u8(mask));  // avoid using meaningless bits
 
     return vreinterpretq_m128i_s8(vqtbl1q_s8(tbl, idx_masked));
+#else
+    uint8_t *tbl = (uint8_t *) &a;  // input a
+    uint8_t *idx = (uint8_t *) &b;  // input b
+    int32_t r[4];
+
+    r[0] = ((idx[3] & 0x80) ? 0 : tbl[idx[3] % 16]) << 24;
+    r[0] |= ((idx[2] & 0x80) ? 0 : tbl[idx[2] % 16]) << 16;
+    r[0] |= ((idx[1] & 0x80) ? 0 : tbl[idx[1] % 16]) << 8;
+    r[0] |= ((idx[0] & 0x80) ? 0 : tbl[idx[0] % 16]);
+
+    r[1] = ((idx[7] & 0x80) ? 0 : tbl[idx[7] % 16]) << 24;
+    r[1] |= ((idx[6] & 0x80) ? 0 : tbl[idx[6] % 16]) << 16;
+    r[1] |= ((idx[5] & 0x80) ? 0 : tbl[idx[5] % 16]) << 8;
+    r[1] |= ((idx[4] & 0x80) ? 0 : tbl[idx[4] % 16]);
+
+    r[2] = ((idx[11] & 0x80) ? 0 : tbl[idx[11] % 16]) << 24;
+    r[2] |= ((idx[10] & 0x80) ? 0 : tbl[idx[10] % 16]) << 16;
+    r[2] |= ((idx[9] & 0x80) ? 0 : tbl[idx[9] % 16]) << 8;
+    r[2] |= ((idx[8] & 0x80) ? 0 : tbl[idx[8] % 16]);
+
+    r[3] = ((idx[15] & 0x80) ? 0 : tbl[idx[15] % 16]) << 24;
+    r[3] |= ((idx[14] & 0x80) ? 0 : tbl[idx[14] % 16]) << 16;
+    r[3] |= ((idx[13] & 0x80) ? 0 : tbl[idx[13] % 16]) << 8;
+    r[3] |= ((idx[12] & 0x80) ? 0 : tbl[idx[12] % 16]);
+
+    return vld1q_s32(r);
+#endif
 }
 
 
