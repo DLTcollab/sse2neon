@@ -2664,7 +2664,10 @@ FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, const int c)
     // Implements equivalent of 'aesenc' by combining AESE (with an empty key) and AESMC and then manually applying the real key as an xor operation
     // This unfortunately means an additional xor op; the compiler should be able to optimise this away for repeated calls however
     // See  https://blog.michaelbrase.com/2018/05/08/emulating-x86-aes-intrinsics-on-armv8-a for more details.
-    #define _mm_aesenc_si128(A, B) vaesmcq_u8(vaeseq_u8((A), __m128i{})) ^ (B);
+    inline __m128i _mm_aesenc_si128(__m128i a, __m128i b)
+    {
+        return vreinterpretq_s32_u8(vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_s32(a), uint8x16_t{})) ^ vreinterpretq_u8_s32(b));
+    }
 #endif
 
 // ******************************************
