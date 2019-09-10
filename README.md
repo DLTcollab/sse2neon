@@ -1,6 +1,6 @@
 # sse2neon
 
-A C/C++ header file that converts Intel SSE intrinsics to ARN NEON intrinsics.
+A C/C++ header file that converts Intel SSE intrinsics to Arm/Aarch64 NEON intrinsics.
 
 ## Info
 The SIMD instruction set of Intel, which is known as SSE is used in many
