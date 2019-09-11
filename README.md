@@ -36,6 +36,7 @@ instricts into NEON instricts.
 * [SSE2NEON.h : A porting guide and header file to convert SSE intrinsics to their ARM NEON equivalent](https://codesuppository.blogspot.com/2015/02/sse2neonh-porting-guide-and-header-file.html)
 * [CatBoost's sse2neon](https://github.com/catboost/catboost/blob/master/library/sse/sse2neon.h)
 * [ARM\_NEON\_2\_x86\_SSE](https://github.com/intel/ARM_NEON_2_x86_SSE)
+* [SSE2NEON - High Performance MPC on ARM](https://github.com/rons1404/biu-cybercenter-proj-sse2neon)
 
 ## Licensing
 
