@@ -2630,7 +2630,7 @@ FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, const int c)
 // ******************************************
 // Crypto Extensions
 // ******************************************
-#ifndef __ARM_FEATURE_CRYPTO
+#if !defined(__ARM_FEATURE_CRYPTO) && defined(__aarch64__)
 // In the absence of crypto extensions, implement aesenc using regular neon
 // intrinsics instead. See:
 // http://www.workofard.com/2017/01/accelerated-aes-for-the-arm64-linux-kernel/
@@ -2688,7 +2688,7 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
     //  add round key
     return vreinterpretq_m128i_u8(w) ^ RoundKey;
 }
-#else
+#elif defined(__ARM_FEATURE_CRYPTO)
 // Implements equivalent of 'aesenc' by combining AESE (with an empty key) and
 // AESMC and then manually applying the real key as an xor operation This
 // unfortunately means an additional xor op; the compiler should be able to
