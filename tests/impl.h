@@ -37,6 +37,7 @@ enum InstructionTest {
     IT_MM_MOVEMASK_PS,    // Unit test implemented and verified as fully working
     IT_MM_MOVEMASK_EPI8,  // Unit test implemented and verified as fully working
     IT_MM_SUB_PS,         // Unit test implemented and verified as fully working
+    IT_MM_SUB_EPI64,      // Unit test implemented
     IT_MM_SUB_EPI32,      // Unit test implemented and verified as fully working
     IT_MM_ADD_PS,         // Unit test implemented and verified as fully working
     IT_MM_ADD_EPI32,      // Unit test implemented and verified as fully working
@@ -79,6 +80,7 @@ enum InstructionTest {
     IT_MM_ADD_EPI16,                 // Unit test *not yet implemented*
     IT_MM_MADD_EPI16,     // Unit test implemented and verified as fully working
     IT_MM_MULLO_EPI32,    // Unit test *not yet implemented*
+    IT_MM_MUL_EPU32,      // Unit test implemented
     IT_MM_DIV_PS,         // Unit test *not yet implemented*
     IT_MM_DIV_SS,         // Unit test *not yet implemented*
     IT_MM_SQRT_PS,        // Unit test *not yet implemented*

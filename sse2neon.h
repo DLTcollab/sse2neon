@@ -1473,6 +1473,16 @@ FORCE_INLINE __m128 _mm_sub_ps(__m128 a, __m128 b)
         vsubq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Subtract 2 packed 64-bit integers in b from 2 packed 64-bit integers in a,
+// and store the results in dst.
+//    r0 := a0 - b0
+//    r1 := a1 - b1
+FORCE_INLINE __m128i _mm_sub_epi64(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_s64(
+        vsubq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
+}
+
 // Subtracts the 4 signed or unsigned 32-bit integers of b from the 4 signed or
 // unsigned 32-bit integers of a.
 //
@@ -1691,6 +1701,17 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_f32(
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+}
+
+// Multiply the low unsigned 32-bit integers from each packed 64-bit element in
+// a and b, and store the unsigned 64-bit results in dst.
+//
+//   r0 :=  (int32_t*)a0 * (int32_t*)b0
+//   r1 :=  (int32_t*)a3 * (int32_t*)b3
+FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u32(
+        vmulq_u32(vreinterpretq_u32_m128i(a), vreinterpretq_u32_m128i(b)));
 }
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
