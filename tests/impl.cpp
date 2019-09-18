@@ -210,7 +210,7 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         ret = "MM_MULLO_EPI32";
         break;
     case IT_MM_MUL_EPU32:
-        ret = "IT_MM_MUL_EPU32";
+        ret = "MM_MUL_EPU32";
         break;
     case IT_MM_MUL_PS:
         ret = "MM_MUL_PS";
@@ -480,6 +480,14 @@ bool validate128(__m128i a, __m128i b)
     ASSERT_RETURN(t1[2] == t2[2]);
     ASSERT_RETURN(t1[1] == t2[1]);
     ASSERT_RETURN(t1[0] == t2[0]);
+    return true;
+}
+
+bool validateUInt64(__m128i a, uint64_t x, uint64_t y)
+{
+    const uint64_t *t = (const uint64_t *) &a;
+    ASSERT_RETURN(t[1] == x);
+    ASSERT_RETURN(t[0] == y);
     return true;
 }
 
@@ -1006,8 +1014,8 @@ bool test_mm_sub_epi64(const int64_t *_a, const int64_t *_b)
     int64_t d0 = _a[0] - _b[0];
     int64_t d1 = _a[1] - _b[1];
 
-    __m128i a = test_mm_load_ps((int32_t *) _a);
-    __m128i b = test_mm_load_ps((int32_t *) _b);
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
     __m128i c = _mm_sub_epi64(a, b);
     return validateInt64(c, d1, d0);
 }
@@ -1057,14 +1065,13 @@ bool test_mm_mullo_epi16(const int16_t *_a, const int16_t *_b)
 
 bool test_mm_mul_epu32(const uint32_t *_a, const uint32_t *_b)
 {
-    int64_t dx = _a[0] - _b[0];
-    int64_t dy = _a[2] - _b[2];
+    uint64_t dx = _a[0] * _b[0];
+    uint64_t dy = _a[2] * _b[2];
 
-    __m128i a = test_mm_load_ps((int32_t *) _a);
-    __m128i b = test_mm_load_ps((int32_t *) _b);
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
     __m128i c = _mm_mul_epu32(a, b);
-    return validateInt(c, ((int32_t *) &dy)[0], ((int32_t *) &dy)[1],
-                       ((int32_t *) &dx)[0], ((int32_t *) &dx)[1]);
+    return validateUInt64(c, dy, dx);
 }
 
 bool test_mm_madd_epi16(const int16_t *_a, const int16_t *_b)
@@ -2451,6 +2458,7 @@ public:
         case IT_MM_MUL_EPU32:
             ret = test_mm_mul_epu32((const uint32_t *) mTestIntPointer1,
                                     (const uint32_t *) mTestIntPointer2);
+            break;
         case IT_MM_ADD_EPI16:
             ret = true;
             break;

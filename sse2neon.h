@@ -1706,12 +1706,17 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 // Multiply the low unsigned 32-bit integers from each packed 64-bit element in
 // a and b, and store the unsigned 64-bit results in dst.
 //
-//   r0 :=  (int32_t*)a0 * (int32_t*)b0
-//   r1 :=  (int32_t*)a3 * (int32_t*)b3
+//   r0 :=  (uint32_t*)a0 * (uint32_t*)b0
+//   r1 :=  (uint32_t*)a3 * (uint32_t*)b3
 FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
 {
+    // Mask out the high 32-bit integers and then multiply them as 64-bit
+    uint32_t __attribute__((aligned(16)))
+    data[4] = {0xFFFFFFFF, 0, 0xFFFFFFFF, 0};
+    __m128i mask = vreinterpretq_m128i_u32(vld1q_u32(data));
     return vreinterpretq_m128i_u32(
-        vmulq_u32(vreinterpretq_u32_m128i(a), vreinterpretq_u32_m128i(b)));
+        vmulq_u32(vreinterpretq_u32_m128i(_mm_and_si128(a, mask)),
+                  vreinterpretq_u32_m128i(_mm_and_si128(b, mask))));
 }
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
