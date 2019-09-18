@@ -179,6 +179,11 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
     uint64_t m128_u64[2];  // as unsigned 64-bit integers.
 } SIMDVec;
 
+// casting using SIMDVec
+#define vreinterpretq_nth_u64_m128i(x, n) (((SIMDVec *) &x)->m128_u64[n])
+#define vreinterpretq_nth_u32_m128i(x, n) (((SIMDVec *) &x)->m128_u32[n])
+
+
 // ******************************************
 // Backwards compatibility for compilers with lack of specific type support
 // ******************************************
@@ -1708,16 +1713,33 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 //
 //   r0 :=  (uint32_t*)a0 * (uint32_t*)b0
 //   r1 :=  (uint32_t*)a3 * (uint32_t*)b3
+#if 1 /* C version */
+FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
+{
+    __m128i d;
+    vreinterpretq_nth_u64_m128i(d, 0) =
+        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 0)) *
+        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 0));
+    vreinterpretq_nth_u64_m128i(d, 1) =
+        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 2)) *
+        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 2));
+    return d;
+}
+#else /* Neon version */
+// Neon version not currently viable because there is no 64 bit multiply
+// 'vmulq_s64' Could become viable in future if a 64 bit multiply becomes
+// available.
 FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
 {
     // Mask out the high 32-bit integers and then multiply them as 64-bit
     uint32_t __attribute__((aligned(16)))
     data[4] = {0xFFFFFFFF, 0, 0xFFFFFFFF, 0};
     __m128i mask = vreinterpretq_m128i_u32(vld1q_u32(data));
-    return vreinterpretq_m128i_u32(
-        vmulq_u32(vreinterpretq_u32_m128i(_mm_and_si128(a, mask)),
-                  vreinterpretq_u32_m128i(_mm_and_si128(b, mask))));
+    return vreinterpretq_m128i_f32(
+        vmulq_s64(vreinterpretq_u32_m128(_mm_and_si128(a, mask)),
+                  vreinterpretq_u32_m128(_mm_and_si128(b, mask))));
 }
+#endif
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
 // integers from b.

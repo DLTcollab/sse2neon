@@ -1065,13 +1065,28 @@ bool test_mm_mullo_epi16(const int16_t *_a, const int16_t *_b)
 
 bool test_mm_mul_epu32(const uint32_t *_a, const uint32_t *_b)
 {
-    uint64_t dx = _a[0] * _b[0];
-    uint64_t dy = _a[2] * _b[2];
+    uint64_t dx = (uint64_t)(_a[0]) * (uint64_t)(_b[0]);
+    uint64_t dy = (uint64_t)(_a[2]) * (uint64_t)(_b[2]);
 
-    __m128i a = test_mm_load_ps((const int32_t *) _a);
-    __m128i b = test_mm_load_ps((const int32_t *) _b);
-    __m128i c = _mm_mul_epu32(a, b);
-    return validateUInt64(c, dy, dx);
+    __m128i a = _mm_loadu_si128((const __m128i *) _a);
+    __m128i b = _mm_loadu_si128((const __m128i *) _b);
+    __m128i r = _mm_mul_epu32(a, b);
+    ASSERT_RETURN(validateUInt64(r, dy, dx));
+
+    __m128i t1;
+    vreinterpretq_nth_u64_m128i(t1, 0) =
+        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 0)) *
+        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 0));
+    vreinterpretq_nth_u64_m128i(t1, 1) =
+        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 2)) *
+        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 2));
+
+    __m128i t2;
+    vreinterpretq_nth_u64_m128i(t2, 0) = (uint64_t)(_a[0]) * (uint64_t)(_b[0]);
+    vreinterpretq_nth_u64_m128i(t2, 1) = (uint64_t)(_a[2]) * (uint64_t)(_b[2]);
+
+    ASSERT_RETURN(validate128(r, t1));
+    return validate128(r, t2);
 }
 
 bool test_mm_madd_epi16(const int16_t *_a, const int16_t *_b)
