@@ -1712,7 +1712,7 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 // a and b, and store the unsigned 64-bit results in dst.
 //
 //   r0 :=  (uint32_t*)a0 * (uint32_t*)b0
-//   r1 :=  (uint32_t*)a3 * (uint32_t*)b3
+//   r1 :=  (uint32_t*)a2 * (uint32_t*)b2
 #if 1 /* C version */
 FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
 {
@@ -1726,18 +1726,25 @@ FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
     return d;
 }
 #else /* Neon version */
-// Neon version not currently viable because there is no 64 bit multiply
-// 'vmulq_s64' Could become viable in future if a 64 bit multiply becomes
-// available.
+// Default to c version until casting can be sorted out on neon version.
+// (Otherwise requires compiling with -fpermissive) Also unclear whether neon
+// version actually performs better.
 FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
 {
-    // Mask out the high 32-bit integers and then multiply them as 64-bit
-    uint32_t __attribute__((aligned(16)))
-    data[4] = {0xFFFFFFFF, 0, 0xFFFFFFFF, 0};
-    __m128i mask = vreinterpretq_m128i_u32(vld1q_u32(data));
-    return vreinterpretq_m128i_f32(
-        vmulq_s64(vreinterpretq_u32_m128(_mm_and_si128(a, mask)),
-                  vreinterpretq_u32_m128(_mm_and_si128(b, mask))));
+    // shuffle: 0, 1, 2, 3 -> 0, 2, 1, 3 */
+    __m128i const a_shuf =
+        *(__m128i *) (&vzip_u32(vget_low_u32(vreinterpretq_u32_m128i(a)),
+                                vget_high_u32(vreinterpretq_u32_m128i(a))));
+    __m128i const b_shuf =
+        *(__m128i *) (&vzip_u32(vget_low_u32(vreinterpretq_u32_m128i(b)),
+                                vget_high_u32(vreinterpretq_u32_m128i(b))));
+
+    // Multiply low word (32 bit) against low word (24 bit) and high word (32
+    // bit) against high word (32 bit). Pack both results (64 bit) into 128 bit
+    // register and return result.
+    return vreinterpretq_m128i_u64(
+        vmull_u32(vget_low_u32(vreinterpretq_u32_m128i(a_shuf)),
+                  vget_low_u32(vreinterpretq_u32_m128i(b_shuf))));
 }
 #endif
 
