@@ -2,7 +2,7 @@
 #define SSE2NEON_H
 
 // This header file provides a simple API translation layer
-// between SSE intrinsics to their corresponding ARM NEON versions
+// between SSE intrinsics to their corresponding Arm/Aarch64 NEON versions
 //
 // This header file does not yet translate all of the SSE intrinsics.
 //
@@ -16,30 +16,6 @@
 //   Jim Huang <jserv@biilabs.io>
 //   Mark Cheng <marktwtn@biilabs.io>
 //   Malcolm James MacLeod <malcolm@gulden.com>
-//
-// A struct is now defined in this header file called 'SIMDVec' which can be
-// used by applications which attempt to access the contents of an _m128 struct
-// directly.  It is important to note that accessing the __m128 struct directly
-// is bad coding practice by Microsoft: @see:
-// https://msdn.microsoft.com/en-us/library/ayeb3ayc.aspx
-//
-// However, some legacy source code may try to access the contents of an __m128
-// struct directly so the developer can use the SIMDVec as an alias for it.  Any
-// casting must be done manually by the developer, as you cannot cast or
-// otherwise alias the base NEON data type for intrinsic operations.
-//
-// A bug was found with the _mm_shuffle_ps intrinsic.  If the shuffle
-// permutation was not one of the ones with a custom/unique implementation
-// causing it to fall through to the default shuffle implementation it was
-// failing to return the correct value.  This is now fixed.
-//
-// A bug was found with the _mm_cvtps_epi32 intrinsic.  This converts floating
-// point values to integers. It was not honoring the correct rounding mode.  In
-// SSE the default rounding mode when converting from float to int is to use
-// 'round to even' otherwise known as 'bankers rounding'.  ARMv7 did not support
-// this feature but ARMv8 does. As it stands today, this header file assumes
-// ARMv8.  If you are trying to target really old ARM devices, you may get a
-// build error.
 
 /*
  * The MIT license:
@@ -84,6 +60,7 @@
 #endif
 
 #include <stdint.h>
+
 #include "arm_neon.h"
 
 /**
@@ -156,6 +133,17 @@ typedef int32x4_t __m128i;
 #define vreinterpretq_u32_m128i(x) vreinterpretq_u32_s32(x)
 #define vreinterpretq_u64_m128i(x) vreinterpretq_u64_s32(x)
 
+// A struct is defined in this header file called 'SIMDVec' which can be used
+// by applications which attempt to access the contents of an _m128 struct
+// directly.  It is important to note that accessing the __m128 struct directly
+// is bad coding practice by Microsoft: @see:
+// https://msdn.microsoft.com/en-us/library/ayeb3ayc.aspx
+//
+// However, some legacy source code may try to access the contents of an __m128
+// struct directly so the developer can use the SIMDVec as an alias for it.  Any
+// casting must be done manually by the developer, as you cannot cast or
+// otherwise alias the base NEON data type for intrinsic operations.
+//
 // union intended to allow direct access to an __m128 variable using the names
 // that the MSVC compiler provides.  This union should really only be used when
 // trying to access the members of the vector as integer values.  GCC/clang
