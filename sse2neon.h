@@ -7,13 +7,15 @@
 // This header file does not yet translate all of the SSE intrinsics.
 //
 // Contributors to this work are:
-//   John W. Ratcliff     : jratcliffscarab@gmail.com
-//   Brandon Rowlett      : browlett@nvidia.com
-//   Ken Fast             : kfast@gdeb.com
-//   Eric van Beurden     : evanbeurden@nvidia.com
-//   Alexander Potylitsin : apotylitsin@nvidia.com
-//   Hasindu Gamaarachchi : hasindu2008@gmail.com
-//   Jim Huang            : jserv@biilabs.io
+//   John W. Ratcliff <jratcliffscarab@gmail.com>
+//   Brandon Rowlett <browlett@nvidia.com>
+//   Ken Fast <kfast@gdeb.com>
+//   Eric van Beurden <evanbeurden@nvidia.com>
+//   Alexander Potylitsin <apotylitsin@nvidia.com>
+//   Hasindu Gamaarachchi <hasindu2008@gmail.com>
+//   Jim Huang <jserv@biilabs.io>
+//   Mark Cheng <marktwtn@biilabs.io>
+//   Malcolm James MacLeod <malcolm@gulden.com>
 //
 // A struct is now defined in this header file called 'SIMDVec' which can be
 // used by applications which attempt to access the contents of an _m128 struct
