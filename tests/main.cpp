@@ -28,5 +28,5 @@ int main(int /*argc*/, const char ** /*argv*/)
     printf("SSE2NEONTest Complete: Passed %d tests : Failed %d\n", passCount,
            failedCount);
 
-    return 0;
+    return failedCount ? -1 : 0;
 }
