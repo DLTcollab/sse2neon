@@ -1739,7 +1739,7 @@ FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
         *(__m128i *) (&vzip_u32(vget_low_u32(vreinterpretq_u32_m128i(b)),
                                 vget_high_u32(vreinterpretq_u32_m128i(b))));
 
-    // Multiply low word (32 bit) against low word (24 bit) and high word (32
+    // Multiply low word (32 bit) against low word (34 bit) and high word (32
     // bit) against high word (32 bit). Pack both results (64 bit) into 128 bit
     // register and return result.
     return vreinterpretq_m128i_u64(
