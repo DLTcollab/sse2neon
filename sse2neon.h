@@ -169,6 +169,11 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
     uint64_t m128_u64[2];  // as unsigned 64-bit integers.
 } SIMDVec;
 
+// casting using SIMDVec
+#define vreinterpretq_nth_u64_m128i(x, n) (((SIMDVec *) &x)->m128_u64[n])
+#define vreinterpretq_nth_u32_m128i(x, n) (((SIMDVec *) &x)->m128_u32[n])
+
+
 // ******************************************
 // Backwards compatibility for compilers with lack of specific type support
 // ******************************************
@@ -1463,6 +1468,16 @@ FORCE_INLINE __m128 _mm_sub_ps(__m128 a, __m128 b)
         vsubq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Subtract 2 packed 64-bit integers in b from 2 packed 64-bit integers in a,
+// and store the results in dst.
+//    r0 := a0 - b0
+//    r1 := a1 - b1
+FORCE_INLINE __m128i _mm_sub_epi64(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_s64(
+        vsubq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
+}
+
 // Subtracts the 4 signed or unsigned 32-bit integers of b from the 4 signed or
 // unsigned 32-bit integers of a.
 //
@@ -1682,6 +1697,46 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
     return vreinterpretq_m128_f32(
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
+
+// Multiply the low unsigned 32-bit integers from each packed 64-bit element in
+// a and b, and store the unsigned 64-bit results in dst.
+//
+//   r0 :=  (uint32_t*)a0 * (uint32_t*)b0
+//   r1 :=  (uint32_t*)a2 * (uint32_t*)b2
+#if 1 /* C version */
+FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
+{
+    __m128i d;
+    vreinterpretq_nth_u64_m128i(d, 0) =
+        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 0)) *
+        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 0));
+    vreinterpretq_nth_u64_m128i(d, 1) =
+        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 2)) *
+        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 2));
+    return d;
+}
+#else /* Neon version */
+// Default to c version until casting can be sorted out on neon version.
+// (Otherwise requires compiling with -fpermissive) Also unclear whether neon
+// version actually performs better.
+FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
+{
+    // shuffle: 0, 1, 2, 3 -> 0, 2, 1, 3 */
+    __m128i const a_shuf =
+        *(__m128i *) (&vzip_u32(vget_low_u32(vreinterpretq_u32_m128i(a)),
+                                vget_high_u32(vreinterpretq_u32_m128i(a))));
+    __m128i const b_shuf =
+        *(__m128i *) (&vzip_u32(vget_low_u32(vreinterpretq_u32_m128i(b)),
+                                vget_high_u32(vreinterpretq_u32_m128i(b))));
+
+    // Multiply low word (32 bit) against low word (32 bit) and high word (32
+    // bit) against high word (32 bit). Pack both results (64 bit) into 128 bit
+    // register and return result.
+    return vreinterpretq_m128i_u64(
+        vmull_u32(vget_low_u32(vreinterpretq_u32_m128i(a_shuf)),
+                  vget_low_u32(vreinterpretq_u32_m128i(b_shuf))));
+}
+#endif
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
 // integers from b.
