@@ -2195,10 +2195,10 @@ FORCE_INLINE int _mm_comilt_ss(__m128 a, __m128 b)
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
     uint32x4_t b_not_nan =
         vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_or_b_nan = vmvnq_u32(vandq_u32(a_not_nan, b_not_nan));
+    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_lt_b =
         vcltq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return (vgetq_lane_u32(vorrq_u32(a_or_b_nan, a_lt_b), 0) != 0) ? 1 : 0;
+    return (vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_lt_b), 0) != 0) ? 1 : 0;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -2229,10 +2229,10 @@ FORCE_INLINE int _mm_comile_ss(__m128 a, __m128 b)
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
     uint32x4_t b_not_nan =
         vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_or_b_nan = vmvnq_u32(vandq_u32(a_not_nan, b_not_nan));
+    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_le_b =
         vcleq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return (vgetq_lane_u32(vorrq_u32(a_or_b_nan, a_le_b), 0) != 0) ? 1 : 0;
+    return (vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_le_b), 0) != 0) ? 1 : 0;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -2263,10 +2263,10 @@ FORCE_INLINE int _mm_comieq_ss(__m128 a, __m128 b)
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
     uint32x4_t b_not_nan =
         vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_or_b_nan = vmvnq_u32(vandq_u32(a_not_nan, b_not_nan));
+    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_eq_b =
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return (vgetq_lane_u32(vorrq_u32(a_or_b_nan, a_eq_b), 0) != 0) ? 1 : 0;
+    return (vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_eq_b), 0) != 0) ? 1 : 0;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -2280,11 +2280,10 @@ FORCE_INLINE int _mm_comineq_ss(__m128 a, __m128 b)
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
     uint32x4_t b_not_nan =
         vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
+    uint32x4_t a_or_b_nan = vmvnq_u32(vandq_u32(a_not_nan, b_not_nan));
     uint32x4_t a_neq_b = vmvnq_u32(
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
-    return (vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_neq_b), 0) != 0) ? 1
-                                                                         : 0;
+    return (vgetq_lane_u32(vorrq_u32(a_or_b_nan, a_neq_b), 0) != 0) ? 1 : 0;
 }
 
 // according to the documentation, these intrinsics behave the same as the
