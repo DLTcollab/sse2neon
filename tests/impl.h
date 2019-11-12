@@ -92,12 +92,12 @@ enum InstructionTest {
     IT_MM_MIN_EPI32,      // Unit test *not yet implemented*
     IT_MM_HADD_PS,        // Unit test *not yet implemented*
     IT_MM_CMPORD_PS,      // Unit test *not yet implemented*
-    IT_MM_COMILT_SS,      // Unit test *not yet implemented*
-    IT_MM_COMIGT_SS,      // Unit test *not yet implemented*
-    IT_MM_COMILE_SS,      // Unit test *not yet implemented*
-    IT_MM_COMIGE_SS,      // Unit test *not yet implemented*
-    IT_MM_COMIEQ_SS,      // Unit test *not yet implemented*
-    IT_MM_COMINEQ_SS,     // Unit test *not yet implemented*
+    IT_MM_COMILT_SS,      // Unit test implemented
+    IT_MM_COMIGT_SS,      // Unit test implemented
+    IT_MM_COMILE_SS,      // Unit test implemented
+    IT_MM_COMIGE_SS,      // Unit test implemented
+    IT_MM_COMIEQ_SS,      // Unit test implemented
+    IT_MM_COMINEQ_SS,     // Unit test implemented
     IT_MM_CVTSI128_SI32,  // Unit test *not yet implemented*
     IT_MM_CVTSI32_SI128,  // Unit test *not yet implemented*
     IT_MM_CASTPS_SI128,   // Unit test *not yet implemented*

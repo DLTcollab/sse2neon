@@ -2389,38 +2389,21 @@ public:
             break;
         case IT_MM_COMILT_SS:
             ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
-            if (!ret) {
-                // FIXME: incomplete
-                ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
-            }
             break;
         case IT_MM_COMIGT_SS:
             ret = test_mm_comigt_ss(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_COMILE_SS:
             ret = test_mm_comile_ss(mTestFloatPointer1, mTestFloatPointer2);
-            if (!ret) {
-                // FIXME: incomplete
-                ret = test_mm_comile_ss(mTestFloatPointer1, mTestFloatPointer2);
-            }
             break;
         case IT_MM_COMIGE_SS:
             ret = test_mm_comige_ss(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_COMIEQ_SS:
             ret = test_mm_comieq_ss(mTestFloatPointer1, mTestFloatPointer2);
-            if (!ret) {
-                // FIXME: incomplete
-                ret = test_mm_comieq_ss(mTestFloatPointer1, mTestFloatPointer2);
-            }
             break;
         case IT_MM_COMINEQ_SS:
             ret = test_mm_comineq_ss(mTestFloatPointer1, mTestFloatPointer2);
-            if (!ret) {
-                // FIXME: incomplete
-                ret =
-                    test_mm_comineq_ss(mTestFloatPointer1, mTestFloatPointer2);
-            }
             break;
         case IT_MM_HADD_PS:
             ret = true;
