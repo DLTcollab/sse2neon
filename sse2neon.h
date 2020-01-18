@@ -1694,42 +1694,15 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 // Multiply the low unsigned 32-bit integers from each packed 64-bit element in
 // a and b, and store the unsigned 64-bit results in dst.
 //
-//   r0 :=  (uint32_t*)a0 * (uint32_t*)b0
-//   r1 :=  (uint32_t*)a2 * (uint32_t*)b2
-#if 1 /* C version */
+//   r0 :=  (a0 & 0xFFFFFFFF) * (b0 & 0xFFFFFFFF)
+//   r1 :=  (a2 & 0xFFFFFFFF) * (b2 & 0xFFFFFFFF)
 FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
 {
-    __m128i d;
-    vreinterpretq_nth_u64_m128i(d, 0) =
-        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 0)) *
-        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 0));
-    vreinterpretq_nth_u64_m128i(d, 1) =
-        (uint64_t)(vreinterpretq_nth_u32_m128i(a, 2)) *
-        (uint64_t)(vreinterpretq_nth_u32_m128i(b, 2));
-    return d;
+    // vmull_u32 upcasts instead of masking, so we downcast.
+    uint32x2_t a_lo = vmovn_u64(vreinterpretq_u64_m128i(a));
+    uint32x2_t b_lo = vmovn_u64(vreinterpretq_u64_m128i(b));
+    return vreinterpretq_m128i_u64(vmull_u32(a_lo, b_lo));
 }
-#else /* Neon version */
-// Default to c version until casting can be sorted out on neon version.
-// (Otherwise requires compiling with -fpermissive) Also unclear whether neon
-// version actually performs better.
-FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
-{
-    // shuffle: 0, 1, 2, 3 -> 0, 2, 1, 3 */
-    __m128i const a_shuf =
-        *(__m128i *) (&vzip_u32(vget_low_u32(vreinterpretq_u32_m128i(a)),
-                                vget_high_u32(vreinterpretq_u32_m128i(a))));
-    __m128i const b_shuf =
-        *(__m128i *) (&vzip_u32(vget_low_u32(vreinterpretq_u32_m128i(b)),
-                                vget_high_u32(vreinterpretq_u32_m128i(b))));
-
-    // Multiply low word (32 bit) against low word (32 bit) and high word (32
-    // bit) against high word (32 bit). Pack both results (64 bit) into 128 bit
-    // register and return result.
-    return vreinterpretq_m128i_u64(
-        vmull_u32(vget_low_u32(vreinterpretq_u32_m128i(a_shuf)),
-                  vget_low_u32(vreinterpretq_u32_m128i(b_shuf))));
-}
-#endif
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
 // integers from b.
