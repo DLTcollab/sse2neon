@@ -2650,10 +2650,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // shift to right
 // https://msdn.microsoft.com/en-us/library/bb514041(v=vs.120).aspx
 // http://blog.csdn.net/hemmingway/article/details/44828303
-FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, const int c)
-{
-    return (__m128i) vextq_s8((int8x16_t) a, (int8x16_t) b, c);
-}
+#define _mm_alignr_epi8(a, b, c) ((__m128i) vextq_s8((int8x16_t) (a), (int8x16_t) (b), (c))
 
 // Extracts the selected signed or unsigned 16-bit integer from a and zero
 // extends.  https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx
