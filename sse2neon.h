@@ -2462,10 +2462,14 @@ FORCE_INLINE __m128i _mm_packs_epi32(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/xf7k860c%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_unpacklo_epi8(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s8(vzip1q_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+#else
     int8x8_t a1 = vreinterpret_s8_s16(vget_low_s16(vreinterpretq_s16_m128i(a)));
     int8x8_t b1 = vreinterpret_s8_s16(vget_low_s16(vreinterpretq_s16_m128i(b)));
     int8x8x2_t result = vzip_s8(a1, b1);
     return vreinterpretq_m128i_s8(vcombine_s8(result.val[0], result.val[1]));
+#endif
 }
 
 // Interleaves the lower 4 signed or unsigned 16-bit integers in a with the
@@ -2483,10 +2487,14 @@ FORCE_INLINE __m128i _mm_unpacklo_epi8(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/btxb17bw%28v=vs.90%29.aspx
 FORCE_INLINE __m128i _mm_unpacklo_epi16(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s16(vzip1q_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+#else
     int16x4_t a1 = vget_low_s16(vreinterpretq_s16_m128i(a));
     int16x4_t b1 = vget_low_s16(vreinterpretq_s16_m128i(b));
     int16x4x2_t result = vzip_s16(a1, b1);
     return vreinterpretq_m128i_s16(vcombine_s16(result.val[0], result.val[1]));
+#endif
 }
 
 // Interleaves the lower 2 signed or unsigned 32 - bit integers in a with the
@@ -2500,10 +2508,14 @@ FORCE_INLINE __m128i _mm_unpacklo_epi16(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/x8atst9d(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpacklo_epi32(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s32(vzip1q_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+#else
     int32x2_t a1 = vget_low_s32(vreinterpretq_s32_m128i(a));
     int32x2_t b1 = vget_low_s32(vreinterpretq_s32_m128i(b));
     int32x2x2_t result = vzip_s32(a1, b1);
     return vreinterpretq_m128i_s32(vcombine_s32(result.val[0], result.val[1]));
+#endif
 }
 
 FORCE_INLINE __m128i _mm_unpacklo_epi64(__m128i a, __m128i b)
@@ -2524,10 +2536,14 @@ FORCE_INLINE __m128i _mm_unpacklo_epi64(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/25st103b%28v=vs.90%29.aspx
 FORCE_INLINE __m128 _mm_unpacklo_ps(__m128 a, __m128 b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vzip1q_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+#else
     float32x2_t a1 = vget_low_f32(vreinterpretq_f32_m128(a));
     float32x2_t b1 = vget_low_f32(vreinterpretq_f32_m128(b));
     float32x2x2_t result = vzip_f32(a1, b1);
     return vreinterpretq_m128_f32(vcombine_f32(result.val[0], result.val[1]));
+#endif
 }
 
 // Selects and interleaves the upper two single-precision, floating-point values
@@ -2541,10 +2557,14 @@ FORCE_INLINE __m128 _mm_unpacklo_ps(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/skccxx7d%28v=vs.90%29.aspx
 FORCE_INLINE __m128 _mm_unpackhi_ps(__m128 a, __m128 b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vzip2q_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+#else
     float32x2_t a1 = vget_high_f32(vreinterpretq_f32_m128(a));
     float32x2_t b1 = vget_high_f32(vreinterpretq_f32_m128(b));
     float32x2x2_t result = vzip_f32(a1, b1);
     return vreinterpretq_m128_f32(vcombine_f32(result.val[0], result.val[1]));
+#endif
 }
 
 // Interleaves the upper 8 signed or unsigned 8-bit integers in a with the upper
@@ -2561,12 +2581,16 @@ FORCE_INLINE __m128 _mm_unpackhi_ps(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/t5h7783k(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpackhi_epi8(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s8(vzip2q_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+#else
     int8x8_t a1 =
         vreinterpret_s8_s16(vget_high_s16(vreinterpretq_s16_m128i(a)));
     int8x8_t b1 =
         vreinterpret_s8_s16(vget_high_s16(vreinterpretq_s16_m128i(b)));
     int8x8x2_t result = vzip_s8(a1, b1);
     return vreinterpretq_m128i_s8(vcombine_s8(result.val[0], result.val[1]));
+#endif
 }
 
 // Interleaves the upper 4 signed or unsigned 16-bit integers in a with the
@@ -2584,10 +2608,14 @@ FORCE_INLINE __m128i _mm_unpackhi_epi8(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/03196cz7(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpackhi_epi16(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s16(vzip2q_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+#else
     int16x4_t a1 = vget_high_s16(vreinterpretq_s16_m128i(a));
     int16x4_t b1 = vget_high_s16(vreinterpretq_s16_m128i(b));
     int16x4x2_t result = vzip_s16(a1, b1);
     return vreinterpretq_m128i_s16(vcombine_s16(result.val[0], result.val[1]));
+#endif
 }
 
 // Interleaves the upper 2 signed or unsigned 32-bit integers in a with the
@@ -2595,10 +2623,14 @@ FORCE_INLINE __m128i _mm_unpackhi_epi16(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/65sa7cbs(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_unpackhi_epi32(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s32(vzip2q_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+#else
     int32x2_t a1 = vget_high_s32(vreinterpretq_s32_m128i(a));
     int32x2_t b1 = vget_high_s32(vreinterpretq_s32_m128i(b));
     int32x2x2_t result = vzip_s32(a1, b1);
     return vreinterpretq_m128i_s32(vcombine_s32(result.val[0], result.val[1]));
+#endif
 }
 
 // Interleaves the upper signed or unsigned 64-bit integer in a with the
