@@ -1240,6 +1240,23 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
 #endif
 
+#define _mm_blend_epi16(a, b, imm)                       \
+    ({                                                   \
+        static const uint16_t _mask[8] = {               \
+            ((imm) & 0x1) * 0xFFFF,                      \
+            (((imm) >> 1) & 0x1) * 0xFFFF,               \
+            (((imm) >> 2) & 0x1) * 0xFFFF,               \
+            (((imm) >> 3) & 0x1) * 0xFFFF,               \
+            (((imm) >> 4) & 0x1) * 0xFFFF,               \
+            (((imm) >> 5) & 0x1) * 0xFFFF,               \
+            (((imm) >> 6) & 0x1) * 0xFFFF,               \
+            (((imm) >> 7) & 0x1) * 0xFFFF                \
+        };                                               \
+        uint16x8_t _mask_vec = vld1q_u16(_mask);         \
+        uint16x8_t _a = vreinterpretq_m128i_u16(a);      \
+        uint16x8_t _b = vreinterpretq_m128i_u16(b);      \
+        vreinterpretq_u16_m128i(vbslq_u16(_b, _a, _mask_vec)); \
+    })
 // Shifts the 4 signed 32-bit integers in a right by count bits while shifting
 // in the sign bit.
 //
@@ -2684,7 +2701,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // shift to right
 // https://msdn.microsoft.com/en-us/library/bb514041(v=vs.120).aspx
 // http://blog.csdn.net/hemmingway/article/details/44828303
-#define _mm_alignr_epi8(a, b, c) ((__m128i) vextq_s8((int8x16_t) (a), (int8x16_t) (b), (c))
+#define _mm_alignr_epi8(a, b, c) ((__m128i) vextq_s8((int8x16_t) (b), (int8x16_t) (a), (c)))
 
 // Extracts the selected signed or unsigned 16-bit integer from a and zero
 // extends.  https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx
