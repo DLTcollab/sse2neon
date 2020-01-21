@@ -1257,164 +1257,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         uint16x8_t _b = vreinterpretq_m128i_u16(b);      \
         vreinterpretq_u16_m128i(vbslq_u16(_b, _a, _mask_vec)); \
     })
-// Shifts the 4 signed 32-bit integers in a right by count bits while shifting
-// in the sign bit.
-//
-//   r0 := a0 >> count
-//   r1 := a1 >> count
-//   r2 := a2 >> count
-//   r3 := a3 >> count immediate
-FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, int count)
-{
-    return vshlq_s32(a, vdupq_n_s32(-count));
-}
 
-// Shifts the 8 signed 16-bit integers in a right by count bits while shifting
-// in the sign bit.
-//
-//   r0 := a0 >> count
-//   r1 := a1 >> count
-//   ...
-//   r7 := a7 >> count
-FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
-{
-    return (__m128i) vshlq_s16((int16x8_t) a, vdupq_n_s16(-count));
-}
-
-// Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while
-// shifting in zeros.
-//
-//   r0 := a0 << count
-//   r1 := a1 << count
-//   ...
-//   r7 := a7 << count
-//
-// https://msdn.microsoft.com/en-us/library/es73bcsy(v=vs.90).aspx
-#define _mm_slli_epi16(a, imm)                                   \
-    ({                                                           \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_s16(                       \
-                vshlq_n_s16(vreinterpretq_s16_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
-
-// Shifts the 4 signed or unsigned 32-bit integers in a left by count bits while
-// shifting in zeros. :
-// https://msdn.microsoft.com/en-us/library/z2k3bbtb%28v=vs.90%29.aspx
-// FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_slli_epi32(a, imm)                                   \
-    ({                                                           \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshlq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
-
-// Shift packed 64-bit integers in a left by imm8 while shifting in zeros, and
-// store the results in dst.
-#define _mm_slli_epi64(a, imm)                                   \
-    ({                                                           \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 63) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_s64(                       \
-                vshlq_n_s64(vreinterpretq_s64_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
-
-// Shifts the 8 signed or unsigned 16-bit integers in a right by count bits
-// while shifting in zeros.
-//
-//   r0 := srl(a0, count)
-//   r1 := srl(a1, count)
-//   ...
-//   r7 := srl(a7, count)
-//
-// https://msdn.microsoft.com/en-us/library/6tcwd38t(v=vs.90).aspx
-#define _mm_srli_epi16(a, imm)                                   \
-    ({                                                           \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_u16(                       \
-                vshrq_n_u16(vreinterpretq_u16_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
-
-// Shifts the 4 signed or unsigned 32-bit integers in a right by count bits
-// while shifting in zeros.
-// https://msdn.microsoft.com/en-us/library/w486zcfa(v=vs.100).aspx FORCE_INLINE
-// __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_srli_epi32(a, imm)                                   \
-    ({                                                           \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_u32(                       \
-                vshrq_n_u32(vreinterpretq_u32_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
-
-// Shift packed 64-bit integers in a right by imm8 while shifting in zeros, and
-// store the results in dst.
-#define _mm_srli_epi64(a, imm)                                   \
-    ({                                                           \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 63) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_u64(                       \
-                vshrq_n_u64(vreinterpretq_u64_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
-
-// Shifts the 4 signed 32 - bit integers in a right by count bits while shifting
-// in the sign bit.
-// https://msdn.microsoft.com/en-us/library/z1939387(v=vs.100).aspx
-// FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_srai_epi32(a, imm)                                   \
-    ({                                                           \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshrq_n_s32(vreinterpretq_s32_m128i(a), 16));    \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshrq_n_s32(vreinterpretq_s32_m128i(ret), 16));  \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshrq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
 
 // Shifts the 128 - bit value in a right by imm bytes while shifting in
 // zeros.imm must be an immediate.
@@ -1457,6 +1300,287 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
         }                                                               \
         ret;                                                            \
     })
+
+// Shifts the 8 signed 16-bit integers right by count bits while shifting
+// in the sign bit.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   r2 := a2 >> count
+//   ...
+//   r7 := a8 >> count immediate
+FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
+{
+    return (__m128i) vshlq_s16((int16x8_t) a, vdupq_n_s16(-(count & 0xff)));
+}
+
+// Shifts the 4 signed 32-bit integers right by count bits while shifting
+// in the sign bit.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   r2 := a2 >> count
+//   r3 := a3 >> count immediate
+FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, int count)
+{
+    return vshlq_s32(a, vdupq_n_s32(-(count & 0xff)));
+}
+
+// Shifts the 2 signed 64-bit integers right by count bits while shifting
+// in the sign bit.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+FORCE_INLINE __m128i _mm_srai_epi64(__m128i a, int count)
+{
+    return (__m128i) vshlq_s64((int64x2_t) a, vdupq_n_s64(-(count & 0xff)));
+}
+
+// Shifts the 8 signed or unsigned 16-bit integers left by count bits
+//
+//   r0 := a0 << count
+//   r1 := a1 << count
+//   ...
+//   r7 := a7 << count
+FORCE_INLINE __m128i _mm_slli_epi16(__m128i a, int count)
+{
+    return (__m128i) vshlq_s16((int16x8_t) a, vdupq_n_s16(count & 0xff));
+}
+
+// Shifts the 4 signed or unsigned 32-bit integers left by count bits
+//
+//   r0 := a0 << count
+//   r1 := a1 << count
+//   r2 := a2 << count
+//   r3 := a3 << count
+FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, int count)
+{
+    return (__m128i) vshlq_s32((int32x4_t) a, vdupq_n_s32(count & 0xff));
+}
+
+// Shifts the 2 signed or unsigned 64-bit integers left by count bits
+//
+//   r0 := a0 << count
+//   r1 := a1 << count
+FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int count)
+{
+    return (__m128i) vshlq_s64((int64x2_t) a, vdupq_n_s64(count & 0xff));
+}
+
+
+// Shifts the 8 unsigned 16-bit integers right by count bits while shifting
+// in zeroes.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   r2 := a2 >> count
+//   ...
+//   r7 := a8 >> count immediate
+FORCE_INLINE __m128i _mm_srli_epi16(__m128i a, int count)
+{
+    return (__m128i) vshlq_u16((uint16x8_t) a, vdupq_n_s16(-(count & 0xff)));
+}
+
+// Shifts the 4 unsigned 32-bit integers right by count bits while shifting
+// in zeroes.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   r2 := a2 >> count
+//   r3 := a3 >> count immediate
+FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, int count)
+{
+    return (__m128i) vshlq_u32((uint32x4_t) a, vdupq_n_s32(-(count & 0xff)));
+}
+
+// Shifts the 2 unsigned 64-bit integers right by count bits while shifting
+// in zeroes.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+FORCE_INLINE __m128i _mm_srli_epi64(__m128i a, int count)
+{
+    return (__m128i) vshlq_u64((uint64x2_t) a, vdupq_n_s64(-(count & 0xff)));
+}
+
+FORCE_INLINE __m128i _mm_sllv_epi16(__m128i _a, __m128i _b)
+{
+    uint16x8_t a = vreinterpretq_u16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+    // NEON and SSE both use zero on > 15, but NEON can't be
+    // negative or it will shift right.
+    int16x8_t mask = vandq_s16(b, vdupq_n_s16(0x7fff));
+    return vreinterpretq_m128i_u16(vshlq_u16(a, mask));
+}
+
+FORCE_INLINE __m128i _mm_sllv_epi32(__m128i _a, __m128i _b)
+{
+    uint32x4_t a = vreinterpretq_u32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // NEON and SSE both use zero on > 31, but NEON can't be
+    // negative or it will shift right.
+    int32x4_t mask = vandq_s32(b, vdupq_n_s32(0x7fffffff));
+    return vreinterpretq_m128i_u32(vshlq_u32(a, mask));
+}
+
+
+FORCE_INLINE __m128i _mm_sllv_epi64(__m128i _a, __m128i _b)
+{
+    uint64x2_t a = vreinterpretq_u64_m128i(_a);
+    int64x2_t b = vreinterpretq_s64_m128i(_b);
+    // NEON and SSE both use zero on > 63, but NEON can't be
+    // negative or it will shift right.
+    int64x2_t mask = vandq_s64(b, vdupq_n_s64(0x7fffffffffffffff));
+    return vreinterpretq_m128i_u64(vshlq_u64(a, mask));
+}
+
+FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i b)
+{
+    int16x8_t duped =
+       vdupq_lane_s16(
+          vget_low_s16(vreinterpretq_s16_m128i(b)), 0
+       );
+    return _mm_sllv_epi16(a, vreinterpretq_m128i_s16(duped));
+}
+
+FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i b)
+{
+    int32x4_t duped =
+       vdupq_lane_s32(
+          vget_low_s32(vreinterpretq_s32_m128i(b)), 0
+       );
+    return _mm_sllv_epi32(a, vreinterpretq_m128i_s32(duped));
+}
+
+FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i b)
+{
+    int64x2_t duped =
+       vdupq_lane_s64(
+          vget_low_s64(vreinterpretq_s64_m128i(b)), 0
+       );
+    return _mm_sllv_epi64(a, vreinterpretq_m128i_s64(duped));
+}
+
+FORCE_INLINE __m128i _mm_srlv_epi16(__m128i _a, __m128i _b)
+{
+    uint16x8_t a = vreinterpretq_u16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+    // NEON and SSE both use zero on > 15, but NEON can't be
+    // negative or it will shift left.
+    int16x8_t mask = vandq_s16(b, vdupq_n_s16(0x7fff));
+    int16x8_t reversed = vnegq_s16(mask);
+    return vreinterpretq_m128i_u16(vshlq_u16(a, reversed));
+}
+
+FORCE_INLINE __m128i _mm_srlv_epi32(__m128i _a, __m128i _b)
+{
+    uint32x4_t a = vreinterpretq_u32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // NEON and SSE both use zero on > 31, but NEON can't be
+    // negative or it will shift left.
+    int32x4_t mask = vandq_s32(b, vdupq_n_s32(0x7fffffff));
+    int32x4_t reversed = vnegq_s32(mask);
+    return vreinterpretq_m128i_u32(vshlq_u32(a, reversed));
+}
+
+FORCE_INLINE __m128i _mm_srlv_epi64(__m128i _a, __m128i _b)
+{
+    uint64x2_t a = vreinterpretq_u64_m128i(_a);
+    int64x2_t b = vreinterpretq_s64_m128i(_b);
+    // NEON and SSE both use zero on > 63, but NEON can't be
+    // negative or it will shift right.
+    int64x2_t mask = vandq_s64(b, vdupq_n_s64(0x7fffffffffffffff));
+    int64x2_t reversed = vsubq_s64(vdupq_n_s64(0), mask);
+    return vreinterpretq_m128i_u64(vshlq_u64(a, reversed));
+}
+
+
+FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i b)
+{
+    int16x8_t duped =
+       vdupq_lane_s16(
+          vget_low_s16(vreinterpretq_s16_m128i(b)), 0
+       );
+    return _mm_srlv_epi16(a, vreinterpretq_m128i_s16(duped));
+}
+
+FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i b)
+{
+    int32x4_t duped =
+       vdupq_lane_s32(
+          vget_low_s32(vreinterpretq_s32_m128i(b)), 0
+       );
+    return _mm_srlv_epi32(a, vreinterpretq_m128i_s32(duped));
+}
+
+FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i b)
+{
+    int64x2_t duped =
+       vdupq_lane_s64(
+          vget_low_s64(vreinterpretq_s64_m128i(b)), 0
+       );
+    return _mm_srlv_epi64(a, vreinterpretq_m128i_s64(duped));
+}
+
+FORCE_INLINE __m128i _mm_srav_epi16(__m128i _a, __m128i _b)
+{
+    int16x8_t a = vreinterpretq_s16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+    // NEON and SSE both use zero on > 15, but NEON can't be
+    // negative or it will shift left.
+    int16x8_t mask = vandq_s16(b, vdupq_n_s16(0x7fff));
+    int16x8_t reversed = vnegq_s16(mask);
+    return vreinterpretq_m128i_s16(vshlq_s16(a, reversed));
+}
+
+FORCE_INLINE __m128i _mm_srav_epi32(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // NEON and SSE both use zero on > 31, but NEON can't be
+    // negative or it will shift left.
+    int32x4_t mask = vandq_s32(b, vdupq_n_s32(0x7fffffff));
+    int32x4_t reversed = vnegq_s32(mask);
+    return vreinterpretq_m128i_s32(vshlq_s32(a, reversed));
+}
+
+FORCE_INLINE __m128i _mm_srav_epi64(__m128i _a, __m128i _b)
+{
+    int64x2_t a = vreinterpretq_s64_m128i(_a);
+    int64x2_t b = vreinterpretq_s64_m128i(_b);
+    // NEON and SSE both use zero on > 63, but NEON can't be
+    // negative or it will shift right.
+    int64x2_t mask = vandq_s64(b, vdupq_n_s64(0x7fffffffffffffff));
+    int64x2_t reversed = vsubq_s64(vdupq_n_s64(0), mask);
+    return vreinterpretq_m128i_s64(vshlq_s64(a, reversed));
+}
+
+FORCE_INLINE __m128i _mm_sra_epi16(__m128i a, __m128i b)
+{
+    int16x8_t duped =
+       vdupq_lane_s16(
+          vget_low_s16(vreinterpretq_s16_m128i(b)), 0
+       );
+    return _mm_srav_epi16(a, vreinterpretq_m128i_s16(duped));
+}
+
+FORCE_INLINE __m128i _mm_sra_epi32(__m128i a, __m128i b)
+{
+    int32x4_t duped =
+       vdupq_lane_s32(
+          vget_low_s32(vreinterpretq_s32_m128i(b)), 0
+       );
+    return _mm_srav_epi32(a, vreinterpretq_m128i_s32(duped));
+}
+
+FORCE_INLINE __m128i _mm_sra_epi64(__m128i a, __m128i b)
+{
+    int64x2_t duped =
+       vdupq_lane_s64(
+          vget_low_s64(vreinterpretq_s64_m128i(b)), 0
+       );
+    return _mm_srav_epi64(a, vreinterpretq_m128i_s64(duped));
+}
 
 // NEON does not provide a version of this function.
 // Creates a 16-bit mask from the most significant bits of the 16 signed or
