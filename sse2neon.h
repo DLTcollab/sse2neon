@@ -1242,22 +1242,30 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 
 #define _mm_blend_epi16(a, b, imm)                       \
     ({                                                   \
-        static const uint16_t _mask[8] = {               \
-            ((imm) & 0x1) * 0xFFFF,                      \
-            (((imm) >> 1) & 0x1) * 0xFFFF,               \
-            (((imm) >> 2) & 0x1) * 0xFFFF,               \
-            (((imm) >> 3) & 0x1) * 0xFFFF,               \
-            (((imm) >> 4) & 0x1) * 0xFFFF,               \
-            (((imm) >> 5) & 0x1) * 0xFFFF,               \
-            (((imm) >> 6) & 0x1) * 0xFFFF,               \
-            (((imm) >> 7) & 0x1) * 0xFFFF                \
+        const uint16_t _mask[8] = {                      \
+            ((imm) & 1) ? 0xFFFF : 0x0000,               \
+            ((imm) & 2) ? 0xFFFF : 0x0000,               \
+            ((imm) & 4) ? 0xFFFF : 0x0000,               \
+            ((imm) & 8) ? 0xFFFF : 0x0000,               \
+            ((imm) & 16) ? 0xFFFF : 0x0000,              \
+            ((imm) & 32) ? 0xFFFF : 0x0000,              \
+            ((imm) & 64) ? 0xFFFF : 0x0000,              \
+            ((imm) & 128) ? 0xFFFF : 0x0000,             \
         };                                               \
         uint16x8_t _mask_vec = vld1q_u16(_mask);         \
-        uint16x8_t _a = vreinterpretq_m128i_u16(a);      \
-        uint16x8_t _b = vreinterpretq_m128i_u16(b);      \
-        vreinterpretq_u16_m128i(vbslq_u16(_b, _a, _mask_vec)); \
+        uint16x8_t _a = vreinterpretq_u16_m128i(a);      \
+        uint16x8_t _b = vreinterpretq_u16_m128i(b);      \
+        vreinterpretq_m128i_u16(vbslq_u16(_mask_vec, _b, _a)); \
     })
 
+FORCE_INLINE __m128i _mm_blendv_epi8(__m128i _a, __m128i _b, __m128i mask)
+{
+    // Use a signed shift right to create a mask with the sign bit
+    uint8x16_t mask_bits = vreinterpretq_u8_s8(vshrq_n_s8(vreinterpretq_s8_m128i(mask), 7));
+    uint8x16_t a = vreinterpretq_u8_m128i(_a);
+    uint8x16_t b = vreinterpretq_u8_m128i(_b);
+    return vreinterpretq_m128i_u8(vbslq_u8(mask_bits, b, a));
+}
 
 // Shifts the 128 - bit value in a right by imm bytes while shifting in
 // zeros.imm must be an immediate.
