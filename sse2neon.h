@@ -398,9 +398,16 @@ FORCE_INLINE __m128i _mm_set1_epi32(int _i)
     return vreinterpretq_m128i_s32(vdupq_n_s32(_i));
 }
 
-// Sets the 4 signed 64-bit integer values to i.
+// Sets the 2 signed 64-bit integer values to i.
 // https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set1_epi64(int64_t _i)
+{
+    return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
+}
+
+// Sets the 2 signed 64-bit integer values to i.
+// https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_set1_epi64x(int64_t _i)
 {
     return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
 }
@@ -2681,6 +2688,16 @@ FORCE_INLINE uint64_t _mm_cvtsi128_si64(__m128i a)
 FORCE_INLINE __m128i _mm_cvtsi32_si128(int a)
 {
     return vreinterpretq_m128i_s32(vsetq_lane_s32(a, vdupq_n_s32(0), 0));
+}
+
+// Moves 64-bit integer a to the least significant 64 bits of an __m128 object,
+// zero extending the upper bits.
+//
+//   r0 := a
+//   r1 := 0x0
+FORCE_INLINE __m128i _mm_cvtsi64_si128(int64_t a)
+{
+    return vreinterpretq_m128i_s64(vsetq_lane_s64(a, vdupq_n_s64(0), 0));
 }
 
 // Applies a type cast to reinterpret four 32-bit floating point values passed
