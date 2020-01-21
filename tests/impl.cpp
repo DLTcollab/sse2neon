@@ -388,6 +388,12 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SRLI_EPI16:
         ret = "MM_SRLI_EPI16";
         break;
+    case IT_MM_SLL_EPI16:
+        ret = "MM_SLL_EPI16";
+        break;
+    case IT_MM_SRL_EPI16:
+        ret = "MM_SRL_EPI16";
+        break;
     case IT_MM_CMPEQ_EPI16:
         ret = "MM_CMPEQ_EPI16";
         break;
@@ -433,6 +439,12 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_CMPLT_EPI8:
         ret = "MM_CMPLT_EPI8";
+        break;
+    case IT_MM_CMPEQ_EPI64:
+        ret = "MM_CMPEQ_EPI64";
+        break;
+    case IT_MM_CMPGT_EPI64:
+        ret = "MM_CMPGT_EPI64";
         break;
     case IT_MM_SUB_EPI8:
         ret = "MM_SUB_EPI8";
@@ -725,7 +737,7 @@ bool test_mm_load1_ps(const float *p)
 bool test_mm_loadl_pi(const float *p1, const float *p2)
 {
     __m128 a = _mm_load_ps(p1);
-    __m64 *b = (__m64 *) p2;
+    const __m64 *b = (const __m64 *) p2;
     __m128 c = _mm_loadl_pi(a, b);
 
     return validateFloat(c, p1[3], p1[2], p2[1], p2[0]);
@@ -896,6 +908,98 @@ bool test_mm_movemask_ps(const float *p)
     __m128 a = test_mm_load_ps(p);
     int val = _mm_movemask_ps(a);
     return val == ret ? true : false;
+}
+
+template <typename T>
+__m128i unpacklo(const int32_t *_a, const int32_t *_b)
+{
+     const size_t ELEMENTS = sizeof(__m128i) / sizeof(T);
+     T result[ELEMENTS];
+     const T *a = (const T *)_a;
+     const T *b = (const T *)_b;
+     for (size_t i = 0; i < ELEMENTS / 2; i++) {
+         result[i * 2] = a[i];
+         result[i * 2 + 1] = b[i];
+     }
+     return test_mm_load_ps((const int32_t *)result);
+}
+
+template <typename T>
+__m128i unpackhi(const int32_t *_a, const int32_t *_b)
+{
+     const size_t ELEMENTS = sizeof(__m128i) / sizeof(T);
+     T result[ELEMENTS];
+     const T *a = (const T *)_a;
+     const T *b = (const T *)_b;
+     for (size_t i = 0; i < ELEMENTS / 2; i++) {
+         result[i * 2] = a[i + ELEMENTS / 2];
+         result[i * 2 + 1] = b[i + ELEMENTS / 2];
+     }
+     return test_mm_load_ps((const int32_t *)result);
+}
+
+bool test_mm_unpacklo_epi8(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpacklo_epi8(a, b);
+    return validate128(result, unpacklo<int8_t>(_a, _b));
+}
+
+bool test_mm_unpackhi_epi8(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpackhi_epi8(a, b);
+    return validate128(result, unpackhi<int8_t>(_a, _b));
+}
+
+bool test_mm_unpacklo_epi16(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpacklo_epi16(a, b);
+    return validate128(result, unpacklo<int16_t>(_a, _b));
+}
+
+bool test_mm_unpackhi_epi16(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpackhi_epi16(a, b);
+    return validate128(result, unpackhi<int16_t>(_a, _b));
+}
+
+bool test_mm_unpacklo_epi32(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpacklo_epi32(a, b);
+    return validate128(result, unpacklo<int32_t>(_a, _b));
+}
+
+bool test_mm_unpackhi_epi32(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpackhi_epi32(a, b);
+    return validate128(result, unpackhi<int32_t>(_a, _b));
+}
+
+bool test_mm_unpacklo_epi64(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpacklo_epi64(a, b);
+    return validate128(result, unpacklo<int64_t>(_a, _b));
+}
+
+bool test_mm_unpackhi_epi64(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+    __m128i result = _mm_unpackhi_epi64(a, b);
+    return validate128(result, unpackhi<int64_t>(_a, _b));
 }
 
 // Note, NEON does not have a general purpose shuffled command like SSE.
@@ -1594,6 +1698,25 @@ bool test_mm_slli_epi16(const int16_t *_a)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+bool test_mm_sll_epi16(const int16_t *_a)
+{
+    const int count = 3;
+
+    int16_t d0 = _a[0] << count;
+    int16_t d1 = _a[1] << count;
+    int16_t d2 = _a[2] << count;
+    int16_t d3 = _a[3] << count;
+    int16_t d4 = _a[4] << count;
+    int16_t d5 = _a[5] << count;
+    int16_t d6 = _a[6] << count;
+    int16_t d7 = _a[7] << count;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set_epi16(-13, 2, 240, 14, 6, 0, -43, count);
+    __m128i c = _mm_sll_epi16(a, b);
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 bool test_mm_srli_epi16(const int16_t *_a)
 {
     const int count = 3;
@@ -1609,6 +1732,25 @@ bool test_mm_srli_epi16(const int16_t *_a)
 
     __m128i a = test_mm_load_ps((const int32_t *) _a);
     __m128i c = _mm_srli_epi16(a, count);
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
+bool test_mm_srl_epi16(const int16_t *_a)
+{
+    const int count = 3;
+
+    int16_t d0 = (uint16_t)(_a[0]) >> count;
+    int16_t d1 = (uint16_t)(_a[1]) >> count;
+    int16_t d2 = (uint16_t)(_a[2]) >> count;
+    int16_t d3 = (uint16_t)(_a[3]) >> count;
+    int16_t d4 = (uint16_t)(_a[4]) >> count;
+    int16_t d5 = (uint16_t)(_a[5]) >> count;
+    int16_t d6 = (uint16_t)(_a[6]) >> count;
+    int16_t d7 = (uint16_t)(_a[7]) >> count;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set_epi16(-13, 2, 240, 14, 6, 0, -43, count);
+    __m128i c = _mm_srl_epi16(a, b);
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
@@ -2066,6 +2208,30 @@ bool test_mm_sub_epi8(const int8_t *_a, const int8_t *_b)
                         d12, d13, d14, d15);
 }
 
+bool test_mm_cmpeq_epi64(const int64_t *_a, const int64_t *_b)
+{
+    uint64_t d0 = _a[0] == _b[0] ? 0xffffffffffffffff : 0;
+    uint64_t d1 = _a[1] == _b[1] ? 0xffffffffffffffff : 0;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_cmpeq_epi64(a, b);
+
+    return validateInt64(c, d1, d0);
+}
+
+bool test_mm_cmpgt_epi64(const int64_t *_a, const int64_t *_b)
+{
+    uint64_t d0 = _a[0] > _b[0] ? 0xffffffffffffffff : 0;
+    uint64_t d1 = _a[1] > _b[1] ? 0xffffffffffffffff : 0;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_cmpgt_epi64(a, b);
+
+    return validateInt64(c, d1, d0);
+}
+
 bool test_mm_setr_epi32(const int32_t *_a)
 {
     __m128i c = _mm_setr_epi32(_a[0], _a[1], _a[2], _a[3]);
@@ -2130,7 +2296,7 @@ bool test_mm_test_all_zeros(const int32_t *_a, const int32_t *_mask)
     return result == ret ? true : false;
 }
 
-
+#if defined(__aarch64__)
 #define XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
 inline __m128i aesenc_128_reference(__m128i a, __m128i b)
 {
@@ -2187,6 +2353,7 @@ bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
 
     return validate128(resultReference, resultIntrinsic);
 }
+#endif
 
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
@@ -2528,13 +2695,16 @@ public:
             ret = true;
             break;
         case IT_MM_UNPACKLO_EPI8:
-            ret = true;
+            ret = test_mm_unpacklo_epi8((const int32_t *) mTestIntPointer1,
+                                        (const int32_t *) mTestIntPointer2);
             break;
         case IT_MM_UNPACKLO_EPI16:
-            ret = true;
+            ret = test_mm_unpacklo_epi16((const int32_t *) mTestIntPointer1,
+                                         (const int32_t *) mTestIntPointer2);
             break;
         case IT_MM_UNPACKLO_EPI32:
-            ret = true;
+            ret = test_mm_unpacklo_epi32((const int32_t *) mTestIntPointer1,
+                                         (const int32_t *) mTestIntPointer2);
             break;
         case IT_MM_UNPACKLO_PS:
             ret = true;
@@ -2543,13 +2713,16 @@ public:
             ret = true;
             break;
         case IT_MM_UNPACKHI_EPI8:
-            ret = true;
+            ret = test_mm_unpackhi_epi8((const int32_t *) mTestIntPointer1,
+                                        (const int32_t *) mTestIntPointer2);
             break;
         case IT_MM_UNPACKHI_EPI16:
-            ret = true;
+            ret = test_mm_unpackhi_epi16((const int32_t *) mTestIntPointer1,
+                                         (const int32_t *) mTestIntPointer2);
             break;
         case IT_MM_UNPACKHI_EPI32:
-            ret = true;
+            ret = test_mm_unpackhi_epi32((const int32_t *) mTestIntPointer1,
+                                         (const int32_t *) mTestIntPointer2);
             break;
         case IT_MM_SFENCE:
             ret = true;
@@ -2575,6 +2748,12 @@ public:
             ret = test_mm_slli_epi16((const int16_t *) mTestIntPointer1);
             break;
         case IT_MM_SRLI_EPI16:
+            ret = test_mm_srli_epi16((const int16_t *) mTestIntPointer1);
+            break;
+        case IT_MM_SLL_EPI16:
+            ret = test_mm_slli_epi16((const int16_t *) mTestIntPointer1);
+            break;
+        case IT_MM_SRL_EPI16:
             ret = test_mm_srli_epi16((const int16_t *) mTestIntPointer1);
             break;
         case IT_MM_CMPEQ_EPI16:
@@ -2634,6 +2813,16 @@ public:
             ret = test_mm_cmplt_epi8((const int8_t *) mTestIntPointer1,
                                      (const int8_t *) mTestIntPointer2);
             break;
+
+        case IT_MM_CMPEQ_EPI64:
+            ret = test_mm_cmpeq_epi64((const int64_t *) mTestIntPointer1,
+                                      (const int64_t *) mTestIntPointer2);
+            break;
+        case IT_MM_CMPGT_EPI64:
+            ret = test_mm_cmpgt_epi64((const int64_t *) mTestIntPointer1,
+                                      (const int64_t *) mTestIntPointer2);
+            break;
+
         case IT_MM_SUB_EPI8:
             ret = test_mm_sub_epi8((const int8_t *) mTestIntPointer1,
                                    (const int8_t *) mTestIntPointer2);
@@ -2650,7 +2839,11 @@ public:
                                          (const int32_t *) mTestIntPointer2);
             break;
         case IT_MM_AESENC_SI128:
+#if defined(__aarch64__)
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
+#else
+            ret = true;
+#endif
         case IT_LAST: /* should not happend */
             break;
         }

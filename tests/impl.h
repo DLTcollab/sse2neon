@@ -122,6 +122,8 @@ enum InstructionTest {
     IT_MM_SET_EPI16,
     IT_MM_SLLI_EPI16,
     IT_MM_SRLI_EPI16,
+    IT_MM_SLL_EPI16,
+    IT_MM_SRL_EPI16,
     IT_MM_CMPEQ_EPI16,
 
     IT_MM_SET1_EPI8,
@@ -138,6 +140,8 @@ enum InstructionTest {
     IT_MM_ADD_EPI8,
     IT_MM_CMPGT_EPI8,
     IT_MM_CMPLT_EPI8,
+    IT_MM_CMPEQ_EPI64,
+    IT_MM_CMPGT_EPI64,
     IT_MM_SUB_EPI8,
     IT_MM_SETR_EPI32,
     IT_MM_MIN_EPU8,
