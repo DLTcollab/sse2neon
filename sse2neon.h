@@ -1978,6 +1978,20 @@ FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
     return vreinterpretq_m128i_u64(vmull_u32(a_lo, b_lo));
 }
 
+// Multiply the low signed 32-bit integers from each packed 64-bit element in
+// a and b, and store the signed 64-bit results in dst.
+//
+//   r0 :=  (int64_t)(int32_t)a0 * (int64_t)(int32_t)b0
+//   r1 :=  (int64_t)(int32_t)a2 * (int64_t)(int32_t)b2
+FORCE_INLINE __m128i _mm_mul_epi32(__m128i a, __m128i b)
+{
+    // vmull_s32 upcasts instead of masking, so we downcast.
+    int32x2_t a_lo = vmovn_s64(vreinterpretq_s64_m128i(a));
+    int32x2_t b_lo = vmovn_u64(vreinterpretq_s64_m128i(b));
+    return vreinterpretq_m128i_s64(vmull_s32(a_lo, b_lo));
+}
+
+
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
 // integers from b.
 //
