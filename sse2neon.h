@@ -1987,7 +1987,7 @@ FORCE_INLINE __m128i _mm_mul_epi32(__m128i a, __m128i b)
 {
     // vmull_s32 upcasts instead of masking, so we downcast.
     int32x2_t a_lo = vmovn_s64(vreinterpretq_s64_m128i(a));
-    int32x2_t b_lo = vmovn_u64(vreinterpretq_s64_m128i(b));
+    int32x2_t b_lo = vmovn_s64(vreinterpretq_s64_m128i(b));
     return vreinterpretq_m128i_s64(vmull_s32(a_lo, b_lo));
 }
 
