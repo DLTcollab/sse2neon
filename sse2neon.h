@@ -2340,6 +2340,22 @@ FORCE_INLINE __m128i _mm_cmpeq_epi32(__m128i a, __m128i b)
         vceqq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
+// Compare packed 64-bit integers in a and b for equality, and store the results
+// in dst
+FORCE_INLINE __m128i _mm_cmpeq_epi64(__m128i a, __m128i b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_u64(
+        vceqq_u64(vreinterpretq_u64_m128i(a), vreinterpretq_u64_m128i(b)));
+#else
+    // ARMv7 lacks vceqq_u64
+    // (a == b) -> (a_lo == b_lo) && (a_hi == b_hi)
+    uint32x4_t cmp = vceqq_u32(vreinterpretq_u32_m128i(a), vreinterpretq_u32_m128i(b));
+    uint32x4_t swapped = vrev64q_u32(cmp);
+    return vreinterpretq_m128i_u32(vandq_u32(cmp, swapped));
+#endif
+}
+
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for lesser than.
 // https://msdn.microsoft.com/en-us/library/windows/desktop/9s46csht(v=vs.90).aspx
@@ -2396,6 +2412,42 @@ FORCE_INLINE __m128i _mm_cmpgt_epi32(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_u32(
         vcgtq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+}
+
+// Compares the 2 signed 64-bit integers in a and the 2 signed 64-bit integers
+// in b for greater than.
+FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_u64(
+        vcgtq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
+#else
+    // ARMv7 lacks vcgtq_s64.
+    // This is based off of Clang's SSE2 polyfill:
+    // (a > b) -> ((a_hi > b_hi) || (a_lo > b_lo && a_hi == b_hi))
+
+    // Mask the sign bit out since we need a signed AND an unsigned comparison
+    // and it is ugly to try and split them.
+    int32x4_t mask   = vreinterpretq_s32_s64(vdupq_n_s64(0x80000000ull));
+    int32x4_t a_mask = veorq_s32(vreinterpretq_s32_m128i(a), mask);
+    int32x4_t b_mask = veorq_s32(vreinterpretq_s32_m128i(b), mask);
+    // Check if a > b
+    int64x2_t greater = vreinterpretq_s64_u32(vcgtq_s32(a_mask, b_mask));
+    // Copy upper mask to lower mask
+    // a_hi > gt_hi
+    int64x2_t gt_hi = vshrq_n_s64(greater, 63);
+    // Copy lower mask to upper mask
+    // a_lo > gt_lo
+    int64x2_t gt_lo = vsliq_n_s64(greater, greater, 32);
+    // Compare for equality
+    int64x2_t equal = vreinterpretq_s64_u32(vceqq_s32(a_mask, b_mask));
+    // Copy upper mask to lower mask
+    // a_hi == b_hi
+    int64x2_t eq_hi = vshrq_n_s64(equal, 63);
+    // a_hi > b_hi || (a_lo > b_lo && a_hi == b_hi)
+    int64x2_t ret = vorrq_s64(gt_hi, vandq_s64(gt_lo, eq_hi));
+    return vreinterpretq_m128i_s64(ret);
+#endif
 }
 
 // Compares the four 32-bit floats in a and b to check if any values are NaN.
