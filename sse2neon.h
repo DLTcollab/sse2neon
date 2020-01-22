@@ -61,7 +61,7 @@
 
 #include <stdint.h>
 
-#include "arm_neon.h"
+#include <arm_neon.h>
 
 /**
  * MACRO for shuffle parameter for _mm_shuffle_ps().
@@ -297,7 +297,7 @@ FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
 //   r15 := b
 //
 // https://msdn.microsoft.com/en-us/library/6e14xhyf(v=vs.100).aspx
-FORCE_INLINE __m128i _mm_set1_epi8(char w)
+FORCE_INLINE __m128i _mm_set1_epi8(signed char w)
 {
     return vreinterpretq_m128i_s8(vdupq_n_s8(w));
 }
@@ -317,24 +317,24 @@ FORCE_INLINE __m128i _mm_set1_epi16(short w)
 
 // Sets the 16 signed 8-bit integer values.
 // https://msdn.microsoft.com/en-us/library/x0cx8zd3(v=vs.90).aspx
-FORCE_INLINE __m128i _mm_set_epi8(char b15,
-                                  char b14,
-                                  char b13,
-                                  char b12,
-                                  char b11,
-                                  char b10,
-                                  char b9,
-                                  char b8,
-                                  char b7,
-                                  char b6,
-                                  char b5,
-                                  char b4,
-                                  char b3,
-                                  char b2,
-                                  char b1,
-                                  char b0)
+FORCE_INLINE __m128i _mm_set_epi8(signed char b15,
+                                  signed char b14,
+                                  signed char b13,
+                                  signed char b12,
+                                  signed char b11,
+                                  signed char b10,
+                                  signed char b9,
+                                  signed char b8,
+                                  signed char b7,
+                                  signed char b6,
+                                  signed char b5,
+                                  signed char b4,
+                                  signed char b3,
+                                  signed char b2,
+                                  signed char b1,
+                                  signed char b0)
 {
-    int8_t __attribute__((aligned(16)))
+    const int8_t __attribute__((aligned(16)))
     data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
                 (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
                 (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
@@ -360,22 +360,22 @@ FORCE_INLINE __m128i _mm_set_epi16(short i7,
 
 // Sets the 16 signed 8-bit integer values in reverse order.
 // https://msdn.microsoft.com/en-us/library/2khb9c7k(v=vs.90).aspx
-FORCE_INLINE __m128i _mm_setr_epi8(char b0,
-                                   char b1,
-                                   char b2,
-                                   char b3,
-                                   char b4,
-                                   char b5,
-                                   char b6,
-                                   char b7,
-                                   char b8,
-                                   char b9,
-                                   char b10,
-                                   char b11,
-                                   char b12,
-                                   char b13,
-                                   char b14,
-                                   char b15)
+FORCE_INLINE __m128i _mm_setr_epi8(signed char b0,
+                                   signed char b1,
+                                   signed char b2,
+                                   signed char b3,
+                                   signed char b4,
+                                   signed char b5,
+                                   signed char b6,
+                                   signed char b7,
+                                   signed char b8,
+                                   signed char b9,
+                                   signed char b10,
+                                   signed char b11,
+                                   signed char b12,
+                                   signed char b13,
+                                   signed char b14,
+                                   signed char b15)
 {
     int8_t __attribute__((aligned(16)))
     data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
@@ -697,12 +697,17 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 
 FORCE_INLINE __m128i _mm_abs_epi32(__m128i a)
 {
-    return vqabsq_s32(a);
+    return vreinterpretq_m128i_s32(vabsq_s32(vreinterpretq_s32_m128i(a)));
 }
 
 FORCE_INLINE __m128i _mm_abs_epi16(__m128i a)
 {
-    return vreinterpretq_s32_s16(vqabsq_s16(vreinterpretq_s16_s32(a)));
+    return vreinterpretq_m128i_s16(vabsq_s16(vreinterpretq_s16_m128i(a)));
+}
+
+FORCE_INLINE __m128i _mm_abs_epi8(__m128i a)
+{
+    return vreinterpretq_m128i_s8(vabsq_s8(vreinterpretq_s8_m128i(a)));
 }
 
 // Takes the upper 64 bits of a and places it in the low end of the result
@@ -1247,6 +1252,19 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
 #endif
 
+// Blend packed 16-bit integers from a and b using control mask imm8, and store
+// the results in dst.
+//
+//   FOR j := 0 to 7
+//       i := j*16
+//       IF imm8[j]
+//           dst[i+15:i] := b[i+15:i]
+//       ELSE
+//           dst[i+15:i] := a[i+15:i]
+//       FI
+//   ENDFOR
+// FORCE_INLINE __m128i _mm_blend_epi16(__m128i a, __m128i b, __constrange(0,255)
+// int imm)
 #define _mm_blend_epi16(a, b, imm)                       \
     ({                                                   \
         const uint16_t _mask[8] = {                      \
@@ -1265,6 +1283,16 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         vreinterpretq_m128i_u16(vbslq_u16(_mask_vec, _b, _a)); \
     })
 
+// Blend packed 8-bit integers from a and b using mask, and store the results in dst.
+//
+//   FOR j := 0 to 15
+//       i := j*8
+//       IF mask[i+7]
+//           dst[i+7:i] := b[i+7:i]
+//       ELSE
+//           dst[i+7:i] := a[i+7:i]
+//       FI
+//   ENDFOR
 FORCE_INLINE __m128i _mm_blendv_epi8(__m128i _a, __m128i _b, __m128i mask)
 {
     // Use a signed shift right to create a mask with the sign bit
@@ -1315,6 +1343,10 @@ FORCE_INLINE __m128i _mm_blendv_epi8(__m128i _a, __m128i _b, __m128i mask)
         }                                                               \
         ret;                                                            \
     })
+
+// The immediate forms of vshl/vshr are avoided due to Clang being extremely
+// picky about what it calls a literal, and because the vector form handles
+// larger shifts the same way as SSE2.
 
 // Shifts the 8 signed 16-bit integers right by count bits while shifting
 // in the sign bit.
@@ -1991,6 +2023,34 @@ FORCE_INLINE __m128i _mm_mul_epi32(__m128i a, __m128i b)
     return vreinterpretq_m128i_s64(vmull_s32(a_lo, b_lo));
 }
 
+// Multiply packed signed 16-bit integers in a and b, producing intermediate signed
+// 32-bit integers. Shift right by 15 bits while rounding up, and store the
+// packed 16-bit integers in dst.
+//
+//   r0 := Round(((int32_t)a0 * (int32_t)b0) >> 15)
+//   r1 := Round(((int32_t)a1 * (int32_t)b1) >> 15)
+//   r2 := Round(((int32_t)a2 * (int32_t)b2) >> 15)
+//   ...
+//   r7 := Round(((int32_t)a7 * (int32_t)b7) >> 15)
+FORCE_INLINE __m128i _mm_mulhrs_epi16(__m128i a, __m128i b)
+{
+    // Has issues due to saturation
+    // return vreinterpretq_m128i_s16(vqrdmulhq_s16(a, b));
+
+    // Multiply
+    int32x4_t mul_lo = vmull_s16(vget_low_s16(vreinterpretq_s16_m128i(a)),
+                                 vget_low_s16(vreinterpretq_s16_m128i(b)));
+    int32x4_t mul_hi = vmull_s16(vget_high_s16(vreinterpretq_s16_m128i(a)),
+                                 vget_high_s16(vreinterpretq_s16_m128i(b)));
+
+    // Rounding narrowing shift right
+    // narrow = (int16_t)((mul + 16384) >> 15);
+    int16x4_t narrow_lo = vrshrn_n_s32(mul_lo, 15);
+    int16x4_t narrow_hi = vrshrn_n_s32(mul_hi, 15);
+
+    // Join together
+    return vreinterpretq_m128i_s16(vcombine_s16(narrow_lo, narrow_hi));
+}
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
 // integers from b.
@@ -2011,6 +2071,39 @@ FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
     int32x2_t high_sum = vpadd_s32(vget_low_s32(high), vget_high_s32(high));
 
     return vreinterpretq_s32_m128i(vcombine_s32(low_sum, high_sum));
+}
+
+// Vertically multiply each unsigned 8-bit integer from a with the corresponding
+// signed 8-bit integer from b, producing intermediate signed 16-bit integers.
+// Horizontally add adjacent pairs of intermediate signed 16-bit integers,
+// and pack the saturated results in dst.
+//
+//   FOR j := 0 to 7
+//      i := j*16
+//      dst[i+15:i] := Saturate_To_Int16( a[i+15:i+8]*b[i+15:i+8] + a[i+7:i]*b[i+7:i] )
+//   ENDFOR
+FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
+{
+    // This would be much simpler if x86 would choose to zero extend OR sign extend,
+    // not both.
+    // This could probably be optimized better.
+    uint16x8_t a = vreinterpretq_u16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+
+    // Zero extend a
+    int16x8_t a_odd = vreinterpretq_s16_u16(vshrq_n_u16(a, 8));
+    int16x8_t a_even = vreinterpretq_s16_u16(vbicq_u16(a, vdupq_n_u16(0xff00)));
+
+    // Sign extend by shifting left then shifting right.
+    int16x8_t b_even = vshrq_n_s16(vshlq_n_s16(b, 8), 8);
+    int16x8_t b_odd = vshrq_n_s16(b, 8);
+
+    // multiply
+    int16x8_t prod1 = vmulq_s16(a_even, b_even);
+    int16x8_t prod2 = vmulq_s16(a_odd, b_odd);
+
+    // saturated add
+    return vreinterpretq_m128i_s16(vqaddq_s16(prod1, prod2));
 }
 
 // Computes the absolute difference of the 16 unsigned 8-bit integers from a
@@ -2277,6 +2370,94 @@ FORCE_INLINE __m128 _mm_hadd_ps(__m128 a, __m128 b)
     return vreinterpretq_m128_f32(
         vcombine_f32(vpadd_f32(a10, a32), vpadd_f32(b10, b32)));
 #endif
+}
+
+// Computes pairwise add of each argument as a 16-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hadd_epi16(__m128i _a, __m128i _b)
+{
+    int16x8_t a = vreinterpretq_s16_m128i(_a);
+    int16x8_t b = vreinterpretq_s32_m128i(_b);
+    return vreinterpretq_m128i_s16(
+       vcombine_s16(
+          vpadd_s16(vget_low_s16(a), vget_high_s16(a)),
+          vpadd_s16(vget_low_s16(b), vget_high_s16(b))
+       )
+    );
+}
+
+// Computes pairwise difference of each argument as a 16-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hsub_epi16(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|a4|a6|b0|b2|b4|b6]
+    // [a1|a3|a5|a7|b1|b3|b5|b7]
+    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
+    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
+    // Subtract
+    return vreinterpretq_m128i_s16(vsubq_s16(ab0246, ab1357));
+}
+
+// Computes saturated pairwise sub of each argument as a 16-bit signed
+// integer values a and b.
+FORCE_INLINE __m128i _mm_hadds_epi16(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|a4|a6|b0|b2|b4|b6]
+    // [a1|a3|a5|a7|b1|b3|b5|b7]
+    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
+    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
+    // Saturated add
+    return vreinterpretq_m128i_s16(vqaddq_s16(ab0246, ab1357));
+}
+
+// Computes saturated pairwise difference of each argument as a 16-bit signed
+// integer values a and b.
+FORCE_INLINE __m128i _mm_hsubs_epi16(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|a4|a6|b0|b2|b4|b6]
+    // [a1|a3|a5|a7|b1|b3|b5|b7]
+    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
+    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
+    // Saturated subtract
+    return vreinterpretq_m128i_s16(vqsubq_s16(ab0246, ab1357));
+}
+
+// Computes pairwise add of each argument as a 32-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hadd_epi32(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    return vreinterpretq_m128i_s32(
+       vcombine_s32(
+          vpadd_s32(vget_low_s32(a), vget_high_s32(a)),
+          vpadd_s32(vget_low_s32(b), vget_high_s32(b))
+       )
+    );
+}
+
+// Computes pairwise difference of each argument as a 32-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
+{
+    int64x2_t a = vreinterpretq_s64_m128i(_a);
+    int64x2_t b = vreinterpretq_s64_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|b0|b2]
+    // [a1|a2|b1|b3]
+    int32x4_t ab02 = vcombine_s32(vmovn_s64(a), vmovn_s64(b));
+    int32x4_t ab13 = vcombine_s32(vshrn_n_s64(a, 32), vshrn_n_s64(b, 32));
+    // Subtract
+    return vreinterpretq_m128i_s32(vsubq_s32(ab02, ab13));
 }
 
 // ******************************************
@@ -2621,15 +2802,70 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
     return vreinterpretq_m128_f32(vcvtq_f32_s32(vreinterpretq_s32_m128i(a)));
 }
 
+// Converts the four unsigned 8-bit integers in the lower 16 bits to four
+// unsigned 32-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb531467%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepu8_epi16(__m128i a)
+{
+    uint8x16_t u8x16 = vreinterpretq_u8_s32(a);        /* xxxx xxxx xxxx DCBA */
+    uint16x8_t u16x8 = vmovl_u8(vget_low_u8(u8x16));   /* 0x0x 0x0x 0D0C 0B0A */
+    return vreinterpretq_m128i_u16(u16x8);
+}
+
 // Converts the four unsigned 8-bit integers in the lower 32 bits to four
 // unsigned 32-bit integers.
 // https://msdn.microsoft.com/en-us/library/bb531467%28v=vs.100%29.aspx
 FORCE_INLINE __m128i _mm_cvtepu8_epi32(__m128i a)
 {
-    uint8x16_t u8x16 = vreinterpretq_u8_s32(a);        /* xxxx xxxx xxxx DCBA */
+    uint8x16_t u8x16 = vreinterpretq_u8_m128i(a);      /* xxxx xxxx xxxx DCBA */
     uint16x8_t u16x8 = vmovl_u8(vget_low_u8(u8x16));   /* 0x0x 0x0x 0D0C 0B0A */
     uint32x4_t u32x4 = vmovl_u16(vget_low_u16(u16x8)); /* 000D 000C 000B 000A */
-    return vreinterpretq_s32_u32(u32x4);
+    return vreinterpretq_m128i_u32(u32x4);
+}
+
+// Converts the two unsigned 8-bit integers in the lower 16 bits to two
+// unsigned 64-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb531467%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepu8_epi64(__m128i a)
+{
+    uint8x16_t u8x16 = vreinterpretq_u8_m128i(a);      /* xxxx xxxx xxxx xxBA */
+    uint16x8_t u16x8 = vmovl_u8(vget_low_u8(u8x16));   /* 0x0x 0x0x 0x0x 0B0A */
+    uint32x4_t u32x4 = vmovl_u16(vget_low_u16(u16x8)); /* 000x 000x 000B 000A */
+    uint64x2_t u64x2 = vmovl_u32(vget_low_u32(u32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_u32(u64x2);
+}
+
+// Converts the four unsigned 8-bit integers in the lower 16 bits to four
+// unsigned 32-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb531467%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepi8_epi16(__m128i a)
+{
+    int8x16_t s8x16 = vreinterpretq_s8_s32(a);        /* xxxx xxxx xxxx DCBA */
+    int16x8_t s16x8 = vmovl_s8(vget_low_s8(s8x16));   /* 0x0x 0x0x 0D0C 0B0A */
+    return vreinterpretq_m128i_s16(s16x8);
+}
+
+// Converts the four unsigned 8-bit integers in the lower 32 bits to four
+// unsigned 32-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb531467%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepi8_epi32(__m128i a)
+{
+    int8x16_t s8x16 = vreinterpretq_s8_m128i(a);      /* xxxx xxxx xxxx DCBA */
+    int16x8_t s16x8 = vmovl_s8(vget_low_s8(s8x16));   /* 0x0x 0x0x 0D0C 0B0A */
+    int32x4_t s32x4 = vmovl_s16(vget_low_s16(s16x8)); /* 000D 000C 000B 000A */
+    return vreinterpretq_m128i_s32(s32x4);
+}
+
+// Converts the two signed 8-bit integers in the lower 32 bits to four
+// signed 64-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb531467%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepi8_epi64(__m128i a)
+{
+    int8x16_t s8x16 = vreinterpretq_s8_m128i(a);      /* xxxx xxxx xxxx xxBA */
+    int16x8_t s16x8 = vmovl_s8(vget_low_s8(s8x16));   /* 0x0x 0x0x 0x0x 0B0A */
+    int32x4_t s32x4 = vmovl_s16(vget_low_s16(s16x8)); /* 000x 000x 000B 000A */
+    int64x2_t s64x2 = vmovl_s32(vget_low_s32(s32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_s32(s64x2);
 }
 
 // Converts the four signed 16-bit integers in the lower 64 bits to four signed
@@ -2639,6 +2875,55 @@ FORCE_INLINE __m128i _mm_cvtepi16_epi32(__m128i a)
 {
     return vreinterpretq_m128i_s32(
         vmovl_s16(vget_low_s16(vreinterpretq_s16_m128i(a))));
+}
+
+// Converts the two signed 16-bit integers in the lower 32 bits two signed
+// 32-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb514079%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepi16_epi64(__m128i a)
+{
+    int16x8_t s16x8 = vreinterpretq_s16_m128i(a);     /* xxxx xxxx xxxx 0B0A */
+    int32x4_t s32x4 = vmovl_s16(vget_low_s16(s16x8)); /* 000x 000x 000B 000A */
+    int64x2_t s64x2 = vmovl_s32(vget_low_s32(s32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_s32(s64x2);
+}
+
+// Converts the four unsigned 16-bit integers in the lower 64 bits to four unsigned
+// 32-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb514079%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepu16_epi32(__m128i a)
+{
+    return vreinterpretq_m128i_u32(
+        vmovl_u16(vget_low_u16(vreinterpretq_u16_m128i(a))));
+}
+
+// Converts the two unsigned 16-bit integers in the lower 32 bits to two unsigned
+// 64-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb514079%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepu16_epi64(__m128i a)
+{
+    uint16x8_t u16x8 = vreinterpretq_u16_m128i(a);     /* xxxx xxxx xxxx 0B0A */
+    uint32x4_t u32x4 = vmovl_u16(vget_low_u16(u16x8)); /* 000x 000x 000B 000A */
+    uint64x2_t u64x2 = vmovl_u32(vget_low_u32(u32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_u32(u64x2);
+}
+
+// Converts the two unsigned 32-bit integers in the lower 64 bits to two unsigned
+// 64-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb514079%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepu32_epi64(__m128i a)
+{
+    return vreinterpretq_m128i_u64(
+        vmovl_u32(vget_low_u32(vreinterpretq_u32_m128i(a))));
+}
+
+// Converts the two signed 32-bit integers in the lower 64 bits to two signed
+// 64-bit integers.
+// https://msdn.microsoft.com/en-us/library/bb514079%28v=vs.100%29.aspx
+FORCE_INLINE __m128i _mm_cvtepi32_epi64(__m128i a)
+{
+    return vreinterpretq_m128i_s64(
+        vmovl_s32(vget_low_s32(vreinterpretq_s32_m128i(a))));
 }
 
 // Converts the four single-precision, floating-point values of a to signed
@@ -2796,6 +3081,26 @@ FORCE_INLINE __m128i _mm_packs_epi32(__m128i a, __m128i b)
     return vreinterpretq_m128i_s16(
         vcombine_s16(vqmovn_s32(vreinterpretq_s32_m128i(a)),
                      vqmovn_s32(vreinterpretq_s32_m128i(b))));
+}
+
+// Packs the 8 unsigned 32-bit integers from a and b into unsigned 16-bit integers
+// and saturates.
+//
+//   r0 := UnsignedSaturate(a0)
+//   r1 := UnsignedSaturate(a1)
+//   r2 := UnsignedSaturate(a2)
+//   r3 := UnsignedSaturate(a3)
+//   r4 := UnsignedSaturate(b0)
+//   r5 := UnsignedSaturate(b1)
+//   r6 := UnsignedSaturate(b2)
+//   r7 := UnsignedSaturate(b3)
+//
+// https://msdn.microsoft.com/en-us/library/393t56f9%28v=vs.90%29.aspx
+FORCE_INLINE __m128i _mm_packus_epi32(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u16(
+        vcombine_u16(vqmovn_u32(vreinterpretq_u32_m128i(a)),
+                     vqmovn_u32(vreinterpretq_u32_m128i(b))));
 }
 
 // Interleaves the lower 8 signed or unsigned 8-bit integers in a with the lower
@@ -2998,6 +3303,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // shift to right
 // https://msdn.microsoft.com/en-us/library/bb514041(v=vs.120).aspx
 // http://blog.csdn.net/hemmingway/article/details/44828303
+// Clang requires a macro here, as it is extremely picky about c being a literal.
 #define _mm_alignr_epi8(a, b, c) ((__m128i) vextq_s8((int8x16_t) (b), (int8x16_t) (a), (c)))
 
 // Extracts the selected signed or unsigned 8-bit integer from a and zero
