@@ -202,6 +202,7 @@ FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
 // processor. https://msdn.microsoft.com/en-us/library/84szxsww(v=vs.100).aspx
 FORCE_INLINE void _mm_prefetch(const void *p, int i)
 {
+    (void)i;
     __builtin_prefetch(p);
 }
 
@@ -3473,6 +3474,7 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 // https://msdn.microsoft.com/en-us/library/ba08y07y(v=vs.100).aspx
 FORCE_INLINE void _mm_clflush(void const *p)
 {
+    (void)p;
     // no corollary for Neon?
 }
 
