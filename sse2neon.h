@@ -400,14 +400,14 @@ FORCE_INLINE __m128i _mm_set1_epi32(int _i)
 }
 
 // Sets the 2 signed 64-bit integer values to i.
-// https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/whtfzhzk(v=vs.100)
 FORCE_INLINE __m128i _mm_set1_epi64(int64_t _i)
 {
     return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
 }
 
 // Sets the 2 signed 64-bit integer values to i.
-// https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set1_epi64x&expand=4961
 FORCE_INLINE __m128i _mm_set1_epi64x(int64_t _i)
 {
     return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
