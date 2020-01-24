@@ -1296,6 +1296,25 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         vreinterpretq_m128i_u16(vbslq_u16(_mask_vec, _b, _a)); \
     })
 
+// Blend packed 8-bit integers from a and b using mask, and store the results in dst.
+//
+//   FOR j := 0 to 15
+//       i := j*8
+//       IF mask[i+7]
+//           dst[i+7:i] := b[i+7:i]
+//       ELSE
+//           dst[i+7:i] := a[i+7:i]
+//       FI
+//   ENDFOR
+FORCE_INLINE __m128i _mm_blendv_epi8(__m128i _a, __m128i _b, __m128i _mask)
+{
+    // Use a signed shift right to create a mask with the sign bit
+    uint8x16_t mask = vreinterpretq_u8_s8(vshrq_n_s8(vreinterpretq_s8_m128i(_mask), 7));
+    uint8x16_t a = vreinterpretq_u8_m128i(_a);
+    uint8x16_t b = vreinterpretq_u8_m128i(_b);
+    return vreinterpretq_m128i_u8(vbslq_u8(mask, b, a));
+}
+
 /////////////////////////////////////
 // Shifts
 /////////////////////////////////////
