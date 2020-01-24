@@ -2474,6 +2474,15 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
     return vreinterpretq_m128_f32(vcvtq_f32_s32(vreinterpretq_s32_m128i(a)));
 }
 
+// Converts the four unsigned 8-bit integers in the lower 16 bits to four
+// unsigned 32-bit integers.
+FORCE_INLINE __m128i _mm_cvtepu8_epi16(__m128i a)
+{
+    uint8x16_t u8x16 = vreinterpretq_u8_m128i(a);      /* xxxx xxxx xxxx DCBA */
+    uint16x8_t u16x8 = vmovl_u8(vget_low_u8(u8x16));   /* 0x0x 0x0x 0D0C 0B0A */
+    return vreinterpretq_m128i_u16(u16x8);
+}
+
 // Converts the four unsigned 8-bit integers in the lower 32 bits to four
 // unsigned 32-bit integers.
 // https://msdn.microsoft.com/en-us/library/bb531467%28v=vs.100%29.aspx
@@ -2485,13 +2494,97 @@ FORCE_INLINE __m128i _mm_cvtepu8_epi32(__m128i a)
     return vreinterpretq_m128i_u32(u32x4);
 }
 
+// Converts the two unsigned 8-bit integers in the lower 16 bits to two
+// unsigned 64-bit integers.
+FORCE_INLINE __m128i _mm_cvtepu8_epi64(__m128i a)
+{
+    uint8x16_t u8x16 = vreinterpretq_u8_m128i(a);      /* xxxx xxxx xxxx xxBA */
+    uint16x8_t u16x8 = vmovl_u8(vget_low_u8(u8x16));   /* 0x0x 0x0x 0x0x 0B0A */
+    uint32x4_t u32x4 = vmovl_u16(vget_low_u16(u16x8)); /* 000x 000x 000B 000A */
+    uint64x2_t u64x2 = vmovl_u32(vget_low_u32(u32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_u64(u64x2);
+}
+
+// Converts the four unsigned 8-bit integers in the lower 16 bits to four
+// unsigned 32-bit integers.
+FORCE_INLINE __m128i _mm_cvtepi8_epi16(__m128i a)
+{
+    int8x16_t s8x16 = vreinterpretq_s8_m128i(a);      /* xxxx xxxx xxxx DCBA */
+    int16x8_t s16x8 = vmovl_s8(vget_low_s8(s8x16));   /* 0x0x 0x0x 0D0C 0B0A */
+    return vreinterpretq_m128i_s16(s16x8);
+}
+
+// Converts the four unsigned 8-bit integers in the lower 32 bits to four
+// unsigned 32-bit integers.
+FORCE_INLINE __m128i _mm_cvtepi8_epi32(__m128i a)
+{
+    int8x16_t s8x16 = vreinterpretq_s8_m128i(a);      /* xxxx xxxx xxxx DCBA */
+    int16x8_t s16x8 = vmovl_s8(vget_low_s8(s8x16));   /* 0x0x 0x0x 0D0C 0B0A */
+    int32x4_t s32x4 = vmovl_s16(vget_low_s16(s16x8)); /* 000D 000C 000B 000A */
+    return vreinterpretq_m128i_s32(s32x4);
+}
+
+// Converts the two signed 8-bit integers in the lower 32 bits to four
+// signed 64-bit integers.
+FORCE_INLINE __m128i _mm_cvtepi8_epi64(__m128i a)
+{
+    int8x16_t s8x16 = vreinterpretq_s8_m128i(a);      /* xxxx xxxx xxxx xxBA */
+    int16x8_t s16x8 = vmovl_s8(vget_low_s8(s8x16));   /* 0x0x 0x0x 0x0x 0B0A */
+    int32x4_t s32x4 = vmovl_s16(vget_low_s16(s16x8)); /* 000x 000x 000B 000A */
+    int64x2_t s64x2 = vmovl_s32(vget_low_s32(s32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_s64(s64x2);
+}
+
 // Converts the four signed 16-bit integers in the lower 64 bits to four signed
 // 32-bit integers.
-// https://msdn.microsoft.com/en-us/library/bb514079%28v=vs.100%29.aspx
 FORCE_INLINE __m128i _mm_cvtepi16_epi32(__m128i a)
 {
     return vreinterpretq_m128i_s32(
         vmovl_s16(vget_low_s16(vreinterpretq_s16_m128i(a))));
+}
+
+// Converts the two signed 16-bit integers in the lower 32 bits two signed
+// 32-bit integers.
+FORCE_INLINE __m128i _mm_cvtepi16_epi64(__m128i a)
+{
+    int16x8_t s16x8 = vreinterpretq_s16_m128i(a);     /* xxxx xxxx xxxx 0B0A */
+    int32x4_t s32x4 = vmovl_s16(vget_low_s16(s16x8)); /* 000x 000x 000B 000A */
+    int64x2_t s64x2 = vmovl_s32(vget_low_s32(s32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_s64(s64x2);
+}
+
+// Converts the four unsigned 16-bit integers in the lower 64 bits to four unsigned
+// 32-bit integers.
+FORCE_INLINE __m128i _mm_cvtepu16_epi32(__m128i a)
+{
+    return vreinterpretq_m128i_u32(
+        vmovl_u16(vget_low_u16(vreinterpretq_u16_m128i(a))));
+}
+
+// Converts the two unsigned 16-bit integers in the lower 32 bits to two unsigned
+// 64-bit integers.
+FORCE_INLINE __m128i _mm_cvtepu16_epi64(__m128i a)
+{
+    uint16x8_t u16x8 = vreinterpretq_u16_m128i(a);     /* xxxx xxxx xxxx 0B0A */
+    uint32x4_t u32x4 = vmovl_u16(vget_low_u16(u16x8)); /* 000x 000x 000B 000A */
+    uint64x2_t u64x2 = vmovl_u32(vget_low_u32(u32x4)); /* 0000 000B 0000 000A */
+    return vreinterpretq_m128i_u64(u64x2);
+}
+
+// Converts the two unsigned 32-bit integers in the lower 64 bits to two unsigned
+// 64-bit integers.
+FORCE_INLINE __m128i _mm_cvtepu32_epi64(__m128i a)
+{
+    return vreinterpretq_m128i_u64(
+        vmovl_u32(vget_low_u32(vreinterpretq_u32_m128i(a))));
+}
+
+// Converts the two signed 32-bit integers in the lower 64 bits to two signed
+// 64-bit integers.
+FORCE_INLINE __m128i _mm_cvtepi32_epi64(__m128i a)
+{
+    return vreinterpretq_m128i_s64(
+        vmovl_s32(vget_low_s32(vreinterpretq_s32_m128i(a))));
 }
 
 // Converts the four single-precision, floating-point values of a to signed
