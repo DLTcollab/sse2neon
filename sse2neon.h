@@ -3014,6 +3014,24 @@ FORCE_INLINE __m128i _mm_packs_epi32(__m128i a, __m128i b)
                      vqmovn_s32(vreinterpretq_s32_m128i(b))));
 }
 
+// Packs the 8 unsigned 32-bit integers from a and b into unsigned 16-bit integers
+// and saturates.
+//
+//   r0 := UnsignedSaturate(a0)
+//   r1 := UnsignedSaturate(a1)
+//   r2 := UnsignedSaturate(a2)
+//   r3 := UnsignedSaturate(a3)
+//   r4 := UnsignedSaturate(b0)
+//   r5 := UnsignedSaturate(b1)
+//   r6 := UnsignedSaturate(b2)
+//   r7 := UnsignedSaturate(b3)
+FORCE_INLINE __m128i _mm_packus_epi32(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u16(
+        vcombine_u16(vqmovn_u32(vreinterpretq_u32_m128i(a)),
+                     vqmovn_u32(vreinterpretq_u32_m128i(b))));
+}
+
 // Interleaves the lower 8 signed or unsigned 8-bit integers in a with the lower
 // 8 signed or unsigned 8-bit integers in b.
 //
