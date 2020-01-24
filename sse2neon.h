@@ -706,6 +706,11 @@ FORCE_INLINE __m128i _mm_abs_epi16(__m128i a)
     return vreinterpretq_m128i_s16(vabsq_s16(vreinterpretq_s16_m128i(a)));
 }
 
+FORCE_INLINE __m128i _mm_abs_epi8(__m128i a)
+{
+    return vreinterpretq_m128i_s8(vabsq_s8(vreinterpretq_s8_m128i(a)));
+}
+
 // Takes the upper 64 bits of a and places it in the low end of the result
 // Takes the lower 64 bits of b and places it into the high end of the result.
 FORCE_INLINE __m128 _mm_shuffle_ps_1032(__m128 a, __m128 b)
