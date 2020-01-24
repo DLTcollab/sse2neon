@@ -1265,6 +1265,41 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
 #endif
 
+// Blend packed 16-bit integers from a and b using control mask imm8, and store
+// the results in dst.
+//
+//   FOR j := 0 to 7
+//       i := j*16
+//       IF imm8[j]
+//           dst[i+15:i] := b[i+15:i]
+//       ELSE
+//           dst[i+15:i] := a[i+15:i]
+//       FI
+//   ENDFOR
+// FORCE_INLINE __m128i _mm_blend_epi16(__m128i a, __m128i b, __constrange(0,255)
+// int imm)
+#define _mm_blend_epi16(a, b, imm)                       \
+    ({                                                   \
+        const uint16_t _mask[8] = {                      \
+            ((imm) & (1 << 0)) ? 0xFFFF : 0x0000,        \
+            ((imm) & (1 << 1)) ? 0xFFFF : 0x0000,        \
+            ((imm) & (1 << 2)) ? 0xFFFF : 0x0000,        \
+            ((imm) & (1 << 3)) ? 0xFFFF : 0x0000,        \
+            ((imm) & (1 << 4)) ? 0xFFFF : 0x0000,        \
+            ((imm) & (1 << 5)) ? 0xFFFF : 0x0000,        \
+            ((imm) & (1 << 6)) ? 0xFFFF : 0x0000,        \
+            ((imm) & (1 << 7)) ? 0xFFFF : 0x0000         \
+        };                                               \
+        uint16x8_t _mask_vec = vld1q_u16(_mask);         \
+        uint16x8_t _a = vreinterpretq_u16_m128i(a);      \
+        uint16x8_t _b = vreinterpretq_u16_m128i(b);      \
+        vreinterpretq_m128i_u16(vbslq_u16(_mask_vec, _b, _a)); \
+    })
+
+/////////////////////////////////////
+// Shifts
+/////////////////////////////////////
+
 // Shifts the 4 signed 32-bit integers in a right by count bits while shifting
 // in the sign bit.
 //
