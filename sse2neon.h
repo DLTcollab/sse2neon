@@ -2650,6 +2650,16 @@ FORCE_INLINE __m128i _mm_cvtsi32_si128(int a)
     return vreinterpretq_m128i_s32(vsetq_lane_s32(a, vdupq_n_s32(0), 0));
 }
 
+// Moves 64-bit integer a to the least significant 64 bits of an __m128 object,
+// zero extending the upper bits.
+//
+//   r0 := a
+//   r1 := 0x0
+FORCE_INLINE __m128i _mm_cvtsi64_si128(int64_t a)
+{
+    return vreinterpretq_m128i_s64(vsetq_lane_s64(a, vdupq_n_s64(0), 0));
+}
+
 // Applies a type cast to reinterpret four 32-bit floating point values passed
 // in as a 128-bit parameter as packed 32-bit integers.
 // https://msdn.microsoft.com/en-us/library/bb514099.aspx
