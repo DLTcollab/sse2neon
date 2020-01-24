@@ -1654,6 +1654,40 @@ FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b)
         vqaddq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
 }
 
+// Negate packed 8-bit integers in a when the corresponding signed
+// 8-bit integer in b is negative, and store the results in dst.
+// Element in dst are zeroed out when the corresponding element
+// in b is zero.
+//
+//   for i in 0..15
+//     if b[i] < 0
+//       r[i] := -a[i]
+//     else if b[i] == 0
+//       r[i] := 0
+//     else
+//       r[i] := a[i]
+//     fi
+//   done
+FORCE_INLINE __m128i _mm_sign_epi8(__m128i _a, __m128i _b)
+{
+    int8x16_t a = vreinterpretq_s8_m128i(_a);
+    int8x16_t b = vreinterpretq_s8_m128i(_b);
+
+    int8x16_t zero = vdupq_n_s8(0);
+    // signed shift right: faster than vclt
+    // (b < 0) ? 0xFF : 0
+    uint8x16_t ltMask = vreinterpretq_u8_s8(vshrq_n_s8(b, 7));
+    // (b == 0) ? 0xFF : 0
+    int8x16_t zeroMask = vreinterpretq_s8_u8(vceqq_s8(b, zero));
+    // -a
+    int8x16_t neg = vnegq_s8(a);
+    // bitwise select either a or neg based on ltMask
+    int8x16_t masked = vbslq_s8(ltMask, a, neg);
+    // res = masked & (~zeroMask)
+    int8x16_t res = vbicq_s8(masked, zeroMask);
+    return vreinterpretq_m128i_s8(res);
+}
+
 // Negate packed 16-bit integers in a when the corresponding signed
 // 16-bit integer in b is negative, and store the results in dst.
 // Element in dst are zeroed out when the corresponding element
