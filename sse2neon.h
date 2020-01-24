@@ -2235,6 +2235,94 @@ FORCE_INLINE __m128 _mm_hadd_ps(__m128 a, __m128 b)
 #endif
 }
 
+// Computes pairwise add of each argument as a 16-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hadd_epi16(__m128i _a, __m128i _b)
+{
+    int16x8_t a = vreinterpretq_s16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+    return vreinterpretq_m128i_s16(
+       vcombine_s16(
+          vpadd_s16(vget_low_s16(a), vget_high_s16(a)),
+          vpadd_s16(vget_low_s16(b), vget_high_s16(b))
+       )
+    );
+}
+
+// Computes pairwise difference of each argument as a 16-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hsub_epi16(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|a4|a6|b0|b2|b4|b6]
+    // [a1|a3|a5|a7|b1|b3|b5|b7]
+    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
+    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
+    // Subtract
+    return vreinterpretq_m128i_s16(vsubq_s16(ab0246, ab1357));
+}
+
+// Computes saturated pairwise sub of each argument as a 16-bit signed
+// integer values a and b.
+FORCE_INLINE __m128i _mm_hadds_epi16(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|a4|a6|b0|b2|b4|b6]
+    // [a1|a3|a5|a7|b1|b3|b5|b7]
+    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
+    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
+    // Saturated add
+    return vreinterpretq_m128i_s16(vqaddq_s16(ab0246, ab1357));
+}
+
+// Computes saturated pairwise difference of each argument as a 16-bit signed
+// integer values a and b.
+FORCE_INLINE __m128i _mm_hsubs_epi16(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|a4|a6|b0|b2|b4|b6]
+    // [a1|a3|a5|a7|b1|b3|b5|b7]
+    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
+    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
+    // Saturated subtract
+    return vreinterpretq_m128i_s16(vqsubq_s16(ab0246, ab1357));
+}
+
+// Computes pairwise add of each argument as a 32-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hadd_epi32(__m128i _a, __m128i _b)
+{
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+    return vreinterpretq_m128i_s32(
+       vcombine_s32(
+          vpadd_s32(vget_low_s32(a), vget_high_s32(a)),
+          vpadd_s32(vget_low_s32(b), vget_high_s32(b))
+       )
+    );
+}
+
+// Computes pairwise difference of each argument as a 32-bit signed or unsigned integer
+// values a and b.
+FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
+{
+    int64x2_t a = vreinterpretq_s64_m128i(_a);
+    int64x2_t b = vreinterpretq_s64_m128i(_b);
+    // Interleave using vshrn/vmovn
+    // [a0|a2|b0|b2]
+    // [a1|a2|b1|b3]
+    int32x4_t ab02 = vcombine_s32(vmovn_s64(a), vmovn_s64(b));
+    int32x4_t ab13 = vcombine_s32(vshrn_n_s64(a, 32), vshrn_n_s64(b, 32));
+    // Subtract
+    return vreinterpretq_m128i_s32(vsubq_s32(ab02, ab13));
+}
+
 // ******************************************
 // Compare operations
 // ******************************************
