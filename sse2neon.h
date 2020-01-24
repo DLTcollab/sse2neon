@@ -406,6 +406,13 @@ FORCE_INLINE __m128i _mm_set1_epi64(int64_t _i)
     return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
 }
 
+// Sets the 2 signed 64-bit integer values to i.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set1_epi64x&expand=4961
+FORCE_INLINE __m128i _mm_set1_epi64x(int64_t _i)
+{
+    return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
+}
+
 // Sets the 4 signed 32-bit integer values.
 // https://msdn.microsoft.com/en-us/library/vstudio/019beekt(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set_epi32(int i3, int i2, int i1, int i0)
