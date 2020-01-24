@@ -1982,6 +1982,68 @@ FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
     return vreinterpretq_m128i_s32(vcombine_s32(low_sum, high_sum));
 }
 
+// Multiply packed signed 16-bit integers in a and b, producing intermediate signed
+// 32-bit integers. Shift right by 15 bits while rounding up, and store the
+// packed 16-bit integers in dst.
+//
+//   r0 := Round(((int32_t)a0 * (int32_t)b0) >> 15)
+//   r1 := Round(((int32_t)a1 * (int32_t)b1) >> 15)
+//   r2 := Round(((int32_t)a2 * (int32_t)b2) >> 15)
+//   ...
+//   r7 := Round(((int32_t)a7 * (int32_t)b7) >> 15)
+FORCE_INLINE __m128i _mm_mulhrs_epi16(__m128i a, __m128i b)
+{
+    // Has issues due to saturation
+    // return vreinterpretq_m128i_s16(vqrdmulhq_s16(a, b));
+
+    // Multiply
+    int32x4_t mul_lo = vmull_s16(vget_low_s16(vreinterpretq_s16_m128i(a)),
+                                 vget_low_s16(vreinterpretq_s16_m128i(b)));
+    int32x4_t mul_hi = vmull_s16(vget_high_s16(vreinterpretq_s16_m128i(a)),
+                                 vget_high_s16(vreinterpretq_s16_m128i(b)));
+
+    // Rounding narrowing shift right
+    // narrow = (int16_t)((mul + 16384) >> 15);
+    int16x4_t narrow_lo = vrshrn_n_s32(mul_lo, 15);
+    int16x4_t narrow_hi = vrshrn_n_s32(mul_hi, 15);
+
+    // Join together
+    return vreinterpretq_m128i_s16(vcombine_s16(narrow_lo, narrow_hi));
+}
+
+// Vertically multiply each unsigned 8-bit integer from a with the corresponding
+// signed 8-bit integer from b, producing intermediate signed 16-bit integers.
+// Horizontally add adjacent pairs of intermediate signed 16-bit integers,
+// and pack the saturated results in dst.
+//
+//   FOR j := 0 to 7
+//      i := j*16
+//      dst[i+15:i] := Saturate_To_Int16( a[i+15:i+8]*b[i+15:i+8] + a[i+7:i]*b[i+7:i] )
+//   ENDFOR
+FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
+{
+    // This would be much simpler if x86 would choose to zero extend OR sign extend,
+    // not both.
+    // This could probably be optimized better.
+    uint16x8_t a = vreinterpretq_u16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+
+    // Zero extend a
+    int16x8_t a_odd = vreinterpretq_s16_u16(vshrq_n_u16(a, 8));
+    int16x8_t a_even = vreinterpretq_s16_u16(vbicq_u16(a, vdupq_n_u16(0xff00)));
+
+    // Sign extend by shifting left then shifting right.
+    int16x8_t b_even = vshrq_n_s16(vshlq_n_s16(b, 8), 8);
+    int16x8_t b_odd = vshrq_n_s16(b, 8);
+
+    // multiply
+    int16x8_t prod1 = vmulq_s16(a_even, b_even);
+    int16x8_t prod2 = vmulq_s16(a_odd, b_odd);
+
+    // saturated add
+    return vreinterpretq_m128i_s16(vqaddq_s16(prod1, prod2));
+}
+
 // Computes the absolute difference of the 16 unsigned 8-bit integers from a
 // and the 16 unsigned 8-bit integers from b.
 //
