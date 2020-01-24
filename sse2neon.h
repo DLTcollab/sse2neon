@@ -1654,28 +1654,72 @@ FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b)
         vqaddq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
 }
 
-FORCE_INLINE __m128i _mm_sign_epi32(__m128i a, __m128i b)
+// Negate packed 16-bit integers in a when the corresponding signed
+// 16-bit integer in b is negative, and store the results in dst.
+// Element in dst are zeroed out when the corresponding element
+// in b is zero.
+//
+//   for i in 0..7
+//     if b[i] < 0
+//       r[i] := -a[i]
+//     else if b[i] == 0
+//       r[i] := 0
+//     else
+//       r[i] := a[i]
+//     fi
+//   done
+FORCE_INLINE __m128i _mm_sign_epi16(__m128i _a, __m128i _b)
 {
-    int32x4_t zer0 = vdupq_n_s32(0);
-    int32x4_t ltMask =
-        vreinterpretq_s32_u32(vcltq_s32(vreinterpretq_s32_m128i(b), zer0));
-    int32x4_t gtMask =
-        vreinterpretq_s32_u32(vcgtq_s32(vreinterpretq_s32_m128i(b), zer0));
-    int32x4_t neg = vnegq_s32(vreinterpretq_s32_m128i(a));
-    int32x4_t tmp = vandq_s32(vreinterpretq_s32_m128i(a), gtMask);
-    return vreinterpretq_m128i_s32(vorrq_s32(tmp, vandq_s32(neg, ltMask)));
+    int16x8_t a = vreinterpretq_s16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+
+    int16x8_t zero = vdupq_n_s16(0);
+    // signed shift right: faster than vclt
+    // (b < 0) ? 0xFFFF : 0
+    uint16x8_t ltMask = vreinterpretq_u16_s16(vshrq_n_s16(b, 15));
+    // (b == 0) ? 0xFFFF : 0
+    int16x8_t zeroMask = vreinterpretq_s16_u16(vceqq_s16(b, zero));
+    // -a
+    int16x8_t neg = vnegq_s16(a);
+    // bitwise select either a or neg based on ltMask
+    int16x8_t masked = vbslq_s16(ltMask, a, neg);
+    // res = masked & (~zeroMask)
+    int16x8_t res = vbicq_s16(masked, zeroMask);
+    return vreinterpretq_m128i_s16(res);
 }
 
-FORCE_INLINE __m128i _mm_sign_epi16(__m128i a, __m128i b)
+// Negate packed 32-bit integers in a when the corresponding signed
+// 32-bit integer in b is negative, and store the results in dst.
+// Element in dst are zeroed out when the corresponding element
+// in b is zero.
+//
+//   for i in 0..3
+//     if b[i] < 0
+//       r[i] := -a[i]
+//     else if b[i] == 0
+//       r[i] := 0
+//     else
+//       r[i] := a[i]
+//     fi
+//   done
+FORCE_INLINE __m128i _mm_sign_epi32(__m128i _a, __m128i _b)
 {
-    int16x8_t zer0 = vdupq_n_s16(0);
-    int16x8_t ltMask =
-        vreinterpretq_s16_u16(vcltq_s16(vreinterpretq_s16_m128i(b), zer0));
-    int16x8_t gtMask =
-        vreinterpretq_s16_u16(vcgtq_s16(vreinterpretq_s16_m128i(b), zer0));
-    int16x8_t neg = vnegq_s16(vreinterpretq_s16_m128i(a));
-    int16x8_t tmp = vandq_s16(vreinterpretq_s16_m128i(a), gtMask);
-    return vreinterpretq_m128i_s16(vorrq_s16(tmp, vandq_s16(neg, ltMask)));
+    int32x4_t a = vreinterpretq_s32_m128i(_a);
+    int32x4_t b = vreinterpretq_s32_m128i(_b);
+
+    int32x4_t zero = vdupq_n_s32(0);
+    // signed shift right: faster than vclt
+    // (b < 0) ? 0xFFFFFFFF : 0
+    uint32x4_t ltMask = vreinterpretq_u32_s32(vshrq_n_s32(b, 31));
+    // (b == 0) ? 0xFFFFFFFF : 0
+    int32x4_t zeroMask = vreinterpretq_s32_u32(vceqq_s32(b, zero));
+    // neg = -a
+    int32x4_t neg = vnegq_s32(a);
+    // bitwise select either a or neg based on ltMask
+    int32x4_t masked = vbslq_s32(ltMask, a, neg);
+    // res = masked & (~zeroMask)
+    int32x4_t res = vbicq_s32(masked, zeroMask);
+    return vreinterpretq_m128i_s32(res);
 }
 
 // Adds the four single-precision, floating-point values of a and b.
