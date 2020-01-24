@@ -2915,20 +2915,71 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // Clang requires a macro here, as it is extremely picky about c being a literal.
 #define _mm_alignr_epi8(a, b, c) ((__m128i) vextq_s8((int8x16_t) (b), (int8x16_t) (a), (c)))
 
+// Extracts the selected signed or unsigned 8-bit integer from a and zero
+// extends.
+// FORCE_INLINE int _mm_extract_epi8(__m128i a, __constrange(0,16) int imm)
+#define _mm_extract_epi8(a, imm) \
+    vgetq_lane_u8(vreinterpretq_u8_m128i(a), (imm))
+
+// Inserts the least significant 8 bits of b into the selected 8-bit integer
+// of a.
+// FORCE_INLINE __m128i _mm_insert_epi8(__m128i a, const int b,
+// __constrange(0,16) int imm)
+#define _mm_insert_epi8(a, b, imm)                                  \
+    ({                                                               \
+        vreinterpretq_m128i_s8(                                     \
+            vsetq_lane_s8((b), vreinterpretq_s8_m128i(a), (imm))); \
+    })
+
 // Extracts the selected signed or unsigned 16-bit integer from a and zero
-// extends.  https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx
+// extends.
+// https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx
 // FORCE_INLINE int _mm_extract_epi16(__m128i a, __constrange(0,8) int imm)
 #define _mm_extract_epi16(a, imm) \
-    ({ (vgetq_lane_s16(vreinterpretq_s16_m128i(a), (imm)) & 0x0000ffffUL); })
+    vgetq_lane_u16(vreinterpretq_u16_m128i(a), (imm))
 
 // Inserts the least significant 16 bits of b into the selected 16-bit integer
-// of a. https://msdn.microsoft.com/en-us/library/kaze8hz1%28v=vs.100%29.aspx
+// of a.
+// https://msdn.microsoft.com/en-us/library/kaze8hz1%28v=vs.100%29.aspx
 // FORCE_INLINE __m128i _mm_insert_epi16(__m128i a, const int b,
 // __constrange(0,8) int imm)
 #define _mm_insert_epi16(a, b, imm)                                  \
     ({                                                               \
         vreinterpretq_m128i_s16(                                     \
             vsetq_lane_s16((b), vreinterpretq_s16_m128i(a), (imm))); \
+    })
+
+// Extracts the selected signed or unsigned 32-bit integer from a and zero
+// extends.
+// FORCE_INLINE int _mm_extract_epi32(__m128i a, __constrange(0,4) int imm)
+#define _mm_extract_epi32(a, imm) \
+    vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm))
+
+// Inserts the least significant 32 bits of b into the selected 32-bit integer
+// of a.
+// FORCE_INLINE __m128i _mm_insert_epi32(__m128i a, const int b,
+// __constrange(0,4) int imm)
+#define _mm_insert_epi32(a, b, imm)                                  \
+    ({                                                               \
+        vreinterpretq_m128i_s32(                                     \
+            vsetq_lane_s32((b), vreinterpretq_s32_m128i(a), (imm))); \
+    })
+
+
+// Extracts the selected signed or unsigned 64-bit integer from a and zero
+// extends.
+// FORCE_INLINE __int64 _mm_extract_epi64(__m128i a, __constrange(0,2) int imm)
+#define _mm_extract_epi64(a, imm) \
+    vgetq_lane_s64(vreinterpretq_s64_m128i(a), (imm))
+
+// Inserts the least significant 64 bits of b into the selected 64-bit integer
+// of a.
+// FORCE_INLINE __m128i _mm_insert_epi64(__m128i a, const __int64 b,
+// __constrange(0,2) int imm)
+#define _mm_insert_epi64(a, b, imm)                                  \
+    ({                                                               \
+        vreinterpretq_m128i_s64(                                     \
+            vsetq_lane_s64((b), vreinterpretq_s64_m128i(a), (imm))); \
     })
 
 // ******************************************
