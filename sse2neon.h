@@ -61,7 +61,7 @@
 
 #include <stdint.h>
 
-#include "arm_neon.h"
+#include <arm_neon.h>
 
 /**
  * MACRO for shuffle parameter for _mm_shuffle_ps().
@@ -157,8 +157,7 @@ typedef int32x4_t __m128i;
 // that is used throughout the codebase to access the members instead of always
 // declaring this type of variable.
 typedef union ALIGN_STRUCT(16) SIMDVec {
-    float
-        m128_f32[4];  // as floats - do not to use this.  Added for convenience.
+    float m128_f32[4];     // as floats - do not to use this.  Added for convenience.
     int8_t m128_i8[16];    // as signed 8-bit integers.
     int16_t m128_i16[8];   // as signed 16-bit integers.
     int32_t m128_i32[4];   // as signed 32-bit integers.
@@ -202,6 +201,7 @@ FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
 // processor. https://msdn.microsoft.com/en-us/library/84szxsww(v=vs.100).aspx
 FORCE_INLINE void _mm_prefetch(const void *p, int i)
 {
+    (void)i;
     __builtin_prefetch(p);
 }
 
@@ -297,7 +297,7 @@ FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
 //   r15 := b
 //
 // https://msdn.microsoft.com/en-us/library/6e14xhyf(v=vs.100).aspx
-FORCE_INLINE __m128i _mm_set1_epi8(char w)
+FORCE_INLINE __m128i _mm_set1_epi8(signed char w)
 {
     return vreinterpretq_m128i_s8(vdupq_n_s8(w));
 }
@@ -317,22 +317,22 @@ FORCE_INLINE __m128i _mm_set1_epi16(short w)
 
 // Sets the 16 signed 8-bit integer values.
 // https://msdn.microsoft.com/en-us/library/x0cx8zd3(v=vs.90).aspx
-FORCE_INLINE __m128i _mm_set_epi8(char b15,
-                                  char b14,
-                                  char b13,
-                                  char b12,
-                                  char b11,
-                                  char b10,
-                                  char b9,
-                                  char b8,
-                                  char b7,
-                                  char b6,
-                                  char b5,
-                                  char b4,
-                                  char b3,
-                                  char b2,
-                                  char b1,
-                                  char b0)
+FORCE_INLINE __m128i _mm_set_epi8(signed char b15,
+                                  signed char b14,
+                                  signed char b13,
+                                  signed char b12,
+                                  signed char b11,
+                                  signed char b10,
+                                  signed char b9,
+                                  signed char b8,
+                                  signed char b7,
+                                  signed char b6,
+                                  signed char b5,
+                                  signed char b4,
+                                  signed char b3,
+                                  signed char b2,
+                                  signed char b1,
+                                  signed char b0)
 {
     int8_t __attribute__((aligned(16)))
     data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
@@ -360,22 +360,22 @@ FORCE_INLINE __m128i _mm_set_epi16(short i7,
 
 // Sets the 16 signed 8-bit integer values in reverse order.
 // https://msdn.microsoft.com/en-us/library/2khb9c7k(v=vs.90).aspx
-FORCE_INLINE __m128i _mm_setr_epi8(char b0,
-                                   char b1,
-                                   char b2,
-                                   char b3,
-                                   char b4,
-                                   char b5,
-                                   char b6,
-                                   char b7,
-                                   char b8,
-                                   char b9,
-                                   char b10,
-                                   char b11,
-                                   char b12,
-                                   char b13,
-                                   char b14,
-                                   char b15)
+FORCE_INLINE __m128i _mm_setr_epi8(signed char b0,
+                                   signed char b1,
+                                   signed char b2,
+                                   signed char b3,
+                                   signed char b4,
+                                   signed char b5,
+                                   signed char b6,
+                                   signed char b7,
+                                   signed char b8,
+                                   signed char b9,
+                                   signed char b10,
+                                   signed char b11,
+                                   signed char b12,
+                                   signed char b13,
+                                   signed char b14,
+                                   signed char b15)
 {
     int8_t __attribute__((aligned(16)))
     data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
@@ -398,8 +398,8 @@ FORCE_INLINE __m128i _mm_set1_epi32(int _i)
     return vreinterpretq_m128i_s32(vdupq_n_s32(_i));
 }
 
-// Sets the 4 signed 64-bit integer values to i.
-// https://msdn.microsoft.com/en-us/library/vstudio/h4xscxat(v=vs.100).aspx
+// Sets the 2 signed 64-bit integer values to i.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/whtfzhzk(v=vs.100)
 FORCE_INLINE __m128i _mm_set1_epi64(int64_t _i)
 {
     return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
@@ -690,7 +690,7 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 
 FORCE_INLINE __m128i _mm_abs_epi32(__m128i a)
 {
-    return vqabsq_s32(a);
+    return vabsq_s32(a);
 }
 
 FORCE_INLINE __m128i _mm_abs_epi16(__m128i a)
@@ -1160,30 +1160,33 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         ret;                                             \
     })
 
-// Shuffles the upper 4 signed or unsigned 16 - bit integers in a as specified
-// by imm.  https://msdn.microsoft.com/en-us/library/13ywktbs(v=vs.100).aspx
-// FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a,
+// Shuffles the lower 4 signed or unsigned 16-bit integers in a as specified
+// by imm.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/y41dkk37(v=vs.100)
+// FORCE_INLINE __m128i _mm_shufflelo_epi16_function(__m128i a,
 // __constrange(0,255) int imm)
+
 #define _mm_shufflelo_epi16_function(a, imm)                                  \
     ({                                                                        \
         int16x8_t ret = vreinterpretq_s16_s32(a);                             \
         int16x4_t lowBits = vget_low_s16(ret);                                \
-        ret = vsetq_lane_s16(vget_lane_s16(lowBits, (imm) &0x3), ret, 4);     \
+        ret = vsetq_lane_s16(vget_lane_s16(lowBits, (imm) &0x3), ret, 0);     \
         ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 2) & 0x3), ret, \
-                             5);                                              \
+                             1);                                              \
         ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 4) & 0x3), ret, \
-                             6);                                              \
+                             2);                                              \
         ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 6) & 0x3), ret, \
-                             7);                                              \
+                             3);                                              \
         vreinterpretq_s32_s16(ret);                                           \
     })
 
-// FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a, __constrange(0,255) int
+// FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a, __constrange(0,255) int
 // imm)
-#define _mm_shufflelo_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
+#define _mm_shufflelo_epi16(a, imm) _mm_shufflelo_epi16_function((a), (imm))
 
-// Shuffles the upper 4 signed or unsigned 16 - bit integers in a as specified
-// by imm.  https://msdn.microsoft.com/en-us/library/13ywktbs(v=vs.100).aspx
+// Shuffles the upper 4 signed or unsigned 16-bit integers in a as specified
+// by imm.
+// https://msdn.microsoft.com/en-us/library/13ywktbs(v=vs.100).aspx
 // FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a,
 // __constrange(0,255) int imm)
 #define _mm_shufflehi_epi16_function(a, imm)                                   \
@@ -2650,10 +2653,8 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // shift to right
 // https://msdn.microsoft.com/en-us/library/bb514041(v=vs.120).aspx
 // http://blog.csdn.net/hemmingway/article/details/44828303
-FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, const int c)
-{
-    return (__m128i) vextq_s8((int8x16_t) a, (int8x16_t) b, c);
-}
+// Clang requires a macro here, as it is extremely picky about c being a literal.
+#define _mm_alignr_epi8(a, b, c) ((__m128i) vextq_s8((int8x16_t) (b), (int8x16_t) (a), (c)))
 
 // Extracts the selected signed or unsigned 16-bit integer from a and zero
 // extends.  https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx
@@ -2742,7 +2743,7 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
 inline __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 {
     return vreinterpretq_s32_u8(
-        vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_s32(a), uint8x16_t{})) ^
+        vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_s32(a), vdupq_n_u8(0))) ^
         vreinterpretq_u8_s32(b));
 }
 #endif
@@ -2773,6 +2774,7 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 // https://msdn.microsoft.com/en-us/library/ba08y07y(v=vs.100).aspx
 FORCE_INLINE void _mm_clflush(void const *p)
 {
+    (void)p;
     // no corollary for Neon?
 }
 

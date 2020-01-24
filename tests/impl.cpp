@@ -725,7 +725,7 @@ bool test_mm_load1_ps(const float *p)
 bool test_mm_loadl_pi(const float *p1, const float *p2)
 {
     __m128 a = _mm_load_ps(p1);
-    __m64 *b = (__m64 *) p2;
+    const __m64 *b = (const __m64 *) p2;
     __m128 c = _mm_loadl_pi(a, b);
 
     return validateFloat(c, p1[3], p1[2], p2[1], p2[0]);
