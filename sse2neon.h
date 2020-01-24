@@ -870,6 +870,20 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
 
 // FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255)
 // int imm)
+#if defined(__clang__)
+#define _mm_shuffle_ps(a, b, imm)                          \
+    ({                                                     \
+         float32x4_t _input1 = vreinterpretq_f32_m128(a);  \
+         float32x4_t _input2 = vreinterpretq_f32_m128(b);  \
+         float32x4_t _shuf =                               \
+              __builtin_shufflevector(_input1, _input2,    \
+                (imm) & 0x3,                               \
+                ((imm) >> 2) & 0x3,                        \
+                (((imm) >> 4) & 0x3) + 4,                  \
+                (((imm) >> 6) & 0x3) + 4);                 \
+         vreinterpretq_m128_f32(_shuf);                    \
+    })
+#else // generic
 #define _mm_shuffle_ps(a, b, imm)                          \
     ({                                                     \
         __m128 ret;                                        \
@@ -931,6 +945,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
         }                                                  \
         ret;                                               \
     })
+#endif // not clang
 
 // Takes the upper 64 bits of a and places it in the low end of the result
 // Takes the lower 64 bits of a and places it into the high end of the result.
@@ -1108,6 +1123,17 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // https://msdn.microsoft.com/en-us/library/56f67xbk%28v=vs.90%29.aspx
 // FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a, __constrange(0,255) int
 // imm)
+#if defined(__clang__)
+#define _mm_shuffle_epi32(a, imm)                        \
+    ({                                                   \
+         int32x4_t _input = vreinterpretq_s32_m128i(a);  \
+         int32x4_t _shuf =                               \
+              __builtin_shufflevector(_input, _input,    \
+                (imm) & 0x3,        ((imm) >> 2) & 0x3,  \
+                ((imm) >> 4) & 0x3, ((imm) >> 6) & 0x3); \
+         vreinterpretq_m128i_s32(_shuf);                 \
+    })
+#else // generic
 #define _mm_shuffle_epi32(a, imm)                        \
     ({                                                   \
         __m128i ret;                                     \
@@ -1160,6 +1186,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         }                                                \
         ret;                                             \
     })
+#endif // not clang
 
 // Shuffles the lower 4 signed or unsigned 16-bit integers in a as specified
 // by imm.
@@ -1183,7 +1210,22 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 
 // FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a, __constrange(0,255) int
 // imm)
+#if defined(__clang__)
+#define _mm_shufflelo_epi16(a, imm)                      \
+    ({                                                   \
+         int16x8_t _input = vreinterpretq_s16_m128i(a);  \
+         int16x8_t _shuf =                               \
+              __builtin_shufflevector(_input, _input,    \
+                ((imm) & 0x3),                           \
+                (((imm) >> 2) & 0x3),                    \
+                (((imm) >> 4) & 0x3),                    \
+                (((imm) >> 6) & 0x3),                    \
+                4, 5, 6, 7);                             \
+         vreinterpretq_m128i_s16(_shuf);                 \
+    })
+#else // generic
 #define _mm_shufflelo_epi16(a, imm) _mm_shufflelo_epi16_function((a), (imm))
+#endif
 
 // Shuffles the upper 4 signed or unsigned 16-bit integers in a as specified
 // by imm.
@@ -1206,7 +1248,22 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 
 // FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a, __constrange(0,255) int
 // imm)
+#if defined(__clang__)
+#define _mm_shufflehi_epi16(a, imm)                      \
+    ({                                                   \
+         int16x8_t _input = vreinterpretq_s16_m128i(a);  \
+         int16x8_t _shuf =                               \
+              __builtin_shufflevector(_input, _input,    \
+                0, 1, 2, 3,                              \
+                ((imm) & 0x3) + 4,                       \
+                (((imm) >> 2) & 0x3) + 4,                \
+                (((imm) >> 4) & 0x3) + 4,                \
+                (((imm) >> 6) & 0x3) + 4);               \
+         vreinterpretq_m128i_s16(_shuf);                 \
+    })
+#else // generic
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
+#endif
 
 // Shifts the 4 signed 32-bit integers in a right by count bits while shifting
 // in the sign bit.
