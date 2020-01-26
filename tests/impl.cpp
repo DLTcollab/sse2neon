@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <utility>
 #include "binding.h"
 #include "impl.h"
 
@@ -448,6 +448,10 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_AESENC_SI128:
         ret = "IT_MM_AESENC_SI128";
+        break;
+
+    case IT_MM_CLMULEPI64_SI128:
+        ret = "IT_MM_CLMULEPI64_SI128";
         break;
     case IT_LAST: /* should not happend */
         break;
@@ -2130,6 +2134,115 @@ bool test_mm_test_all_zeros(const int32_t *_a, const int32_t *_mask)
     return result == ret ? true : false;
 }
 
+static inline uint64_t MUL(uint32_t a, uint32_t b)
+{
+    return (uint64_t)a * (uint64_t)b;
+}
+
+// From BearSSL. Performs a 32-bit->64-bit carryless/polynomial
+// long multiply.
+//
+// This implementation was chosen because it is reasonably fast
+// without a lookup table or branching.
+//
+// This does it by splitting up the bits in a way that they
+// would not carry, then combine them together with xor (a
+// carryless add).
+//
+// https://www.bearssl.org/gitweb/?p=BearSSL;a=blob;f=src/hash/ghash_ctmul.c;h=3623202;hb=5f045c7#l164
+static uint64_t clmul_32(uint32_t x, uint32_t y)
+{
+    uint32_t x0, x1, x2, x3;
+    uint32_t y0, y1, y2, y3;
+    uint64_t z0, z1, z2, z3;
+
+    x0 = x & (uint32_t)0x11111111;
+    x1 = x & (uint32_t)0x22222222;
+    x2 = x & (uint32_t)0x44444444;
+    x3 = x & (uint32_t)0x88888888;
+    y0 = y & (uint32_t)0x11111111;
+    y1 = y & (uint32_t)0x22222222;
+    y2 = y & (uint32_t)0x44444444;
+    y3 = y & (uint32_t)0x88888888;
+    z0 = MUL(x0, y0) ^ MUL(x1, y3) ^ MUL(x2, y2) ^ MUL(x3, y1);
+    z1 = MUL(x0, y1) ^ MUL(x1, y0) ^ MUL(x2, y3) ^ MUL(x3, y2);
+    z2 = MUL(x0, y2) ^ MUL(x1, y1) ^ MUL(x2, y0) ^ MUL(x3, y3);
+    z3 = MUL(x0, y3) ^ MUL(x1, y2) ^ MUL(x2, y1) ^ MUL(x3, y0);
+    z0 &= (uint64_t)0x1111111111111111;
+    z1 &= (uint64_t)0x2222222222222222;
+    z2 &= (uint64_t)0x4444444444444444;
+    z3 &= (uint64_t)0x8888888888888888;
+    return z0 | z1 | z2 | z3;
+}
+
+// Performs a 64x64->128-bit carryless/polynomial long
+// multiply, using the above routine to calculate the
+// subproducts needed for the full-size multiply.
+//
+// This uses the Karatsuba algorithm.
+//
+// Normally, the Karatsuba algorithm isn't beneficial
+// until very large numbers due to carry tracking and
+// multiplication being relatively cheap.
+//
+// However, we have no carries and multiplication is
+// definitely not cheap, so the Karatsuba algorithm is
+// a low cost and easy optimization.
+//
+// https://en.m.wikipedia.org/wiki/Karatsuba_algorithm
+//
+// Note that addition and subtraction are both
+// performed with xor, since all operations are
+// carryless.
+//
+// The comments represent the actual mathematical
+// operations being performed (instead of the bitwise
+// operations) and to reflect the linked Wikipedia article.
+static std::pair<uint64_t, uint64_t>
+clmul_64(uint64_t x, uint64_t y)
+{
+    // B = 2
+    // m = 32
+    // x = (x1 * B^m) + x0
+    uint32_t x0 = x & 0xffffffff;
+    uint32_t x1 = x >> 32;
+    // y = (y1 * B^m) + y0
+    uint32_t y0 = y & 0xffffffff;
+    uint32_t y1 = y >> 32;
+
+    // z0 = x0 * y0
+    uint64_t z0 = clmul_32(x0, y0);
+    // z2 = x1 * y1
+    uint64_t z2 = clmul_32(x1, y1);
+    // z1 = (x0 + x1) * (y0 + y1) - z0 - z2
+    uint64_t z1 = clmul_32(x0 ^ x1, y0 ^ y1) ^ z0 ^ z2;
+
+    // xy = z0 + (z1 * B^m) + (z2 * B^2m)
+    // note: z1 is split between the low and high halves
+    uint64_t xy0 = z0 ^ (z1 << 32);
+    uint64_t xy1 = z2 ^ (z1 >> 32);
+
+    return std::make_pair(xy0, xy1);
+}
+
+bool test_mm_clmulepi64_si128(const uint64_t *_a, const uint64_t *_b)
+{
+    __m128i a = test_mm_load_ps((const int32_t *)_a);
+    __m128i b = test_mm_load_ps((const int32_t *)_b);
+    auto result = clmul_64(_a[0], _b[0]);
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x00), result.second, result.first))
+        return false;
+    result = clmul_64(_a[1], _b[0]);
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x01), result.second, result.first))
+        return false;
+    result = clmul_64(_a[0], _b[1]);
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x10), result.second, result.first))
+        return false;
+    result = clmul_64(_a[1], _b[1]);
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x11), result.second, result.first))
+        return false;
+    return true;
+}
 
 #define XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
 inline __m128i aesenc_128_reference(__m128i a, __m128i b)
@@ -2651,6 +2764,10 @@ public:
             break;
         case IT_MM_AESENC_SI128:
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
+            break;
+        case IT_MM_CLMULEPI64_SI128:
+            ret = test_mm_clmulepi64_si128((const uint64_t *)mTestIntPointer1, (const uint64_t *)mTestIntPointer2);
+            break;
         case IT_LAST: /* should not happend */
             break;
         }
