@@ -2960,6 +2960,9 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
     return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
 }
 
+// _mm_lddqu_si128 functions the same as _mm_loadu_si128.
+#define _mm_lddqu_si128 _mm_loadu_si128
+
 // ******************************************
 // Miscellaneous Operations
 // ******************************************
