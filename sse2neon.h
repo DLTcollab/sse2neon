@@ -16,6 +16,7 @@
 //   Jim Huang <jserv@biilabs.io>
 //   Mark Cheng <marktwtn@biilabs.io>
 //   Malcolm James MacLeod <malcolm@gulden.com>
+//   Devin Hussey (easyaspi314) <husseydevin@gmail.com>
 
 /*
  * The MIT license:
