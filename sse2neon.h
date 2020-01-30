@@ -675,27 +675,6 @@ FORCE_INLINE __m128 _mm_movelh_ps(__m128 __A, __m128 __B)
     return vreinterpretq_m128_f32(vcombine_f32(a10, b10));
 }
 
-// NEON does not provide this method
-// Creates a 4-bit mask from the most significant bits of the four
-// single-precision, floating-point values.
-// https://msdn.microsoft.com/en-us/library/vstudio/4490ys29(v=vs.100).aspx
-FORCE_INLINE int _mm_movemask_ps(__m128 a)
-{
-#if 0 /* C version */
-    uint32x4_t &ia = *(uint32x4_t *) &a;
-    return (ia[0] >> 31) | ((ia[1] >> 30) & 2) | ((ia[2] >> 29) & 4) |
-           ((ia[3] >> 28) & 8);
-#endif
-    static const uint32x4_t movemask = {1, 2, 4, 8};
-    static const uint32x4_t highbit = {0x80000000, 0x80000000, 0x80000000,
-                                       0x80000000};
-    uint32x4_t t0 = vreinterpretq_u32_m128(a);
-    uint32x4_t t1 = vtstq_u32(t0, highbit);
-    uint32x4_t t2 = vandq_u32(t1, movemask);
-    uint32x2_t t3 = vorr_u32(vget_low_u32(t2), vget_high_u32(t2));
-    return vget_lane_u32(t3, 0) | vget_lane_u32(t3, 1);
-}
-
 FORCE_INLINE __m128i _mm_abs_epi32(__m128i a)
 {
     return vreinterpretq_m128i_s32(vabsq_s32(vreinterpretq_s32_m128i(a)));
@@ -1599,6 +1578,22 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
     //                      d2
     // Note: Little endian would return the correct value 4b (01001011) instead.
     return vgetq_lane_u8(paired64, 0) | ((int)vgetq_lane_u8(paired64, 8) << 8);
+}
+
+// NEON does not provide this method
+// Creates a 4-bit mask from the most significant bits of the four
+// single-precision, floating-point values.
+// https://msdn.microsoft.com/en-us/library/vstudio/4490ys29(v=vs.100).aspx
+FORCE_INLINE int _mm_movemask_ps(__m128 a)
+{
+    // Uses the exact same method as _mm_movemask_epi8, see that for details
+    uint32x4_t input = vreinterpretq_u32_m128(a);
+    // Shift out everything but the sign bits with a 32-bit unsigned shift right.
+    uint64x2_t high_bits = vreinterpretq_u64_u32(vshrq_n_u32(input, 31));
+    // Merge the two pairs together with a 64-bit unsigned shift right + add.
+    uint8x16_t paired = vreinterpretq_u8_u64(vsraq_n_u64(high_bits, high_bits, 31));
+    // Extract the result.
+    return vgetq_lane_u8(paired, 0) | (vgetq_lane_u8(paired, 8) << 2);
 }
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and
