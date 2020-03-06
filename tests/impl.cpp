@@ -101,6 +101,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_STOREL_PI:
         ret = "MM_STOREL_PI";
         break;
+    case IT_MM_STOREH_PI:
+        ret = "MM_STOREH_PI";
+        break;
     case IT_MM_STOREU_PS:
         ret = "MM_STOREU_PS";
         break;
@@ -715,6 +718,23 @@ bool test_mm_storel_pi(const float *p)
 
     ASSERT_RETURN(d[0] == p[0]);
     ASSERT_RETURN(d[1] == p[1]);
+    ASSERT_RETURN(d[2] == 3.0f);
+    ASSERT_RETURN(d[3] == 4.0f);
+    return true;
+}
+
+bool test_mm_storeh_pi(const float *p)
+{
+    __m128 a = _mm_load_ps(p);
+
+    float d[4] = {1.0f, 2.0f, 3.0f, 4.0f};
+
+    __m64 *b = (__m64 *) d;
+
+    _mm_storeh_pi(b, a);
+
+    ASSERT_RETURN(d[0] == p[2]);
+    ASSERT_RETURN(d[1] == p[3]);
     ASSERT_RETURN(d[2] == 3.0f);
     ASSERT_RETURN(d[3] == 4.0f);
     return true;
@@ -2393,6 +2413,9 @@ public:
             break;
         case IT_MM_STOREL_PI:
             ret = test_mm_storel_pi(mTestFloatPointer1);
+            break;
+        case IT_MM_STOREH_PI:
+            ret = test_mm_storeh_pi(mTestFloatPointer1);
             break;
         case IT_MM_LOAD1_PS:
             ret = test_mm_load1_ps(mTestFloatPointer1);

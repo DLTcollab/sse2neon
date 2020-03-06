@@ -477,13 +477,25 @@ FORCE_INLINE void _mm_storel_epi64(__m128i *a, __m128i b)
 // Stores the lower two single-precision floating point values of a to the
 // address p.
 //
-//   *p0 := b0
-//   *p1 := b1
+//   *p0 := a0
+//   *p1 := a1
 //
 // https://msdn.microsoft.com/en-us/library/h54t98ks(v=vs.90).aspx
 FORCE_INLINE void _mm_storel_pi(__m64 *p, __m128 a)
 {
     *p = vget_low_f32(a);
+}
+
+// Stores the upper two single-precision, floating-point values of a to the
+// address p.
+//
+//   *p0 := a2
+//   *p1 := a3
+//
+// https://msdn.microsoft.com/en-us/library/a7525fs8(v%3dvs.90).aspx
+FORCE_INLINE void _mm_storeh_pi(__m64 * p, __m128 a)
+{
+    *p = vget_high_f32(a);
 }
 
 // Loads a single single-precision, floating-point value, copying it into all
