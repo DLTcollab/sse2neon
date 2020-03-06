@@ -122,6 +122,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_LOADL_PI:
         ret = "MM_LOADL_PI";
         break;
+    case IT_MM_LOADH_PI:
+        ret = "MM_LOADH_PI";
+        break;
     case IT_MM_LOAD_PS:
         ret = "MM_LOAD_PS";
         break;
@@ -753,6 +756,15 @@ bool test_mm_loadl_pi(const float *p1, const float *p2)
     __m128 c = _mm_loadl_pi(a, b);
 
     return validateFloat(c, p1[3], p1[2], p2[1], p2[0]);
+}
+
+bool test_mm_loadh_pi(const float *p1, const float *p2)
+{
+    __m128 a = _mm_load_ps(p1);
+    const __m64 *b = (const __m64 *) p2;
+    __m128 c = _mm_loadh_pi(a, b);
+
+    return validateFloat(c, p2[1], p2[0], p1[1], p1[0]);
 }
 
 __m128 test_mm_load_ps(const float *p)
@@ -2422,6 +2434,9 @@ public:
             break;
         case IT_MM_LOADL_PI:
             ret = test_mm_loadl_pi(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_LOADH_PI:
+            ret = test_mm_loadh_pi(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_ANDNOT_PS:
             ret = test_mm_andnot_ps(mTestFloatPointer1, mTestFloatPointer2);

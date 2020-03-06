@@ -518,10 +518,26 @@ FORCE_INLINE __m128 _mm_load1_ps(const float *p)
 //   r3 := a3
 //
 // https://msdn.microsoft.com/en-us/library/s57cyak2(v=vs.100).aspx
-FORCE_INLINE __m128 _mm_loadl_pi(__m128 a, __m64 const *b)
+FORCE_INLINE __m128 _mm_loadl_pi(__m128 a, __m64 const *p)
 {
     return vreinterpretq_m128_f32(
-        vcombine_f32(vld1_f32((const float32_t *) b), vget_high_f32(a)));
+        vcombine_f32(vld1_f32((const float32_t *) p), vget_high_f32(a)));
+}
+
+// Sets the upper two single-precision, floating-point values with 64
+// bits of data loaded from the address p; the lower two values are passed
+// through from a.
+//
+//   r0 := a0
+//   r1 := a1
+//   r2 := *p0
+//   r3 := *p1
+//
+// https://msdn.microsoft.com/en-us/library/w92wta0x(v%3dvs.100).aspx
+FORCE_INLINE __m128 _mm_loadh_pi(__m128 a, __m64 const *p)
+{
+    return vreinterpretq_m128_f32(
+        vcombine_f32(vget_low_f32(a), vld1_f32((const float32_t *) p)));
 }
 
 // Loads four single-precision, floating-point values.
