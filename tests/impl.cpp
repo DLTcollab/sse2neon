@@ -11,7 +11,40 @@
 // This program a set of unit tests to ensure that each SSE call provide the
 // output we expect.  If this fires an assert, then something didn't match up.
 
+#if defined (__aarch64__) || defined (__arm__)
 #include "sse2neon.h"
+#elif defined (__x86_64__) || defined (__i386__)
+#include <emmintrin.h>
+#include <smmintrin.h>
+#include <tmmintrin.h>
+#include <wmmintrin.h>
+#include <xmmintrin.h>
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma push_macro("ALIGN_STRUCT")
+#define ALIGN_STRUCT(x) __attribute__((aligned(x)))
+#else
+#define ALIGN_STRUCT(x) __declspec(align(x))
+#endif
+
+typedef union ALIGN_STRUCT(16) SIMDVec {
+    float
+        m128_f32[4];  // as floats - do not to use this.  Added for convenience.
+    int8_t m128_i8[16];    // as signed 8-bit integers.
+    int16_t m128_i16[8];   // as signed 16-bit integers.
+    int32_t m128_i32[4];   // as signed 32-bit integers.
+    int64_t m128_i64[2];   // as signed 64-bit integers.
+    uint8_t m128_u8[16];   // as unsigned 8-bit integers.
+    uint16_t m128_u16[8];  // as unsigned 16-bit integers.
+    uint32_t m128_u32[4];  // as unsigned 32-bit integers.
+    uint64_t m128_u64[2];  // as unsigned 64-bit integers.
+} SIMDVec;
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma pop_macro("ALIGN_STRUCT")
+#endif
+
+#endif // __aarch64__ || __arm__ || __x86_64__ || __i386__
 
 namespace SSE2NEON
 {
