@@ -427,6 +427,12 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SET_EPI16:
         ret = "MM_SET_EPI16";
         break;
+    case IT_MM_SRA_EPI16:
+        ret = "MM_SRA_EPI16";
+        break;
+    case IT_MM_SRA_EPI32:
+        ret = "MM_SRA_EPI32";
+        break;
     case IT_MM_SLLI_EPI16:
         ret = "MM_SLLI_EPI16";
         break;
@@ -1802,6 +1808,58 @@ bool test_mm_set_epi16(const int16_t *_a)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+bool test_mm_sra_epi16(const int16_t *_a, const int64_t count)
+{
+    __m128i a = _mm_load_si128((const __m128i *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_sra_epi16(a, b);
+    if (count > 15) {
+        int16_t d0 = _a[0] < 0 ? 0xffff : 0;
+        int16_t d1 = _a[1] < 0 ? 0xffff : 0;
+        int16_t d2 = _a[2] < 0 ? 0xffff : 0;
+        int16_t d3 = _a[3] < 0 ? 0xffff : 0;
+        int16_t d4 = _a[4] < 0 ? 0xffff : 0;
+        int16_t d5 = _a[5] < 0 ? 0xffff : 0;
+        int16_t d6 = _a[6] < 0 ? 0xffff : 0;
+        int16_t d7 = _a[7] < 0 ? 0xffff : 0;
+
+        return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+    }
+
+    int16_t d0 = _a[0] >> count;
+    int16_t d1 = _a[1] >> count;
+    int16_t d2 = _a[2] >> count;
+    int16_t d3 = _a[3] >> count;
+    int16_t d4 = _a[4] >> count;
+    int16_t d5 = _a[5] >> count;
+    int16_t d6 = _a[6] >> count;
+    int16_t d7 = _a[7] >> count;
+
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
+bool test_mm_sra_epi32(const int32_t *_a, const int64_t count)
+{
+    __m128i a = _mm_load_si128((const __m128i *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_sra_epi32(a, b);
+    if (count > 31) {
+        int32_t d0 = _a[0] < 0 ? 0xffffffff : 0;
+        int32_t d1 = _a[1] < 0 ? 0xffffffff : 0;
+        int32_t d2 = _a[2] < 0 ? 0xffffffff : 0;
+        int32_t d3 = _a[3] < 0 ? 0xffffffff : 0;
+
+        return validateInt(c, d3, d2, d1, d0);
+    }
+
+    int32_t d0 = _a[0] >> count;
+    int32_t d1 = _a[1] >> count;
+    int32_t d2 = _a[2] >> count;
+    int32_t d3 = _a[3] >> count;
+
+    return validateInt(c, d3, d2, d1, d0);
+}
+
 bool test_mm_slli_epi16(const int16_t *_a)
 {
     const int count = 3;
@@ -3010,6 +3068,12 @@ public:
             break;
         case IT_MM_SET_EPI16:
             ret = test_mm_set_epi16((const int16_t *) mTestIntPointer1);
+            break;
+        case IT_MM_SRA_EPI16:
+            ret = test_mm_sra_epi16((const int16_t *) mTestIntPointer1, (int64_t) i);
+            break;
+        case IT_MM_SRA_EPI32:
+            ret = test_mm_sra_epi32((const int32_t *) mTestIntPointer1, (int64_t) i);
             break;
         case IT_MM_SLLI_EPI16:
             ret = test_mm_slli_epi16((const int16_t *) mTestIntPointer1);
