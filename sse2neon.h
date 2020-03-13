@@ -3321,7 +3321,7 @@ FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 // It needs some work and is somewhat slow, but it is still faster than all
 // known scalar methods.
 //
-// Algorithm adapted to C from http://www.workofard.com/2017/07/ghash-for-low-end-cores/,
+// Algorithm adapted to C from https://www.workofard.com/2017/07/ghash-for-low-end-cores/,
 // which is adapted from "Fast Software Polynomial Multiplication on
 // ARM Processors Using the NEON Engine" by Danilo Camara, Conrado Gouvea,
 // Julio Lopez and Ricardo Dahab (https://hal.inria.fr/hal-01506572)
@@ -3416,8 +3416,8 @@ FORCE_INLINE __m128i _mm_clmulepi64_si128(__m128i _a, __m128i _b, const int imm)
 #if !defined(__ARM_FEATURE_CRYPTO) && defined(__aarch64__)
 // In the absence of crypto extensions, implement aesenc using regular neon
 // intrinsics instead. See:
-// http://www.workofard.com/2017/01/accelerated-aes-for-the-arm64-linux-kernel/
-// http://www.workofard.com/2017/07/ghash-for-low-end-cores/ and
+// https://www.workofard.com/2017/01/accelerated-aes-for-the-arm64-linux-kernel/
+// https://www.workofard.com/2017/07/ghash-for-low-end-cores/ and
 // https://github.com/ColinIanKing/linux-next-mirror/blob/b5f466091e130caaf0735976648f72bd5e09aa84/crypto/aegis128-neon-inner.c#L52
 // for more information Reproduced with permission of the author.
 FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
