@@ -1,6 +1,6 @@
 CXX = g++
 ARCH_CFLAGS = -march=armv8-a+fp+simd -mtune=thunderx
-CXXFLAGS = -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -MMD
+CXXFLAGS = -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -MMD -std=gnu++14
 LDFLAGS	= -lm
 OBJS = \
     tests/binding.o \
