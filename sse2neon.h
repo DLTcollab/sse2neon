@@ -843,7 +843,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
 }
 #endif
 #define _mm_shuffle_ps_default(a, b, imm)                                  \
-    ({                                                                     \
+    __extension__({                                                        \
         float32x4_t ret;                                                   \
         ret = vmovq_n_f32(                                                 \
             vgetq_lane_f32(vreinterpretq_f32_m128(a), (imm) &0x3));        \
@@ -863,7 +863,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
 // int imm)
 #if defined(__clang__)
 #define _mm_shuffle_ps(a, b, imm)                          \
-    ({                                                     \
+    __extension__({                                        \
          float32x4_t _input1 = vreinterpretq_f32_m128(a);  \
          float32x4_t _input2 = vreinterpretq_f32_m128(b);  \
          float32x4_t _shuf =                               \
@@ -876,7 +876,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
     })
 #else // generic
 #define _mm_shuffle_ps(a, b, imm)                          \
-    ({                                                     \
+    __extension__({                                        \
         __m128 ret;                                        \
         switch (imm) {                                     \
         case _MM_SHUFFLE(1, 0, 3, 2):                      \
@@ -1068,7 +1068,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 }
 #endif
 #define _mm_shuffle_epi32_default(a, imm)                                   \
-    ({                                                                      \
+    __extension__({                                                         \
         int32x4_t ret;                                                      \
         ret = vmovq_n_s32(                                                  \
             vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm) &0x3));        \
@@ -1088,13 +1088,13 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // int imm)
 #if defined(__aarch64__)
 #define _mm_shuffle_epi32_splat(a, imm)                          \
-    ({                                                           \
+    __extension__({                                              \
         vreinterpretq_m128i_s32(                                 \
             vdupq_laneq_s32(vreinterpretq_s32_m128i(a), (imm))); \
     })
 #else
 #define _mm_shuffle_epi32_splat(a, imm)                                      \
-    ({                                                                       \
+    __extension__({                                                          \
         vreinterpretq_m128i_s32(                                             \
             vdupq_n_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm)))); \
     })
@@ -1106,7 +1106,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // imm)
 #if defined(__clang__)
 #define _mm_shuffle_epi32(a, imm)                        \
-    ({                                                   \
+    __extension__({                                      \
          int32x4_t _input = vreinterpretq_s32_m128i(a);  \
          int32x4_t _shuf =                               \
               __builtin_shufflevector(_input, _input,    \
@@ -1116,7 +1116,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
     })
 #else // generic
 #define _mm_shuffle_epi32(a, imm)                        \
-    ({                                                   \
+    __extension__({                                      \
         __m128i ret;                                     \
         switch (imm) {                                   \
         case _MM_SHUFFLE(1, 0, 3, 2):                    \
@@ -1176,7 +1176,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // __constrange(0,255) int imm)
 
 #define _mm_shufflelo_epi16_function(a, imm)                                  \
-    ({                                                                        \
+    __extension__({                                                           \
         int16x8_t ret = vreinterpretq_s16_m128i(a);                           \
         int16x4_t lowBits = vget_low_s16(ret);                                \
         ret = vsetq_lane_s16(vget_lane_s16(lowBits, (imm) &0x3), ret, 0);     \
@@ -1193,7 +1193,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // imm)
 #if defined(__clang__)
 #define _mm_shufflelo_epi16(a, imm)                      \
-    ({                                                   \
+    __extension__({                                      \
          int16x8_t _input = vreinterpretq_s16_m128i(a);  \
          int16x8_t _shuf =                               \
               __builtin_shufflevector(_input, _input,    \
@@ -1214,7 +1214,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a,
 // __constrange(0,255) int imm)
 #define _mm_shufflehi_epi16_function(a, imm)                                   \
-    ({                                                                         \
+    __extension__({                                                            \
         int16x8_t ret = vreinterpretq_s16_m128i(a);                            \
         int16x4_t highBits = vget_high_s16(ret);                               \
         ret = vsetq_lane_s16(vget_lane_s16(highBits, (imm) &0x3), ret, 4);     \
@@ -1231,7 +1231,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // imm)
 #if defined(__clang__)
 #define _mm_shufflehi_epi16(a, imm)                      \
-    ({                                                   \
+    __extension__({                                      \
          int16x8_t _input = vreinterpretq_s16_m128i(a);  \
          int16x8_t _shuf =                               \
               __builtin_shufflevector(_input, _input,    \
@@ -1260,7 +1260,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // FORCE_INLINE __m128i _mm_blend_epi16(__m128i a, __m128i b, __constrange(0,255)
 // int imm)
 #define _mm_blend_epi16(a, b, imm)                       \
-    ({                                                   \
+    __extension__({                                      \
         const uint16_t _mask[8] = {                      \
             ((imm) & (1 << 0)) ? 0xFFFF : 0x0000,        \
             ((imm) & (1 << 1)) ? 0xFFFF : 0x0000,        \
@@ -1334,7 +1334,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 //
 // https://msdn.microsoft.com/en-us/library/es73bcsy(v=vs.90).aspx
 #define _mm_slli_epi16(a, imm)                                   \
-    ({                                                           \
+    __extension__({                                              \
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
@@ -1352,7 +1352,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // https://msdn.microsoft.com/en-us/library/z2k3bbtb%28v=vs.90%29.aspx
 // FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_slli_epi32(a, imm)                                   \
-    ({                                                           \
+    __extension__({                                              \
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
@@ -1368,7 +1368,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // Shift packed 64-bit integers in a left by imm8 while shifting in zeros, and
 // store the results in dst.
 #define _mm_slli_epi64(a, imm)                                   \
-    ({                                                           \
+    __extension__({                                              \
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
@@ -1391,7 +1391,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 //
 // https://msdn.microsoft.com/en-us/library/6tcwd38t(v=vs.90).aspx
 #define _mm_srli_epi16(a, imm)                                   \
-    ({                                                           \
+    __extension__({                                              \
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
@@ -1409,7 +1409,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // https://msdn.microsoft.com/en-us/library/w486zcfa(v=vs.100).aspx FORCE_INLINE
 // __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_srli_epi32(a, imm)                                   \
-    ({                                                           \
+    __extension__({                                              \
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
@@ -1425,7 +1425,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // Shift packed 64-bit integers in a right by imm8 while shifting in zeros, and
 // store the results in dst.
 #define _mm_srli_epi64(a, imm)                                   \
-    ({                                                           \
+    __extension__({                                              \
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
@@ -1443,7 +1443,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // https://msdn.microsoft.com/en-us/library/z1939387(v=vs.100).aspx
 // FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, __constrange(0,255) int imm)
 #define _mm_srai_epi32(a, imm)                                   \
-    ({                                                           \
+    __extension__({                                              \
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
@@ -1467,7 +1467,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // https://msdn.microsoft.com/en-us/library/305w28yz(v=vs.100).aspx
 // FORCE_INLINE _mm_srli_si128(__m128i a, __constrange(0,255) int imm)
 #define _mm_srli_si128(a, imm)                                              \
-    ({                                                                      \
+    __extension__({                                                         \
         __m128i ret;                                                        \
         if ((imm) <= 0) {                                                   \
             ret = a;                                                        \
@@ -1488,7 +1488,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // https://msdn.microsoft.com/en-us/library/34d3k2kt(v=vs.100).aspx
 // FORCE_INLINE __m128i _mm_slli_si128(__m128i a, __constrange(0,255) int imm)
 #define _mm_slli_si128(a, imm)                                          \
-    ({                                                                  \
+    __extension__({                                                     \
         __m128i ret;                                                    \
         if ((imm) <= 0) {                                               \
             ret = a;                                                    \
@@ -3244,7 +3244,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // FORCE_INLINE __m128i _mm_insert_epi8(__m128i a, const int b,
 // __constrange(0,16) int imm)
 #define _mm_insert_epi8(a, b, imm)                                  \
-    ({                                                               \
+    __extension__({                                                  \
         vreinterpretq_m128i_s8(                                     \
             vsetq_lane_s8((b), vreinterpretq_s8_m128i(a), (imm))); \
     })
@@ -3262,7 +3262,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // FORCE_INLINE __m128i _mm_insert_epi16(__m128i a, const int b,
 // __constrange(0,8) int imm)
 #define _mm_insert_epi16(a, b, imm)                                  \
-    ({                                                               \
+    __extension__({                                                  \
         vreinterpretq_m128i_s16(                                     \
             vsetq_lane_s16((b), vreinterpretq_s16_m128i(a), (imm))); \
     })
@@ -3278,7 +3278,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // FORCE_INLINE __m128i _mm_insert_epi32(__m128i a, const int b,
 // __constrange(0,4) int imm)
 #define _mm_insert_epi32(a, b, imm)                                  \
-    ({                                                               \
+    __extension__({                                                  \
         vreinterpretq_m128i_s32(                                     \
             vsetq_lane_s32((b), vreinterpretq_s32_m128i(a), (imm))); \
     })
@@ -3295,7 +3295,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 // FORCE_INLINE __m128i _mm_insert_epi64(__m128i a, const __int64 b,
 // __constrange(0,2) int imm)
 #define _mm_insert_epi64(a, b, imm)                                  \
-    ({                                                               \
+    __extension__({                                                  \
         vreinterpretq_m128i_s64(                                     \
             vsetq_lane_s64((b), vreinterpretq_s64_m128i(a), (imm))); \
     })
