@@ -1,4 +1,7 @@
-CXX = g++
+ifndef CXX
+override CXX = g++
+endif
+
 processor := $(shell uname -p)
 ifeq ($(processor),aarch64)
   ARCH_CFLAGS = -march=armv8-a+fp+simd -mtune=thunderx
