@@ -4,7 +4,7 @@ endif
 
 processor := $(shell uname -p)
 ifeq ($(processor),aarch64)
-  ARCH_CFLAGS = -march=armv8-a+fp+simd -mtune=thunderx
+  ARCH_CFLAGS = -march=armv8-a+fp+simd
 else ifeq ($(processor),$(filter $(processor),i386 x86_64))
   ARCH_CFLAGS = -maes -mpclmul -mssse3 -msse4.2
 else
