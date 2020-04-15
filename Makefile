@@ -10,8 +10,8 @@ else ifeq ($(processor),$(filter $(processor),i386 x86_64))
 else
   ARCH_CFLAGS =
 endif
-CXXFLAGS = -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -MMD -std=gnu++14
-LDFLAGS	= -lm
+CXXFLAGS += -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -MMD -std=gnu++14
+LDFLAGS	+= -lm
 OBJS = \
     tests/binding.o \
     tests/impl.o \
