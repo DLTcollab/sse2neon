@@ -1529,6 +1529,24 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
         ret;                                                            \
     })
 
+// Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while
+// shifting in zeros.
+//
+//   r0 := a0 << count
+//   r1 := a1 << count
+//   ...
+//   r7 := a7 << count
+//
+// https://msdn.microsoft.com/en-us/library/c79w388h(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
+{
+    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    if (c > 15)
+        return _mm_setzero_si128();
+
+    int16x8_t vc = vdupq_n_s16((int16_t) c);
+    return vreinterpretq_m128i_s16(vshlq_s16(vreinterpretq_s16_m128i(a), vc));
+}
 
 // NEON does not provide a version of this function.
 // Creates a 16-bit mask from the most significant bits of the 16 signed or
