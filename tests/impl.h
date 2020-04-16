@@ -147,6 +147,7 @@ enum InstructionTest {
 
     IT_MM_AESENC_SI128,
     IT_MM_CLMULEPI64_SI128,
+    IT_MM_MALLOC,
     IT_LAST
 };
 

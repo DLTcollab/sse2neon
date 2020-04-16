@@ -61,6 +61,7 @@
 #endif
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <arm_neon.h>
 
@@ -3542,6 +3543,26 @@ FORCE_INLINE void _mm_clflush(void const *p)
 {
     (void)p;
     // no corollary for Neon?
+}
+
+// Allocate aligned blocks of memory.
+// https://software.intel.com/en-us/ \
+//         cpp-compiler-developer-guide-and-reference-allocating-and-freeing-aligned-memory-blocks
+FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
+{
+    void *ptr;
+    if (align == 1)
+        return malloc(size);
+    if (align == 2 || (sizeof(void *) == 8 && align == 4))
+        align = sizeof(void *);
+    if (!posix_memalign(&ptr, align, size))
+        return ptr;
+    return NULL;
+}
+
+FORCE_INLINE void _mm_free(void *addr)
+{
+    free(addr);
 }
 
 #if defined(__GNUC__) || defined(__clang__)
