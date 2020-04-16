@@ -17,6 +17,7 @@
 //   Mark Cheng <marktwtn@biilabs.io>
 //   Malcolm James MacLeod <malcolm@gulden.com>
 //   Devin Hussey (easyaspi314) <husseydevin@gmail.com>
+//   Sebastian Pop <spop@amazon.com>
 
 /*
  * The MIT license:
