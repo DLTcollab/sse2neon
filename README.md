@@ -30,6 +30,15 @@ instricts into NEON instricts.
 -mfpu=neon
 ```
 
+## Test
+
+`sse2neon` provides a unified interface test cases for developers. These test
+cases are located in `tests` directory, and the input data is specified at
+runtime. Use the following commands to perform test cases:
+```shell
+$ make check
+```
+
 ## Reference
 * [SIMDe](https://github.com/nemequ/simde): fast and portable implementations of SIMD
   intrinsics on hardware which doesn't natively support them, such as calling SSE functions on ARM.
