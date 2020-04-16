@@ -134,6 +134,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_STOREL_PI:
         ret = "MM_STOREL_PI";
         break;
+    case IT_MM_STOREH_PI:
+        ret = "MM_STOREH_PI";
+        break;
     case IT_MM_STOREU_PS:
         ret = "MM_STOREU_PS";
         break;
@@ -151,6 +154,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_LOADL_PI:
         ret = "MM_LOADL_PI";
+        break;
+    case IT_MM_LOADH_PI:
+        ret = "MM_LOADH_PI";
         break;
     case IT_MM_LOAD_PS:
         ret = "MM_LOAD_PS";
@@ -753,6 +759,23 @@ bool test_mm_storel_pi(const float *p)
     return true;
 }
 
+bool test_mm_storeh_pi(const float *p)
+{
+    __m128 a = _mm_load_ps(p);
+
+    float d[4] = {1.0f, 2.0f, 3.0f, 4.0f};
+
+    __m64 *b = (__m64 *) d;
+
+    _mm_storeh_pi(b, a);
+
+    ASSERT_RETURN(d[0] == p[2]);
+    ASSERT_RETURN(d[1] == p[3]);
+    ASSERT_RETURN(d[2] == 3.0f);
+    ASSERT_RETURN(d[3] == 4.0f);
+    return true;
+}
+
 bool test_mm_load1_ps(const float *p)
 {
     __m128 a = _mm_load1_ps(p);
@@ -766,6 +789,15 @@ bool test_mm_loadl_pi(const float *p1, const float *p2)
     __m128 c = _mm_loadl_pi(a, b);
 
     return validateFloat(c, p1[3], p1[2], p2[1], p2[0]);
+}
+
+bool test_mm_loadh_pi(const float *p1, const float *p2)
+{
+    __m128 a = _mm_load_ps(p1);
+    const __m64 *b = (const __m64 *) p2;
+    __m128 c = _mm_loadh_pi(a, b);
+
+    return validateFloat(c, p2[1], p2[0], p1[1], p1[0]);
 }
 
 __m128 test_mm_load_ps(const float *p)
@@ -2442,11 +2474,17 @@ public:
         case IT_MM_STOREL_PI:
             ret = test_mm_storel_pi(mTestFloatPointer1);
             break;
+        case IT_MM_STOREH_PI:
+            ret = test_mm_storeh_pi(mTestFloatPointer1);
+            break;
         case IT_MM_LOAD1_PS:
             ret = test_mm_load1_ps(mTestFloatPointer1);
             break;
         case IT_MM_LOADL_PI:
             ret = test_mm_loadl_pi(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_LOADH_PI:
+            ret = test_mm_loadh_pi(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_ANDNOT_PS:
             ret = test_mm_andnot_ps(mTestFloatPointer1, mTestFloatPointer2);

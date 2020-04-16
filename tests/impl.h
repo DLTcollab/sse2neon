@@ -25,9 +25,11 @@ enum InstructionTest {
     IT_MM_SET_EPI32,      // Unit test implemented and verified as fully working
     IT_MM_STORE_PS,       // Unit test implemented and verified as fully working
     IT_MM_STOREL_PI,      // Unit test implemented and verified as fully working
+    IT_MM_STOREH_PI,      // Unit test implemented and verified as fully working
     IT_MM_SHUFFLE_PS,     // Unit test implemented and verified as fully working
     IT_MM_LOAD1_PS,       // Unit test implemented and verified as fully working
     IT_MM_LOADL_PI,       // Unit test implemented and verified as fully working
+    IT_MM_LOADH_PI,       // Unit test implemented and verified as fully working
     IT_MM_ANDNOT_PS,      // Unit test implemented and verified as fully working
     IT_MM_ANDNOT_SI128,   // Unit test implemented and verified as fully working
     IT_MM_AND_SI128,      // Unit test implemented and verified as fully working
