@@ -1835,6 +1835,36 @@ FORCE_INLINE __m128i _mm_sign_epi32(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s32(res);
 }
 
+// Computes the average of the 16 unsigned 8-bit integers in a and the 16
+// unsigned 8-bit integers in b and rounds.
+//
+//   r0 := (a0 + b0) / 2
+//   r1 := (a1 + b1) / 2
+//   ...
+//   r15 := (a15 + b15) / 2
+//
+// https://msdn.microsoft.com/en-us/library/vstudio/8zwh554a(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_avg_epu8(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u8(
+        vrhaddq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
+}
+
+// Computes the average of the 8 unsigned 16-bit integers in a and the 8
+// unsigned 16-bit integers in b and rounds.
+//
+//   r0 := (a0 + b0) / 2
+//   r1 := (a1 + b1) / 2
+//   ...
+//   r7 := (a7 + b7) / 2
+//
+// https://msdn.microsoft.com/en-us/library/vstudio/y13ca3c8(v=vs.90).aspx
+FORCE_INLINE __m128i _mm_avg_epu16(__m128i a, __m128i b)
+{
+    return (__m128i) vrhaddq_u16(vreinterpretq_u16_m128i(a),
+                                 vreinterpretq_u16_m128i(b));
+}
+
 // Adds the four single-precision, floating-point values of a and b.
 //
 //   r0 := a0 + b0

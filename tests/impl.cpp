@@ -485,10 +485,16 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_TEST_ALL_ZEROS:
         ret = "MM_TEST_ALL_ZEROS";
         break;
+    case IT_MM_AVG_EPU8:
+        ret = "MM_AVG_EPU8";
+        break;
+    case IT_MM_AVG_EPU16:
+        ret = "MM_AVG_EPU16";
+        break;
+
     case IT_MM_AESENC_SI128:
         ret = "IT_MM_AESENC_SI128";
         break;
-
     case IT_MM_CLMULEPI64_SI128:
         ret = "IT_MM_CLMULEPI64_SI128";
         break;
@@ -574,6 +580,28 @@ bool validateInt16(__m128i a,
     return true;
 }
 
+bool validateUInt16(__m128i a,
+                    uint16_t d0,
+                    uint16_t d1,
+                    uint16_t d2,
+                    uint16_t d3,
+                    uint16_t d4,
+                    uint16_t d5,
+                    uint16_t d6,
+                    uint16_t d7)
+{
+    const uint16_t *t = (const uint16_t *) &a;
+    ASSERT_RETURN(t[0] == d0);
+    ASSERT_RETURN(t[1] == d1);
+    ASSERT_RETURN(t[2] == d2);
+    ASSERT_RETURN(t[3] == d3);
+    ASSERT_RETURN(t[4] == d4);
+    ASSERT_RETURN(t[5] == d5);
+    ASSERT_RETURN(t[6] == d6);
+    ASSERT_RETURN(t[7] == d7);
+    return true;
+}
+
 bool validateInt8(__m128i a,
                   int8_t d0,
                   int8_t d1,
@@ -593,6 +621,44 @@ bool validateInt8(__m128i a,
                   int8_t d15)
 {
     const int8_t *t = (const int8_t *) &a;
+    ASSERT_RETURN(t[0] == d0);
+    ASSERT_RETURN(t[1] == d1);
+    ASSERT_RETURN(t[2] == d2);
+    ASSERT_RETURN(t[3] == d3);
+    ASSERT_RETURN(t[4] == d4);
+    ASSERT_RETURN(t[5] == d5);
+    ASSERT_RETURN(t[6] == d6);
+    ASSERT_RETURN(t[7] == d7);
+    ASSERT_RETURN(t[8] == d8);
+    ASSERT_RETURN(t[9] == d9);
+    ASSERT_RETURN(t[10] == d10);
+    ASSERT_RETURN(t[11] == d11);
+    ASSERT_RETURN(t[12] == d12);
+    ASSERT_RETURN(t[13] == d13);
+    ASSERT_RETURN(t[14] == d14);
+    ASSERT_RETURN(t[15] == d15);
+    return true;
+}
+
+bool validateUInt8(__m128i a,
+                   uint8_t d0,
+                   uint8_t d1,
+                   uint8_t d2,
+                   uint8_t d3,
+                   uint8_t d4,
+                   uint8_t d5,
+                   uint8_t d6,
+                   uint8_t d7,
+                   uint8_t d8,
+                   uint8_t d9,
+                   uint8_t d10,
+                   uint8_t d11,
+                   uint8_t d12,
+                   uint8_t d13,
+                   uint8_t d14,
+                   uint8_t d15)
+{
+    const uint8_t *t = (const uint8_t *) &a;
     ASSERT_RETURN(t[0] == d0);
     ASSERT_RETURN(t[1] == d1);
     ASSERT_RETURN(t[2] == d2);
@@ -2214,6 +2280,47 @@ bool test_mm_test_all_zeros(const int32_t *_a, const int32_t *_mask)
     return result == ret ? true : false;
 }
 
+bool test_mm_avg_epu8(const int8_t *_a, const int8_t *_b)
+{
+    uint8_t d0 = ((uint8_t) _a[0] + (uint8_t) _b[0] + 1) >> 1;
+    uint8_t d1 = ((uint8_t) _a[1] + (uint8_t) _b[1] + 1) >> 1;
+    uint8_t d2 = ((uint8_t) _a[2] + (uint8_t) _b[2] + 1) >> 1;
+    uint8_t d3 = ((uint8_t) _a[3] + (uint8_t) _b[3] + 1) >> 1;
+    uint8_t d4 = ((uint8_t) _a[4] + (uint8_t) _b[4] + 1) >> 1;
+    uint8_t d5 = ((uint8_t) _a[5] + (uint8_t) _b[5] + 1) >> 1;
+    uint8_t d6 = ((uint8_t) _a[6] + (uint8_t) _b[6] + 1) >> 1;
+    uint8_t d7 = ((uint8_t) _a[7] + (uint8_t) _b[7] + 1) >> 1;
+    uint8_t d8 = ((uint8_t) _a[8] + (uint8_t) _b[8] + 1) >> 1;
+    uint8_t d9 = ((uint8_t) _a[9] + (uint8_t) _b[9] + 1) >> 1;
+    uint8_t d10 = ((uint8_t) _a[10] + (uint8_t) _b[10] + 1) >> 1;
+    uint8_t d11 = ((uint8_t) _a[11] + (uint8_t) _b[11] + 1) >> 1;
+    uint8_t d12 = ((uint8_t) _a[12] + (uint8_t) _b[12] + 1) >> 1;
+    uint8_t d13 = ((uint8_t) _a[13] + (uint8_t) _b[13] + 1) >> 1;
+    uint8_t d14 = ((uint8_t) _a[14] + (uint8_t) _b[14] + 1) >> 1;
+    uint8_t d15 = ((uint8_t) _a[15] + (uint8_t) _b[15] + 1) >> 1;
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_avg_epu8(a, b);
+    return validateUInt8(c, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11,
+                         d12, d13, d14, d15);
+}
+
+bool test_mm_avg_epu16(const int16_t *_a, const int16_t *_b)
+{
+    uint16_t d0 = ((uint16_t) _a[0] + (uint16_t) _b[0] + 1) >> 1;
+    uint16_t d1 = ((uint16_t) _a[1] + (uint16_t) _b[1] + 1) >> 1;
+    uint16_t d2 = ((uint16_t) _a[2] + (uint16_t) _b[2] + 1) >> 1;
+    uint16_t d3 = ((uint16_t) _a[3] + (uint16_t) _b[3] + 1) >> 1;
+    uint16_t d4 = ((uint16_t) _a[4] + (uint16_t) _b[4] + 1) >> 1;
+    uint16_t d5 = ((uint16_t) _a[5] + (uint16_t) _b[5] + 1) >> 1;
+    uint16_t d6 = ((uint16_t) _a[6] + (uint16_t) _b[6] + 1) >> 1;
+    uint16_t d7 = ((uint16_t) _a[7] + (uint16_t) _b[7] + 1) >> 1;
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_avg_epu16(a, b);
+    return validateUInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 static inline uint64_t MUL(uint32_t a, uint32_t b)
 {
     return (uint64_t)a * (uint64_t)b;
@@ -2847,6 +2954,14 @@ public:
         case IT_MM_TEST_ALL_ZEROS:
             ret = test_mm_test_all_zeros((const int32_t *) mTestIntPointer1,
                                          (const int32_t *) mTestIntPointer2);
+            break;
+        case IT_MM_AVG_EPU8:
+            ret = test_mm_avg_epu8((const int8_t *) mTestIntPointer1,
+                                   (const int8_t *) mTestIntPointer2);
+            break;
+        case IT_MM_AVG_EPU16:
+            ret = test_mm_avg_epu16((const int16_t *) mTestIntPointer1,
+                                    (const int16_t *) mTestIntPointer2);
             break;
         case IT_MM_AESENC_SI128:
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
