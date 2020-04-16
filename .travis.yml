@@ -2,9 +2,13 @@ language: c++
 
 arch:
   - arm64
+  - amd64
 
 os:
   - linux
+
+dist:
+  - bionic
 
 compiler:
   - gcc
