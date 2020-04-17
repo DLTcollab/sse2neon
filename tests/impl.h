@@ -55,6 +55,7 @@ enum InstructionTest {
     IT_MM_CMPGE_PS,       // Unit test implemented and verified as fully working
     IT_MM_CMPLE_PS,       // Unit test implemented and verified as fully working
     IT_MM_CMPEQ_PS,       // Unit test implemented and verified as fully working
+    IT_MM_CMPLT_EPI16,    // Unit test implemented and verified as fully working
     IT_MM_CMPLT_EPI32,    // Unit test implemented and verified as fully working
     IT_MM_CMPGT_EPI32,    // Unit test implemented and verified as fully working
     IT_MM_CVTTPS_EPI32,   // Unit test implemented and verified as fully working

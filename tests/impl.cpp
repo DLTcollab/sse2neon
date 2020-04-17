@@ -464,6 +464,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SUBS_EPU16:
         ret = "MM_SUBS_EPU16";
         break;
+    case IT_MM_CMPLT_EPI16:
+        ret = "MM_CMPLT_EPI16";
+        break;
     case IT_MM_CMPGT_EPI16:
         ret = "MM_CMPGT_EPI16";
         break;
@@ -2170,6 +2173,24 @@ bool test_mm_subs_epu16(const int16_t *_a, const int16_t *_b)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+bool test_mm_cmplt_epi16(const int16_t *_a, const int16_t *_b)
+{
+    uint16_t d0 = _a[0] < _b[0] ? 0xffff : 0;
+    uint16_t d1 = _a[1] < _b[1] ? 0xffff : 0;
+    uint16_t d2 = _a[2] < _b[2] ? 0xffff : 0;
+    uint16_t d3 = _a[3] < _b[3] ? 0xffff : 0;
+    uint16_t d4 = _a[4] < _b[4] ? 0xffff : 0;
+    uint16_t d5 = _a[5] < _b[5] ? 0xffff : 0;
+    uint16_t d6 = _a[6] < _b[6] ? 0xffff : 0;
+    uint16_t d7 = _a[7] < _b[7] ? 0xffff : 0;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_cmplt_epi16(a, b);
+
+    return validateUInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 bool test_mm_cmpgt_epi16(const int16_t *_a, const int16_t *_b)
 {
     uint16_t d0 = _a[0] > _b[0] ? 0xffff : 0;
@@ -3033,6 +3054,10 @@ public:
         case IT_MM_SUBS_EPU16:
             ret = test_mm_subs_epu16((const int16_t *) mTestIntPointer1,
                                      (const int16_t *) mTestIntPointer2);
+            break;
+        case IT_MM_CMPLT_EPI16:
+            ret = test_mm_cmplt_epi16((const int16_t *) mTestIntPointer1,
+                                      (const int16_t *) mTestIntPointer2);
             break;
         case IT_MM_CMPGT_EPI16:
             ret = test_mm_cmpgt_epi16((const int16_t *) mTestIntPointer1,

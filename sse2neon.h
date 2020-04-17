@@ -2603,6 +2603,21 @@ FORCE_INLINE __m128i _mm_cmpgt_epi8(__m128i a, __m128i b)
 }
 
 // Compares the 8 signed 16-bit integers in a and the 8 signed 16-bit integers
+// in b for less than.
+//
+//   r0 := (a0 < b0) ? 0xffff : 0x0
+//   r1 := (a1 < b1) ? 0xffff : 0x0
+//   ...
+//   r7 := (a7 < b7) ? 0xffff : 0x0
+//
+// https://technet.microsoft.com/en-us/library/t863edb2(v=vs.100).aspx
+FORCE_INLINE __m128i _mm_cmplt_epi16(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u16(
+        vcltq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+}
+
+// Compares the 8 signed 16-bit integers in a and the 8 signed 16-bit integers
 // in b for greater than.
 //
 //   r0 := (a0 > b0) ? 0xffff : 0x0
