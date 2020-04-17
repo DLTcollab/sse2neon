@@ -2344,12 +2344,16 @@ FORCE_INLINE __m128i _mm_hadd_epi16(__m128i _a, __m128i _b)
 {
     int16x8_t a = vreinterpretq_s16_m128i(_a);
     int16x8_t b = vreinterpretq_s16_m128i(_b);
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s16(vpaddq_s16(a, b));
+#else
     return vreinterpretq_m128i_s16(
        vcombine_s16(
           vpadd_s16(vget_low_s16(a), vget_high_s16(a)),
           vpadd_s16(vget_low_s16(b), vget_high_s16(b))
        )
     );
+#endif
 }
 
 // Computes pairwise difference of each argument as a 16-bit signed or unsigned integer

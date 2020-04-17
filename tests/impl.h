@@ -93,6 +93,7 @@ enum InstructionTest {
     IT_MM_MAX_EPI32,      // Unit test *not yet implemented*
     IT_MM_MIN_EPI32,      // Unit test *not yet implemented*
     IT_MM_HADD_PS,        // Unit test *not yet implemented*
+    IT_MM_HADD_EPI16,     // Unit test implemented
     IT_MM_CMPORD_PS,      // Unit test *not yet implemented*
     IT_MM_COMILT_SS,      // Unit test implemented
     IT_MM_COMIGT_SS,      // Unit test implemented

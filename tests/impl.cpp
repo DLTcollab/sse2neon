@@ -299,6 +299,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_HADD_PS:
         ret = "MM_HADD_PS";
         break;
+    case IT_MM_HADD_EPI16:
+        ret = "MM_HADD_EPI16";
+        break;
     case IT_MM_CMPLT_PS:
         ret = "MM_CMPLT_PS";
         break;
@@ -1600,6 +1603,22 @@ bool test_mm_comineq_ss(const float *_a, const float *_b)
     return result == ret ? true : false;
 }
 
+bool test_mm_hadd_epi16(const int16_t *_a, const int16_t *_b)
+{
+    int16_t d0 = _a[0] + _a[1];
+    int16_t d1 = _a[2] + _a[3];
+    int16_t d2 = _a[4] + _a[5];
+    int16_t d3 = _a[6] + _a[7];
+    int16_t d4 = _b[0] + _b[1];
+    int16_t d5 = _b[2] + _b[3];
+    int16_t d6 = _b[4] + _b[5];
+    int16_t d7 = _b[6] + _b[7];
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_hadd_epi16(a, b);
+    return validateInt16(ret, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 bool test_mm_cvttps_epi32(const float *_a)
 {
     __m128 a = test_mm_load_ps(_a);
@@ -2606,6 +2625,10 @@ public:
             break;
         case IT_MM_HADD_PS:
             ret = true;
+            break;
+        case IT_MM_HADD_EPI16:
+            ret = test_mm_hadd_epi16((const int16_t *) mTestIntPointer1,
+                                     (const int16_t *) mTestIntPointer2);
             break;
         case IT_MM_MAX_EPI32:
             ret = true;
