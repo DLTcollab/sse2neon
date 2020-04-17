@@ -498,6 +498,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CLMULEPI64_SI128:
         ret = "IT_MM_CLMULEPI64_SI128";
         break;
+    case IT_MM_MALLOC:
+        ret = "IT_MM_MALLOC";
+        break;
     case IT_LAST: /* should not happend */
         break;
     }
@@ -2488,6 +2491,19 @@ bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
     return validate128(resultReference, resultIntrinsic);
 }
 
+bool test_mm_malloc(const size_t *a, const size_t *b)
+{
+    size_t size = *a % (1024 * 16) + 1;
+    size_t align = 2 << (*b % 5);
+
+    void *p = _mm_malloc(size, align);
+    if (!p)
+        return false;
+    bool res = ((uintptr_t) p % align) == 0;
+    _mm_free(p);
+    return res;
+}
+
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
 
@@ -2968,6 +2984,9 @@ public:
             break;
         case IT_MM_CLMULEPI64_SI128:
             ret = test_mm_clmulepi64_si128((const uint64_t *)mTestIntPointer1, (const uint64_t *)mTestIntPointer2);
+            break;
+        case IT_MM_MALLOC:
+            ret = test_mm_malloc((const size_t *)mTestIntPointer1, (const size_t *) mTestIntPointer2);
             break;
         case IT_LAST: /* should not happend */
             break;
