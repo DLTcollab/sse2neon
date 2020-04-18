@@ -424,6 +424,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SLLI_EPI16:
         ret = "MM_SLLI_EPI16";
         break;
+    case IT_MM_SLL_EPI16:
+        ret = "IT_MM_SLL_EPI16";
+        break;
     case IT_MM_SRLI_EPI16:
         ret = "MM_SRLI_EPI16";
         break;
@@ -1747,6 +1750,25 @@ bool test_mm_slli_epi16(const int16_t *_a)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+bool test_mm_sll_epi16(const int16_t *_a, const int64_t count)
+{
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_sll_epi16(a, b);
+    if (count < 0 || count > 15)
+        return validateInt16(c, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    uint16_t d0 = _a[0] << count;
+    uint16_t d1 = _a[1] << count;
+    uint16_t d2 = _a[2] << count;
+    uint16_t d3 = _a[3] << count;
+    uint16_t d4 = _a[4] << count;
+    uint16_t d5 = _a[5] << count;
+    uint16_t d6 = _a[6] << count;
+    uint16_t d7 = _a[7] << count;
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 bool test_mm_srli_epi16(const int16_t *_a)
 {
     const int count = 3;
@@ -2895,6 +2917,9 @@ public:
             break;
         case IT_MM_SLLI_EPI16:
             ret = test_mm_slli_epi16((const int16_t *) mTestIntPointer1);
+            break;
+        case IT_MM_SLL_EPI16:
+            ret = test_mm_sll_epi16((const int16_t *) mTestIntPointer1, (int64_t) i);
             break;
         case IT_MM_SRLI_EPI16:
             ret = test_mm_srli_epi16((const int16_t *) mTestIntPointer1);
