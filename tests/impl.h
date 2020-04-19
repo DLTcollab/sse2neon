@@ -81,6 +81,7 @@ enum InstructionTest {
     IT_MM_ADD_SS,                    // Unit test *not yet implemented*
     IT_MM_ADD_EPI16,                 // Unit test *not yet implemented*
     IT_MM_MADD_EPI16,     // Unit test implemented and verified as fully working
+    IT_MM_MADDUBS_EPI16,  // Unit test implemented
     IT_MM_MULLO_EPI32,    // Unit test *not yet implemented*
     IT_MM_MUL_EPU32,      // Unit test implemented
     IT_MM_DIV_PS,         // Unit test *not yet implemented*

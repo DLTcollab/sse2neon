@@ -242,6 +242,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_MADD_EPI16:
         ret = "MM_MADD_EPI16";
         break;
+    case IT_MM_MADDUBS_EPI16:
+        ret = "MM_MADDUBS_EPI16";
+        break;
     case IT_MM_MULLO_EPI16:
         ret = "MM_MULLO_EPI16";
         break;
@@ -1235,6 +1238,51 @@ bool test_mm_madd_epi16(const int16_t *_a, const int16_t *_b)
     __m128i b = test_mm_load_ps((const int32_t *) _b);
     __m128i c = _mm_madd_epi16(a, b);
     return validateInt(c, e3, e2, e1, e0);
+}
+
+static inline int16_t saturate_16(int32_t a)
+{
+  int32_t max = (1 << 15) - 1;
+  int32_t min = -(1 << 15);
+  if (a > max)
+    return max;
+  if (a < min)
+    return min;
+  return a;
+}
+
+bool test_mm_maddubs_epi16(const uint8_t *_a, const int8_t *_b)
+{
+    int32_t d0 = (int32_t) (_a[0] * _b[0]);
+    int32_t d1 = (int32_t) (_a[1] * _b[1]);
+    int32_t d2 = (int32_t) (_a[2] * _b[2]);
+    int32_t d3 = (int32_t) (_a[3] * _b[3]);
+    int32_t d4 = (int32_t) (_a[4] * _b[4]);
+    int32_t d5 = (int32_t) (_a[5] * _b[5]);
+    int32_t d6 = (int32_t) (_a[6] * _b[6]);
+    int32_t d7 = (int32_t) (_a[7] * _b[7]);
+    int32_t d8 = (int32_t) (_a[8] * _b[8]);
+    int32_t d9 = (int32_t) (_a[9] * _b[9]);
+    int32_t d10 = (int32_t) (_a[10] * _b[10]);
+    int32_t d11 = (int32_t) (_a[11] * _b[11]);
+    int32_t d12 = (int32_t) (_a[12] * _b[12]);
+    int32_t d13 = (int32_t) (_a[13] * _b[13]);
+    int32_t d14 = (int32_t) (_a[14] * _b[14]);
+    int32_t d15 = (int32_t) (_a[15] * _b[15]);
+
+    int16_t e0 = saturate_16(d0 + d1);
+    int16_t e1 = saturate_16(d2 + d3);
+    int16_t e2 = saturate_16(d4 + d5);
+    int16_t e3 = saturate_16(d6 + d7);
+    int16_t e4 = saturate_16(d8 + d9);
+    int16_t e5 = saturate_16(d10 + d11);
+    int16_t e6 = saturate_16(d12 + d13);
+    int16_t e7 = saturate_16(d14 + d15);
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_maddubs_epi16(a, b);
+    return validateInt16(c, e0, e1, e2, e3, e4, e5, e6, e7);
 }
 
 bool test_mm_shuffle_epi8(const int32_t *a, const int32_t *b)
@@ -2792,6 +2840,10 @@ public:
         case IT_MM_MADD_EPI16:
             ret = test_mm_madd_epi16((const int16_t *) mTestIntPointer1,
                                      (const int16_t *) mTestIntPointer2);
+            break;
+        case IT_MM_MADDUBS_EPI16:
+            ret = test_mm_maddubs_epi16((const uint8_t *) mTestIntPointer1,
+                                        (const int8_t *) mTestIntPointer2);
             break;
         case IT_MM_ADD_SS:
             ret = true;
