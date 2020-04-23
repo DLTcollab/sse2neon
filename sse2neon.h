@@ -3649,7 +3649,7 @@ FORCE_INLINE void _mm_clflush(void const *p)
 }
 
 // Allocate aligned blocks of memory.
-// https://software.intel.com/en-us/ \
+// https://software.intel.com/en-us/
 //         cpp-compiler-developer-guide-and-reference-allocating-and-freeing-aligned-memory-blocks
 FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
 {
