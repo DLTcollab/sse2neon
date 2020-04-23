@@ -3059,6 +3059,41 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 // Miscellaneous Operations
 // ******************************************
 
+
+// Shifts the 8 signed 16-bit integers in a right by count bits while shifting
+// in the sign bit.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   ...
+//   r7 := a7 >> count
+//
+// https://msdn.microsoft.com/en-us/library/3c9997dk(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_sra_epi16(__m128i a, __m128i count)
+{
+    int64_t c = (int64_t) vget_low_s64((int64x2_t) count);
+    if (c > 15)
+        return _mm_cmplt_epi16(a, _mm_setzero_si128());
+    return vreinterpretq_m128i_s16(vshlq_s16((int16x8_t) a, vdupq_n_s16(-c)));
+}
+
+// Shifts the 4 signed 32-bit integers in a right by count bits while shifting
+// in the sign bit.
+//
+//   r0 := a0 >> count
+//   r1 := a1 >> count
+//   r2 := a2 >> count
+//   r3 := a3 >> count
+//
+// https://msdn.microsoft.com/en-us/library/ce40009e(v%3dvs.100).aspx
+FORCE_INLINE __m128i _mm_sra_epi32(__m128i a, __m128i count)
+{
+    int64_t c = (int64_t) vget_low_s64((int64x2_t) count);
+    if (c > 31)
+        return _mm_cmplt_epi32(a, _mm_setzero_si128());
+    return vreinterpretq_m128i_s32(vshlq_s32((int32x4_t) a, vdupq_n_s32(-c)));
+}
+
 // Packs the 16 signed 16-bit integers from a and b into 8-bit integers and
 // saturates.
 // https://msdn.microsoft.com/en-us/library/k4y4f7w5%28v=vs.90%29.aspx
