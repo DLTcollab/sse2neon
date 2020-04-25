@@ -182,7 +182,7 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 
 // Older gcc does not define vld1q_u8_x4 type
 #if defined(__GNUC__) && !defined(__clang__)
-#if __GNUC__ < 9 || (__GNUC__ == 9 && (__GNUC_MINOR__ <= 2))
+#if __GNUC__ <= 9
 FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
 {
     uint8x16x4_t ret;
@@ -3649,7 +3649,7 @@ FORCE_INLINE void _mm_clflush(void const *p)
 }
 
 // Allocate aligned blocks of memory.
-// https://software.intel.com/en-us/ \
+// https://software.intel.com/en-us/
 //         cpp-compiler-developer-guide-and-reference-allocating-and-freeing-aligned-memory-blocks
 FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
 {
