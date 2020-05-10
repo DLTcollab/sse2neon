@@ -39,6 +39,16 @@ runtime. Use the following commands to perform test cases:
 $ make check
 ```
 
+You can specify GNU toolchain for cross compilation as well.
+[QEMU](https://www.qemu.org/) should be installed in advance.
+```shell
+$ make CROSS_COMPILE=aarch64-linux-gnu- check # ARMv8-A
+```
+or
+```shell
+$ make CROSS_COMPILE=arm-linux-gnueabihf- check # ARMv7-A
+```
+
 ## Reference
 * [SIMDe](https://github.com/nemequ/simde): fast and portable implementations of SIMD
   intrinsics on hardware which doesn't natively support them, such as calling SSE functions on ARM.
