@@ -28,13 +28,17 @@ else
 endif
 endif
 
-CXXFLAGS += -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -MMD -std=gnu++14
+CXXFLAGS += -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -std=gnu++14
 LDFLAGS	+= -lm
 OBJS = \
     tests/binding.o \
     tests/impl.o \
     tests/main.o
-deps := $(OBJS:%.o=%.d)
+deps := $(OBJS:%.o=%.o.d)
+
+.SUFFIXES: .o .cpp
+.cpp.o:
+	$(CXX) -o $@ $(CXXFLAGS) -c -MMD -MF $@.d $<
 
 EXEC = tests/main
 
