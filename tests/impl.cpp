@@ -1,3 +1,4 @@
+#include "impl.h"
 #include <assert.h>
 #include <float.h>
 #include <math.h>
@@ -6,14 +7,13 @@
 #include <stdlib.h>
 #include <utility>
 #include "binding.h"
-#include "impl.h"
 
 // This program a set of unit tests to ensure that each SSE call provide the
 // output we expect.  If this fires an assert, then something didn't match up.
 
-#if defined (__aarch64__) || defined (__arm__)
+#if defined(__aarch64__) || defined(__arm__)
 #include "sse2neon.h"
-#elif defined (__x86_64__) || defined (__i386__)
+#elif defined(__x86_64__) || defined(__i386__)
 #include <emmintrin.h>
 #include <smmintrin.h>
 #include <tmmintrin.h>
@@ -44,7 +44,7 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #pragma pop_macro("ALIGN_STRUCT")
 #endif
 
-#endif // __aarch64__ || __arm__ || __x86_64__ || __i386__
+#endif  // __aarch64__ || __arm__ || __x86_64__ || __i386__
 
 namespace SSE2NEON
 {
@@ -509,10 +509,11 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_AVG_EPU16:
         ret = "MM_AVG_EPU16";
         break;
-
+#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
     case IT_MM_AESENC_SI128:
         ret = "IT_MM_AESENC_SI128";
         break;
+#endif
     case IT_MM_CLMULEPI64_SI128:
         ret = "IT_MM_CLMULEPI64_SI128";
         break;
@@ -1254,33 +1255,33 @@ bool test_mm_madd_epi16(const int16_t *_a, const int16_t *_b)
 
 static inline int16_t saturate_16(int32_t a)
 {
-  int32_t max = (1 << 15) - 1;
-  int32_t min = -(1 << 15);
-  if (a > max)
-    return max;
-  if (a < min)
-    return min;
-  return a;
+    int32_t max = (1 << 15) - 1;
+    int32_t min = -(1 << 15);
+    if (a > max)
+        return max;
+    if (a < min)
+        return min;
+    return a;
 }
 
 bool test_mm_maddubs_epi16(const uint8_t *_a, const int8_t *_b)
 {
-    int32_t d0 = (int32_t) (_a[0] * _b[0]);
-    int32_t d1 = (int32_t) (_a[1] * _b[1]);
-    int32_t d2 = (int32_t) (_a[2] * _b[2]);
-    int32_t d3 = (int32_t) (_a[3] * _b[3]);
-    int32_t d4 = (int32_t) (_a[4] * _b[4]);
-    int32_t d5 = (int32_t) (_a[5] * _b[5]);
-    int32_t d6 = (int32_t) (_a[6] * _b[6]);
-    int32_t d7 = (int32_t) (_a[7] * _b[7]);
-    int32_t d8 = (int32_t) (_a[8] * _b[8]);
-    int32_t d9 = (int32_t) (_a[9] * _b[9]);
-    int32_t d10 = (int32_t) (_a[10] * _b[10]);
-    int32_t d11 = (int32_t) (_a[11] * _b[11]);
-    int32_t d12 = (int32_t) (_a[12] * _b[12]);
-    int32_t d13 = (int32_t) (_a[13] * _b[13]);
-    int32_t d14 = (int32_t) (_a[14] * _b[14]);
-    int32_t d15 = (int32_t) (_a[15] * _b[15]);
+    int32_t d0 = (int32_t)(_a[0] * _b[0]);
+    int32_t d1 = (int32_t)(_a[1] * _b[1]);
+    int32_t d2 = (int32_t)(_a[2] * _b[2]);
+    int32_t d3 = (int32_t)(_a[3] * _b[3]);
+    int32_t d4 = (int32_t)(_a[4] * _b[4]);
+    int32_t d5 = (int32_t)(_a[5] * _b[5]);
+    int32_t d6 = (int32_t)(_a[6] * _b[6]);
+    int32_t d7 = (int32_t)(_a[7] * _b[7]);
+    int32_t d8 = (int32_t)(_a[8] * _b[8]);
+    int32_t d9 = (int32_t)(_a[9] * _b[9]);
+    int32_t d10 = (int32_t)(_a[10] * _b[10]);
+    int32_t d11 = (int32_t)(_a[11] * _b[11]);
+    int32_t d12 = (int32_t)(_a[12] * _b[12]);
+    int32_t d13 = (int32_t)(_a[13] * _b[13]);
+    int32_t d14 = (int32_t)(_a[14] * _b[14]);
+    int32_t d15 = (int32_t)(_a[15] * _b[15]);
 
     int16_t e0 = saturate_16(d0 + d1);
     int16_t e1 = saturate_16(d2 + d3);
@@ -1577,8 +1578,8 @@ bool test_mm_comilt_ss(const float *_a, const float *_b)
     __m128 b = test_mm_load_ps(_b);
 
     if (isNAN(_a[0]) || isNAN(_b[0]))
-      // Test disabled: GCC and Clang on x86_64 return different values.
-      return true;
+        // Test disabled: GCC and Clang on x86_64 return different values.
+        return true;
 
     int32_t result = comilt_ss(_a[0], _b[0]);
 
@@ -1636,8 +1637,8 @@ bool test_mm_comile_ss(const float *_a, const float *_b)
     __m128 b = test_mm_load_ps(_b);
 
     if (isNAN(_a[0]) || isNAN(_b[0]))
-      // Test disabled: GCC and Clang on x86_64 return different values.
-      return true;
+        // Test disabled: GCC and Clang on x86_64 return different values.
+        return true;
 
     int32_t result = comile_ss(_a[0], _b[0]);
     int32_t ret = _mm_comile_ss(a, b);
@@ -1694,8 +1695,8 @@ bool test_mm_comieq_ss(const float *_a, const float *_b)
     __m128 b = test_mm_load_ps(_b);
 
     if (isNAN(_a[0]) || isNAN(_b[0]))
-      // Test disabled: GCC and Clang on x86_64 return different values.
-      return true;
+        // Test disabled: GCC and Clang on x86_64 return different values.
+        return true;
 
     int32_t result = comieq_ss(_a[0], _b[0]);
     int32_t ret = _mm_comieq_ss(a, b);
@@ -1723,8 +1724,8 @@ bool test_mm_comineq_ss(const float *_a, const float *_b)
     __m128 b = test_mm_load_ps(_b);
 
     if (isNAN(_a[0]) || isNAN(_b[0]))
-      // Test disabled: GCC and Clang on x86_64 return different values.
-      return true;
+        // Test disabled: GCC and Clang on x86_64 return different values.
+        return true;
 
     int32_t result = comineq_ss(_a[0], _b[0]);
     int32_t ret = _mm_comineq_ss(a, b);
@@ -2494,7 +2495,7 @@ bool test_mm_avg_epu16(const int16_t *_a, const int16_t *_b)
 
 static inline uint64_t MUL(uint32_t a, uint32_t b)
 {
-    return (uint64_t)a * (uint64_t)b;
+    return (uint64_t) a * (uint64_t) b;
 }
 
 // From BearSSL. Performs a 32-bit->64-bit carryless/polynomial
@@ -2514,22 +2515,22 @@ static uint64_t clmul_32(uint32_t x, uint32_t y)
     uint32_t y0, y1, y2, y3;
     uint64_t z0, z1, z2, z3;
 
-    x0 = x & (uint32_t)0x11111111;
-    x1 = x & (uint32_t)0x22222222;
-    x2 = x & (uint32_t)0x44444444;
-    x3 = x & (uint32_t)0x88888888;
-    y0 = y & (uint32_t)0x11111111;
-    y1 = y & (uint32_t)0x22222222;
-    y2 = y & (uint32_t)0x44444444;
-    y3 = y & (uint32_t)0x88888888;
+    x0 = x & (uint32_t) 0x11111111;
+    x1 = x & (uint32_t) 0x22222222;
+    x2 = x & (uint32_t) 0x44444444;
+    x3 = x & (uint32_t) 0x88888888;
+    y0 = y & (uint32_t) 0x11111111;
+    y1 = y & (uint32_t) 0x22222222;
+    y2 = y & (uint32_t) 0x44444444;
+    y3 = y & (uint32_t) 0x88888888;
     z0 = MUL(x0, y0) ^ MUL(x1, y3) ^ MUL(x2, y2) ^ MUL(x3, y1);
     z1 = MUL(x0, y1) ^ MUL(x1, y0) ^ MUL(x2, y3) ^ MUL(x3, y2);
     z2 = MUL(x0, y2) ^ MUL(x1, y1) ^ MUL(x2, y0) ^ MUL(x3, y3);
     z3 = MUL(x0, y3) ^ MUL(x1, y2) ^ MUL(x2, y1) ^ MUL(x3, y0);
-    z0 &= (uint64_t)0x1111111111111111;
-    z1 &= (uint64_t)0x2222222222222222;
-    z2 &= (uint64_t)0x4444444444444444;
-    z3 &= (uint64_t)0x8888888888888888;
+    z0 &= (uint64_t) 0x1111111111111111;
+    z1 &= (uint64_t) 0x2222222222222222;
+    z2 &= (uint64_t) 0x4444444444444444;
+    z3 &= (uint64_t) 0x8888888888888888;
     return z0 | z1 | z2 | z3;
 }
 
@@ -2556,8 +2557,7 @@ static uint64_t clmul_32(uint32_t x, uint32_t y)
 // The comments represent the actual mathematical
 // operations being performed (instead of the bitwise
 // operations) and to reflect the linked Wikipedia article.
-static std::pair<uint64_t, uint64_t>
-clmul_64(uint64_t x, uint64_t y)
+static std::pair<uint64_t, uint64_t> clmul_64(uint64_t x, uint64_t y)
 {
     // B = 2
     // m = 32
@@ -2585,19 +2585,23 @@ clmul_64(uint64_t x, uint64_t y)
 
 bool test_mm_clmulepi64_si128(const uint64_t *_a, const uint64_t *_b)
 {
-    __m128i a = test_mm_load_ps((const int32_t *)_a);
-    __m128i b = test_mm_load_ps((const int32_t *)_b);
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
     auto result = clmul_64(_a[0], _b[0]);
-    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x00), result.second, result.first))
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x00), result.second,
+                        result.first))
         return false;
     result = clmul_64(_a[1], _b[0]);
-    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x01), result.second, result.first))
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x01), result.second,
+                        result.first))
         return false;
     result = clmul_64(_a[0], _b[1]);
-    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x10), result.second, result.first))
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x10), result.second,
+                        result.first))
         return false;
     result = clmul_64(_a[1], _b[1]);
-    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x11), result.second, result.first))
+    if (!validateUInt64(_mm_clmulepi64_si128(a, b, 0x11), result.second,
+                        result.first))
         return false;
     return true;
 }
@@ -2648,6 +2652,7 @@ inline __m128i aesenc_128_reference(__m128i a, __m128i b)
     return a;
 }
 
+#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
 bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
 {
     __m128i data = _mm_loadu_si128((const __m128i *) a);
@@ -2658,6 +2663,7 @@ bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
 
     return validate128(resultReference, resultIntrinsic);
 }
+#endif
 
 bool test_mm_malloc(const size_t *a, const size_t *b)
 {
@@ -3070,16 +3076,19 @@ public:
             ret = test_mm_set_epi16((const int16_t *) mTestIntPointer1);
             break;
         case IT_MM_SRA_EPI16:
-            ret = test_mm_sra_epi16((const int16_t *) mTestIntPointer1, (int64_t) i);
+            ret = test_mm_sra_epi16((const int16_t *) mTestIntPointer1,
+                                    (int64_t) i);
             break;
         case IT_MM_SRA_EPI32:
-            ret = test_mm_sra_epi32((const int32_t *) mTestIntPointer1, (int64_t) i);
+            ret = test_mm_sra_epi32((const int32_t *) mTestIntPointer1,
+                                    (int64_t) i);
             break;
         case IT_MM_SLLI_EPI16:
             ret = test_mm_slli_epi16((const int16_t *) mTestIntPointer1);
             break;
         case IT_MM_SLL_EPI16:
-            ret = test_mm_sll_epi16((const int16_t *) mTestIntPointer1, (int64_t) i);
+            ret = test_mm_sll_epi16((const int16_t *) mTestIntPointer1,
+                                    (int64_t) i);
             break;
         case IT_MM_SRLI_EPI16:
             ret = test_mm_srli_epi16((const int16_t *) mTestIntPointer1);
@@ -3168,14 +3177,18 @@ public:
             ret = test_mm_avg_epu16((const int16_t *) mTestIntPointer1,
                                     (const int16_t *) mTestIntPointer2);
             break;
+#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
         case IT_MM_AESENC_SI128:
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
             break;
+#endif
         case IT_MM_CLMULEPI64_SI128:
-            ret = test_mm_clmulepi64_si128((const uint64_t *)mTestIntPointer1, (const uint64_t *)mTestIntPointer2);
+            ret = test_mm_clmulepi64_si128((const uint64_t *) mTestIntPointer1,
+                                           (const uint64_t *) mTestIntPointer2);
             break;
         case IT_MM_MALLOC:
-            ret = test_mm_malloc((const size_t *)mTestIntPointer1, (const size_t *) mTestIntPointer2);
+            ret = test_mm_malloc((const size_t *) mTestIntPointer1,
+                                 (const size_t *) mTestIntPointer2);
             break;
         case IT_LAST: /* should not happend */
             break;

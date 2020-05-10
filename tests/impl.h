@@ -125,10 +125,10 @@ enum InstructionTest {
 
     IT_MM_SET1_EPI16,
     IT_MM_SET_EPI16,
-    IT_MM_SLLI_EPI16,      // Unit test implemented
-    IT_MM_SLL_EPI16,       // Unit test implemented
-    IT_MM_SRA_EPI16,       // Unit test implemented and verified as fully working
-    IT_MM_SRA_EPI32,       // Unit test implemented and verified as fully working
+    IT_MM_SLLI_EPI16,  // Unit test implemented
+    IT_MM_SLL_EPI16,   // Unit test implemented
+    IT_MM_SRA_EPI16,   // Unit test implemented and verified as fully working
+    IT_MM_SRA_EPI32,   // Unit test implemented and verified as fully working
     IT_MM_SRLI_EPI16,
     IT_MM_CMPEQ_EPI16,
 
@@ -152,8 +152,9 @@ enum InstructionTest {
     IT_MM_TEST_ALL_ZEROS,
     IT_MM_AVG_EPU8,
     IT_MM_AVG_EPU16,
-
+#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
     IT_MM_AESENC_SI128,
+#endif
     IT_MM_CLMULEPI64_SI128,
     IT_MM_MALLOC,
     IT_LAST
