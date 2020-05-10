@@ -509,7 +509,7 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_AVG_EPU16:
         ret = "MM_AVG_EPU16";
         break;
-#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
+#if !defined(__arm__) && __ARM_ARCH != 7
     case IT_MM_AESENC_SI128:
         ret = "IT_MM_AESENC_SI128";
         break;
@@ -2652,7 +2652,7 @@ inline __m128i aesenc_128_reference(__m128i a, __m128i b)
     return a;
 }
 
-#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
+#if !defined(__arm__) && __ARM_ARCH != 7
 bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
 {
     __m128i data = _mm_loadu_si128((const __m128i *) a);
@@ -3177,8 +3177,8 @@ public:
             ret = test_mm_avg_epu16((const int16_t *) mTestIntPointer1,
                                     (const int16_t *) mTestIntPointer2);
             break;
-#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
-        case IT_MM_AESENC_SI128:
+#if !defined(__arm__) && __ARM_ARCH != 7
+	case IT_MM_AESENC_SI128:
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
             break;
 #endif

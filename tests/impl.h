@@ -152,7 +152,7 @@ enum InstructionTest {
     IT_MM_TEST_ALL_ZEROS,
     IT_MM_AVG_EPU8,
     IT_MM_AVG_EPU16,
-#if defined(__ARM_FEATURE_CRYPTO) || defined(__aarch64__)
+#if !defined(__arm__) && __ARM_ARCH != 7
     IT_MM_AESENC_SI128,
 #endif
     IT_MM_CLMULEPI64_SI128,
