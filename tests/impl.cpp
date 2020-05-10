@@ -116,6 +116,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SET_PS:
         ret = "MM_SET_PS";
         break;
+    case IT_MM_SET_SS:
+        ret = "MM_SET_SS";
+        break;
     case IT_MM_SETR_PS:
         ret = "MM_SETR_PS";
         break;
@@ -762,6 +765,12 @@ bool test_mm_set_ps(float x, float y, float z, float w)
 {
     __m128 a = _mm_set_ps(x, y, z, w);
     return validateFloat(a, x, y, z, w);
+}
+
+bool test_mm_set_ss(float a)
+{
+    __m128 c = _mm_set_ss(a);
+    return validateFloat(c, 0, 0, 0, a);
 }
 
 bool test_mm_set_epi8(const int8_t *_a)
@@ -2752,6 +2761,9 @@ public:
         case IT_MM_SET_PS:
             ret = test_mm_set_ps(mTestFloats[i], mTestFloats[i + 1],
                                  mTestFloats[i + 2], mTestFloats[i + 3]);
+            break;
+        case IT_MM_SET_SS:
+            ret = test_mm_set_ss(mTestFloats[i]);
             break;
         case IT_MM_SET_EPI8:
             ret = test_mm_set_epi8((const int8_t *) mTestIntPointer1);

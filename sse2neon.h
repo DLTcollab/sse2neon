@@ -255,6 +255,15 @@ FORCE_INLINE __m128 _mm_set_ps(float w, float z, float y, float x)
     return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
+// Copy single-precision (32-bit) floating-point element a to the lower element
+// of dst, and zero the upper 3 elements.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_ss&expand=4901,4895,4901
+FORCE_INLINE __m128 _mm_set_ss(float a)
+{
+    float __attribute__((aligned(16))) data[4] = {a, 0, 0, 0};
+    return vreinterpretq_m128_f32(vld1q_f32(data));
+}
+
 // Sets the four single-precision, floating-point values to the four inputs in
 // reverse order.
 // https://msdn.microsoft.com/en-us/library/vstudio/d2172ct3(v=vs.100).aspx
