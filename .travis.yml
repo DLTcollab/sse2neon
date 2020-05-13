@@ -15,7 +15,9 @@ compiler:
   - clang
 
 before_install:
-  - sudo apt-get install -y build-essential
+  - sudo apt-get install -y build-essential curl xz-utils qemu-user
+  - sh .ci/cross-tool.sh
 
 script:
   - make check
+  - sh .ci/cross-check.sh
