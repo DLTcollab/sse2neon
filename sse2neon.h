@@ -82,6 +82,7 @@
 
 typedef float32x2_t __m64;
 typedef float32x4_t __m128;
+typedef int64x1_t __m64i;
 typedef int64x2_t __m128i;
 
 // ******************************************
@@ -135,6 +136,26 @@ typedef int64x2_t __m128i;
 #define vreinterpretq_u16_m128i(x) vreinterpretq_u16_s64(x)
 #define vreinterpretq_u32_m128i(x) vreinterpretq_u32_s64(x)
 #define vreinterpretq_u64_m128i(x) vreinterpretq_u64_s64(x)
+
+#define vreinterpret_m64i_s8(x) vreinterpret_s64_s8(x)
+#define vreinterpret_m64i_s16(x) vreinterpret_s64_s16(x)
+#define vreinterpret_m64i_s32(x) vreinterpret_s64_s32(x)
+#define vreinterpret_m64i_s64(x) (x)
+
+#define vreinterpret_m64i_u8(x) vreinterpret_s64_u8(x)
+#define vreinterpret_m64i_u16(x) vreinterpret_s64_u16(x)
+#define vreinterpret_m64i_u32(x) vreinterpret_s64_u32(x)
+#define vreinterpret_m64i_u64(x) vreinterpret_s64_u64(x)
+
+#define vreinterpret_u8_m64i(x) vreinterpret_u8_s64(x)
+#define vreinterpret_u16_m64i(x) vreinterpret_u16_s64(x)
+#define vreinterpret_u32_m64i(x) vreinterpret_u32_s64(x)
+#define vreinterpret_u64_m64i(x) vreinterpret_u64_s64(x)
+
+#define vreinterpret_s8_m64i(x) vreinterpret_s8_s64(x)
+#define vreinterpret_s16_m64i(x) vreinterpret_s16_s64(x)
+#define vreinterpret_s32_m64i(x) vreinterpret_s32_s64(x)
+#define vreinterpret_s64_m64i(x) (x)
 
 // A struct is defined in this header file called 'SIMDVec' which can be used
 // by applications which attempt to access the contents of an _m128 struct
@@ -3365,6 +3386,59 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
     int64x1_t a_h = vget_high_s64(vreinterpretq_s64_m128i(a));
     int64x1_t b_h = vget_high_s64(vreinterpretq_s64_m128i(b));
     return vreinterpretq_m128i_s64(vcombine_s64(a_h, b_h));
+}
+
+// Horizontally compute the minimum amongst the packed unsigned 16-bit integers
+// in a, store the minimum and index in dst, and zero the remaining bits in dst.
+//
+//   index[2:0] := 0
+//   min[15:0] := a[15:0]
+//   FOR j := 0 to 7
+//       i := j*16
+//       IF a[i+15:i] < min[15:0]
+//           index[2:0] := j
+//           min[15:0] := a[i+15:i]
+//       FI
+//   ENDFOR
+//   dst[15:0] := min[15:0]
+//   dst[18:16] := index[2:0]
+//   dst[127:19] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_minpos_epu16&expand=3789
+FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
+{
+    __m128i dst;
+    uint16_t min, idx = 0;
+    // Find the minimum value
+#if defined(__aarch64__)
+    min = vminvq_u16(vreinterpretq_u16_m128i(a));
+#else
+    __m64i tmp;
+    tmp = vreinterpret_m64i_u16(
+        vmin_u16(vget_low_u16(vreinterpretq_u16_m128i(a)),
+                 vget_high_u16(vreinterpretq_u16_m128i(a))));
+    tmp = vreinterpret_m64i_u16(
+        vpmin_u16(vreinterpret_u16_m64i(tmp), vreinterpret_u16_m64i(tmp)));
+    tmp = vreinterpret_m64i_u16(
+        vpmin_u16(vreinterpret_u16_m64i(tmp), vreinterpret_u16_m64i(tmp)));
+    min = vget_lane_u16(vreinterpret_u16_m64i(tmp), 0);
+#endif
+    // Get the index of the minimum value
+    int i;
+    for (i = 0; i < 8; i++) {
+        if (min == vgetq_lane_u16(vreinterpretq_u16_m128i(a), 0)) {
+            idx = (uint16_t) i;
+            break;
+        }
+        a = _mm_srli_si128(a, 2);
+    }
+    // Generate result
+    dst = _mm_setzero_si128();
+    dst = vreinterpretq_m128i_u16(
+        vsetq_lane_u16(min, vreinterpretq_u16_m128i(dst), 0));
+    dst = vreinterpretq_m128i_u16(
+        vsetq_lane_u16(idx, vreinterpretq_u16_m128i(dst), 1));
+    return dst;
 }
 
 // shift to right
