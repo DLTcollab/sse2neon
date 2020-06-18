@@ -3,12 +3,8 @@
 
 namespace SSE2NEON
 {
-// Currently 39 SSE intrinsics have unit tests fully implemented and verified.
-// There are an additional 56 intrinsics which do not yet have a unit
-// test implementation and, therefore, should not be considered fully
-// verified at this time.  These will be implemented as soon as possible.
-// Note: The way unit tests are implemented is that 10,000 random floating point
-// and integer vec4 numbers are generated as sample data.
+// The way unit tests are implemented is that 10,000 random floating point and
+// integer vec4 numbers are generated as sample data.
 //
 // A short C implementation of every intrinsic is implemented and compared to
 // the actual expected results from the corresponding SSE intrinsic against all
