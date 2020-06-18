@@ -42,14 +42,11 @@
  */
 
 #if defined(__GNUC__) || defined(__clang__)
-
 #pragma push_macro("FORCE_INLINE")
 #pragma push_macro("ALIGN_STRUCT")
 #define FORCE_INLINE static inline __attribute__((always_inline))
 #define ALIGN_STRUCT(x) __attribute__((aligned(x)))
-
 #else
-
 #error "Macro name collisions may happens with unknown compiler"
 #ifdef FORCE_INLINE
 #undef FORCE_INLINE
@@ -58,7 +55,6 @@
 #ifndef ALIGN_STRUCT
 #define ALIGN_STRUCT(x) __declspec(align(x))
 #endif
-
 #endif
 
 #include <stdint.h>
@@ -85,9 +81,7 @@ typedef float32x4_t __m128;
 typedef int64x1_t __m64i;
 typedef int64x2_t __m128i;
 
-// ******************************************
-// type-safe casting between types
-// ******************************************
+/* type-safe casting between types */
 
 #define vreinterpretq_m128_f16(x) vreinterpretq_f32_f16(x)
 #define vreinterpretq_m128_f32(x) (x)
@@ -197,10 +191,7 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #define vreinterpretq_nth_u64_m128i(x, n) (((SIMDVec *) &x)->m128_u64[n])
 #define vreinterpretq_nth_u32_m128i(x, n) (((SIMDVec *) &x)->m128_u32[n])
 
-
-// ******************************************
-// Backwards compatibility for compilers with lack of specific type support
-// ******************************************
+/* Backwards compatibility for compilers with lack of specific type support */
 
 // Older gcc does not define vld1q_u8_x4 type
 #if defined(__GNUC__) && !defined(__clang__)
@@ -217,10 +208,7 @@ FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
 #endif
 #endif
 
-
-// ******************************************
-// Set/get methods
-// ******************************************
+/* Set/get methods */
 
 // Loads one cache line of data from address p to a location closer to the
 // processor. https://msdn.microsoft.com/en-us/library/84szxsww(v=vs.100).aspx
@@ -606,9 +594,7 @@ FORCE_INLINE __m128i _mm_loadl_epi64(__m128i const *p)
         vcombine_s32(vld1_s32((int32_t const *) p), vcreate_s32(0)));
 }
 
-// ******************************************
-// Logic/Binary operations
-// ******************************************
+/* Logic/Binary operations */
 
 // Compares for inequality.
 // https://msdn.microsoft.com/en-us/library/sf44thbx(v=vs.100).aspx
@@ -908,7 +894,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
     __extension__({                                                        \
         float32x4_t ret;                                                   \
         ret = vmovq_n_f32(                                                 \
-            vgetq_lane_f32(vreinterpretq_f32_m128(a), (imm) &0x3));        \
+            vgetq_lane_f32(vreinterpretq_f32_m128(a), (imm) & (0x3)));     \
         ret = vsetq_lane_f32(                                              \
             vgetq_lane_f32(vreinterpretq_f32_m128(a), ((imm) >> 2) & 0x3), \
             ret, 1);                                                       \
@@ -929,7 +915,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
         float32x4_t _input1 = vreinterpretq_f32_m128(a);         \
         float32x4_t _input2 = vreinterpretq_f32_m128(b);         \
         float32x4_t _shuf = __builtin_shufflevector(             \
-            _input1, _input2, (imm) &0x3, ((imm) >> 2) & 0x3,    \
+            _input1, _input2, (imm) & (0x3), ((imm) >> 2) & 0x3, \
             (((imm) >> 4) & 0x3) + 4, (((imm) >> 6) & 0x3) + 4); \
         vreinterpretq_m128_f32(_shuf);                           \
     })
@@ -1091,7 +1077,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 #if defined(__aarch64__)
     return vreinterpretq_m128i_s8(vqtbl1q_s8(tbl, idx_masked));
 #elif defined(__GNUC__)
-
     int8x16_t ret;
     // %e and %f represent the even and odd D registers
     // respectively.
@@ -1110,7 +1095,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 #endif
 }
 
-
 #if 0 /* C version */
 FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
                                                __constrange(0, 255) int imm)
@@ -1127,7 +1111,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
     __extension__({                                                         \
         int32x4_t ret;                                                      \
         ret = vmovq_n_s32(                                                  \
-            vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm) &0x3));        \
+            vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm) & (0x3)));     \
         ret = vsetq_lane_s32(                                               \
             vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 2) & 0x3), \
             ret, 1);                                                        \
@@ -1161,13 +1145,13 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a, __constrange(0,255) int
 // imm)
 #if defined(__clang__)
-#define _mm_shuffle_epi32(a, imm)                           \
-    __extension__({                                         \
-        int32x4_t _input = vreinterpretq_s32_m128i(a);      \
-        int32x4_t _shuf = __builtin_shufflevector(          \
-            _input, _input, (imm) &0x3, ((imm) >> 2) & 0x3, \
-            ((imm) >> 4) & 0x3, ((imm) >> 6) & 0x3);        \
-        vreinterpretq_m128i_s32(_shuf);                     \
+#define _mm_shuffle_epi32(a, imm)                              \
+    __extension__({                                            \
+        int32x4_t _input = vreinterpretq_s32_m128i(a);         \
+        int32x4_t _shuf = __builtin_shufflevector(             \
+            _input, _input, (imm) & (0x3), ((imm) >> 2) & 0x3, \
+            ((imm) >> 4) & 0x3, ((imm) >> 6) & 0x3);           \
+        vreinterpretq_m128i_s32(_shuf);                        \
     })
 #else  // generic
 #define _mm_shuffle_epi32(a, imm)                        \
@@ -1228,13 +1212,13 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // by imm.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/y41dkk37(v=vs.100)
 // FORCE_INLINE __m128i _mm_shufflelo_epi16_function(__m128i a,
-// __constrange(0,255) int imm)
-
+//                                                   __constrange(0,255) int
+//                                                   imm)
 #define _mm_shufflelo_epi16_function(a, imm)                                  \
     __extension__({                                                           \
         int16x8_t ret = vreinterpretq_s16_m128i(a);                           \
         int16x4_t lowBits = vget_low_s16(ret);                                \
-        ret = vsetq_lane_s16(vget_lane_s16(lowBits, (imm) &0x3), ret, 0);     \
+        ret = vsetq_lane_s16(vget_lane_s16(lowBits, (imm) & (0x3)), ret, 0);  \
         ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 2) & 0x3), ret, \
                              1);                                              \
         ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 4) & 0x3), ret, \
@@ -1244,14 +1228,14 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         vreinterpretq_m128i_s16(ret);                                         \
     })
 
-// FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a, __constrange(0,255) int
-// imm)
+// FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a,
+//                                          __constrange(0,255) int imm)
 #if defined(__clang__)
 #define _mm_shufflelo_epi16(a, imm)                                  \
     __extension__({                                                  \
         int16x8_t _input = vreinterpretq_s16_m128i(a);               \
         int16x8_t _shuf = __builtin_shufflevector(                   \
-            _input, _input, ((imm) &0x3), (((imm) >> 2) & 0x3),      \
+            _input, _input, ((imm) & (0x3)), (((imm) >> 2) & 0x3),   \
             (((imm) >> 4) & 0x3), (((imm) >> 6) & 0x3), 4, 5, 6, 7); \
         vreinterpretq_m128i_s16(_shuf);                              \
     })
@@ -1268,7 +1252,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
     __extension__({                                                            \
         int16x8_t ret = vreinterpretq_s16_m128i(a);                            \
         int16x4_t highBits = vget_high_s16(ret);                               \
-        ret = vsetq_lane_s16(vget_lane_s16(highBits, (imm) &0x3), ret, 4);     \
+        ret = vsetq_lane_s16(vget_lane_s16(highBits, (imm) & (0x3)), ret, 4);  \
         ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 2) & 0x3), ret, \
                              5);                                               \
         ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 4) & 0x3), ret, \
@@ -1278,14 +1262,14 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         vreinterpretq_m128i_s16(ret);                                          \
     })
 
-// FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a, __constrange(0,255) int
-// imm)
+// FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a,
+//                                          __constrange(0,255) int imm)
 #if defined(__clang__)
 #define _mm_shufflehi_epi16(a, imm)                             \
     __extension__({                                             \
         int16x8_t _input = vreinterpretq_s16_m128i(a);          \
         int16x8_t _shuf = __builtin_shufflevector(              \
-            _input, _input, 0, 1, 2, 3, ((imm) &0x3) + 4,       \
+            _input, _input, 0, 1, 2, 3, ((imm) & (0x3)) + 4,    \
             (((imm) >> 2) & 0x3) + 4, (((imm) >> 4) & 0x3) + 4, \
             (((imm) >> 6) & 0x3) + 4);                          \
         vreinterpretq_m128i_s16(_shuf);                         \
@@ -1306,7 +1290,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 //       FI
 //   ENDFOR
 // FORCE_INLINE __m128i _mm_blend_epi16(__m128i a, __m128i b,
-// __constrange(0,255) int imm)
+//                                      __constrange(0,255) int imm)
 #define _mm_blend_epi16(a, b, imm)                                        \
     __extension__({                                                       \
         const uint16_t _mask[8] = {((imm) & (1 << 0)) ? 0xFFFF : 0x0000,  \
@@ -1344,9 +1328,7 @@ FORCE_INLINE __m128i _mm_blendv_epi8(__m128i _a, __m128i _b, __m128i _mask)
     return vreinterpretq_m128i_u8(vbslq_u8(mask, b, a));
 }
 
-/////////////////////////////////////
-// Shifts
-/////////////////////////////////////
+/* Shifts */
 
 // Shifts the 4 signed 32-bit integers in a right by count bits while shifting
 // in the sign bit.
@@ -1681,9 +1663,7 @@ FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
                                                                            : 1;
 }
 
-// ******************************************
-// Math operations
-// ******************************************
+/* Math operations */
 
 // Subtracts the four single-precision, floating-point values of a and b.
 //
@@ -2402,8 +2382,8 @@ FORCE_INLINE __m128i _mm_mulhi_epi16(__m128i a, __m128i b)
 FORCE_INLINE __m128 _mm_hadd_ps(__m128 a, __m128 b)
 {
 #if defined(__aarch64__)
-    return vreinterpretq_m128_f32(vpaddq_f32(
-        vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));  // AArch64
+    return vreinterpretq_m128_f32(
+        vpaddq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 #else
     float32x2_t a10 = vget_low_f32(vreinterpretq_f32_m128(a));
     float32x2_t a32 = vget_high_f32(vreinterpretq_f32_m128(a));
@@ -2500,9 +2480,7 @@ FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s32(vsubq_s32(ab02, ab13));
 }
 
-// ******************************************
-// Compare operations
-// ******************************************
+/* Compare operations */
 
 // Compares for less than
 // https://msdn.microsoft.com/en-us/library/vstudio/f330yhc8(v=vs.100).aspx
@@ -2707,6 +2685,7 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
     return vreinterpretq_m128i_s64(ret);
 #endif
 }
+
 // Compares the four 32-bit floats in a and b to check if any values are NaN.
 // Ordered compare between each value returns true for "orderable" and false for
 // "not orderable" (NaN).
@@ -2837,9 +2816,7 @@ FORCE_INLINE int _mm_comineq_ss(__m128 a, __m128 b)
 #define _mm_ucomieq_ss _mm_comieq_ss
 #define _mm_ucomineq_ss _mm_comineq_ss
 
-// ******************************************
-// Conversions
-// ******************************************
+/* Conversions */
 
 // Converts the four single-precision, floating-point values of a to signed
 // 32-bit integer values using truncate.
@@ -2979,7 +2956,7 @@ FORCE_INLINE __m128i _mm_cvtepi32_epi64(__m128i a)
 //   r3 := (int) a3
 //
 // https://msdn.microsoft.com/en-us/library/vstudio/xdc42k5e(v=vs.100).aspx
-// *NOTE*. The default rounding mode on SSE is 'round to even', which ArmV7-A
+// *NOTE*. The default rounding mode on SSE is 'round to even', which ARMv7-A
 // does not support! It is supported on ARMv8-A however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
@@ -3076,10 +3053,7 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 // _mm_lddqu_si128 functions the same as _mm_loadu_si128.
 #define _mm_lddqu_si128 _mm_loadu_si128
 
-// ******************************************
-// Miscellaneous Operations
-// ******************************************
-
+/* Miscellaneous Operations */
 
 // Shifts the 8 signed 16-bit integers in a right by count bits while shifting
 // in the sign bit.
@@ -3498,7 +3472,6 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
             vsetq_lane_s32((b), vreinterpretq_s32_m128i(a), (imm))); \
     })
 
-
 // Extracts the selected signed or unsigned 64-bit integer from a and zero
 // extends.
 // FORCE_INLINE __int64 _mm_extract_epi64(__m128i a, __constrange(0,2) int imm)
@@ -3515,9 +3488,8 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
             vsetq_lane_s64((b), vreinterpretq_s64_m128i(a), (imm))); \
     })
 
-// ******************************************
-// Crypto Extensions
-// ******************************************
+/* Crypto Extensions */
+
 #if defined(__ARM_FEATURE_CRYPTO)
 // Wraps vmull_p64
 FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
@@ -3526,7 +3498,6 @@ FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
     poly64_t b = vget_lane_p64(vreinterpret_p64_u64(_b), 0);
     return vreinterpretq_u64_p128(vmull_p64(a, b));
 }
-
 #else  // ARMv7 polyfill
 // ARMv7/some A64 lacks vmull_p64, but it has vmull_p8.
 //
@@ -3632,8 +3603,8 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
     uint8x16_t r = veorq_u8(mix, cross2);
     return vreinterpretq_u64_u8(r);
 }
-
 #endif  // ARMv7 polyfill
+
 FORCE_INLINE __m128i _mm_clmulepi64_si128(__m128i _a, __m128i _b, const int imm)
 {
     uint64x2_t a = vreinterpretq_u64_m128i(_a);
@@ -3729,9 +3700,7 @@ inline __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 }
 #endif
 
-// ******************************************
-// Streaming Extensions
-// ******************************************
+/* Streaming Extensions */
 
 // Guarantees that every preceding store is globally visible before any
 // subsequent store.
