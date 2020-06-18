@@ -299,6 +299,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_MIN_EPI32:
         ret = "MM_MIN_EPI32";
         break;
+    case IT_MM_MINPOS_EPU16:
+        ret = "MM_MINPOS_EPU16";
+        break;
     case IT_MM_MULHI_EPI16:
         ret = "MM_MULHI_EPI16";
         break;
@@ -2445,6 +2448,24 @@ bool test_mm_min_epu8(const int8_t *_a, const int8_t *_b)
                         d12, d13, d14, d15);
 }
 
+bool test_mm_minpos_epu16(const int16_t *_a)
+{
+    uint16_t index = 0, min = (uint16_t) _a[0];
+    for (int i = 0; i < 8; i++) {
+        if ((uint16_t) _a[i] < min) {
+            index = (uint16_t) i;
+            min = (uint16_t) _a[i];
+        }
+    }
+    uint16_t d0 = min;
+    uint16_t d1 = index;
+    uint16_t d2 = 0, d3 = 0, d4 = 0, d5 = 0, d6 = 0, d7 = 0;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_minpos_epu16(a);
+    return validateUInt16(ret, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 bool test_mm_test_all_zeros(const int32_t *_a, const int32_t *_mask)
 {
     __m128i a = test_mm_load_ps(_a);
@@ -2925,6 +2946,9 @@ public:
             break;
         case IT_MM_MIN_EPI32:
             ret = true;
+            break;
+        case IT_MM_MINPOS_EPU16:
+            ret = test_mm_minpos_epu16((const int16_t *) mTestIntPointer1);
             break;
         case IT_MM_MAX_SS:
             ret = true;
