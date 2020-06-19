@@ -167,6 +167,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_LOADU_PS:
         ret = "MM_LOADU_PS";
         break;
+    case IT_MM_LOAD_SD:
+        ret = "MM_LOAD_SD";
+        break;
     case IT_MM_LOAD_SS:
         ret = "MM_LOAD_SS";
         break;
@@ -716,11 +719,20 @@ bool validateSingleFloatPair(float a, float b)
 {
     const uint32_t *ia = (const uint32_t *) &a;
     const uint32_t *ib = (const uint32_t *) &b;
-    return (*ia) == (*ib)
-               ? true
-               : false;  // We do an integer (binary) compare rather than a
-                         // floating point compare to take nands and infinities
-                         // into account as well.
+    // We do an integer (binary) compare rather than a
+    // floating point compare to take nands and infinities
+    // into account as well.
+    return (*ia) == (*ib);
+}
+
+bool validateSingleDoublePair(double a, double b)
+{
+    const uint64_t *ia = (const uint64_t *) &a;
+    const uint64_t *ib = (const uint64_t *) &b;
+    // We do an integer (binary) compare rather than a
+    // floating point compare to take nands and infinities
+    // into account as well.
+    return (*ia) == (*ib);
 }
 
 bool validateFloat(__m128 a, float x, float y, float z, float w)
@@ -749,6 +761,14 @@ bool validateFloatEpsilon(__m128 a,
     ASSERT_RETURN(dy < epsilon);
     ASSERT_RETURN(dz < epsilon);
     ASSERT_RETURN(dw < epsilon);
+    return true;
+}
+
+bool validateDouble(__m128d a, double x, double y)
+{
+    const double *t = (const double *) &a;
+    ASSERT_RETURN(validateSingleDoublePair(t[0], x));
+    ASSERT_RETURN(validateSingleDoublePair(t[1], y));
     return true;
 }
 
@@ -919,6 +939,12 @@ __m128i test_mm_load_ps(const int32_t *p)
     __m128i ia = *(const __m128i *) &a;
     validateInt(ia, p[3], p[2], p[1], p[0]);
     return ia;
+}
+
+bool test_mm_load_sd(const double *p)
+{
+    __m128d a = _mm_load_sd(p);
+    return validateDouble(a, p[0], 0);
 }
 
 // r0 := ~a0 & b0
@@ -3039,6 +3065,9 @@ public:
             break;
         case IT_MM_LOADU_PS:
             ret = true;
+            break;
+        case IT_MM_LOAD_SD:
+            ret = test_mm_load_sd((const double *) mTestFloatPointer1);
             break;
         case IT_MM_LOAD_SS:
             ret = true;
