@@ -260,7 +260,7 @@ FORCE_INLINE __m128 _mm_set_ps1(float _w)
 // https://msdn.microsoft.com/en-us/library/vstudio/afh0zf75(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_set_ps(float w, float z, float y, float x)
 {
-    float __attribute__((aligned(16))) data[4] = {x, y, z, w};
+    float ALIGN_STRUCT(16) data[4] = {x, y, z, w};
     return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
@@ -269,7 +269,7 @@ FORCE_INLINE __m128 _mm_set_ps(float w, float z, float y, float x)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_ss&expand=4901,4895,4901
 FORCE_INLINE __m128 _mm_set_ss(float a)
 {
-    float __attribute__((aligned(16))) data[4] = {a, 0, 0, 0};
+    float ALIGN_STRUCT(16) data[4] = {a, 0, 0, 0};
     return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
@@ -278,7 +278,7 @@ FORCE_INLINE __m128 _mm_set_ss(float a)
 // https://msdn.microsoft.com/en-us/library/vstudio/d2172ct3(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_setr_ps(float w, float z, float y, float x)
 {
-    float __attribute__((aligned(16))) data[4] = {w, z, y, x};
+    float ALIGN_STRUCT(16) data[4] = {w, z, y, x};
     return vreinterpretq_m128_f32(vld1q_f32(data));
 }
 
@@ -298,8 +298,7 @@ FORCE_INLINE __m128i _mm_setr_epi16(short w0,
                                     short w6,
                                     short w7)
 {
-    int16_t __attribute__((aligned(16)))
-    data[8] = {w0, w1, w2, w3, w4, w5, w6, w7};
+    int16_t ALIGN_STRUCT(16) data[8] = {w0, w1, w2, w3, w4, w5, w6, w7};
     return vreinterpretq_m128i_s16(vld1q_s16((int16_t *) data));
 }
 
@@ -307,7 +306,7 @@ FORCE_INLINE __m128i _mm_setr_epi16(short w0,
 // https://technet.microsoft.com/en-us/library/security/27yb3ee5(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
 {
-    int32_t __attribute__((aligned(16))) data[4] = {i3, i2, i1, i0};
+    int32_t ALIGN_STRUCT(16) data[4] = {i3, i2, i1, i0};
     return vreinterpretq_m128i_s32(vld1q_s32(data));
 }
 
@@ -356,11 +355,11 @@ FORCE_INLINE __m128i _mm_set_epi8(signed char b15,
                                   signed char b1,
                                   signed char b0)
 {
-    int8_t __attribute__((aligned(16)))
-    data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
-                (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
-                (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
-                (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
+    int8_t ALIGN_STRUCT(16)
+        data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
+                    (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
+                    (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
+                    (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
     return (__m128i) vld1q_s8(data);
 }
 
@@ -375,8 +374,7 @@ FORCE_INLINE __m128i _mm_set_epi16(short i7,
                                    short i1,
                                    short i0)
 {
-    int16_t __attribute__((aligned(16)))
-    data[8] = {i0, i1, i2, i3, i4, i5, i6, i7};
+    int16_t ALIGN_STRUCT(16) data[8] = {i0, i1, i2, i3, i4, i5, i6, i7};
     return vreinterpretq_m128i_s16(vld1q_s16(data));
 }
 
@@ -399,11 +397,11 @@ FORCE_INLINE __m128i _mm_setr_epi8(signed char b0,
                                    signed char b14,
                                    signed char b15)
 {
-    int8_t __attribute__((aligned(16)))
-    data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
-                (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
-                (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
-                (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
+    int8_t ALIGN_STRUCT(16)
+        data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
+                    (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
+                    (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
+                    (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
     return (__m128i) vld1q_s8(data);
 }
 
@@ -438,7 +436,7 @@ FORCE_INLINE __m128i _mm_set1_epi64x(int64_t _i)
 // https://msdn.microsoft.com/en-us/library/vstudio/019beekt(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_set_epi32(int i3, int i2, int i1, int i0)
 {
-    int32_t __attribute__((aligned(16))) data[4] = {i0, i1, i2, i3};
+    int32_t ALIGN_STRUCT(16) data[4] = {i0, i1, i2, i3};
     return vreinterpretq_m128i_s32(vld1q_s32(data));
 }
 
@@ -447,7 +445,7 @@ FORCE_INLINE __m128i _mm_set_epi32(int i3, int i2, int i1, int i0)
 // https://msdn.microsoft.com/en-us/library/dk2sdw0h(v=vs.120).aspx
 FORCE_INLINE __m128i _mm_set_epi64x(int64_t i1, int64_t i2)
 {
-    int64_t __attribute__((aligned(16))) data[2] = {i2, i1};
+    int64_t ALIGN_STRUCT(16) data[2] = {i2, i1};
     return vreinterpretq_m128i_s64(vld1q_s64(data));
 }
 
