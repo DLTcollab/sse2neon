@@ -3214,7 +3214,7 @@ public:
                                     (const int16_t *) mTestIntPointer2);
             break;
 #if !defined(__arm__) && __ARM_ARCH != 7
-	case IT_MM_AESENC_SI128:
+        case IT_MM_AESENC_SI128:
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
             break;
 #endif
