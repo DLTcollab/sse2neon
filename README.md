@@ -30,7 +30,7 @@ intrinsics into NEON intrinsics.
 -mfpu=neon
 ```
 
-## Test
+## Run Built-in Test Suite
 
 `sse2neon` provides a unified interface test cases for developers. These test
 cases are located in `tests` directory, and the input data is specified at
@@ -49,14 +49,14 @@ or
 $ make CROSS_COMPILE=arm-linux-gnueabihf- check # ARMv7-A
 ```
 
-### Add Test
+### Add More Test Items
 Once the conversion is implemented, the test can be added with the following steps:
 
-* tests/impl.h
+* File `tests/impl.h`
 
   Add the intrinsic in `enum InstructionTest`. The naming convention should be `IT_MM_XXX`.
 
-* tests/impl.cpp
+* File `tests/impl.cpp`
 
   * For the test name generation:
 
