@@ -515,6 +515,12 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_AVG_EPU16:
         ret = "MM_AVG_EPU16";
         break;
+    case IT_MM_POPCNT_U32:
+        ret = "MM_POPCNT_U32";
+        break;
+    case IT_MM_POPCNT_U64:
+        ret = "MM_POPCNT_U64";
+        break;
 #if !defined(__arm__) && __ARM_ARCH != 7
     case IT_MM_AESENC_SI128:
         ret = "IT_MM_AESENC_SI128";
@@ -2523,6 +2529,18 @@ bool test_mm_avg_epu16(const int16_t *_a, const int16_t *_b)
     return validateUInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+bool test_mm_popcnt_u32(const uint32_t *a)
+{
+    ASSERT_RETURN(__builtin_popcount(a[0]) == _mm_popcnt_u32(a[0]));
+    return true;
+}
+
+bool test_mm_popcnt_u64(const uint64_t *a)
+{
+    ASSERT_RETURN(__builtin_popcountll(a[0]) == _mm_popcnt_u64(a[0]));
+    return true;
+}
+
 static inline uint64_t MUL(uint32_t a, uint32_t b)
 {
     return (uint64_t) a * (uint64_t) b;
@@ -3212,6 +3230,12 @@ public:
         case IT_MM_AVG_EPU16:
             ret = test_mm_avg_epu16((const int16_t *) mTestIntPointer1,
                                     (const int16_t *) mTestIntPointer2);
+            break;
+        case IT_MM_POPCNT_U32:
+            ret = test_mm_popcnt_u32((const uint32_t *) mTestIntPointer1);
+            break;
+        case IT_MM_POPCNT_U64:
+            ret = test_mm_popcnt_u64((const uint64_t *) mTestIntPointer1);
             break;
 #if !defined(__arm__) && __ARM_ARCH != 7
         case IT_MM_AESENC_SI128:
