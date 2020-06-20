@@ -2177,21 +2177,6 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
         vsetq_lane_f32(value, vreinterpretq_f32_m128(a), 0));
 }
 
-// This version does additional iterations to improve accuracy.  Between 1 and 4
-// recommended. Computes the approximations of reciprocals of the four
-// single-precision, floating-point values of a.
-// https://msdn.microsoft.com/en-us/library/vstudio/796k1tty(v=vs.100).aspx
-FORCE_INLINE __m128 recipq_newton(__m128 in, int n)
-{
-    int i;
-    float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(in));
-    for (i = 0; i < n; ++i) {
-        recip =
-            vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
-    }
-    return vreinterpretq_m128_f32(recip);
-}
-
 // Computes the approximations of reciprocals of the four single-precision,
 // floating-point values of a.
 // https://msdn.microsoft.com/en-us/library/vstudio/796k1tty(v=vs.100).aspx
