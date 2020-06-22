@@ -54,7 +54,10 @@ $(EXEC): $(OBJS)
 check: tests/main
 	$(EXEC_WRAPPER) $^
 
-.PHONY: clean    
+indent:
+	clang-format -i sse2neon.h tests/*.cpp tests/*.h
+
+.PHONY: clean check format
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps)
 

@@ -21,3 +21,11 @@ before_install:
 script:
   - make check
   - sh .ci/cross-check.sh
+
+jobs:
+  include:
+    - stage: Coding convention check
+      arch: amd64
+      compiler: gcc
+      before_install: sudo apt-get install -y clang-format
+      script: sh .ci/check-format.sh
