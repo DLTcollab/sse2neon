@@ -78,6 +78,14 @@
 
 typedef float32x2_t __m64;
 typedef float32x4_t __m128;
+// On ARM 32-bit architecture, the float64x2_t is not supported.
+// The data type __m128d should be repesented in a different way for related
+// intrinsic conversion.
+#if defined(__aarch64__)
+typedef float64x2_t __m128d;
+#else
+typedef float32x4_t __m128d;
+#endif
 typedef int64x1_t __m64i;
 typedef int64x2_t __m128i;
 
@@ -573,6 +581,21 @@ FORCE_INLINE __m128 _mm_loadu_ps(const float *p)
     // for neon, alignment doesn't matter, so _mm_load_ps and _mm_loadu_ps are
     // equivalent for neon
     return vreinterpretq_m128_f32(vld1q_f32(p));
+}
+
+// Loads a double-precision, floating-point value.
+// The upper double-precision, floating-point is set to zero. The address p does
+// not need to be 16-byte aligned.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/574w9fdd(v%3dvs.100)
+FORCE_INLINE __m128d _mm_load_sd(const double *p)
+{
+#if defined(__aarch64__)
+    return vsetq_lane_f64(*p, vdupq_n_f64(0), 0);
+#else
+    const float *fp = (const float *) p;
+    float ALIGN_STRUCT(16) data[4] = {fp[0], fp[1], 0, 0};
+    return vld1q_f32(data);
+#endif
 }
 
 // Loads an single - precision, floating - point value into the low word and
