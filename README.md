@@ -10,6 +10,19 @@ Rewriting code written for SSE to work on Neon is very time consuming. and
 this is a header file that can automatically convert some of the SSE
 intrinsics into NEON intrinsics.
 
+Header file | Extension |
+---|---|
+`<mmintrin.h>` | MMX |
+`<xmmintrin.h>` | SSE |
+`<emmintrin.h>` |SSE2 |
+`<pmmintrin.h>` | SSE3 |
+`<tmmintrin.h>` | SSSE3 |
+`<smmintrin.h>` | SSE4.1 |
+`<nmmintrin.h>` | SSE4.2 |
+`<wmmintrin.h>` | AES  |
+
+`sse2neon` aims to support SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2 and AES extension.
+
 ## Usage
 
 - Put the file `sse2neon.h` in to your source code directory.
