@@ -221,6 +221,32 @@ FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
 #endif
 #endif
 
+/* Function Naming Conventions
+ * The naming convention of SSE intrinsics is straightforward. A generic SSE
+ * intrinsic function is given as follows:
+ *   _mm_<name>_<data_type>
+ *
+ * The parts of this format are given as follows:
+ * 1. <name> describes the operation performed by the intrinsic
+ * 2. <data_type> identifies the data type of the function's primary arguments
+ *
+ * This last part, <data_type>, is a little complicated. It identifies the
+ * content of the input values, and can be set to any of the following values:
+ * + ps - vectors contain floats (ps stands for packed single-precision)
+ * + pd - vectors cantain doubles (pd stands for packed double-precision)
+ * + epi8/epi16/epi32/epi64 - vectors contain 8-bit/16-bit/32-bit/64-bit
+ *                            signed integers
+ * + epu8/epu16/epu32/epu64 - vectors contain 8-bit/16-bit/32-bit/64-bit
+ *                            unsigned integers
+ * + si128 - unspecified 128-bit vector or 256-bit vector
+ * + m128/m128i/m128d - identifies input vector types when they are different
+ *                      than the type of the returned vector
+ *
+ * For example, _mm_setzero_ps. The _mm implies that the function returns
+ * a 128-bit vector. The _ps at the end implies that the argument vectors
+ * contain floats.
+ */
+
 /* Set/get methods */
 
 // Loads one cache line of data from address p to a location closer to the
