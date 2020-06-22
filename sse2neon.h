@@ -1163,8 +1163,8 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 
 // Shuffles the 4 signed or unsigned 32-bit integers in a as specified by imm.
 // https://msdn.microsoft.com/en-us/library/56f67xbk%28v=vs.90%29.aspx
-// FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a, __constrange(0,255) int
-// imm)
+// FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a,
+//                                        __constrange(0,255) int imm)
 #if defined(__clang__)
 #define _mm_shuffle_epi32(a, imm)                              \
     __extension__({                                            \
@@ -1268,7 +1268,8 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // by imm.
 // https://msdn.microsoft.com/en-us/library/13ywktbs(v=vs.100).aspx
 // FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a,
-// __constrange(0,255) int imm)
+//                                                   __constrange(0,255) int
+//                                                   imm)
 #define _mm_shufflehi_epi16_function(a, imm)                                   \
     __extension__({                                                            \
         int16x8_t ret = vreinterpretq_s16_m128i(a);                            \
@@ -3436,8 +3437,8 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 
 // Inserts the least significant 8 bits of b into the selected 8-bit integer
 // of a.
-// FORCE_INLINE __m128i _mm_insert_epi8(__m128i a, const int b,
-// __constrange(0,16) int imm)
+// FORCE_INLINE __m128i _mm_insert_epi8(__m128i a, int b,
+//                                      __constrange(0,16) int imm)
 #define _mm_insert_epi8(a, b, imm)                                 \
     __extension__({                                                \
         vreinterpretq_m128i_s8(                                    \
@@ -3454,8 +3455,8 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 // Inserts the least significant 16 bits of b into the selected 16-bit integer
 // of a.
 // https://msdn.microsoft.com/en-us/library/kaze8hz1%28v=vs.100%29.aspx
-// FORCE_INLINE __m128i _mm_insert_epi16(__m128i a, const int b,
-// __constrange(0,8) int imm)
+// FORCE_INLINE __m128i _mm_insert_epi16(__m128i a, int b,
+//                                       __constrange(0,8) int imm)
 #define _mm_insert_epi16(a, b, imm)                                  \
     __extension__({                                                  \
         vreinterpretq_m128i_s16(                                     \
@@ -3470,8 +3471,8 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 
 // Inserts the least significant 32 bits of b into the selected 32-bit integer
 // of a.
-// FORCE_INLINE __m128i _mm_insert_epi32(__m128i a, const int b,
-// __constrange(0,4) int imm)
+// FORCE_INLINE __m128i _mm_insert_epi32(__m128i a, int b,
+//                                       __constrange(0,4) int imm)
 #define _mm_insert_epi32(a, b, imm)                                  \
     __extension__({                                                  \
         vreinterpretq_m128i_s32(                                     \
@@ -3486,8 +3487,8 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 
 // Inserts the least significant 64 bits of b into the selected 64-bit integer
 // of a.
-// FORCE_INLINE __m128i _mm_insert_epi64(__m128i a, const __int64 b,
-// __constrange(0,2) int imm)
+// FORCE_INLINE __m128i _mm_insert_epi64(__m128i a, __int64 b,
+//                                       __constrange(0,2) int imm)
 #define _mm_insert_epi64(a, b, imm)                                  \
     __extension__({                                                  \
         vreinterpretq_m128i_s64(                                     \
