@@ -76,18 +76,24 @@
 /* indicate immediate constant argument in a given range */
 #define __constrange(a, b) const
 
+/* A few intrinsics accept traditional data types like ints or floats, but
+ * most operate on data types that are specific to SSE.
+ * If a vector type ends in d, it contains doubles, and if it does not have
+ * a suffix, it contains floats. An integer vector type can contain any type
+ * of integer, from chars to shorts to unsigned long longs.
+ */
 typedef float32x2_t __m64;
-typedef float32x4_t __m128;
+typedef float32x4_t __m128; /* 128-bit vector containing 4 floats */
 // On ARM 32-bit architecture, the float64x2_t is not supported.
 // The data type __m128d should be repesented in a different way for related
 // intrinsic conversion.
 #if defined(__aarch64__)
-typedef float64x2_t __m128d;
+typedef float64x2_t __m128d; /* 128-bit vector containing 2 doubles */
 #else
 typedef float32x4_t __m128d;
 #endif
 typedef int64x1_t __m64i;
-typedef int64x2_t __m128i;
+typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 
 /* type-safe casting between types */
 
