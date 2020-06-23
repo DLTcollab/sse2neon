@@ -1108,7 +1108,7 @@ bool test_mm_shuffle_ps(const float *_a, const float *_b)
     __m128 a = test_mm_load_ps(_a);
     __m128 b = test_mm_load_ps(_b);
     // Test many permutations of the shuffle operation, including all
-    // permutations which have an optmized/custom implementation
+    // permutations which have an optimized/customized implementation
     __m128 ret;
     ret = _mm_shuffle_ps(a, b, _MM_SHUFFLE(0, 1, 2, 3));
     if (!validateFloat(ret, _b[0], _b[1], _a[2], _a[3])) {

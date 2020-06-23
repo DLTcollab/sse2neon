@@ -85,7 +85,7 @@
 typedef float32x2_t __m64;
 typedef float32x4_t __m128; /* 128-bit vector containing 4 floats */
 // On ARM 32-bit architecture, the float64x2_t is not supported.
-// The data type __m128d should be repesented in a different way for related
+// The data type __m128d should be represented in a different way for related
 // intrinsic conversion.
 #if defined(__aarch64__)
 typedef float64x2_t __m128d; /* 128-bit vector containing 2 doubles */
