@@ -105,6 +105,15 @@ Once the conversion is implemented, the test can be added with the following ste
     }
     ```
 
+## Adoptions
+Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
+* [Apache Kudu](https://kudu.apache.org/) completes Hadoop's storage layer to enable fast analytics on fast data.
+* [FoundationDB](https://www.foundationdb.org) is a distributed database designed to handle large volumes of structured data across clusters of commodity servers.
+* [MMseqs2](https://github.com/soedinglab/MMseqs2) (Many-against-Many sequence searching) is a software suite to search and cluster huge protein and nucleotide sequence sets.
+* [OpenXRay](https://github.com/OpenXRay/xray-16) is an improved version of the X-Ray engine, used in world famous S.T.A.L.K.E.R. game series by GSC Game World.
+* [Pygame](https://www.pygame.org) is cross-platform and designed to make it easy to write multimedia software, such as games, in Python.
+* [srsLTE](https://github.com/srsLTE/srsLTE) is an Open source SDR LTE software suite.
+
 ## Related Projects
 * [SIMDe](https://github.com/nemequ/simde): fast and portable implementations of SIMD
   intrinsics on hardware which doesn't natively support them, such as calling SSE functions on ARM.
