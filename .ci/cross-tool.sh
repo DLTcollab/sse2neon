@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-LINARO=https://releases.linaro.org/components/toolchain/binaries/latest-7
-GCC_REL=gcc-linaro-7.5.0-2019.12
+ARM_DEV=https://developer.arm.com/-/media/Files/downloads/gnu-a
+GCC_REL=9.2-2019.12
 
 MACHINE_TYPE=`uname -m`
 if [ ${MACHINE_TYPE} != 'x86_64' ]; then
@@ -15,10 +15,12 @@ fi
 
 set -x
 
+sudo apt-get install -y curl xz-utils qemu-user
+
 curl -L \
-    ${LINARO}/arm-linux-gnueabihf/${GCC_REL}-x86_64_arm-linux-gnueabihf.tar.xz \
+    ${ARM_DEV}/${GCC_REL}/binrel/gcc-arm-${GCC_REL}-x86_64-arm-none-linux-gnueabihf.tar.xz \
     | tar -Jx || exit 1
 
 curl -L \
-    ${LINARO}/aarch64-linux-gnu/${GCC_REL}-x86_64_aarch64-linux-gnu.tar.xz \
+    ${ARM_DEV}/${GCC_REL}/binrel/gcc-arm-${GCC_REL}-x86_64-aarch64-none-linux-gnu.tar.xz \
     | tar -Jx || exit 1
