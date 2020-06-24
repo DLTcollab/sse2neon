@@ -52,7 +52,7 @@ Header file | Extension |
 
 ## Run Built-in Test Suite
 
-`sse2neon` provides a unified interface test cases for developers. These test
+`sse2neon` provides a unified interface for developing test cases. These test
 cases are located in `tests` directory, and the input data is specified at
 runtime. Use the following commands to perform test cases:
 ```shell
