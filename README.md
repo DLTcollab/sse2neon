@@ -8,8 +8,10 @@ A C/C++ header file that converts Intel SSE intrinsics to Arm/Aarch64 NEON intri
 to Arm NEON, shortening the time needed to get an Arm working program that then
 can be used to extract profiles and to identify hot paths in the code.
 The header file `sse2neon.h` contains several of the functions provided by Intel
-intrinsic headers such as `<xmmintrin.h>`, only implemented with NEON instructions
+intrinsic headers such as `<xmmintrin.h>`, only implemented with NEON-based counterparts
 to produce the exact semantics of the intrinsics.
+
+## Mapping and Coverage
 
 Header file | Extension |
 ---|---|
@@ -23,6 +25,14 @@ Header file | Extension |
 `<wmmintrin.h>` | AES  |
 
 `sse2neon` aims to support SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2 and AES extension.
+
+In order to deliver NEON-equivalent intrinsics for all SSE intrinsics used widely,
+please be aware that some SSE intrinsics exist a direct mapping with a concrete
+NEON-equivalent intrinsic. However, others lack of 1-to-1 mapping, that means the
+equivalents are implemented using several NEON intrinsics.
+
+For example, SSE intrinsic `_mm_loadu_si128` has a direct NEON mapping (`vld1q_s32`),
+but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instructions.
 
 ## Usage
 
