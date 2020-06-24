@@ -2,11 +2,12 @@
 
 A C/C++ header file that converts Intel SSE intrinsics to Arm/Aarch64 NEON intrinsics.
 
-## Information
+## Introduction
 
 `sse2neon` is a translator of Intel SSE (Streaming SIMD Extensions) intrinsics
-to Arm NEON, shortening the time needed to get an Arm working program that then
-can be used to extract profiles and to identify hot paths in the code.
+to [Arm NEON](https://developer.arm.com/architectures/instruction-sets/simd-isas/neon),
+shortening the time needed to get an Arm working program that then can be used to
+extract profiles and to identify hot paths in the code.
 The header file `sse2neon.h` contains several of the functions provided by Intel
 intrinsic headers such as `<xmmintrin.h>`, only implemented with NEON-based counterparts
 to produce the exact semantics of the intrinsics.
