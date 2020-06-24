@@ -15,7 +15,7 @@ Header file | Extension |
 ---|---|
 `<mmintrin.h>` | MMX |
 `<xmmintrin.h>` | SSE |
-`<emmintrin.h>` |SSE2 |
+`<emmintrin.h>` | SSE2 |
 `<pmmintrin.h>` | SSE3 |
 `<tmmintrin.h>` | SSSE3 |
 `<smmintrin.h>` | SSE4.1 |
@@ -33,16 +33,22 @@ Header file | Extension |
 #include <xmmintrin.h>
 #include <emmintrin.h>
 ```
+  {p,t,s,n,w}mmintrin.h should be replaceable, but the coverage of these extensions might be limited though.
 
-- Replace them with : 
+- Replace them with:
 ```C
 #include "sse2neon.h"
 ```
 
-- On ARMv7-A targets, you need to append the following compiler option:
-```shell
--mfpu=neon
-```
+- Explicitly specify platform-specific options to gcc/clang compilers.
+  * On ARMv8-A targets, you should specify the following compiler option: (Remove `crypto` if your architecture does not support cryptographic extension)
+  ```shell
+  -march=armv8-a+fp+simd+crypto
+  ```
+  * On ARMv7-A targets, you need to append the following compiler option:
+  ```shell
+  -mfpu=neon
+  ```
 
 ## Run Built-in Test Suite
 
