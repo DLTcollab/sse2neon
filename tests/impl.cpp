@@ -28,8 +28,7 @@
 #endif
 
 typedef union ALIGN_STRUCT(16) SIMDVec {
-    float
-        m128_f32[4];  // as floats - do not to use this.  Added for convenience.
+    float m128_f32[4];     // as floats - DON'T USE. Added for convenience.
     int8_t m128_i8[16];    // as signed 8-bit integers.
     int16_t m128_i16[8];   // as signed 16-bit integers.
     int32_t m128_i32[4];   // as signed 32-bit integers.
