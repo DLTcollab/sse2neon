@@ -249,6 +249,18 @@ FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
 
 /* Set/get methods */
 
+/* Constants for use with _mm_prefetch.  */
+enum _mm_hint {
+    _MM_HINT_NTA = 0,  /* load data to L1 and L2 cache, mark it as NTA */
+    _MM_HINT_T0 = 1,   /* load data to L1 and L2 cache */
+    _MM_HINT_T1 = 2,   /* load data to L2 cache only */
+    _MM_HINT_T2 = 3,   /* load data to L2 cache only, mark it as NTA */
+    _MM_HINT_ENTA = 4, /* exclusive version of _MM_HINT_NTA */
+    _MM_HINT_ET0 = 5,  /* exclusive version of _MM_HINT_T0 */
+    _MM_HINT_ET1 = 6,  /* exclusive version of _MM_HINT_T1 */
+    _MM_HINT_ET2 = 7   /* exclusive version of _MM_HINT_T2 */
+};
+
 // Loads one cache line of data from address p to a location closer to the
 // processor. https://msdn.microsoft.com/en-us/library/84szxsww(v=vs.100).aspx
 FORCE_INLINE void _mm_prefetch(const void *p, int i)
