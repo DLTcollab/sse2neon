@@ -62,6 +62,13 @@
 
 #include <arm_neon.h>
 
+/* "__has_builtin" can be used to query support for built-in functions
+ * provided by gcc/clang and other compilers that support it.
+ */
+#ifndef __has_builtin
+#define __has_builtin(x) 0  // Compatibility with non-{clang,gcc-10} compilers
+#endif
+
 /**
  * MACRO for shuffle parameter for _mm_shuffle_ps().
  * Argument fp3 is a digit[0123] that represents the fp from argument "b"
@@ -1024,7 +1031,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
 
 // FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255)
 // int imm)
-#if defined(__clang__)
+#if __has_builtin(__builtin_shufflevector)
 #define _mm_shuffle_ps(a, b, imm)                                \
     __extension__({                                              \
         float32x4_t _input1 = vreinterpretq_f32_m128(a);         \
@@ -1096,7 +1103,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_default(__m128 a,
         }                                                  \
         ret;                                               \
     })
-#endif  // not clang
+#endif
 
 // Takes the upper 64 bits of a and places it in the low end of the result
 // Takes the lower 64 bits of a and places it into the high end of the result.
@@ -1259,7 +1266,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 // https://msdn.microsoft.com/en-us/library/56f67xbk%28v=vs.90%29.aspx
 // FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a,
 //                                        __constrange(0,255) int imm)
-#if defined(__clang__)
+#if __has_builtin(__builtin_shufflevector)
 #define _mm_shuffle_epi32(a, imm)                              \
     __extension__({                                            \
         int32x4_t _input = vreinterpretq_s32_m128i(a);         \
@@ -1321,7 +1328,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
         }                                                \
         ret;                                             \
     })
-#endif  // not clang
+#endif
 
 // Shuffles the lower 4 signed or unsigned 16-bit integers in a as specified
 // by imm.
@@ -1345,7 +1352,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 
 // FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a,
 //                                          __constrange(0,255) int imm)
-#if defined(__clang__)
+#if __has_builtin(__builtin_shufflevector)
 #define _mm_shufflelo_epi16(a, imm)                                  \
     __extension__({                                                  \
         int16x8_t _input = vreinterpretq_s16_m128i(a);               \
@@ -1380,7 +1387,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi32_default(__m128i a,
 
 // FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a,
 //                                          __constrange(0,255) int imm)
-#if defined(__clang__)
+#if __has_builtin(__builtin_shufflevector)
 #define _mm_shufflehi_epi16(a, imm)                             \
     __extension__({                                             \
         int16x8_t _input = vreinterpretq_s16_m128i(a);          \
