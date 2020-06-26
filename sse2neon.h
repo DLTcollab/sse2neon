@@ -3888,7 +3888,11 @@ FORCE_INLINE void _mm_sfence(void)
 // https://msdn.microsoft.com/en-us/library/ba08y07y%28v=vs.90%29.aspx
 FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 {
+#if __has_builtin(__builtin_nontemporal_store)
+    __builtin_nontemporal_store(a, p);
+#else
     vst1q_s64((int64_t *) p, vreinterpretq_s64_m128i(a));
+#endif
 }
 
 // Cache line containing p is flushed and invalidated from all caches in the
