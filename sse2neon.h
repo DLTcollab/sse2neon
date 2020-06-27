@@ -1679,6 +1679,19 @@ FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
 // https://msdn.microsoft.com/en-us/library/vstudio/s090c8fk(v=vs.100).aspx
 FORCE_INLINE int _mm_movemask_epi8(__m128i a)
 {
+#if defined(__aarch64__)
+    uint8x16_t input = vreinterpretq_u8_m128i(a);
+    const int8_t ALIGN_STRUCT(16)
+        xr[16] = {-7, -6, -5, -4, -3, -2, -1, 0, -7, -6, -5, -4, -3, -2, -1, 0};
+    const uint8x16_t mask_and = vdupq_n_u8(0x80);
+    const int8x16_t mask_shift = vld1q_s8(xr);
+    const uint8x16_t mask_result =
+        vshlq_u8(vandq_u8(input, mask_and), mask_shift);
+    uint8x8_t lo = vget_low_u8(mask_result);
+    uint8x8_t hi = vget_high_u8(mask_result);
+
+    return vaddv_u8(lo) + (vaddv_u8(hi) << 8);
+#else
     // Use increasingly wide shifts+adds to collect the sign bits
     // together.
     // Since the widening shifts would be rather confusing to follow in little
@@ -1755,6 +1768,7 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
     //                      d2
     // Note: Little endian would return the correct value 4b (01001011) instead.
     return vgetq_lane_u8(paired64, 0) | ((int) vgetq_lane_u8(paired64, 8) << 8);
+#endif
 }
 
 // NEON does not provide this method
