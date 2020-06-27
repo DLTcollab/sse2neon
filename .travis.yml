@@ -1,4 +1,4 @@
-language: c++
+language: cpp
 
 arch:
   - arm64
