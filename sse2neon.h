@@ -1763,8 +1763,14 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
 // https://msdn.microsoft.com/en-us/library/vstudio/4490ys29(v=vs.100).aspx
 FORCE_INLINE int _mm_movemask_ps(__m128 a)
 {
-    // Uses the exact same method as _mm_movemask_epi8, see that for details
     uint32x4_t input = vreinterpretq_u32_m128(a);
+#if defined(__aarch64__)
+    static const int32x4_t shift = {-31, -30, -29, -28};
+    static const uint32x4_t highbit = {0x80000000, 0x80000000, 0x80000000,
+                                       0x80000000};
+    return vaddvq_u32(vshlq_u32(vandq_u32(input, highbit), shift));
+#else
+    // Uses the exact same method as _mm_movemask_epi8, see that for details.
     // Shift out everything but the sign bits with a 32-bit unsigned shift
     // right.
     uint64x2_t high_bits = vreinterpretq_u64_u32(vshrq_n_u32(input, 31));
@@ -1773,6 +1779,7 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
         vreinterpretq_u8_u64(vsraq_n_u64(high_bits, high_bits, 31));
     // Extract the result.
     return vgetq_lane_u8(paired, 0) | (vgetq_lane_u8(paired, 8) << 2);
+#endif
 }
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and
