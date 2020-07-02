@@ -18,6 +18,7 @@
 //   Malcolm James MacLeod <malcolm@gulden.com>
 //   Devin Hussey (easyaspi314) <husseydevin@gmail.com>
 //   Sebastian Pop <spop@amazon.com>
+//   Developer Ecosystem Engineering <DeveloperEcosystemEngineering@apple.com>
 
 /*
  * The MIT license:
