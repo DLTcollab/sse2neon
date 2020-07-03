@@ -453,6 +453,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CMPEQ_EPI16:
         ret = "MM_CMPEQ_EPI16";
         break;
+    case IT_MM_CMPEQ_EPI64:
+        ret = "MM_CMPEQ_EPI64";
+        break;
 
     case IT_MM_SET1_EPI8:
         ret = "MM_SET1_EPI8";
@@ -1979,6 +1982,17 @@ bool test_mm_cmpeq_epi16(const int16_t *_a, const int16_t *_b)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+bool test_mm_cmpeq_epi64(const int64_t *_a, const int64_t *_b)
+{
+    int64_t d0 = (_a[0] == _b[0]) ? 0xffffffffffffffff : 0x0;
+    int64_t d1 = (_a[1] == _b[1]) ? 0xffffffffffffffff : 0x0;
+
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = test_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_cmpeq_epi64(a, b);
+    return validateInt64(c, d1, d0);
+}
+
 bool test_mm_set1_epi8(const int8_t *_a)
 {
     int8_t d0 = _a[0];
@@ -3178,6 +3192,10 @@ public:
         case IT_MM_CMPEQ_EPI16:
             ret = test_mm_cmpeq_epi16((const int16_t *) mTestIntPointer1,
                                       (const int16_t *) mTestIntPointer2);
+            break;
+        case IT_MM_CMPEQ_EPI64:
+            ret = test_mm_cmpeq_epi64((const int64_t *) mTestIntPointer1,
+                                      (const int64_t *) mTestIntPointer2);
             break;
         case IT_MM_SET1_EPI8:
             ret = test_mm_set1_epi8((const int8_t *) mTestIntPointer1);
