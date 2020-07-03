@@ -130,6 +130,7 @@ enum InstructionTest {
     IT_MM_SRA_EPI32,   // Unit test implemented and verified as fully working
     IT_MM_SRLI_EPI16,
     IT_MM_CMPEQ_EPI16,
+    IT_MM_CMPEQ_EPI64,
 
     IT_MM_SET1_EPI8,
     IT_MM_ADDS_EPU8,
