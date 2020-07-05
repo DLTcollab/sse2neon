@@ -537,6 +537,18 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_MALLOC:
         ret = "IT_MM_MALLOC";
         break;
+    case IT_MM_CRC32_U8:
+        ret = "IT_MM_CRC32_U8";
+        break;
+    case IT_MM_CRC32_U16:
+        ret = "IT_MM_CRC32_U16";
+        break;
+    case IT_MM_CRC32_U32:
+        ret = "IT_MM_CRC32_U32";
+        break;
+    case IT_MM_CRC32_U64:
+        ret = "IT_MM_CRC32_U64";
+        break;
     case IT_LAST: /* should not happend */
         break;
     }
@@ -2765,6 +2777,67 @@ bool test_mm_malloc(const size_t *a, const size_t *b)
     return res;
 }
 
+uint32_t canonical_crc32_u8(uint32_t crc, uint8_t v)
+{
+    crc ^= v;
+    for (int bit = 0; bit < 8; bit++) {
+        if (crc & 1)
+            crc = (crc >> 1) ^ uint32_t(0x82f63b78);
+        else
+            crc = (crc >> 1);
+    }
+    return crc;
+}
+
+uint32_t canonical_crc32_u16(uint32_t crc, uint16_t v)
+{
+    crc = canonical_crc32_u8(crc, v & 0xff);
+    crc = canonical_crc32_u8(crc, (v >> 8) & 0xff);
+    return crc;
+}
+
+uint32_t canonical_crc32_u32(uint32_t crc, uint32_t v)
+{
+    crc = canonical_crc32_u16(crc, v & 0xffff);
+    crc = canonical_crc32_u16(crc, (v >> 16) & 0xffff);
+    return crc;
+}
+
+uint64_t canonical_crc32_u64(uint64_t crc, uint64_t v)
+{
+    crc = canonical_crc32_u32((uint32_t)(crc), v & 0xffffffff);
+    crc = canonical_crc32_u32((uint32_t)(crc), (v >> 32) & 0xffffffff);
+    return crc;
+}
+
+bool test_mm_crc32_u8(uint32_t crc, uint8_t v)
+{
+    uint32_t result = _mm_crc32_u8(crc, v);
+    ASSERT_RETURN(result == canonical_crc32_u8(crc, v));
+    return true;
+}
+
+bool test_mm_crc32_u16(uint32_t crc, uint16_t v)
+{
+    uint32_t result = _mm_crc32_u16(crc, v);
+    ASSERT_RETURN(result == canonical_crc32_u16(crc, v));
+    return true;
+}
+
+bool test_mm_crc32_u32(uint32_t crc, uint32_t v)
+{
+    uint32_t result = _mm_crc32_u32(crc, v);
+    ASSERT_RETURN(result == canonical_crc32_u32(crc, v));
+    return true;
+}
+
+bool test_mm_crc32_u64(uint64_t crc, uint64_t v)
+{
+    uint64_t result = _mm_crc32_u64(crc, v);
+    ASSERT_RETURN(result == canonical_crc32_u64(crc, v));
+    return true;
+}
+
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
 
@@ -3295,6 +3368,20 @@ public:
         case IT_MM_MALLOC:
             ret = test_mm_malloc((const size_t *) mTestIntPointer1,
                                  (const size_t *) mTestIntPointer2);
+            break;
+        case IT_MM_CRC32_U8:
+            ret = test_mm_crc32_u8(*(const uint32_t *) mTestIntPointer1, i);
+            break;
+        case IT_MM_CRC32_U16:
+            ret = test_mm_crc32_u16(*(const uint32_t *) mTestIntPointer1, i);
+            break;
+        case IT_MM_CRC32_U32:
+            ret = test_mm_crc32_u32(*(const uint32_t *) mTestIntPointer1,
+                                    *(const uint32_t *) mTestIntPointer2);
+            break;
+        case IT_MM_CRC32_U64:
+            ret = test_mm_crc32_u64(*(const uint64_t *) mTestIntPointer1,
+                                    *(const uint64_t *) mTestIntPointer2);
             break;
         case IT_LAST: /* should not happend */
             break;

@@ -3946,6 +3946,63 @@ FORCE_INLINE void _mm_free(void *addr)
     free(addr);
 }
 
+FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
+{
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+    __asm__ __volatile__("crc32cb %w[c], %w[c], %w[v]\n\t"
+                         : [c] "+r"(crc)
+                         : [v] "r"(v));
+#else
+    crc ^= v;
+    for (int bit = 0; bit < 8; bit++) {
+        if (crc & 1)
+            crc = (crc >> 1) ^ uint32_t(0x82f63b78);
+        else
+            crc = (crc >> 1);
+    }
+#endif
+    return crc;
+}
+
+FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
+{
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+    __asm__ __volatile__("crc32ch %w[c], %w[c], %w[v]\n\t"
+                         : [c] "+r"(crc)
+                         : [v] "r"(v));
+#else
+    crc = _mm_crc32_u8(crc, v & 0xff);
+    crc = _mm_crc32_u8(crc, (v >> 8) & 0xff);
+#endif
+    return crc;
+}
+
+FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
+{
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+    __asm__ __volatile__("crc32cw %w[c], %w[c], %w[v]\n\t"
+                         : [c] "+r"(crc)
+                         : [v] "r"(v));
+#else
+    crc = _mm_crc32_u16(crc, v & 0xffff);
+    crc = _mm_crc32_u16(crc, (v >> 16) & 0xffff);
+#endif
+    return crc;
+}
+
+FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
+{
+#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+    __asm__ __volatile__("crc32cx %w[c], %w[c], %x[v]\n\t"
+                         : [c] "+r"(crc)
+                         : [v] "r"(v));
+#else
+    crc = _mm_crc32_u32((uint32_t)(crc), v & 0xffffffff);
+    crc = _mm_crc32_u32((uint32_t)(crc), (v >> 32) & 0xffffffff);
+#endif
+    return crc;
+}
+
 #if defined(__GNUC__) || defined(__clang__)
 #pragma pop_macro("ALIGN_STRUCT")
 #pragma pop_macro("FORCE_INLINE")

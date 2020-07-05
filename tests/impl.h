@@ -159,6 +159,10 @@ enum InstructionTest {
 #endif
     IT_MM_CLMULEPI64_SI128,
     IT_MM_MALLOC,
+    IT_MM_CRC32_U8,   // Unit test implemented
+    IT_MM_CRC32_U16,  // Unit test implemented
+    IT_MM_CRC32_U32,  // Unit test implemented
+    IT_MM_CRC32_U64,  // Unit test implemented
     IT_LAST
 };
 
