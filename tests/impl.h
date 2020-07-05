@@ -126,6 +126,11 @@ enum InstructionTest {
     IT_MM_SET_EPI16,
     IT_MM_SLLI_EPI16,  // Unit test implemented
     IT_MM_SLL_EPI16,   // Unit test implemented
+    IT_MM_SLL_EPI32,   // Unit test implemented
+    IT_MM_SLL_EPI64,   // Unit test implemented
+    IT_MM_SRL_EPI16,   // Unit test implemented
+    IT_MM_SRL_EPI32,   // Unit test implemented
+    IT_MM_SRL_EPI64,   // Unit test implemented
     IT_MM_SRA_EPI16,   // Unit test implemented and verified as fully working
     IT_MM_SRA_EPI32,   // Unit test implemented and verified as fully working
     IT_MM_SRLI_EPI16,
