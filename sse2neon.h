@@ -3623,10 +3623,12 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_popcnt_u32
 FORCE_INLINE int _mm_popcnt_u32(unsigned int a)
 {
-#ifdef __GNUC__
+#if defined(__aarch64__)
+#if defined(__GNUC__)
     return __builtin_popcount(a);
-#elif defined(__aarch64__)
+#else
     return (int) vaddlv_u8(vcnt_u8(vcreate_u8((uint64_t) a)));
+#endif
 #else
     uint32_t count = 0;
     uint8x8_t input_val, count8x8_val;
@@ -3648,10 +3650,12 @@ FORCE_INLINE int _mm_popcnt_u32(unsigned int a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_popcnt_u64
 FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 {
-#ifdef __GNUC__
+#if defined(__aarch64__)
+#if defined(__GNUC__)
     return __builtin_popcountll(a);
-#elif defined(__aarch64__)
+#else
     return (int64_t) vaddlv_u8(vcnt_u8(vcreate_u8(a)));
+#endif
 #else
     uint64_t count = 0;
     uint8x8_t input_val, count8x8_val;
