@@ -40,7 +40,7 @@ but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instru
 
 - Put the file `sse2neon.h` in to your source code directory.
 
-- Locate the following SSE header files included in the code: 
+- Locate the following SSE header files included in the code:
 ```C
 #include <xmmintrin.h>
 #include <emmintrin.h>
@@ -53,9 +53,9 @@ but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instru
 ```
 
 - Explicitly specify platform-specific options to gcc/clang compilers.
-  * On ARMv8-A targets, you should specify the following compiler option: (Remove `crypto` if your architecture does not support cryptographic extension)
+  * On ARMv8-A targets, you should specify the following compiler option: (Remove `crypto` and/or `crc` if your architecture does not support cryptographic and/or CRC32 extensions)
   ```shell
-  -march=armv8-a+fp+simd+crypto
+  -march=armv8-a+fp+simd+crypto+crc
   ```
   * On ARMv7-A targets, you need to append the following compiler option:
   ```shell
