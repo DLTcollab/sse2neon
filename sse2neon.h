@@ -1976,6 +1976,21 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
         vqsubq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
+// Subtracts the 16 signed 8-bit integers of b from the 16 signed 8-bit integers
+// of a and saturates.
+//
+//   r0 := SignedSaturate(a0 - b0)
+//   r1 := SignedSaturate(a1 - b1)
+//   ...
+//   r15 := SignedSaturate(a15 - b15)
+//
+// https://technet.microsoft.com/en-us/subscriptions/by7kzks1(v=vs.90)
+FORCE_INLINE __m128i _mm_subs_epi8(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_s8(
+        vqsubq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+}
+
 // Subtracts the 8 signed 16-bit integers of b from the 8 signed 16-bit integers
 // of a and saturates.
 //
@@ -1983,6 +1998,8 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
 //   r1 := SignedSaturate(a1 - b1)
 //   ...
 //   r7 := SignedSaturate(a7 - b7)
+//
+// https://technet.microsoft.com/en-us/subscriptions/3247z5b8(v=vs.90)
 FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s16(
@@ -3682,6 +3699,10 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 // FORCE_INLINE int _mm_extract_epi32(__m128i a, __constrange(0,4) int imm)
 #define _mm_extract_epi32(a, imm) \
     vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm))
+
+// Extracts the selected single-precision (32-bit) floating-point from a.
+// FORCE_INLINE int _mm_extract_ps(__m128 a, __constrange(0,4) int imm)
+#define _mm_extract_ps(a, imm) vgetq_lane_s32(vreinterpretq_s32_m128(a), (imm))
 
 // Inserts the least significant 32 bits of b into the selected 32-bit integer
 // of a.
