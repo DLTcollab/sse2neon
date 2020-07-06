@@ -66,8 +66,15 @@
 /* "__has_builtin" can be used to query support for built-in functions
  * provided by gcc/clang and other compilers that support it.
  */
-#ifndef __has_builtin
-#define __has_builtin(x) 0  // Compatibility with non-{clang,gcc-10} compilers
+#ifndef __has_builtin /* GCC prior to 10 or non-clang compilers */
+/* Compatibility with gcc <= 9 */
+#if __GNUC__ <= 9
+#define __has_builtin(x) HAS##x
+#define HAS__builtin_popcount 1
+#define HAS__builtin_popcountll 1
+#else
+#define __has_builtin(x) 0
+#endif
 #endif
 
 /**
