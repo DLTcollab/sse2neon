@@ -3946,6 +3946,9 @@ FORCE_INLINE void _mm_free(void *addr)
     free(addr);
 }
 
+// Starting with the initial value in crc, accumulates a CRC32 value for
+// unsigned 8-bit integer v.
+// https://msdn.microsoft.com/en-us/library/bb514036(v=vs.100)
 FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
@@ -3964,6 +3967,9 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
     return crc;
 }
 
+// Starting with the initial value in crc, accumulates a CRC32 value for
+// unsigned 16-bit integer v.
+// https://msdn.microsoft.com/en-us/library/bb531411(v=vs.100)
 FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
@@ -3977,6 +3983,9 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
     return crc;
 }
 
+// Starting with the initial value in crc, accumulates a CRC32 value for
+// unsigned 32-bit integer v.
+// https://msdn.microsoft.com/en-us/library/bb531394(v=vs.100)
 FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
@@ -3990,6 +3999,9 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
     return crc;
 }
 
+// Starting with the initial value in crc, accumulates a CRC32 value for
+// unsigned 64-bit integer v.
+// https://msdn.microsoft.com/en-us/library/bb514033(v=vs.100)
 FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
