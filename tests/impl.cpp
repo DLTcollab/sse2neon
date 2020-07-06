@@ -447,6 +447,21 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SLL_EPI16:
         ret = "IT_MM_SLL_EPI16";
         break;
+    case IT_MM_SLL_EPI32:
+        ret = "IT_MM_SLL_EPI32";
+        break;
+    case IT_MM_SLL_EPI64:
+        ret = "IT_MM_SLL_EPI64";
+        break;
+    case IT_MM_SRL_EPI16:
+        ret = "IT_MM_SRL_EPI16";
+        break;
+    case IT_MM_SRL_EPI32:
+        ret = "IT_MM_SRL_EPI32";
+        break;
+    case IT_MM_SRL_EPI64:
+        ret = "IT_MM_SRL_EPI64";
+        break;
     case IT_MM_SRLI_EPI16:
         ret = "MM_SRLI_EPI16";
         break;
@@ -1944,6 +1959,81 @@ bool test_mm_sll_epi16(const int16_t *_a, const int64_t count)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+bool test_mm_sll_epi32(const int32_t *_a, const int64_t count)
+{
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_sll_epi32(a, b);
+    if (count < 0 || count > 31)
+        return validateInt(c, 0, 0, 0, 0);
+
+    uint32_t d0 = _a[0] << count;
+    uint32_t d1 = _a[1] << count;
+    uint32_t d2 = _a[2] << count;
+    uint32_t d3 = _a[3] << count;
+    return validateInt(c, d3, d2, d1, d0);
+}
+
+bool test_mm_sll_epi64(const int64_t *_a, const int64_t count)
+{
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_sll_epi64(a, b);
+    if (count < 0 || count > 63)
+        return validateInt64(c, 0, 0);
+
+    uint64_t d0 = _a[0] << count;
+    uint64_t d1 = _a[1] << count;
+    return validateInt64(c, d1, d0);
+}
+
+bool test_mm_srl_epi16(const int16_t *_a, const int64_t count)
+{
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_srl_epi16(a, b);
+    if (count < 0 || count > 15)
+        return validateInt16(c, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    uint16_t d0 = (uint16_t)(_a[0]) >> count;
+    uint16_t d1 = (uint16_t)(_a[1]) >> count;
+    uint16_t d2 = (uint16_t)(_a[2]) >> count;
+    uint16_t d3 = (uint16_t)(_a[3]) >> count;
+    uint16_t d4 = (uint16_t)(_a[4]) >> count;
+    uint16_t d5 = (uint16_t)(_a[5]) >> count;
+    uint16_t d6 = (uint16_t)(_a[6]) >> count;
+    uint16_t d7 = (uint16_t)(_a[7]) >> count;
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
+bool test_mm_srl_epi32(const int32_t *_a, const int64_t count)
+{
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_srl_epi32(a, b);
+    if (count < 0 || count > 31)
+        return validateInt(c, 0, 0, 0, 0);
+
+    uint32_t d0 = (uint32_t)(_a[0]) >> count;
+    uint32_t d1 = (uint32_t)(_a[1]) >> count;
+    uint32_t d2 = (uint32_t)(_a[2]) >> count;
+    uint32_t d3 = (uint32_t)(_a[3]) >> count;
+    return validateInt(c, d3, d2, d1, d0);
+}
+
+bool test_mm_srl_epi64(const int64_t *_a, const int64_t count)
+{
+    __m128i a = test_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_set1_epi64x(count);
+    __m128i c = _mm_srl_epi64(a, b);
+    if (count < 0 || count > 63)
+        return validateInt64(c, 0, 0);
+
+    uint64_t d0 = (uint64_t)(_a[0]) >> count;
+    uint64_t d1 = (uint64_t)(_a[1]) >> count;
+    return validateInt64(c, d1, d0);
+}
+
 bool test_mm_srli_epi16(const int16_t *_a)
 {
     const int count = 3;
@@ -3184,6 +3274,26 @@ public:
             break;
         case IT_MM_SLL_EPI16:
             ret = test_mm_sll_epi16((const int16_t *) mTestIntPointer1,
+                                    (int64_t) i);
+            break;
+        case IT_MM_SLL_EPI32:
+            ret = test_mm_sll_epi32((const int32_t *) mTestIntPointer1,
+                                    (int64_t) i);
+            break;
+        case IT_MM_SLL_EPI64:
+            ret = test_mm_sll_epi64((const int64_t *) mTestIntPointer1,
+                                    (int64_t) i);
+            break;
+        case IT_MM_SRL_EPI16:
+            ret = test_mm_srl_epi16((const int16_t *) mTestIntPointer1,
+                                    (int64_t) i);
+            break;
+        case IT_MM_SRL_EPI32:
+            ret = test_mm_srl_epi32((const int32_t *) mTestIntPointer1,
+                                    (int64_t) i);
+            break;
+        case IT_MM_SRL_EPI64:
+            ret = test_mm_srl_epi64((const int64_t *) mTestIntPointer1,
                                     (int64_t) i);
             break;
         case IT_MM_SRLI_EPI16:

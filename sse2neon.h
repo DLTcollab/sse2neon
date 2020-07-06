@@ -1674,6 +1674,97 @@ FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
     return vreinterpretq_m128i_s16(vshlq_s16(vreinterpretq_s16_m128i(a), vc));
 }
 
+// Shifts the 4 signed or unsigned 32-bit integers in a left by count bits while
+// shifting in zeros.
+//
+// r0 := a0 << count
+// r1 := a1 << count
+// r2 := a2 << count
+// r3 := a3 << count
+//
+// https://msdn.microsoft.com/en-us/library/6fe5a6s9(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i count)
+{
+    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    if (c > 31)
+        return _mm_setzero_si128();
+
+    int32x4_t vc = vdupq_n_s32((int32_t) c);
+    return vreinterpretq_m128i_s32(vshlq_s32(vreinterpretq_s32_m128i(a), vc));
+}
+
+// Shifts the 2 signed or unsigned 64-bit integers in a left by count bits while
+// shifting in zeros.
+//
+// r0 := a0 << count
+// r1 := a1 << count
+//
+// https://msdn.microsoft.com/en-us/library/6ta9dffd(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count)
+{
+    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    if (c > 63)
+        return _mm_setzero_si128();
+
+    int64x2_t vc = vdupq_n_s64((int64_t) c);
+    return vreinterpretq_m128i_s64(vshlq_s64(vreinterpretq_s64_m128i(a), vc));
+}
+
+// Shifts the 8 signed or unsigned 16-bit integers in a right by count bits
+// while shifting in zeros.
+//
+// r0 := srl(a0, count)
+// r1 := srl(a1, count)
+// ...
+// r7 := srl(a7, count)
+//
+// https://msdn.microsoft.com/en-us/library/wd5ax830(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i count)
+{
+    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    if (c > 15)
+        return _mm_setzero_si128();
+
+    int16x8_t vc = vdupq_n_s16(-(int16_t) c);
+    return vreinterpretq_m128i_u16(vshlq_u16(vreinterpretq_u16_m128i(a), vc));
+}
+
+// Shifts the 4 signed or unsigned 32-bit integers in a right by count bits
+// while shifting in zeros.
+//
+// r0 := srl(a0, count)
+// r1 := srl(a1, count)
+// r2 := srl(a2, count)
+// r3 := srl(a3, count)
+//
+// https://msdn.microsoft.com/en-us/library/a9cbttf4(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i count)
+{
+    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    if (c > 31)
+        return _mm_setzero_si128();
+
+    int32x4_t vc = vdupq_n_s32(-(int32_t) c);
+    return vreinterpretq_m128i_u32(vshlq_u32(vreinterpretq_u32_m128i(a), vc));
+}
+
+// Shifts the 2 signed or unsigned 64-bit integers in a right by count bits
+// while shifting in zeros.
+//
+// r0 := srl(a0, count)
+// r1 := srl(a1, count)
+//
+// https://msdn.microsoft.com/en-us/library/yf6cf9k8(v%3dvs.90).aspx
+FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
+{
+    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    if (c > 63)
+        return _mm_setzero_si128();
+
+    int64x2_t vc = vdupq_n_s64(-(int64_t) c);
+    return vreinterpretq_m128i_u64(vshlq_u64(vreinterpretq_u64_m128i(a), vc));
+}
+
 // NEON does not provide a version of this function.
 // Creates a 16-bit mask from the most significant bits of the 16 signed or
 // unsigned 8-bit integers in a and zero extends the upper bits.
