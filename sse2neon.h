@@ -3743,7 +3743,7 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 FORCE_INLINE int _mm_popcnt_u32(unsigned int a)
 {
 #if defined(__aarch64__)
-#if defined(__GNUC__)
+#if __has_builtin(__builtin_popcount)
     return __builtin_popcount(a);
 #else
     return (int) vaddlv_u8(vcnt_u8(vcreate_u8((uint64_t) a)));
@@ -3770,7 +3770,7 @@ FORCE_INLINE int _mm_popcnt_u32(unsigned int a)
 FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 {
 #if defined(__aarch64__)
-#if defined(__GNUC__)
+#if __has_builtin(__builtin_popcountll)
     return __builtin_popcountll(a);
 #else
     return (int64_t) vaddlv_u8(vcnt_u8(vcreate_u8(a)));
