@@ -124,6 +124,9 @@ Once the conversion is implemented, the test can be added with the following ste
     }
     ```
 
+## Coding Convention
+Use the command `$ make indent` to follow the coding convention.
+
 ## Adoptions
 Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
 * [Apache Kudu](https://kudu.apache.org/) completes Hadoop's storage layer to enable fast analytics on fast data.
