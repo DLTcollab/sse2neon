@@ -19,9 +19,10 @@
 //   Devin Hussey (easyaspi314) <husseydevin@gmail.com>
 //   Sebastian Pop <spop@amazon.com>
 //   Developer Ecosystem Engineering <DeveloperEcosystemEngineering@apple.com>
+//   Danila Kutenin <danilak@google.com>
 
 /*
- * The MIT license:
+ * sse2neon is freely redistributable under the MIT License.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
