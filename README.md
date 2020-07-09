@@ -81,6 +81,8 @@ or
 $ make CROSS_COMPILE=arm-linux-gnueabihf- check # ARMv7-A
 ```
 
+:warning: **Warning: The test suite is based on the little-endian architecture.**
+
 ### Add More Test Items
 Once the conversion is implemented, the test can be added with the following steps:
 
