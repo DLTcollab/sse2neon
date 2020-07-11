@@ -49,7 +49,7 @@
 #define FORCE_INLINE static inline __attribute__((always_inline))
 #define ALIGN_STRUCT(x) __attribute__((aligned(x)))
 #else
-#error "Macro name collisions may happens with unknown compiler"
+#error "Macro name collisions may happen with unsupported compiler."
 #ifdef FORCE_INLINE
 #undef FORCE_INLINE
 #endif
