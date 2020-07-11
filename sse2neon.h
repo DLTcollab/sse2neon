@@ -1674,7 +1674,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
 // https://msdn.microsoft.com/en-us/library/c79w388h(v%3dvs.90).aspx
 FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
 {
-    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
     if (c > 15)
         return _mm_setzero_si128();
 
@@ -1693,7 +1693,7 @@ FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
 // https://msdn.microsoft.com/en-us/library/6fe5a6s9(v%3dvs.90).aspx
 FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i count)
 {
-    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
     if (c > 31)
         return _mm_setzero_si128();
 
@@ -1710,7 +1710,7 @@ FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i count)
 // https://msdn.microsoft.com/en-us/library/6ta9dffd(v%3dvs.90).aspx
 FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count)
 {
-    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
     if (c > 63)
         return _mm_setzero_si128();
 
@@ -1729,7 +1729,7 @@ FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count)
 // https://msdn.microsoft.com/en-us/library/wd5ax830(v%3dvs.90).aspx
 FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i count)
 {
-    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
     if (c > 15)
         return _mm_setzero_si128();
 
@@ -1748,7 +1748,7 @@ FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i count)
 // https://msdn.microsoft.com/en-us/library/a9cbttf4(v%3dvs.90).aspx
 FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i count)
 {
-    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
     if (c > 31)
         return _mm_setzero_si128();
 
@@ -1765,7 +1765,7 @@ FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i count)
 // https://msdn.microsoft.com/en-us/library/yf6cf9k8(v%3dvs.90).aspx
 FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 {
-    uint64_t c = ((SIMDVec *) &count)->m128_u64[0];
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
     if (c > 63)
         return _mm_setzero_si128();
 
