@@ -3603,9 +3603,11 @@ public:
         case IT_MM_RCP_PS:
             ret = test_mm_rcp_ps(mTestFloatPointer1);
             break;
+        // TODO: The input value should contain NaN for accurate testing
         case IT_MM_MAX_PS:
             ret = test_mm_max_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
+        // TODO: The input value should contain NaN for accurate testing
         case IT_MM_MIN_PS:
             ret = test_mm_min_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
