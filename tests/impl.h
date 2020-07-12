@@ -159,9 +159,7 @@ enum InstructionTest {
     IT_MM_AVG_EPU16,
     IT_MM_POPCNT_U32,
     IT_MM_POPCNT_U64,
-#if !defined(__arm__) && __ARM_ARCH != 7
     IT_MM_AESENC_SI128,
-#endif
     IT_MM_CLMULEPI64_SI128,
     IT_MM_MALLOC,
     IT_MM_CRC32_U8,   // Unit test implemented
