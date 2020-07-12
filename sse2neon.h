@@ -1211,9 +1211,9 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
     int8x16_t ret;
     // %e and %f represent the even and odd D registers
     // respectively.
-    __asm__(
-        "    vtbl.8  %e[ret], {%e[tbl], %f[tbl]}, %e[idx]\n"
-        "    vtbl.8  %f[ret], {%e[tbl], %f[tbl]}, %f[idx]\n"
+    __asm__ __volatile__(
+        "vtbl.8  %e[ret], {%e[tbl], %f[tbl]}, %e[idx]\n"
+        "vtbl.8  %f[ret], {%e[tbl], %f[tbl]}, %f[idx]\n"
         : [ret] "=&w"(ret)
         : [tbl] "w"(tbl), [idx] "w"(idx_masked));
     return vreinterpretq_m128i_s8(ret);
