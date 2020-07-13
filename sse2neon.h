@@ -2487,6 +2487,16 @@ FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
     return vreinterpretq_m128_f32(vrsqrteq_f32(vreinterpretq_f32_m128(in)));
 }
 
+// Compute the approximate reciprocal square root of the lower single-precision
+// (32-bit) floating-point element in a, store the result in the lower element
+// of dst, and copy the upper 3 packed elements from a to the upper elements of
+// dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_rsqrt_ss
+FORCE_INLINE __m128 _mm_rsqrt_ss(__m128 in)
+{
+    return vsetq_lane_f32(vgetq_lane_f32(_mm_rsqrt_ps(in), 0), in, 0);
+}
+
 // Computes the maximums of the four single-precision, floating-point values of
 // a and b.
 // https://msdn.microsoft.com/en-us/library/vstudio/ff5d607a(v=vs.100).aspx
