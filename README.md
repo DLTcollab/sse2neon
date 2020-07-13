@@ -138,7 +138,8 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [OpenXRay](https://github.com/OpenXRay/xray-16) is an improved version of the X-Ray engine, used in world famous S.T.A.L.K.E.R. game series by GSC Game World.
 * [PAQ8PX](https://github.com/hxim/paq8px) is one of the most powerful lossless compression software that is actively under development.
 * [Pygame](https://www.pygame.org) is cross-platform and designed to make it easy to write multimedia software, such as games, in Python.
-* [srsLTE](https://github.com/srsLTE/srsLTE) is an Open source SDR LTE software suite.
+* [srsLTE](https://github.com/srsLTE/srsLTE) is an open source SDR LTE software suite.
+* [Surge](https://github.com/surge-synthesizer/surge) is an open source digital synthesizer.
 
 ## Related Projects
 * [SIMDe](https://github.com/nemequ/simde): fast and portable implementations of SIMD
