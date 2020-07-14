@@ -2462,10 +2462,14 @@ FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
 // https://msdn.microsoft.com/en-us/library/vstudio/8z67bwwk(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vsqrtq_f32(vreinterpretq_f32_m128(in)));
+#else
     float32x4_t recipsq = vrsqrteq_f32(vreinterpretq_f32_m128(in));
     float32x4_t sq = vrecpeq_f32(recipsq);
     // ??? use step versions of both sqrt and recip for better accuracy?
     return vreinterpretq_m128_f32(sq);
+#endif
 }
 
 // Computes the approximation of the square root of the scalar single-precision
