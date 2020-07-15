@@ -89,6 +89,8 @@ Once the conversion is implemented, the test can be added with the following ste
 * File `tests/impl.h`
 
   Add the intrinsic in `enum InstructionTest`. The naming convention should be `IT_MM_XXX`.
+  And place it in the correct classification with the alphabetical order.
+  The classification can be referenced from [Intel Intrinsics Guide](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#).
 
 * File `tests/impl.cpp`
 
