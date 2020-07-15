@@ -42,5 +42,5 @@ jobs:
     - stage: Coding convention check
       arch: amd64
       compiler: gcc
-      before_install: sudo apt-get install -y clang-format
+      before_install: sudo apt-get install -y clang-format-6.0
       script: sh .ci/check-format.sh
