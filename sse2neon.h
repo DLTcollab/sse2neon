@@ -567,6 +567,14 @@ FORCE_INLINE __m128i _mm_set_epi64x(int64_t i1, int64_t i2)
     return vreinterpretq_m128i_s64(vld1q_s64(data));
 }
 
+// Returns the __m128i structure with its two 64-bit integer values
+// initialized to the values of the two 64-bit integers passed in.
+// https://msdn.microsoft.com/en-us/library/dk2sdw0h(v=vs.120).aspx
+FORCE_INLINE __m128i _mm_set_epi64(__m64 i1, __m64 i2)
+{
+    return _mm_set_epi64x((int64_t) i1, (int64_t) i2);
+}
+
 // Stores four single-precision, floating-point values.
 // https://msdn.microsoft.com/en-us/library/vstudio/s3h4ay6y(v=vs.100).aspx
 FORCE_INLINE void _mm_store_ps(float *p, __m128 a)
