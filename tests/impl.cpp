@@ -541,11 +541,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_POPCNT_U64:
         ret = "MM_POPCNT_U64";
         break;
-#if !defined(__arm__) && __ARM_ARCH != 7
     case IT_MM_AESENC_SI128:
         ret = "IT_MM_AESENC_SI128";
         break;
-#endif
     case IT_MM_CLMULEPI64_SI128:
         ret = "IT_MM_CLMULEPI64_SI128";
         break;
@@ -2841,7 +2839,6 @@ inline __m128i aesenc_128_reference(__m128i a, __m128i b)
     return a;
 }
 
-#if !defined(__arm__) && __ARM_ARCH != 7
 bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
 {
     __m128i data = _mm_loadu_si128((const __m128i *) a);
@@ -2852,7 +2849,6 @@ bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
 
     return validate128(resultReference, resultIntrinsic);
 }
-#endif
 
 bool test_mm_malloc(const size_t *a, const size_t *b)
 {
@@ -3466,11 +3462,9 @@ public:
         case IT_MM_POPCNT_U64:
             ret = test_mm_popcnt_u64((const uint64_t *) mTestIntPointer1);
             break;
-#if !defined(__arm__) && __ARM_ARCH != 7
         case IT_MM_AESENC_SI128:
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
             break;
-#endif
         case IT_MM_CLMULEPI64_SI128:
             ret = test_mm_clmulepi64_si128((const uint64_t *) mTestIntPointer1,
                                            (const uint64_t *) mTestIntPointer2);
