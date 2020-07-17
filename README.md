@@ -143,6 +143,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Pygame](https://www.pygame.org) is cross-platform and designed to make it easy to write multimedia software, such as games, in Python.
 * [srsLTE](https://github.com/srsLTE/srsLTE) is an open source SDR LTE software suite.
 * [Surge](https://github.com/surge-synthesizer/surge) is an open source digital synthesizer.
+* [XMRig](https://github.com/xmrig/xmrig) is an open source CPU miner for [Monero](https://web.getmonero.org/) cryptocurrency.
 
 ## Related Projects
 * [SIMDe](https://github.com/nemequ/simde): fast and portable implementations of SIMD
