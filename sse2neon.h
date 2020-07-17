@@ -20,6 +20,7 @@
 //   Sebastian Pop <spop@amazon.com>
 //   Developer Ecosystem Engineering <DeveloperEcosystemEngineering@apple.com>
 //   Danila Kutenin <danilak@google.com>
+//   François Turban (JishinMaster) <francois.turban@gmail.com>
 
 /*
  * sse2neon is freely redistributable under the MIT License.
@@ -610,6 +611,25 @@ FORCE_INLINE void _mm_store_ss(float *p, __m128 a)
     vst1q_lane_f32(p, vreinterpretq_f32_m128(a), 0);
 }
 
+
+// Stores two double-precision to 16-byte aligned memory, floating-point values.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=store_pd&expand=2549,223,3320,3398,5642,5581
+#if defined(__aarch64__)
+FORCE_INLINE void _mm_store_pd(double *p, __m128d a)
+{
+    vst1q_f64(p, (__m128d)(a));
+}
+#endif
+
+// Stores two double-precision to unaligned memory, floating-point values.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=storeu_pd&expand=2549,223,3320,3398,5642
+#if defined(__aarch64__)
+FORCE_INLINE void _mm_storeu_pd(double *p, __m128d a)
+{
+    vst1q_f64(p, (__m128d)(a));
+}
+#endif
+
 // Reads the lower 64 bits of b and stores them into the lower 64 bits of a.
 // https://msdn.microsoft.com/en-us/library/hhwf428f%28v=vs.90%29.aspx
 FORCE_INLINE void _mm_storel_epi64(__m128i *a, __m128i b)
@@ -715,6 +735,25 @@ FORCE_INLINE __m128d _mm_load_sd(const double *p)
     return vld1q_f32(data);
 #endif
 }
+
+
+// Loads two double-precision from 16-byte aligned memory, floating-point values.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=load_pd&expand=2549,223,3320
+#if defined(__aarch64__)
+FORCE_INLINE __m128d _mm_load_pd(const double *p)
+{
+    return (__m128d)(vld1q_f64(p));
+}
+#endif
+
+// Loads two double-precision from unaligned memory, floating-point values.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=loadu_pd&expand=2549,223,3320,3398
+#if defined(__aarch64__)
+FORCE_INLINE __m128d _mm_loadu_pd(const double *p)
+{
+    return (__m128d)(vld1q_f64(p));
+}
+#endif
 
 // Loads an single - precision, floating - point value into the low word and
 // clears the upper three words.
@@ -2390,6 +2429,35 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s16(vqaddq_s16(prod1, prod2));
 }
 
+
+#if defined(__aarch64__)
+// Computes the fused multiple add product of 32-bit floating point numbers.
+// 
+// Return Value
+// Multiplies A and B, and adds C to the temporary result before returning it.
+// The FMA flag is required for this function to be available on X86_64
+//https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd&expand=2549
+FORCE_INLINE __m128 _mm_fmadd_ps (__m128 a, __m128 b, __m128 c) 
+{
+	return vreinterpretq_m128_f32(
+        vfmaq_f32( vreinterpretq_f32_m128(c), vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(a)) );  
+}
+#endif
+
+
+#if defined(__aarch64__)
+// Alternatively add and subtract packed single-precision (32-bit) floating-point elements in a to/from packed elements in b, and store the results in dst.
+// 
+// The SSE3 flag is required for this function to be available on X86_64
+//https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps&expand=2549,223
+FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
+{
+	__m128 mask = {-1.0f,1.0f,-1.0f,1.0f};
+	return _mm_fmadd_ps(b,mask,a);
+}
+#endif
+
+
 // Computes the absolute difference of the 16 unsigned 8-bit integers from a
 // and the 16 unsigned 8-bit integers from b.
 //
@@ -3328,6 +3396,28 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 {
     return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
 }
+
+#if defined(__aarch64__)
+FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
+{
+    __m64 tmp = vcvtx_f32_f64((float64x2_t)a);
+    return (__m128)_mm_set_epi64(tmp, tmp);
+}
+#endif
+
+#if defined(__aarch64__)
+FORCE_INLINE __m128d _mm_cvtps_pd(__m128 a)
+{
+    return (__m128d)vcvt_high_f64_f32((float32x4_t)a);
+}
+#endif
+
+#if defined(__aarch64__)
+FORCE_INLINE __m128i _mm_castpd_si128(__m128d a)
+{
+    return vreinterpretq_m128i_s64(vreinterpretq_s64_m128d(a));
+}
+#endif
 
 // _mm_lddqu_si128 functions the same as _mm_loadu_si128.
 #define _mm_lddqu_si128 _mm_loadu_si128
