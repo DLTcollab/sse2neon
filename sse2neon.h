@@ -182,6 +182,9 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpret_s32_m64i(x) vreinterpret_s32_s64(x)
 #define vreinterpret_s64_m64i(x) (x)
 
+#define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
+#define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f64(x)
+
 // A struct is defined in this header file called 'SIMDVec' which can be used
 // by applications which attempt to access the contents of an _m128 struct
 // directly.  It is important to note that accessing the __m128 struct directly
