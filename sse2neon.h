@@ -182,8 +182,10 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpret_s32_m64i(x) vreinterpret_s32_s64(x)
 #define vreinterpret_s64_m64i(x) (x)
 
+#if defined(__aarch64__)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f64(x)
+#endif
 
 // A struct is defined in this header file called 'SIMDVec' which can be used
 // by applications which attempt to access the contents of an _m128 struct
@@ -615,9 +617,9 @@ FORCE_INLINE void _mm_store_ss(float *p, __m128 a)
 }
 
 
+#if defined(__aarch64__)
 // Stores two double-precision to 16-byte aligned memory, floating-point values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=store_pd&expand=2549,223,3320,3398,5642,5581
-#if defined(__aarch64__)
 FORCE_INLINE void _mm_store_pd(double *p, __m128d a)
 {
     vst1q_f64(p, (__m128d)(a));
@@ -740,23 +742,31 @@ FORCE_INLINE __m128d _mm_load_sd(const double *p)
 }
 
 
-// Loads two double-precision from 16-byte aligned memory, floating-point values.
+// Loads two double-precision from 16-byte aligned memory, floating-point
+// values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=load_pd&expand=2549,223,3320
-#if defined(__aarch64__)
 FORCE_INLINE __m128d _mm_load_pd(const double *p)
 {
+#if defined(__aarch64__)
     return (__m128d)(vld1q_f64(p));
-}
+#else
+    const float *fp = (const float *) p;
+    float ALIGN_STRUCT(16) data[4] = {fp[0], fp[1], fp[2], fp[3]};
+    return vld1q_f32(data);
 #endif
+}
+
 
 // Loads two double-precision from unaligned memory, floating-point values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=loadu_pd&expand=2549,223,3320,3398
-#if defined(__aarch64__)
 FORCE_INLINE __m128d _mm_loadu_pd(const double *p)
 {
+#if defined(__aarch64__)
     return (__m128d)(vld1q_f64(p));
-}
+#else
+    return _mm_load_pd(p);
 #endif
+}
 
 // Loads an single - precision, floating - point value into the low word and
 // clears the upper three words.
@@ -1261,8 +1271,8 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
     __asm__ __volatile__(
         "vtbl.8  %e[ret], {%e[tbl], %f[tbl]}, %e[idx]\n"
         "vtbl.8  %f[ret], {%e[tbl], %f[tbl]}, %f[idx]\n"
-        : [ret] "=&w"(ret)
-        : [tbl] "w"(tbl), [idx] "w"(idx_masked));
+        : [ ret ] "=&w"(ret)
+        : [ tbl ] "w"(tbl), [ idx ] "w"(idx_masked));
     return vreinterpretq_m128i_s8(ret);
 #else
     // use this line if testing on aarch64
@@ -2433,32 +2443,38 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
 }
 
 
-#if defined(__aarch64__)
+
 // Computes the fused multiple add product of 32-bit floating point numbers.
-// 
+//
 // Return Value
 // Multiplies A and B, and adds C to the temporary result before returning it.
 // The FMA flag is required for this function to be available on X86_64
-//https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd&expand=2549
-FORCE_INLINE __m128 _mm_fmadd_ps (__m128 a, __m128 b, __m128 c) 
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd&expand=2549
+FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 {
-	return vreinterpretq_m128_f32(
-        vfmaq_f32( vreinterpretq_f32_m128(c), vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(a)) );  
-}
-#endif
-
-
 #if defined(__aarch64__)
-// Alternatively add and subtract packed single-precision (32-bit) floating-point elements in a to/from packed elements in b, and store the results in dst.
-// 
+    return vreinterpretq_m128_f32(vfmaq_f32(vreinterpretq_f32_m128(c),
+                                            vreinterpretq_f32_m128(b),
+                                            vreinterpretq_f32_m128(a)));
+#else
+    return _mm_add_ps(_mm_mul_ps(a, b), c);
+#endif
+}
+
+
+
+// Alternatively add and subtract packed single-precision (32-bit)
+// floating-point elements in a to/from packed elements in b, and store the
+// results in dst.
+//
 // The SSE3 flag is required for this function to be available on X86_64
-//https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps&expand=2549,223
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps&expand=2549,223
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
-	__m128 mask = {-1.0f,1.0f,-1.0f,1.0f};
-	return _mm_fmadd_ps(b,mask,a);
+    __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
+    return _mm_fmadd_ps(b, mask, a);
 }
-#endif
+
 
 
 // Computes the absolute difference of the 16 unsigned 8-bit integers from a
@@ -3403,15 +3419,16 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 #if defined(__aarch64__)
 FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
 {
-    __m64 tmp = vcvtx_f32_f64((float64x2_t)a);
-    return (__m128)_mm_set_epi64(tmp, tmp);
+    __m64 tmp = vcvtx_f32_f64((float64x2_t) a);
+    return (__m128) _mm_set_epi64(tmp, tmp);
 }
 #endif
+
 
 #if defined(__aarch64__)
 FORCE_INLINE __m128d _mm_cvtps_pd(__m128 a)
 {
-    return (__m128d)vcvt_high_f64_f32((float32x4_t)a);
+    return (__m128d) vcvt_high_f64_f32((float32x4_t) a);
 }
 #endif
 
@@ -4281,8 +4298,8 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32cb %w[c], %w[c], %w[v]\n\t"
-                         : [c] "+r"(crc)
-                         : [v] "r"(v));
+                         : [ c ] "+r"(crc)
+                         : [ v ] "r"(v));
 #else
     crc ^= v;
     for (int bit = 0; bit < 8; bit++) {
@@ -4302,8 +4319,8 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32ch %w[c], %w[c], %w[v]\n\t"
-                         : [c] "+r"(crc)
-                         : [v] "r"(v));
+                         : [ c ] "+r"(crc)
+                         : [ v ] "r"(v));
 #else
     crc = _mm_crc32_u8(crc, v & 0xff);
     crc = _mm_crc32_u8(crc, (v >> 8) & 0xff);
@@ -4318,8 +4335,8 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32cw %w[c], %w[c], %w[v]\n\t"
-                         : [c] "+r"(crc)
-                         : [v] "r"(v));
+                         : [ c ] "+r"(crc)
+                         : [ v ] "r"(v));
 #else
     crc = _mm_crc32_u16(crc, v & 0xffff);
     crc = _mm_crc32_u16(crc, (v >> 16) & 0xffff);
@@ -4334,8 +4351,8 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 {
 #if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32cx %w[c], %w[c], %x[v]\n\t"
-                         : [c] "+r"(crc)
-                         : [v] "r"(v));
+                         : [ c ] "+r"(crc)
+                         : [ v ] "r"(v));
 #else
     crc = _mm_crc32_u32((uint32_t)(crc), v & 0xffffffff);
     crc = _mm_crc32_u32((uint32_t)(crc), (v >> 32) & 0xffffffff);

@@ -95,6 +95,8 @@ enum InstructionTest {
     IT_MM_CVTSI32_SI128,  // Unimplemented
     IT_MM_CVTTPS_EPI32,
     IT_MM_LOAD_SD,
+    IT_MM_LOAD_PD,
+    IT_MM_LOADU_PD,
     IT_MM_LOAD_SI128,  // Unimplemented
     IT_MM_LOADU_SI128,
     IT_MM_MADD_EPI16,

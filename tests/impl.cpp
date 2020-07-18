@@ -169,6 +169,12 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_LOAD_SD:
         ret = "MM_LOAD_SD";
         break;
+    case IT_MM_LOAD_PD:
+        ret = "MM_LOAD_PD";
+        break;
+    case IT_MM_LOADU_PD:
+        ret = "MM_LOADU_PD";
+        break;
     case IT_MM_LOAD_SS:
         ret = "MM_LOAD_SS";
         break;
@@ -972,6 +978,18 @@ bool test_mm_load_sd(const double *p)
 {
     __m128d a = _mm_load_sd(p);
     return validateDouble(a, p[0], 0);
+}
+
+bool test_mm_load_pd(const double *p)
+{
+    __m128d a = _mm_load_pd(p);
+    return validateDouble(a, p[0], p[1]);
+}
+
+bool test_mm_loadu_pd(const double *p)
+{
+    __m128d a = _mm_loadu_pd(p);
+    return validateDouble(a, p[0], p[1]);
 }
 
 // r0 := ~a0 & b0
@@ -3240,6 +3258,9 @@ public:
             break;
         case IT_MM_LOAD_SD:
             ret = test_mm_load_sd((const double *) mTestFloatPointer1);
+            break;
+        case IT_MM_LOAD_PD:
+            ret = test_mm_load_pd((const double *) mTestFloatPointer1);
             break;
         case IT_MM_LOAD_SS:
             ret = true;
