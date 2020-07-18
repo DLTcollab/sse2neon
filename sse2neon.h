@@ -62,6 +62,27 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+/* Architecture-specific build options */
+/* FIXME: #pragma GCC push_options is only available on GCC */
+#if defined(__GNUC__)
+#if defined(__arm__) && __ARM_ARCH == 7
+/* According to ARM C Language Extensions Architecture specification,
+ * __ARM_NEON is defined to a value indicating the Advanced SIMD (NEON)
+ * architecture supported.
+ */
+#if !defined(__ARM_NEON) || !defined(__ARM_NEON__)
+#error "You must enable NEON instructions (e.g. -mfpu=neon) to use SSE2NEON."
+#endif
+#pragma GCC push_options
+#pragma GCC target("fpu=neon")
+#elif defined(__aarch64__)
+#pragma GCC push_options
+#pragma GCC target("+simd")
+#else
+#error "Unsupported target. Must be either ARMv7-A+NEON or ARMv8-A."
+#endif
+#endif
+
 #include <arm_neon.h>
 
 /* "__has_builtin" can be used to query support for built-in functions
@@ -4265,6 +4286,10 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 #if defined(__GNUC__) || defined(__clang__)
 #pragma pop_macro("ALIGN_STRUCT")
 #pragma pop_macro("FORCE_INLINE")
+#endif
+
+#if defined(__GNUC__)
+#pragma GCC pop_options
 #endif
 
 #endif
