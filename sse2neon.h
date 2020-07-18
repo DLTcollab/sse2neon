@@ -3702,6 +3702,18 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 #define _mm_alignr_epi8(a, b, c) \
     ((__m128i) vextq_s8((int8x16_t)(b), (int8x16_t)(a), (c)))
 
+// Compute the bitwise AND of 128 bits (representing integer data) in a and b,
+// and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute the
+// itwise NOT of a and then AND with b, and set CF to 1 if the result is zero,
+// otherwise set CF to 0. Return the ZF value.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_testz_si128
+FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
+{
+    int64x2_t s64 =
+        vandq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b));
+    return !(vgetq_lane_s64(s64, 0) | vgetq_lane_s64(s64, 1));
+}
+
 // Extracts the selected signed or unsigned 8-bit integer from a and zero
 // extends.
 // FORCE_INLINE int _mm_extract_epi8(__m128i a, __constrange(0,16) int imm)

@@ -428,7 +428,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CVTSS_F32:
         ret = "MM_CVTSS_F32";
         break;
-
+    case IT_MM_TESTZ_SI128:
+        ret = "IT_MM_TESTZ_SI128";
+        break;
     case IT_MM_SET1_EPI16:
         ret = "MM_SET1_EPI16";
         break;
@@ -1855,6 +1857,20 @@ bool test_mm_cvtps_epi32(const float _a[4])
 
     __m128i ret = _mm_cvtps_epi32(a);
     return validateInt32(ret, trun[0], trun[1], trun[2], trun[3]);
+}
+
+bool test_mm_testz_si128(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = _mm_load_si128((const __m128i *) _a);
+    __m128i b = _mm_load_si128((const __m128i *) _b);
+    int testz = 1;
+    for (int i = 0; i < 2; i++) {
+        if ((((SIMDVec *) &a)->m128_u64[i] & ((SIMDVec *) &b)->m128_u64[i])) {
+            testz = 0;
+            break;
+        }
+    }
+    return _mm_testz_si128(a, b) == testz;
 }
 
 bool test_mm_set1_epi16(const int16_t *_a)
@@ -3319,11 +3335,12 @@ public:
         case IT_MM_CLFLUSH:
             ret = true;
             break;
-
         case IT_MM_CVTSS_F32:
             ret = true;
             break;
-
+        case IT_MM_TESTZ_SI128:
+            ret = test_mm_testz_si128(mTestIntPointer1, mTestIntPointer2);
+            break;
         case IT_MM_SET1_EPI16:
             ret = test_mm_set1_epi16((const int16_t *) mTestIntPointer1);
             break;
