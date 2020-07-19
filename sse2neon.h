@@ -4145,6 +4145,27 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
     return _mm_xor_si128(out, RoundKey);
 #endif
 }
+
+// Emits the Advanced Encryption Standard (AES) instruction aeskeygenassist.
+// This instruction generates a round key for AES encryption. See
+// https://kazakov.life/2017/11/01/cryptocurrency-mining-on-ios-devices/
+// for details.
+//
+// https://msdn.microsoft.com/en-us/library/cc714138(v=vs.120).aspx
+FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i key, const int rcon)
+{
+#define SSE2NEON_AES_H0(x) (x)
+    static const uint8_t sbox[256] = SSE2NEON_AES_DATA(SSE2NEON_AES_H0);
+#undef SSE2NEON_AES_H0
+    uint32_t X1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0x55));
+    uint32_t X3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0xFF));
+    for (int i = 0; i < 4; ++i) {
+        ((uint8_t *) &X1)[i] = sbox[((uint8_t *) &X1)[i]];
+        ((uint8_t *) &X3)[i] = sbox[((uint8_t *) &X3)[i]];
+    }
+    return _mm_set_epi32(((X3 >> 8) | (X3 << 24)) ^ rcon, X3,
+                         ((X1 >> 8) | (X1 << 24)) ^ rcon, X1);
+}
 #undef SSE2NEON_AES_DATA
 
 #else /* __ARM_FEATURE_CRYPTO */
@@ -4159,6 +4180,19 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
     return vreinterpretq_m128i_u8(
         vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))) ^
         vreinterpretq_u8_m128i(b));
+}
+
+FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
+{
+    a = vaeseq_u8(a, (__m128i){});  // AESE does ShiftRows and SubBytes on A
+    __m128i dest = {
+        // Undo ShiftRows step from AESE and extract X1 and X3
+        a[0x4], a[0x1], a[0xE], a[0xB],  // SubBytes(X1)
+        a[0x1], a[0xE], a[0xB], a[0x4],  // ROT(SubBytes(X1))
+        a[0xC], a[0x9], a[0x6], a[0x3],  // SubBytes(X3)
+        a[0x9], a[0x6], a[0x3], a[0xC],  // ROT(SubBytes(X3))
+    };
+    return dest ^ (__m128i)((uint32x4_t){0, rcon, 0, rcon});
 }
 #endif
 
