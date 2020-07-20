@@ -616,7 +616,6 @@ FORCE_INLINE void _mm_store_ss(float *p, __m128 a)
     vst1q_lane_f32(p, vreinterpretq_f32_m128(a), 0);
 }
 
-
 #if defined(__aarch64__)
 // Stores two double-precision to 16-byte aligned memory, floating-point values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=store_pd&expand=2549,223,3320,3398,5642,5581
@@ -741,7 +740,6 @@ FORCE_INLINE __m128d _mm_load_sd(const double *p)
 #endif
 }
 
-
 // Loads two double-precision from 16-byte aligned memory, floating-point
 // values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=load_pd&expand=2549,223,3320
@@ -755,7 +753,6 @@ FORCE_INLINE __m128d _mm_load_pd(const double *p)
     return vld1q_f32(data);
 #endif
 }
-
 
 // Loads two double-precision from unaligned memory, floating-point values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=loadu_pd&expand=2549,223,3320,3398
@@ -2442,13 +2439,10 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s16(vqaddq_s16(prod1, prod2));
 }
 
-
-
 // Computes the fused multiple add product of 32-bit floating point numbers.
 //
 // Return Value
 // Multiplies A and B, and adds C to the temporary result before returning it.
-// The FMA flag is required for this function to be available on X86_64
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd&expand=2549
 FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 {
@@ -2461,21 +2455,16 @@ FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 #endif
 }
 
-
-
 // Alternatively add and subtract packed single-precision (32-bit)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.
 //
-// The SSE3 flag is required for this function to be available on X86_64
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps&expand=2549,223
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
     __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
     return _mm_fmadd_ps(b, mask, a);
 }
-
-
 
 // Computes the absolute difference of the 16 unsigned 8-bit integers from a
 // and the 16 unsigned 8-bit integers from b.
@@ -3423,7 +3412,6 @@ FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
     return (__m128) _mm_set_epi64(tmp, tmp);
 }
 #endif
-
 
 #if defined(__aarch64__)
 FORCE_INLINE __m128d _mm_cvtps_pd(__m128 a)
