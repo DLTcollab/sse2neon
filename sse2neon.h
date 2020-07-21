@@ -637,6 +637,7 @@ FORCE_INLINE void _mm_store_ss(float *p, __m128 a)
     vst1q_lane_f32(p, vreinterpretq_f32_m128(a), 0);
 }
 
+/* FIXME: Add A32 implementation */
 #if defined(__aarch64__)
 // Stores two double-precision to 16-byte aligned memory, floating-point values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=store_pd&expand=2549,223,3320,3398,5642,5581
@@ -646,6 +647,7 @@ FORCE_INLINE void _mm_store_pd(double *p, __m128d a)
 }
 #endif
 
+/* FIXME: Add A32 implementation */
 // Stores two double-precision to unaligned memory, floating-point values.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=storeu_pd&expand=2549,223,3320,3398,5642
 #if defined(__aarch64__)
@@ -3426,6 +3428,7 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
     return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
 }
 
+/* FIXME: Add A32 implementation */
 #if defined(__aarch64__)
 FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
 {
@@ -3434,6 +3437,7 @@ FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
 }
 #endif
 
+/* FIXME: Add A32 implementation */
 #if defined(__aarch64__)
 FORCE_INLINE __m128d _mm_cvtps_pd(__m128 a)
 {
@@ -3441,6 +3445,7 @@ FORCE_INLINE __m128d _mm_cvtps_pd(__m128 a)
 }
 #endif
 
+/* FIXME: Add A32 implementation */
 #if defined(__aarch64__)
 FORCE_INLINE __m128i _mm_castpd_si128(__m128d a)
 {
