@@ -805,15 +805,16 @@ FORCE_INLINE __m128i _mm_loadl_epi64(__m128i const *p)
         vcombine_s32(vld1_s32((int32_t const *) p), vcreate_s32(0)));
 }
 
-/* Logic/Binary operations */
-
-// Compares for inequality.
-// https://msdn.microsoft.com/en-us/library/sf44thbx(v=vs.100).aspx
-FORCE_INLINE __m128 _mm_cmpneq_ps(__m128 a, __m128 b)
+// Sets the low word to the single-precision, floating-point value of b
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/35hdzazd(v=vs.100)
+FORCE_INLINE __m128 _mm_move_ss(__m128 a, __m128 b)
 {
-    return vreinterpretq_m128_u32(vmvnq_u32(
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))));
+    return vreinterpretq_m128_f32(
+        vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(b), 0),
+                       vreinterpretq_f32_m128(a), 0));
 }
+
+/* Logic/Binary operations */
 
 // Computes the bitwise AND-NOT of the four single-precision, floating-point
 // values of a and b.
@@ -2900,6 +2901,13 @@ FORCE_INLINE __m128 _mm_cmplt_ps(__m128 a, __m128 b)
         vcltq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Compares for less than
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/fy94wye7(v=vs.100)
+FORCE_INLINE __m128 _mm_cmplt_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmplt_ps(a, b));
+}
+
 // Compares for greater than.
 //
 //   r0 := (a0 > b0) ? 0xffffffff : 0x0
@@ -2914,12 +2922,26 @@ FORCE_INLINE __m128 _mm_cmpgt_ps(__m128 a, __m128 b)
         vcgtq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Compares for greater than.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/1xyyyy9e(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpgt_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmpgt_ps(a, b));
+}
+
 // Compares for greater than or equal.
 // https://msdn.microsoft.com/en-us/library/vstudio/fs813y2t(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_cmpge_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_u32(
         vcgeq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+}
+
+// Compares for greater than or equal.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/kesh3ddc(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpge_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmpge_ps(a, b));
 }
 
 // Compares for less than or equal.
@@ -2936,12 +2958,97 @@ FORCE_INLINE __m128 _mm_cmple_ps(__m128 a, __m128 b)
         vcleq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Compares for less than or equal.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/a7x0hbhw(v=vs.100)
+FORCE_INLINE __m128 _mm_cmple_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmple_ps(a, b));
+}
+
 // Compares for equality.
 // https://msdn.microsoft.com/en-us/library/vstudio/36aectz5(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_cmpeq_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_u32(
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+}
+
+// Compares for equality.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/k423z28e(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpeq_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmpeq_ps(a, b));
+}
+
+// Compares for inequality.
+// https://msdn.microsoft.com/en-us/library/sf44thbx(v=vs.100).aspx
+FORCE_INLINE __m128 _mm_cmpneq_ps(__m128 a, __m128 b)
+{
+    return vreinterpretq_m128_u32(vmvnq_u32(
+        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))));
+}
+
+// Compares for inequality.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/ekya8fh4(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpneq_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmpneq_ps(a, b));
+}
+
+// Compares for not greater than or equal.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/wsexys62(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpnge_ps(__m128 a, __m128 b)
+{
+    return _mm_cmplt_ps(a, b);
+}
+
+// Compares for not greater than or equal.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/fk2y80s8(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpnge_ss(__m128 a, __m128 b)
+{
+    return _mm_cmplt_ss(a, b);
+}
+
+// Compares for not greater than.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/d0xh7w0s(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpngt_ps(__m128 a, __m128 b)
+{
+    return _mm_cmple_ps(a, b);
+}
+
+// Compares for not greater than.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/z7x9ydwh(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpngt_ss(__m128 a, __m128 b)
+{
+    return _mm_cmple_ss(a, b);
+}
+
+// Compares for not less than or equal.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/6a330kxw(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpnle_ps(__m128 a, __m128 b)
+{
+    return _mm_cmpgt_ps(a, b);
+}
+
+// Compares for not less than or equal.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/z7x9ydwh(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpnle_ss(__m128 a, __m128 b)
+{
+    return _mm_cmpgt_ss(a, b);
+}
+
+// Compares for not less than.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/4686bbdw(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpnlt_ps(__m128 a, __m128 b)
+{
+    return _mm_cmpge_ps(a, b);
+}
+
+// Compares for not less than.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/56b9z2wf(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpnlt_ss(__m128 a, __m128 b)
+{
+    return _mm_cmpge_ss(a, b);
 }
 
 // Compares the 16 signed or unsigned 8-bit integers in a and the 16 signed or
@@ -3113,6 +3220,31 @@ FORCE_INLINE __m128 _mm_cmpord_ps(__m128 a, __m128 b)
     uint32x4_t ceqbb =
         vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
     return vreinterpretq_m128_u32(vandq_u32(ceqaa, ceqbb));
+}
+
+// Compares for ordered.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/343t62da(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpord_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmpord_ps(a, b));
+}
+
+// Compares for unordered.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/khy6fk1t(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpunord_ps(__m128 a, __m128 b)
+{
+    uint32x4_t f32a =
+        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
+    uint32x4_t f32b =
+        vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
+    return vreinterpretq_m128_u32(vmvnq_u32(vandq_u32(f32a, f32b)));
+}
+
+// Compares for unordered.
+// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/2as2387b(v=vs.100)
+FORCE_INLINE __m128 _mm_cmpunord_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_cmpunord_ps(a, b));
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
