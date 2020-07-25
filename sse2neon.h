@@ -908,6 +908,38 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
         veorq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
+// Duplicate odd-indexed single-precision (32-bit) floating-point elements
+// from a, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movehdup_ps
+FORCE_INLINE __m128 _mm_movehdup_ps(__m128 a)
+{
+#if __has_builtin(__builtin_shufflevector)
+    return vreinterpretq_m128_f32(__builtin_shufflevector(
+        vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a), 1, 1, 3, 3));
+#else
+    float32_t a1 = vgetq_lane_f32(vreinterpretq_f32_m128(a), 1);
+    float32_t a3 = vgetq_lane_f32(vreinterpretq_f32_m128(a), 3);
+    float ALIGN_STRUCT(16) data[4] = {a1, a1, a3, a3};
+    return vreinterpretq_m128_f32(vld1q_f32(data));
+#endif
+}
+
+// Duplicate even-indexed single-precision (32-bit) floating-point elements
+// from a, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_moveldup_ps
+FORCE_INLINE __m128 _mm_moveldup_ps(__m128 a)
+{
+#if __has_builtin(__builtin_shufflevector)
+    return vreinterpretq_m128_f32(__builtin_shufflevector(
+        vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a), 0, 0, 2, 2));
+#else
+    float32_t a0 = vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
+    float32_t a2 = vgetq_lane_f32(vreinterpretq_f32_m128(a), 2);
+    float ALIGN_STRUCT(16) data[4] = {a0, a0, a2, a2};
+    return vreinterpretq_m128_f32(vld1q_f32(data));
+#endif
+}
+
 // Moves the upper two values of B into the lower two values of A.
 //
 //   r3 := a3
