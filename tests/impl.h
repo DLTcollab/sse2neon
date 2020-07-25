@@ -163,6 +163,10 @@ enum InstructionTest {
     IT_MM_MULLO_EPI32,  // Unimplemented
     IT_MM_TEST_ALL_ZEROS,
     IT_MM_TESTZ_SI128,
+    IT_MM_CEIL_PS,
+    IT_MM_FLOOR_PS,
+    IT_MM_ROUND_PS,
+    IT_MM_BLENDV_PS,
 
     // SSE4.2
     IT_MM_CRC32_U16,
