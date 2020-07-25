@@ -20,7 +20,9 @@ enum InstructionTest {
     IT_MM_CMPGE_PS,
     IT_MM_CMPGT_PS,
     IT_MM_CMPLE_PS,
+    IT_MM_CMPNLE_PS,
     IT_MM_CMPLT_PS,
+    IT_MM_CMPNLT_PS,
     IT_MM_CMPNEQ_PS,  // Unimplemented
     IT_MM_CMPORD_PS,  // Unimplemented
     IT_MM_COMIEQ_SS,
@@ -89,6 +91,8 @@ enum InstructionTest {
     IT_MM_CMPLT_EPI16,
     IT_MM_CMPLT_EPI32,
     IT_MM_CMPLT_EPI8,
+    IT_MM_CMPLE_EPI32,
+    IT_MM_CMPGE_EPI32,
     IT_MM_CVTEPI32_PS,
     IT_MM_CVTPS_EPI32,
     IT_MM_CVTSI128_SI32,  // Unimplemented

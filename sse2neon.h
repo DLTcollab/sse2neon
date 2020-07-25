@@ -2868,6 +2868,13 @@ FORCE_INLINE __m128 _mm_cmplt_ps(__m128 a, __m128 b)
         vcltq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+FORCE_INLINE __m128 _mm_cmpnlt_ps(__m128 a, __m128 b)
+{
+    return vreinterpretq_m128_u32(vceqq_u32(
+        vcltq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)),
+        vdupq_n_u32(0)));
+}
+
 // Compares for greater than.
 //
 //   r0 := (a0 > b0) ? 0xffffffff : 0x0
@@ -2890,6 +2897,12 @@ FORCE_INLINE __m128 _mm_cmpge_ps(__m128 a, __m128 b)
         vcgeq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+FORCE_INLINE __m128i _mm_cmpge_epi32(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u32(
+        vcgeq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+}
+
 // Compares for less than or equal.
 //
 //   r0 := (a0 <= b0) ? 0xffffffff : 0x0
@@ -2902,6 +2915,19 @@ FORCE_INLINE __m128 _mm_cmple_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_u32(
         vcleq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+}
+
+FORCE_INLINE __m128 _mm_cmpnle_ps(__m128 a, __m128 b)
+{
+    return vreinterpretq_m128_u32(vceqq_u32(
+        vcleq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)),
+        vdupq_n_u32(0)));
+}
+
+FORCE_INLINE __m128i _mm_cmple_epi32(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_u32(
+        vcleq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
 // Compares for equality.

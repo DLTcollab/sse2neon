@@ -322,6 +322,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CMPLT_PS:
         ret = "MM_CMPLT_PS";
         break;
+    case IT_MM_CMPNLT_PS:
+        ret = "MM_CMPNLT_PS";
+        break;
     case IT_MM_CMPGT_PS:
         ret = "MM_CMPGT_PS";
         break;
@@ -331,6 +334,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CMPLE_PS:
         ret = "MM_CMPLE_PS";
         break;
+    case IT_MM_CMPNLE_PS:
+        ret = "MM_CMPNLE_PS";
+        break;
     case IT_MM_CMPEQ_PS:
         ret = "MM_CMPEQ_PS";
         break;
@@ -339,6 +345,12 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_CMPGT_EPI32:
         ret = "MM_CMPGT_EPI32";
+        break;
+    case IT_MM_CMPGE_EPI32:
+        ret = "MM_CMPGE_EPI32";
+        break;
+    case IT_MM_CMPLE_EPI32:
+        ret = "MM_CMPLE_EPI32";
         break;
     case IT_MM_CMPORD_PS:
         ret = "MM_CMPORD_PS";
@@ -1525,6 +1537,22 @@ bool test_mm_cmplt_ps(const float *_a, const float *_b)
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
 }
 
+bool test_mm_cmpnlt_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    int32_t result[4];
+    result[0] = _a[0] < _b[0] ? 0 : -1;
+    result[1] = _a[1] < _b[1] ? 0 : -1;
+    result[2] = _a[2] < _b[2] ? 0 : -1;
+    result[3] = _a[3] < _b[3] ? 0 : -1;
+
+    __m128 ret = _mm_cmpnlt_ps(a, b);
+    __m128i iret = *(const __m128i *) &ret;
+    return validateInt32(iret, result[0], result[1], result[2], result[3]);
+}
+
 bool test_mm_cmpgt_ps(const float *_a, const float *_b)
 {
     __m128 a = test_mm_load_ps(_a);
@@ -1573,6 +1601,22 @@ bool test_mm_cmple_ps(const float *_a, const float *_b)
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
 }
 
+bool test_mm_cmpnle_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    int32_t result[4];
+    result[0] = _a[0] <= _b[0] ? 0 : -1;
+    result[1] = _a[1] <= _b[1] ? 0 : -1;
+    result[2] = _a[2] <= _b[2] ? 0 : -1;
+    result[3] = _a[3] <= _b[3] ? 0 : -1;
+
+    __m128 ret = _mm_cmpnle_ps(a, b);
+    __m128i iret = *(const __m128i *) &ret;
+    return validateInt32(iret, result[0], result[1], result[2], result[3]);
+}
+
 bool test_mm_cmpeq_ps(const float *_a, const float *_b)
 {
     __m128 a = test_mm_load_ps(_a);
@@ -1586,6 +1630,21 @@ bool test_mm_cmpeq_ps(const float *_a, const float *_b)
 
     __m128 ret = _mm_cmpeq_ps(a, b);
     __m128i iret = *(const __m128i *) &ret;
+    return validateInt32(iret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmple_epi32(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+
+    int32_t result[4];
+    result[0] = _a[0] <= _b[0] ? -1 : 0;
+    result[1] = _a[1] <= _b[1] ? -1 : 0;
+    result[2] = _a[2] <= _b[2] ? -1 : 0;
+    result[3] = _a[3] <= _b[3] ? -1 : 0;
+
+    __m128i iret = _mm_cmple_epi32(a, b);
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
 }
 
@@ -1617,6 +1676,21 @@ bool test_mm_cmpgt_epi32(const int32_t *_a, const int32_t *_b)
     result[3] = _a[3] > _b[3] ? -1 : 0;
 
     __m128i iret = _mm_cmpgt_epi32(a, b);
+    return validateInt32(iret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpge_epi32(const int32_t *_a, const int32_t *_b)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i b = test_mm_load_ps(_b);
+
+    int32_t result[4];
+    result[0] = _a[0] >= _b[0] ? -1 : 0;
+    result[1] = _a[1] >= _b[1] ? -1 : 0;
+    result[2] = _a[2] >= _b[2] ? -1 : 0;
+    result[3] = _a[3] >= _b[3] ? -1 : 0;
+
+    __m128i iret = _mm_cmpge_epi32(a, b);
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
 }
 
@@ -3178,6 +3252,9 @@ public:
         case IT_MM_CMPLT_PS:
             ret = test_mm_cmplt_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
+        case IT_MM_CMPNLT_PS:
+            ret = test_mm_cmpnlt_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
         case IT_MM_CMPGT_PS:
             ret = test_mm_cmpgt_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
@@ -3187,14 +3264,23 @@ public:
         case IT_MM_CMPLE_PS:
             ret = test_mm_cmple_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
+        case IT_MM_CMPNLE_PS:
+            ret = test_mm_cmpnle_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
         case IT_MM_CMPEQ_PS:
             ret = test_mm_cmpeq_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_CMPLT_EPI32:
             ret = test_mm_cmplt_epi32(mTestIntPointer1, mTestIntPointer2);
             break;
+        case IT_MM_CMPLE_EPI32:
+            ret = test_mm_cmple_epi32(mTestIntPointer1, mTestIntPointer2);
+            break;
         case IT_MM_CMPGT_EPI32:
             ret = test_mm_cmpgt_epi32(mTestIntPointer1, mTestIntPointer2);
+            break;
+        case IT_MM_CMPGE_EPI32:
+            ret = test_mm_cmpge_epi32(mTestIntPointer1, mTestIntPointer2);
             break;
         case IT_MM_CVTTPS_EPI32:
             ret = test_mm_cvttps_epi32(mTestFloatPointer1);
@@ -3319,6 +3405,9 @@ public:
             break;
         case IT_MM_LOAD_PD:
             ret = test_mm_load_pd((const double *) mTestFloatPointer1);
+            break;
+        case IT_MM_LOADU_PD:
+            ret = true;
             break;
         case IT_MM_LOAD_SS:
             ret = true;
