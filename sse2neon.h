@@ -411,7 +411,7 @@ FORCE_INLINE __m128 _mm_set_ps(float w, float z, float y, float x)
 
 // Copy single-precision (32-bit) floating-point element a to the lower element
 // of dst, and zero the upper 3 elements.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_ss&expand=4901,4895,4901
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_ss
 FORCE_INLINE __m128 _mm_set_ss(float a)
 {
     float ALIGN_STRUCT(16) data[4] = {a, 0, 0, 0};
@@ -571,7 +571,7 @@ FORCE_INLINE __m128i _mm_set1_epi64(int64_t _i)
 }
 
 // Sets the 2 signed 64-bit integer values to i.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set1_epi64x&expand=4961
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set1_epi64x
 FORCE_INLINE __m128i _mm_set1_epi64x(int64_t _i)
 {
     return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
@@ -640,7 +640,7 @@ FORCE_INLINE void _mm_store_ss(float *p, __m128 a)
 /* FIXME: Add A32 implementation */
 #if defined(__aarch64__)
 // Stores two double-precision to 16-byte aligned memory, floating-point values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=store_pd&expand=2549,223,3320,3398,5642,5581
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=store_pd
 FORCE_INLINE void _mm_store_pd(double *p, __m128d a)
 {
     vst1q_f64(p, (__m128d)(a));
@@ -649,7 +649,7 @@ FORCE_INLINE void _mm_store_pd(double *p, __m128d a)
 
 /* FIXME: Add A32 implementation */
 // Stores two double-precision to unaligned memory, floating-point values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=storeu_pd&expand=2549,223,3320,3398,5642
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=storeu_pd
 #if defined(__aarch64__)
 FORCE_INLINE void _mm_storeu_pd(double *p, __m128d a)
 {
@@ -765,7 +765,7 @@ FORCE_INLINE __m128d _mm_load_sd(const double *p)
 
 // Loads two double-precision from 16-byte aligned memory, floating-point
 // values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=load_pd&expand=2549,223,3320
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=load_pd
 FORCE_INLINE __m128d _mm_load_pd(const double *p)
 {
 #if defined(__aarch64__)
@@ -778,7 +778,7 @@ FORCE_INLINE __m128d _mm_load_pd(const double *p)
 }
 
 // Loads two double-precision from unaligned memory, floating-point values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=loadu_pd&expand=2549,223,3320,3398
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=loadu_pd
 FORCE_INLINE __m128d _mm_loadu_pd(const double *p)
 {
 #if defined(__aarch64__)
@@ -1275,7 +1275,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 
 // Shuffle packed 8-bit integers in a according to shuffle control mask in the
 // corresponding 8-bit element of b, and store the results in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_epi8&expand=5146
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_epi8
 FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 {
     int8x16_t tbl = vreinterpretq_s8_m128i(a);   // input a
@@ -1971,7 +1971,7 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and
 // mask, and return 1 if the result is zero, otherwise return 0.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_test_all_zeros&expand=5871
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_test_all_zeros
 FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
 {
     int64x2_t a_and_mask =
@@ -2466,7 +2466,7 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
 //
 // Return Value
 // Multiplies A and B, and adds C to the temporary result before returning it.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd&expand=2549
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd
 FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 {
 #if defined(__aarch64__)
@@ -2482,7 +2482,7 @@ FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.
 //
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps&expand=2549,223
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
     __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
@@ -3781,7 +3781,7 @@ FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 //   dst[18:16] := index[2:0]
 //   dst[127:19] := 0
 //
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_minpos_epu16&expand=3789
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_minpos_epu16
 FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 {
     __m128i dst;
@@ -3965,7 +3965,7 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 // Macro: Transpose the 4x4 matrix formed by the 4 rows of single-precision
 // (32-bit) floating-point elements in row0, row1, row2, and row3, and store the
 // transposed matrix in these vectors (row0 now contains column 0, etc.).
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=MM_TRANSPOSE4_PS&expand=5949
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=MM_TRANSPOSE4_PS
 #define _MM_TRANSPOSE4_PS(row0, row1, row2, row3) \
     do {                                          \
         __m128 tmp0, tmp1, tmp2, tmp3;            \
