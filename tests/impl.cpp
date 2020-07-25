@@ -3036,7 +3036,7 @@ bool test_mm_floor_ps(const float *_a)
     return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
 }
 
-bool test_mm_round_ps(const float *_a, int rounding)
+bool test_mm_round_ps(const float *_a)
 {
     float dx = roundf(_a[0]);
     float dy = roundf(_a[1]);
@@ -3044,7 +3044,7 @@ bool test_mm_round_ps(const float *_a, int rounding)
     float dw = roundf(_a[3]);
 
     __m128 a = test_mm_load_ps(_a);
-    __m128 c = _mm_round_ps(a, rounding);
+    __m128 c = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
     return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
 }
 
@@ -3626,8 +3626,7 @@ public:
             ret = test_mm_floor_ps(mTestFloatPointer1);
             break;
         case IT_MM_ROUND_PS:
-            ret =
-                test_mm_round_ps(mTestFloatPointer1, _MM_FROUND_CUR_DIRECTION);
+            ret = test_mm_round_ps(mTestFloatPointer1);
             break;
         case IT_MM_BLENDV_PS:
             ret = true;  // test_mm_blendv_ps(mTestFloatPointer1);
