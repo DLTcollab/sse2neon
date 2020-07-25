@@ -2474,7 +2474,7 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
 //
 // Return Value
 // Multiplies A and B, and adds C to the temporary result before returning it.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd&expand=2549
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd
 FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 {
 #if defined(__aarch64__)
@@ -2490,7 +2490,7 @@ FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.
 //
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps&expand=2549,223
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
     __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
@@ -3463,7 +3463,7 @@ FORCE_INLINE __m128i _mm_castpd_si128(__m128d a)
 
 // Blend packed single-precision (32-bit) floating-point elements from a and b
 // using mask, and store the results in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=blendv_ps&expand=4757,668,2528,1731,456
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=blendv_ps
 FORCE_INLINE __m128 _mm_blendv_ps(__m128 a, __m128 b, __m128 mask)
 {
     return vreinterpretq_m128_f32(vbslq_f32(vreinterpretq_u32_m128(mask),
@@ -3474,44 +3474,45 @@ FORCE_INLINE __m128 _mm_blendv_ps(__m128 a, __m128 b, __m128 mask)
 // Round the packed single-precision (32-bit) floating-point elements in a using
 // the rounding parameter, and store the results as packed single-precision
 // floating-point elements in dst.
-// software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_round_ps&expand=4757
+// software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_round_ps
 FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 {
 #if defined(__aarch64__)
-    if (rounding == (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC)) {
+    switch (rounding) {
+    case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndnq_f32(vreinterpretq_f32_m128(a)));
-    } else if (rounding == (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC)) {
+    case (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndmq_f32(vreinterpretq_f32_m128(a)));
-    } else if (rounding == (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC)) {
+    case (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndpq_f32(vreinterpretq_f32_m128(a)));
-    } else if (rounding == (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC)) {
+    case (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndq_f32(vreinterpretq_f32_m128(a)));
-    } else {  //_MM_FROUND_CUR_DIRECTION
+    default:  //_MM_FROUND_CUR_DIRECTION
         return vreinterpretq_m128_f32(vrndiq_f32(vreinterpretq_f32_m128(a)));
     }
 #else
     float *v_float = (float *) &a;
-    if (rounding == (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC)) {
+    __m128 zero, neg_inf, pos_inf;
+
+    switch (rounding) {
+    case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
         return _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
-    } else if (rounding == (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC)) {
-        __m128 ret = {floorf(v_float[0]), floorf(v_float[1]),
-                      floorf(v_float[2]), floorf(v_float[3])};
-        return ret;
-    } else if (rounding == (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC)) {
-        __m128 ret = {ceilf(v_float[0]), ceilf(v_float[1]), ceilf(v_float[2]),
-                      ceilf(v_float[3])};
-        return ret;
-    } else if (rounding == (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC)) {
-        __m128 zero = {0.0f, 0.0f, 0.0f, 0.0f};
-        __m128 neg_inf = {floorf(v_float[0]), floorf(v_float[1]),
-                          floorf(v_float[2]), floorf(v_float[3])};
-        __m128 pos_inf = {ceilf(v_float[0]), ceilf(v_float[1]),
-                          ceilf(v_float[2]), ceilf(v_float[3])};
+    case (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC):
+        return (__m128){floorf(v_float[0]), floorf(v_float[1]),
+                        floorf(v_float[2]), floorf(v_float[3])};
+    case (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC):
+        return (__m128){ceilf(v_float[0]), ceilf(v_float[1]), ceilf(v_float[2]),
+                        ceilf(v_float[3])};
+    case (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC):
+        zero = _mm_set_ps(0.0f, 0.0f, 0.0f, 0.0f);
+        neg_inf = _mm_set_ps(floorf(v_float[0]), floorf(v_float[1]),
+                             floorf(v_float[2]), floorf(v_float[3]));
+        pos_inf = _mm_set_ps(ceilf(v_float[0]), ceilf(v_float[1]),
+                             ceilf(v_float[2]), ceilf(v_float[3]));
         return _mm_blendv_ps(pos_inf, neg_inf, _mm_cmple_ps(a, zero));
-    } else {  //_MM_FROUND_CUR_DIRECTION
-        __m128 ret = {roundf(v_float[0]), roundf(v_float[1]),
-                      roundf(v_float[2]), roundf(v_float[3])};
-        return ret;
+    default:  //_MM_FROUND_CUR_DIRECTION
+        return (__m128){roundf(v_float[0]), roundf(v_float[1]),
+                        roundf(v_float[2]), roundf(v_float[3])};
     }
 #endif
 }
@@ -3519,7 +3520,7 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 // Round the packed single-precision (32-bit) floating-point elements in a up to
 // an integer value, and store the results as packed single-precision
 // floating-point elements in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_ceil_p&expand=4757,668
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_ceil_p
 FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 {
     return _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
@@ -3528,7 +3529,7 @@ FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 // Round the packed single-precision (32-bit) floating-point elements in a down
 // to an integer value, and store the results as packed single-precision
 // floating-point elements in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_flo&expand=4757,668,2528
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_flo
 FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
 {
     return _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
