@@ -572,6 +572,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_CRC32_U64:
         ret = "IT_MM_CRC32_U64";
+    case IT_MM_BLENDV_PS:
+        ret = "IT_MM_BLENDV_PS";
+        break;
     case IT_MM_CEIL_PS:
         ret = "IT_MM_CEIL_PS";
         break;
@@ -580,9 +583,6 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_ROUND_PS:
         ret = "IT_MM_ROUND_PS";
-        break;
-    case IT_MM_BLENDV_PS:
-        ret = "IT_MM_BLENDV_PS";
         break;
     case IT_LAST: /* should not happend */
         break;
@@ -3011,7 +3011,6 @@ bool test_mm_crc32_u64(uint64_t crc, uint64_t v)
     return true;
 }
 
-
 bool test_mm_ceil_ps(const float *_a)
 {
     float dx = ceilf(_a[0]);
@@ -3452,6 +3451,18 @@ public:
         case IT_MM_TESTZ_SI128:
             ret = test_mm_testz_si128(mTestIntPointer1, mTestIntPointer2);
             break;
+        case IT_MM_BLENDV_PS:
+            ret = true;
+            break;
+        case IT_MM_CEIL_PS:
+            ret = test_mm_ceil_ps(mTestFloatPointer1);
+            break;
+        case IT_MM_FLOOR_PS:
+            ret = test_mm_floor_ps(mTestFloatPointer1);
+            break;
+        case IT_MM_ROUND_PS:
+            ret = test_mm_round_ps(mTestFloatPointer1);
+            break;
         case IT_MM_SET1_EPI16:
             ret = test_mm_set1_epi16((const int16_t *) mTestIntPointer1);
             break;
@@ -3618,18 +3629,6 @@ public:
         case IT_MM_CRC32_U64:
             ret = test_mm_crc32_u64(*(const uint64_t *) mTestIntPointer1,
                                     *(const uint64_t *) mTestIntPointer2);
-            break;
-        case IT_MM_CEIL_PS:
-            ret = test_mm_ceil_ps(mTestFloatPointer1);
-            break;
-        case IT_MM_FLOOR_PS:
-            ret = test_mm_floor_ps(mTestFloatPointer1);
-            break;
-        case IT_MM_ROUND_PS:
-            ret = test_mm_round_ps(mTestFloatPointer1);
-            break;
-        case IT_MM_BLENDV_PS:
-            ret = true;  // test_mm_blendv_ps(mTestFloatPointer1);
             break;
         case IT_LAST: /* should not happend */
             break;

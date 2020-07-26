@@ -3463,7 +3463,7 @@ FORCE_INLINE __m128i _mm_castpd_si128(__m128d a)
 
 // Blend packed single-precision (32-bit) floating-point elements from a and b
 // using mask, and store the results in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=blendv_ps
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_blendv_ps
 FORCE_INLINE __m128 _mm_blendv_ps(__m128 a, __m128 b, __m128 mask)
 {
     return vreinterpretq_m128_f32(vbslq_f32(vreinterpretq_u32_m128(mask),
@@ -3474,7 +3474,7 @@ FORCE_INLINE __m128 _mm_blendv_ps(__m128 a, __m128 b, __m128 mask)
 // Round the packed single-precision (32-bit) floating-point elements in a using
 // the rounding parameter, and store the results as packed single-precision
 // floating-point elements in dst.
-// software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_round_ps
+// software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_ps
 FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 {
 #if defined(__aarch64__)
@@ -3520,7 +3520,7 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 // Round the packed single-precision (32-bit) floating-point elements in a up to
 // an integer value, and store the results as packed single-precision
 // floating-point elements in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_ceil_p
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_ceil_ps
 FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 {
     return _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
@@ -3529,7 +3529,7 @@ FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 // Round the packed single-precision (32-bit) floating-point elements in a down
 // to an integer value, and store the results as packed single-precision
 // floating-point elements in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_flo
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_floor_ps
 FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
 {
     return _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
