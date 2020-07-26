@@ -196,6 +196,7 @@ enum InstructionTest {
 
     // AES
     IT_MM_AESENC_SI128,
+    IT_MM_AESENCLAST_SI128,
     IT_MM_AESKEYGENASSIST_SI128,
 
     // Others

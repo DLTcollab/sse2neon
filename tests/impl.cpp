@@ -626,6 +626,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_AESENC_SI128:
         ret = "IT_MM_AESENC_SI128";
         break;
+    case IT_MM_AESENCLAST_SI128:
+        ret = "IT_MM_AESENCLAST_SI128";
+        break;
     case IT_MM_AESKEYGENASSIST_SI128:
         ret = "IT_MM_AESKEYGENASSIST_SI128";
         break;
@@ -3249,6 +3252,18 @@ inline __m128i aesenc_128_reference(__m128i a, __m128i b)
     return a;
 }
 
+inline __m128i aesenclast_128_reference(__m128i s, __m128i rk)
+{
+    uint8_t i, v[4][4];
+    for (i = 0; i < 16; ++i)
+        v[((i / 4) + 4 - (i % 4)) % 4][i % 4] =
+            crypto_aes_sbox[((SIMDVec *) &s)->m128_u8[i]];
+    for (i = 0; i < 16; ++i)
+        ((SIMDVec *) &s)->m128_u8[i] =
+            v[i / 4][i % 4] ^ ((SIMDVec *) &rk)->m128_u8[i];
+    return s;
+}
+
 static inline uint32_t sub_word(uint32_t key)
 {
     return (crypto_aes_sbox[key >> 24] << 24) |
@@ -3277,6 +3292,17 @@ bool test_mm_aesenc_si128(const int32_t *a, const int32_t *b)
 
     __m128i resultReference = aesenc_128_reference(data, rk);
     __m128i resultIntrinsic = _mm_aesenc_si128(data, rk);
+
+    return validate128(resultReference, resultIntrinsic);
+}
+
+bool test_mm_aesenclast_si128(const int32_t *a, const int32_t *b)
+{
+    __m128i data = _mm_loadu_si128((const __m128i *) a);
+    __m128i rk = _mm_loadu_si128((const __m128i *) b);
+
+    __m128i resultReference = aesenclast_128_reference(data, rk);
+    __m128i resultIntrinsic = _mm_aesenclast_si128(data, rk);
 
     return validate128(resultReference, resultIntrinsic);
 }
@@ -4027,6 +4053,9 @@ public:
             break;
         case IT_MM_AESENC_SI128:
             ret = test_mm_aesenc_si128(mTestIntPointer1, mTestIntPointer2);
+            break;
+        case IT_MM_AESENCLAST_SI128:
+            ret = test_mm_aesenclast_si128(mTestIntPointer1, mTestIntPointer2);
             break;
         case IT_MM_AESKEYGENASSIST_SI128:
             ret = test_mm_aeskeygenassist_si128(mTestIntPointer1,

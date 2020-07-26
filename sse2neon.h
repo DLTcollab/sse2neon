@@ -254,6 +254,7 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 // casting using SIMDVec
 #define vreinterpretq_nth_u64_m128i(x, n) (((SIMDVec *) &x)->m128_u64[n])
 #define vreinterpretq_nth_u32_m128i(x, n) (((SIMDVec *) &x)->m128_u32[n])
+#define vreinterpretq_nth_u8_m128i(x, n) (((SIMDVec *) &x)->m128_u8[n])
 
 /* Backwards compatibility for compilers with lack of specific type support */
 
@@ -4495,6 +4496,33 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
 #endif
 }
 
+FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
+{
+    /* FIXME: optimized for NEON */
+    uint8_t v[4][4] = {
+        [0] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 0)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 5)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 10)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 15)]},
+        [1] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 4)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 9)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 14)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 3)]},
+        [2] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 8)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 13)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 2)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 7)]},
+        [3] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 12)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 1)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 6)],
+               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 11)]},
+    };
+    for (int i = 0; i < 16; i++)
+        vreinterpretq_nth_u8_m128i(a, i) =
+            v[i / 4][i % 4] ^ vreinterpretq_nth_u8_m128i(RoundKey, i);
+    return a;
+}
+
 // Emits the Advanced Encryption Standard (AES) instruction aeskeygenassist.
 // This instruction generates a round key for AES encryption. See
 // https://kazakov.life/2017/11/01/cryptocurrency-mining-on-ios-devices/
@@ -4526,6 +4554,14 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
     return vreinterpretq_m128i_u8(
         vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))) ^
         vreinterpretq_u8_m128i(b));
+}
+
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_aesenclast_si128
+FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
+{
+    return _mm_xor_si128(vreinterpretq_m128i_u8(vaeseq_u8(
+                             vreinterpretq_u8_m128i(a), vdupq_n_u8(0))),
+                         RoundKey);
 }
 
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
