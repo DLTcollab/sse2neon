@@ -15,11 +15,11 @@
 #include "sse2neon.h"
 #elif defined(__x86_64__) || defined(__i386__)
 #include <emmintrin.h>
+#include <immintrin.h>
 #include <smmintrin.h>
 #include <tmmintrin.h>
 #include <wmmintrin.h>
 #include <xmmintrin.h>
-#include <immintrin.h>
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma push_macro("ALIGN_STRUCT")
