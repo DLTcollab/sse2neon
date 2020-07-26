@@ -27,7 +27,7 @@ endif
 ifeq ($(processor),aarch64)
     ARCH_CFLAGS = -march=armv8-a+fp+simd+crc
 else ifeq ($(processor),$(filter $(processor),i386 x86_64))
-    ARCH_CFLAGS = -maes -mpclmul -mssse3 -msse4.2
+    ARCH_CFLAGS = -maes -mpclmul -mssse3 -msse4.2 -mfma
 else ifeq ($(processor),arm)
     ARCH_CFLAGS = -mfpu=neon
 else
