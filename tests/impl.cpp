@@ -473,13 +473,24 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SRLI_EPI16:
         ret = "MM_SRLI_EPI16";
         break;
+    case IT_MM_BLENDV_PS:
+        ret = "IT_MM_BLENDV_PS";
+        break;
+    case IT_MM_CEIL_PS:
+        ret = "IT_MM_CEIL_PS";
+        break;
     case IT_MM_CMPEQ_EPI16:
         ret = "MM_CMPEQ_EPI16";
         break;
     case IT_MM_CMPEQ_EPI64:
         ret = "MM_CMPEQ_EPI64";
         break;
-
+    case IT_MM_FLOOR_PS:
+        ret = "IT_MM_FLOOR_PS";
+        break;
+    case IT_MM_ROUND_PS:
+        ret = "IT_MM_ROUND_PS";
+        break;
     case IT_MM_SET1_EPI8:
         ret = "MM_SET1_EPI8";
         break;
@@ -572,17 +583,6 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_CRC32_U64:
         ret = "IT_MM_CRC32_U64";
-    case IT_MM_BLENDV_PS:
-        ret = "IT_MM_BLENDV_PS";
-        break;
-    case IT_MM_CEIL_PS:
-        ret = "IT_MM_CEIL_PS";
-        break;
-    case IT_MM_FLOOR_PS:
-        ret = "IT_MM_FLOOR_PS";
-        break;
-    case IT_MM_ROUND_PS:
-        ret = "IT_MM_ROUND_PS";
         break;
     case IT_LAST: /* should not happend */
         break;
@@ -3317,6 +3317,9 @@ public:
             ret = test_mm_mul_epu32((const uint32_t *) mTestIntPointer1,
                                     (const uint32_t *) mTestIntPointer2);
             break;
+        case IT_MM_FLOOR_PS:
+            ret = test_mm_floor_ps(mTestFloatPointer1);
+            break;
         case IT_MM_ADD_EPI16:
             ret = true;
             break;
@@ -3448,21 +3451,13 @@ public:
         case IT_MM_CVTSS_F32:
             ret = true;
             break;
-        case IT_MM_TESTZ_SI128:
-            ret = test_mm_testz_si128(mTestIntPointer1, mTestIntPointer2);
-            break;
-        case IT_MM_BLENDV_PS:
-            ret = true;
-            break;
-        case IT_MM_CEIL_PS:
-            ret = test_mm_ceil_ps(mTestFloatPointer1);
-            break;
-        case IT_MM_FLOOR_PS:
-            ret = test_mm_floor_ps(mTestFloatPointer1);
-            break;
         case IT_MM_ROUND_PS:
             ret = test_mm_round_ps(mTestFloatPointer1);
             break;
+        case IT_MM_TESTZ_SI128:
+            ret = test_mm_testz_si128(mTestIntPointer1, mTestIntPointer2);
+            break;
+
         case IT_MM_SET1_EPI16:
             ret = test_mm_set1_epi16((const int16_t *) mTestIntPointer1);
             break;
@@ -3506,6 +3501,12 @@ public:
             break;
         case IT_MM_SRLI_EPI16:
             ret = test_mm_srli_epi16((const int16_t *) mTestIntPointer1);
+            break;
+        case IT_MM_BLENDV_PS:
+            ret = true;
+            break;
+        case IT_MM_CEIL_PS:
+            ret = test_mm_ceil_ps(mTestFloatPointer1);
             break;
         case IT_MM_CMPEQ_EPI16:
             ret = test_mm_cmpeq_epi16((const int16_t *) mTestIntPointer1,
