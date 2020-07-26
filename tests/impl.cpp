@@ -19,6 +19,7 @@
 #include <tmmintrin.h>
 #include <wmmintrin.h>
 #include <xmmintrin.h>
+#include <immintrin.h>
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma push_macro("ALIGN_STRUCT")
