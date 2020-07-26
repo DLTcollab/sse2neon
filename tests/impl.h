@@ -176,11 +176,15 @@ enum InstructionTest {
     IT_MM_SHUFFLE_EPI8,
 
     // SSE4.1
+    IT_MM_BLENDV_PS,  // Unimplemented
+    IT_MM_CEIL_PS,
     IT_MM_CMPEQ_EPI64,
+    IT_MM_FLOOR_PS,
     IT_MM_MAX_EPI32,  // Unimplemented
     IT_MM_MIN_EPI32,  // Unimplemented
     IT_MM_MINPOS_EPU16,
     IT_MM_MULLO_EPI32,  // Unimplemented
+    IT_MM_ROUND_PS,
     IT_MM_TEST_ALL_ZEROS,
     IT_MM_TESTZ_SI128,
 

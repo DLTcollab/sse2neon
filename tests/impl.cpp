@@ -536,13 +536,24 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SRLI_EPI16:
         ret = "MM_SRLI_EPI16";
         break;
+    case IT_MM_BLENDV_PS:
+        ret = "IT_MM_BLENDV_PS";
+        break;
+    case IT_MM_CEIL_PS:
+        ret = "IT_MM_CEIL_PS";
+        break;
     case IT_MM_CMPEQ_EPI16:
         ret = "MM_CMPEQ_EPI16";
         break;
     case IT_MM_CMPEQ_EPI64:
         ret = "MM_CMPEQ_EPI64";
         break;
-
+    case IT_MM_FLOOR_PS:
+        ret = "IT_MM_FLOOR_PS";
+        break;
+    case IT_MM_ROUND_PS:
+        ret = "IT_MM_ROUND_PS";
+        break;
     case IT_MM_SET1_EPI8:
         ret = "MM_SET1_EPI8";
         break;
@@ -3360,6 +3371,42 @@ bool test_mm_crc32_u64(uint64_t crc, uint64_t v)
     return true;
 }
 
+bool test_mm_ceil_ps(const float *_a)
+{
+    float dx = ceilf(_a[0]);
+    float dy = ceilf(_a[1]);
+    float dz = ceilf(_a[2]);
+    float dw = ceilf(_a[3]);
+
+    __m128 a = test_mm_load_ps(_a);
+    __m128 c = _mm_ceil_ps(a);
+    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
+}
+
+bool test_mm_floor_ps(const float *_a)
+{
+    float dx = floorf(_a[0]);
+    float dy = floorf(_a[1]);
+    float dz = floorf(_a[2]);
+    float dw = floorf(_a[3]);
+
+    __m128 a = test_mm_load_ps(_a);
+    __m128 c = _mm_floor_ps(a);
+    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
+}
+
+bool test_mm_round_ps(const float *_a)
+{
+    float dx = roundf(_a[0]);
+    float dy = roundf(_a[1]);
+    float dz = roundf(_a[2]);
+    float dw = roundf(_a[3]);
+
+    __m128 a = test_mm_load_ps(_a);
+    __m128 c = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
+}
+
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
 
@@ -3663,6 +3710,9 @@ public:
             ret = test_mm_mul_epu32((const uint32_t *) mTestIntPointer1,
                                     (const uint32_t *) mTestIntPointer2);
             break;
+        case IT_MM_FLOOR_PS:
+            ret = test_mm_floor_ps(mTestFloatPointer1);
+            break;
         case IT_MM_ADD_EPI16:
             ret = true;
             break;
@@ -3824,9 +3874,13 @@ public:
         case IT_MM_CVTSS_F32:
             ret = true;
             break;
+        case IT_MM_ROUND_PS:
+            ret = test_mm_round_ps(mTestFloatPointer1);
+            break;
         case IT_MM_TESTZ_SI128:
             ret = test_mm_testz_si128(mTestIntPointer1, mTestIntPointer2);
             break;
+
         case IT_MM_SET1_EPI16:
             ret = test_mm_set1_epi16((const int16_t *) mTestIntPointer1);
             break;
@@ -3870,6 +3924,12 @@ public:
             break;
         case IT_MM_SRLI_EPI16:
             ret = test_mm_srli_epi16((const int16_t *) mTestIntPointer1);
+            break;
+        case IT_MM_BLENDV_PS:
+            ret = true;
+            break;
+        case IT_MM_CEIL_PS:
+            ret = test_mm_ceil_ps(mTestFloatPointer1);
             break;
         case IT_MM_CMPEQ_EPI16:
             ret = test_mm_cmpeq_epi16((const int16_t *) mTestIntPointer1,
