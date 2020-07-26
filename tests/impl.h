@@ -149,6 +149,8 @@ enum InstructionTest {
 
     // SSE3
     IT_MM_HADD_PS,  // Unimplemented
+    IT_MM_MOVEHDUP_PS,
+    IT_MM_MOVELDUP_PS,
 
     // SSSE3
     IT_MM_HADD_EPI16,

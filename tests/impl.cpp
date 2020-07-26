@@ -208,6 +208,12 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_MOVEMASK_PS:
         ret = "MM_MOVEMASK_PS";
         break;
+    case IT_MM_MOVEHDUP_PS:
+        ret = "MM_MOVEHDUP_PS";
+        break;
+    case IT_MM_MOVELDUP_PS:
+        ret = "MM_MOVELDUP_PS";
+        break;
     case IT_MM_SHUFFLE_EPI8:
         ret = "MM_SHUFFLE_EPI8";
         break;
@@ -1147,6 +1153,18 @@ bool test_mm_movemask_ps(const float *p)
     __m128 a = test_mm_load_ps(p);
     int val = _mm_movemask_ps(a);
     return val == ret ? true : false;
+}
+
+bool test_mm_movehdup_ps(const float *p)
+{
+    __m128 a = test_mm_load_ps(p);
+    return validateFloat(_mm_movehdup_ps(a), p[1], p[1], p[3], p[3]);
+}
+
+bool test_mm_moveldup_ps(const float *p)
+{
+    __m128 a = test_mm_load_ps(p);
+    return validateFloat(_mm_moveldup_ps(a), p[0], p[0], p[2], p[2]);
 }
 
 // Note, NEON does not have a general purpose shuffled command like SSE.
@@ -3128,6 +3146,12 @@ public:
             break;
         case IT_MM_MOVEMASK_PS:
             ret = test_mm_movemask_ps(mTestFloatPointer1);
+            break;
+        case IT_MM_MOVEHDUP_PS:
+            ret = test_mm_movehdup_ps(mTestFloatPointer1);
+            break;
+        case IT_MM_MOVELDUP_PS:
+            ret = test_mm_moveldup_ps(mTestFloatPointer1);
             break;
         case IT_MM_SHUFFLE_PS:
             ret = test_mm_shuffle_ps(mTestFloatPointer1, mTestFloatPointer2);
