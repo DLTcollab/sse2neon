@@ -48,18 +48,21 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 namespace SSE2NEON
 {
 // hex representation of an IEEE NAN
-const uint32_t inan = 0xffffffff;
+int32_t nan = ~0;
+int64_t nan64 = ~0;
+#define ALL_BIT_1_32 (*(float *) &nan)
+#define ALL_BIT_1_64 (*(float *) &nan64)
 
 static inline float getNAN(void)
 {
-    const float *fn = (const float *) &inan;
+    const float *fn = (const float *) &nan;
     return *fn;
 }
 
 static inline bool isNAN(float a)
 {
-    const uint32_t *ia = (const uint32_t *) &a;
-    return (*ia) == inan ? true : false;
+    const int32_t *ia = (const int32_t *) &a;
+    return (*ia) == nan ? true : false;
 }
 
 // Do a round operation that produces results the same as SSE instructions
@@ -181,6 +184,33 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CMPNEQ_PS:
         ret = "MM_CMPNEQ_PS";
         break;
+    case IT_MM_CMPNEQ_SS:
+        ret = "MM_CMPNEQ_SS";
+        break;
+    case IT_MM_CMPNGE_PS:
+        ret = "IT_MM_CMPNGE_PS";
+        break;
+    case IT_MM_CMPNGE_SS:
+        ret = " IT_MM_CMPNGE_SS";
+        break;
+    case IT_MM_CMPNGT_PS:
+        ret = "IT_MM_CMPNGT_PS";
+        break;
+    case IT_MM_CMPNGT_SS:
+        ret = " IT_MM_CMPNGT_SS";
+        break;
+    case IT_MM_CMPNLE_PS:
+        ret = "IT_MM_CMPNLE_PS";
+        break;
+    case IT_MM_CMPNLE_SS:
+        ret = " IT_MM_CMPNLE_SS";
+        break;
+    case IT_MM_CMPNLT_PS:
+        ret = "IT_MM_CMPNLT_PS";
+        break;
+    case IT_MM_CMPNLT_SS:
+        ret = " IT_MM_CMPNLT_SS";
+        break;
     case IT_MM_ANDNOT_PS:
         ret = "MM_ANDNOT_PS";
         break;
@@ -213,6 +243,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_MOVELDUP_PS:
         ret = "MM_MOVELDUP_PS";
+        break;
+    case IT_MM_MOVE_SS:
+        ret = "MM_MOVE_SS";
         break;
     case IT_MM_SHUFFLE_EPI8:
         ret = "MM_SHUFFLE_EPI8";
@@ -328,17 +361,32 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CMPLT_PS:
         ret = "MM_CMPLT_PS";
         break;
+    case IT_MM_CMPLT_SS:
+        ret = "MM_CMPLT_SS";
+        break;
     case IT_MM_CMPGT_PS:
         ret = "MM_CMPGT_PS";
+        break;
+    case IT_MM_CMPGT_SS:
+        ret = "MM_CMPGT_SS";
         break;
     case IT_MM_CMPGE_PS:
         ret = "MM_CMPGE_PS";
         break;
+    case IT_MM_CMPGE_SS:
+        ret = "MM_CMPGE_SS";
+        break;
     case IT_MM_CMPLE_PS:
         ret = "MM_CMPLE_PS";
         break;
+    case IT_MM_CMPLE_SS:
+        ret = "MM_CMPLE_SS";
+        break;
     case IT_MM_CMPEQ_PS:
         ret = "MM_CMPEQ_PS";
+        break;
+    case IT_MM_CMPEQ_SS:
+        ret = "MM_CMPEQ_SS";
         break;
     case IT_MM_CMPLT_EPI32:
         ret = "MM_CMPLT_EPI32";
@@ -348,6 +396,15 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
         break;
     case IT_MM_CMPORD_PS:
         ret = "MM_CMPORD_PS";
+        break;
+    case IT_MM_CMPORD_SS:
+        ret = "MM_CMPORD_SS";
+        break;
+    case IT_MM_CMPUNORD_PS:
+        ret = "MM_CMPUNORD_PS";
+        break;
+    case IT_MM_CMPUNORD_SS:
+        ret = "MM_CMPUNORD_SS";
         break;
     case IT_MM_COMILT_SS:
         ret = "MM_COMILT_SS";
@@ -1167,6 +1224,21 @@ bool test_mm_moveldup_ps(const float *p)
     return validateFloat(_mm_moveldup_ps(a), p[0], p[0], p[2], p[2]);
 }
 
+bool test_mm_move_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = b[0];
+    result[1] = a[1];
+    result[2] = a[2];
+    result[3] = a[3];
+
+    __m128 ret = _mm_move_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
 // Note, NEON does not have a general purpose shuffled command like SSE.
 // When invoking this method, there is special code for a number of the most
 // common shuffle permutations
@@ -1543,6 +1615,112 @@ bool test_mm_cmplt_ps(const float *_a, const float *_b)
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
 }
 
+bool test_mm_cmplt_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = _a[0] < _b[0] ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmplt_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpnlt_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] < _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = !(_a[1] < _b[1]) ? ALL_BIT_1_32 : 0;
+    result[2] = !(_a[2] < _b[2]) ? ALL_BIT_1_32 : 0;
+    result[3] = !(_a[3] < _b[3]) ? ALL_BIT_1_32 : 0;
+
+    __m128 ret = _mm_cmpnlt_ps(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpnlt_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] < _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpnlt_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpneq_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    int32_t result[4];
+    result[0] = _a[0] != _b[0] ? -1 : 0;
+    result[1] = _a[1] != _b[1] ? -1 : 0;
+    result[2] = _a[2] != _b[2] ? -1 : 0;
+    result[3] = _a[3] != _b[3] ? -1 : 0;
+
+    __m128 ret = _mm_cmpneq_ps(a, b);
+    __m128i iret = *(const __m128i *) &ret;
+    return validateInt32(iret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpneq_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = _a[0] != _b[0] ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpneq_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpnge_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] >= _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = !(_a[1] >= _b[1]) ? ALL_BIT_1_32 : 0;
+    result[2] = !(_a[2] >= _b[2]) ? ALL_BIT_1_32 : 0;
+    result[3] = !(_a[3] >= _b[3]) ? ALL_BIT_1_32 : 0;
+
+    __m128 ret = _mm_cmpnge_ps(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpnge_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] >= _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpnge_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
 bool test_mm_cmpgt_ps(const float *_a, const float *_b)
 {
     __m128 a = test_mm_load_ps(_a);
@@ -1557,6 +1735,51 @@ bool test_mm_cmpgt_ps(const float *_a, const float *_b)
     __m128 ret = _mm_cmpgt_ps(a, b);
     __m128i iret = *(const __m128i *) &ret;
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpgt_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = _a[0] > _b[0] ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpgt_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpngt_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] > _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = !(_a[1] > _b[1]) ? ALL_BIT_1_32 : 0;
+    result[2] = !(_a[2] > _b[2]) ? ALL_BIT_1_32 : 0;
+    result[3] = !(_a[3] > _b[3]) ? ALL_BIT_1_32 : 0;
+
+    __m128 ret = _mm_cmpngt_ps(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpngt_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] > _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpngt_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
 }
 
 bool test_mm_cmpge_ps(const float *_a, const float *_b)
@@ -1575,6 +1798,21 @@ bool test_mm_cmpge_ps(const float *_a, const float *_b)
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
 }
 
+bool test_mm_cmpge_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = _a[0] >= _b[0] ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpge_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
 bool test_mm_cmple_ps(const float *_a, const float *_b)
 {
     __m128 a = test_mm_load_ps(_a);
@@ -1591,6 +1829,51 @@ bool test_mm_cmple_ps(const float *_a, const float *_b)
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
 }
 
+bool test_mm_cmple_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = _a[0] <= _b[0] ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmple_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpnle_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] <= _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = !(_a[1] <= _b[1]) ? ALL_BIT_1_32 : 0;
+    result[2] = !(_a[2] <= _b[2]) ? ALL_BIT_1_32 : 0;
+    result[3] = !(_a[3] <= _b[3]) ? ALL_BIT_1_32 : 0;
+
+    __m128 ret = _mm_cmpnle_ps(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpnle_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = !(_a[0] <= _b[0]) ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpnle_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
 bool test_mm_cmpeq_ps(const float *_a, const float *_b)
 {
     __m128 a = test_mm_load_ps(_a);
@@ -1605,6 +1888,21 @@ bool test_mm_cmpeq_ps(const float *_a, const float *_b)
     __m128 ret = _mm_cmpeq_ps(a, b);
     __m128i iret = *(const __m128i *) &ret;
     return validateInt32(iret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpeq_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = _a[0] == _b[0] ? ALL_BIT_1_32 : 0;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpeq_ss(a, b);
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
 }
 
 bool test_mm_cmplt_epi32(const int32_t *_a, const int32_t *_b)
@@ -1644,11 +1942,7 @@ float compord(float a, float b)
 
     bool isNANA = isNAN(a);
     bool isNANB = isNAN(b);
-    if (!isNANA && !isNANB) {
-        ret = getNAN();
-    } else {
-        ret = 0.0f;
-    }
+    ret = (!isNANA && !isNANB) ? getNAN() : 0.0f;
     return ret;
 }
 
@@ -1664,6 +1958,54 @@ bool test_mm_cmpord_ps(const float *_a, const float *_b)
     }
 
     __m128 ret = _mm_cmpord_ps(a, b);
+
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpord_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = compord(_a[0], _b[0]);
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpord_ss(a, b);
+
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpunord_ps(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+
+    for (uint32_t i = 0; i < 4; i++) {
+        result[i] = (isNAN(_a[i]) || isNAN(_b[i])) ? getNAN() : 0.0f;
+    }
+
+    __m128 ret = _mm_cmpunord_ps(a, b);
+
+    return validateFloat(ret, result[0], result[1], result[2], result[3]);
+}
+
+bool test_mm_cmpunord_ss(const float *_a, const float *_b)
+{
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+
+    float result[4];
+    result[0] = (isNAN(_a[0]) || isNAN(_b[0])) ? getNAN() : 0.0f;
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
+
+    __m128 ret = _mm_cmpunord_ss(a, b);
 
     return validateFloat(ret, result[0], result[1], result[2], result[3]);
 }
@@ -3153,6 +3495,9 @@ public:
         case IT_MM_MOVELDUP_PS:
             ret = test_mm_moveldup_ps(mTestFloatPointer1);
             break;
+        case IT_MM_MOVE_SS:
+            ret = test_mm_move_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
         case IT_MM_SHUFFLE_PS:
             ret = test_mm_shuffle_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
@@ -3202,17 +3547,32 @@ public:
         case IT_MM_CMPLT_PS:
             ret = test_mm_cmplt_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
+        case IT_MM_CMPLT_SS:
+            ret = test_mm_cmplt_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
         case IT_MM_CMPGT_PS:
             ret = test_mm_cmpgt_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPGT_SS:
+            ret = test_mm_cmpgt_ss(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_CMPGE_PS:
             ret = test_mm_cmpge_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
+        case IT_MM_CMPGE_SS:
+            ret = test_mm_cmpge_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
         case IT_MM_CMPLE_PS:
             ret = test_mm_cmple_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
+        case IT_MM_CMPLE_SS:
+            ret = test_mm_cmple_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
         case IT_MM_CMPEQ_PS:
             ret = test_mm_cmpeq_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPEQ_SS:
+            ret = test_mm_cmpeq_ss(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_CMPLT_EPI32:
             ret = test_mm_cmplt_epi32(mTestIntPointer1, mTestIntPointer2);
@@ -3231,6 +3591,15 @@ public:
             break;
         case IT_MM_CMPORD_PS:
             ret = test_mm_cmpord_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPORD_SS:
+            ret = test_mm_cmpord_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPUNORD_PS:
+            ret = test_mm_cmpunord_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPUNORD_SS:
+            ret = test_mm_cmpunord_ss(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_COMILT_SS:
             ret = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer2);
@@ -3344,11 +3713,41 @@ public:
         case IT_MM_LOAD_PD:
             ret = test_mm_load_pd((const double *) mTestFloatPointer1);
             break;
+        case IT_MM_LOADU_PD:
+            ret = test_mm_loadu_pd((const double *) mTestFloatPointer1);
+            break;
         case IT_MM_LOAD_SS:
             ret = true;
             break;
         case IT_MM_CMPNEQ_PS:
-            ret = true;
+            ret = test_mm_cmpneq_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNEQ_SS:
+            ret = test_mm_cmpneq_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNGE_PS:
+            ret = test_mm_cmpnge_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNGE_SS:
+            ret = test_mm_cmpnge_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNGT_PS:
+            ret = test_mm_cmpngt_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNGT_SS:
+            ret = test_mm_cmpngt_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNLE_PS:
+            ret = test_mm_cmpnle_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNLE_SS:
+            ret = test_mm_cmpnle_ss(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNLT_PS:
+            ret = test_mm_cmpnlt_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_CMPNLT_SS:
+            ret = test_mm_cmpnlt_ss(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_STOREU_PS:
             ret = true;
@@ -3622,8 +4021,9 @@ public:
                 mTestFloatPointer1[2] = 1.0f / mTestFloatPointer1[2];
                 mTestFloatPointer1[3] = 1.0f / mTestFloatPointer1[3];
             }
-            if (test == IT_MM_CMPGE_PS || test == IT_MM_CMPLE_PS ||
-                test == IT_MM_CMPEQ_PS) {
+            if (test == IT_MM_CMPGE_PS || test == IT_MM_CMPGE_SS ||
+                test == IT_MM_CMPLE_PS || test == IT_MM_CMPLE_SS ||
+                test == IT_MM_CMPEQ_PS || test == IT_MM_CMPEQ_SS) {
                 // Make sure at least one value is the same.
                 mTestFloatPointer1[3] = mTestFloatPointer2[3];
             }
