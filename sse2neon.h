@@ -4194,6 +4194,11 @@ FORCE_INLINE __m128i _mm_clmulepi64_si128(__m128i _a, __m128i _b, const int imm)
     }
 /* clang-format on */
 
+/* X Macro trick. See https://en.wikipedia.org/wiki/X_Macro */
+#define SSE2NEON_AES_H0(x) (x)
+static const uint8_t SSE2NEON_sbox[256] = SSE2NEON_AES_DATA(SSE2NEON_AES_H0);
+#undef SSE2NEON_AES_H0
+
 // In the absence of crypto extensions, implement aesenc using regular neon
 // intrinsics instead. See:
 // https://www.workofard.com/2017/01/accelerated-aes-for-the-arm64-linux-kernel/
@@ -4203,11 +4208,6 @@ FORCE_INLINE __m128i _mm_clmulepi64_si128(__m128i _a, __m128i _b, const int imm)
 FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
 {
 #if defined(__aarch64__)
-/* X Macro trick. See https://en.wikipedia.org/wiki/X_Macro */
-#define SSE2NEON_AES_H0(x) (x)
-    static const uint8_t crypto_aes_sbox[256] =
-        SSE2NEON_AES_DATA(SSE2NEON_AES_H0);
-#undef SSE2NEON_AES_H0
     static const uint8_t shift_rows[] = {0x0, 0x5, 0xa, 0xf, 0x4, 0x9,
                                          0xe, 0x3, 0x8, 0xd, 0x2, 0x7,
                                          0xc, 0x1, 0x6, 0xb};
@@ -4221,10 +4221,10 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
     w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
 
     // sub bytes
-    v = vqtbl4q_u8(vld1q_u8_x4(crypto_aes_sbox), w);
-    v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, vld1q_u8_x4(crypto_aes_sbox + 0xc0), w - 0xc0);
+    v = vqtbl4q_u8(vld1q_u8_x4(SSE2NEON_sbox), w);
+    v = vqtbx4q_u8(v, vld1q_u8_x4(SSE2NEON_sbox + 0x40), w - 0x40);
+    v = vqtbx4q_u8(v, vld1q_u8_x4(SSE2NEON_sbox + 0x80), w - 0x80);
+    v = vqtbx4q_u8(v, vld1q_u8_x4(SSE2NEON_sbox + 0xc0), w - 0xc0);
 
     // mix columns
     w = (v << 1) ^ (uint8x16_t)(((int8x16_t) v >> 7) & 0x1b);
@@ -4289,14 +4289,11 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
 // https://msdn.microsoft.com/en-us/library/cc714138(v=vs.120).aspx
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i key, const int rcon)
 {
-#define SSE2NEON_AES_H0(x) (x)
-    static const uint8_t sbox[256] = SSE2NEON_AES_DATA(SSE2NEON_AES_H0);
-#undef SSE2NEON_AES_H0
     uint32_t X1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0x55));
     uint32_t X3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(key, 0xFF));
     for (int i = 0; i < 4; ++i) {
-        ((uint8_t *) &X1)[i] = sbox[((uint8_t *) &X1)[i]];
-        ((uint8_t *) &X3)[i] = sbox[((uint8_t *) &X3)[i]];
+        ((uint8_t *) &X1)[i] = SSE2NEON_sbox[((uint8_t *) &X1)[i]];
+        ((uint8_t *) &X3)[i] = SSE2NEON_sbox[((uint8_t *) &X3)[i]];
     }
     return _mm_set_epi32(((X3 >> 8) | (X3 << 24)) ^ rcon, X3,
                          ((X1 >> 8) | (X1 << 24)) ^ rcon, X1);
@@ -4319,9 +4316,9 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 {
-    uint8x16_t key = {0};
-    uint8x16_t u8 = vaeseq_u8(vreinterpretq_u8_m128i(a),
-                              key);  // AESE does ShiftRows and SubBytes on A
+    // AESE does ShiftRows and SubBytes on A
+    uint8x16_t u8 = vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0));
+
     uint8x16_t dest = {
         // Undo ShiftRows step from AESE and extract X1 and X3
         u8[0x4], u8[0x1], u8[0xE], u8[0xB],  // SubBytes(X1)
