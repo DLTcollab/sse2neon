@@ -3020,7 +3020,7 @@ bool test_mm_ceil_ps(const float *_a)
 
     __m128 a = test_mm_load_ps(_a);
     __m128 c = _mm_ceil_ps(a);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
 }
 
 bool test_mm_floor_ps(const float *_a)
@@ -3032,7 +3032,7 @@ bool test_mm_floor_ps(const float *_a)
 
     __m128 a = test_mm_load_ps(_a);
     __m128 c = _mm_floor_ps(a);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
 }
 
 bool test_mm_round_ps(const float *_a)
@@ -3044,7 +3044,7 @@ bool test_mm_round_ps(const float *_a)
 
     __m128 a = test_mm_load_ps(_a);
     __m128 c = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
 }
 
 // Try 10,000 random floating point values for each test we run
