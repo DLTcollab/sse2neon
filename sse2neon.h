@@ -4319,15 +4319,18 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 {
-    a = vaeseq_u8(a, (__m128i){});  // AESE does ShiftRows and SubBytes on A
-    __m128i dest = {
+    uint8x16_t key = {0};
+    uint8x16_t u8 = vaeseq_u8(vreinterpretq_u8_m128i(a),
+                              key);  // AESE does ShiftRows and SubBytes on A
+    uint8x16_t dest = {
         // Undo ShiftRows step from AESE and extract X1 and X3
-        a[0x4], a[0x1], a[0xE], a[0xB],  // SubBytes(X1)
-        a[0x1], a[0xE], a[0xB], a[0x4],  // ROT(SubBytes(X1))
-        a[0xC], a[0x9], a[0x6], a[0x3],  // SubBytes(X3)
-        a[0x9], a[0x6], a[0x3], a[0xC],  // ROT(SubBytes(X3))
+        u8[0x4], u8[0x1], u8[0xE], u8[0xB],  // SubBytes(X1)
+        u8[0x1], u8[0xE], u8[0xB], u8[0x4],  // ROT(SubBytes(X1))
+        u8[0xC], u8[0x9], u8[0x6], u8[0x3],  // SubBytes(X3)
+        u8[0x9], u8[0x6], u8[0x3], u8[0xC],  // ROT(SubBytes(X3))
     };
-    return dest ^ (__m128i)((uint32x4_t){0, rcon, 0, rcon});
+    uint32x4_t r = {0, (unsigned) rcon, 0, (unsigned) rcon};
+    return vreinterpretq_m128i_u8(dest) ^ vreinterpretq_m128i_u32(r);
 }
 #endif
 
