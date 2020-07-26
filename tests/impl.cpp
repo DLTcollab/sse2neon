@@ -564,6 +564,18 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_CLMULEPI64_SI128:
         ret = "IT_MM_CLMULEPI64_SI128";
         break;
+    case IT_MM_FMADD_PS:
+        ret = "IT_MM_FMADD_PS";
+        break;
+    case IT_MM_FMSUB_PS:
+        ret = "IT_MM_FMSUB_PS";
+        break;
+    case IT_MM_FNMADD_PS:
+        ret = "IT_MM_FNMADD_PS";
+        break;
+    case IT_MM_FNMSUB_PS:
+        ret = "IT_MM_FNMSUB_PS";
+        break;
     case IT_MM_MALLOC:
         ret = "IT_MM_MALLOC";
         break;
@@ -2848,6 +2860,106 @@ bool test_mm_clmulepi64_si128(const uint64_t *_a, const uint64_t *_b)
     return true;
 }
 
+bool test_mm_fmadd_ps(const float *_a, const float *_b, const float *_c)
+{
+    float _a_smaller[4];
+    float _b_smaller[4];
+    float _c_smaller[4];
+
+    for (int i = 0; i < 4; i++) {
+        _a_smaller[i] = (_a[i] != 0.0f) ? _a[i] / 10000.0f : _a[i];
+        _b_smaller[i] = (_b[i] != 0.0f) ? _b[i] / 10000.0f : _b[i];
+        _c_smaller[i] = (_c[i] != 0.0f) ? _c[i] / 10000.0f : _c[i];
+    }
+
+    float dx = _a_smaller[0] * _b_smaller[0] + _c_smaller[0];
+    float dy = _a_smaller[1] * _b_smaller[1] + _c_smaller[1];
+    float dz = _a_smaller[2] * _b_smaller[2] + _c_smaller[2];
+    float dw = _a_smaller[3] * _b_smaller[3] + _c_smaller[3];
+
+    __m128 a = test_mm_load_ps(_a_smaller);
+    __m128 b = test_mm_load_ps(_b_smaller);
+    __m128 c = test_mm_load_ps(_c_smaller);
+    __m128 d = _mm_fmadd_ps(a, b, c);
+
+    return validateFloatEpsilon(d, dx, dy, dz, dw, 0.0001f);
+}
+
+bool test_mm_fmsub_ps(const float *_a, const float *_b, const float *_c)
+{
+    float _a_smaller[4];
+    float _b_smaller[4];
+    float _c_smaller[4];
+
+    for (int i = 0; i < 4; i++) {
+        _a_smaller[i] = (_a[i] != 0.0f) ? _a[i] / 10000.0f : _a[i];
+        _b_smaller[i] = (_b[i] != 0.0f) ? _b[i] / 10000.0f : _b[i];
+        _c_smaller[i] = (_c[i] != 0.0f) ? _c[i] / 10000.0f : _c[i];
+    }
+
+    float dx = _a_smaller[0] * _b_smaller[0] - _c_smaller[0];
+    float dy = _a_smaller[1] * _b_smaller[1] - _c_smaller[1];
+    float dz = _a_smaller[2] * _b_smaller[2] - _c_smaller[2];
+    float dw = _a_smaller[3] * _b_smaller[3] - _c_smaller[3];
+
+    __m128 a = test_mm_load_ps(_a_smaller);
+    __m128 b = test_mm_load_ps(_b_smaller);
+    __m128 c = test_mm_load_ps(_c_smaller);
+    __m128 d = _mm_fmsub_ps(a, b, c);
+
+    return validateFloatEpsilon(d, dx, dy, dz, dw, 0.0001f);
+}
+
+bool test_mm_fnmadd_ps(const float *_a, const float *_b, const float *_c)
+{
+    float _a_smaller[4];
+    float _b_smaller[4];
+    float _c_smaller[4];
+
+    for (int i = 0; i < 4; i++) {
+        _a_smaller[i] = (_a[i] != 0.0f) ? _a[i] / 10000.0f : _a[i];
+        _b_smaller[i] = (_b[i] != 0.0f) ? _b[i] / 10000.0f : _b[i];
+        _c_smaller[i] = (_c[i] != 0.0f) ? _c[i] / 10000.0f : _c[i];
+    }
+
+    float dx = -(_a_smaller[0] * _b_smaller[0]) + _c_smaller[0];
+    float dy = -(_a_smaller[1] * _b_smaller[1]) + _c_smaller[1];
+    float dz = -(_a_smaller[2] * _b_smaller[2]) + _c_smaller[2];
+    float dw = -(_a_smaller[3] * _b_smaller[3]) + _c_smaller[3];
+
+    __m128 a = test_mm_load_ps(_a_smaller);
+    __m128 b = test_mm_load_ps(_b_smaller);
+    __m128 c = test_mm_load_ps(_c_smaller);
+    __m128 d = _mm_fnmadd_ps(a, b, c);
+
+    return validateFloatEpsilon(d, dx, dy, dz, dw, 0.0001f);
+}
+
+bool test_mm_fnmsub_ps(const float *_a, const float *_b, const float *_c)
+{
+    float _a_smaller[4];
+    float _b_smaller[4];
+    float _c_smaller[4];
+
+    for (int i = 0; i < 4; i++) {
+        _a_smaller[i] = (_a[i] != 0.0f) ? _a[i] / 10000.0f : _a[i];
+        _b_smaller[i] = (_b[i] != 0.0f) ? _b[i] / 10000.0f : _b[i];
+        _c_smaller[i] = (_c[i] != 0.0f) ? _c[i] / 10000.0f : _c[i];
+    }
+
+    float dx = -(_a_smaller[0] * _b_smaller[0]) - _c_smaller[0];
+    float dy = -(_a_smaller[1] * _b_smaller[1]) - _c_smaller[1];
+    float dz = -(_a_smaller[2] * _b_smaller[2]) - _c_smaller[2];
+    float dw = -(_a_smaller[3] * _b_smaller[3]) - _c_smaller[3];
+
+    __m128 a = test_mm_load_ps(_a_smaller);
+    __m128 b = test_mm_load_ps(_b_smaller);
+    __m128 c = test_mm_load_ps(_c_smaller);
+    __m128 d = _mm_fnmsub_ps(a, b, c);
+
+    return validateFloatEpsilon(d, dx, dy, dz, dw, 0.0001f);
+}
+
 static const uint8_t crypto_aes_sbox[256] = {
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b,
     0xfe, 0xd7, 0xab, 0x76, 0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0,
@@ -3576,6 +3688,22 @@ public:
         case IT_MM_CLMULEPI64_SI128:
             ret = test_mm_clmulepi64_si128((const uint64_t *) mTestIntPointer1,
                                            (const uint64_t *) mTestIntPointer2);
+            break;
+        case IT_MM_FMADD_PS:
+            ret = test_mm_fmadd_ps(mTestFloatPointer1, mTestFloatPointer2,
+                                   mTestFloatPointer2);
+            break;
+        case IT_MM_FMSUB_PS:
+            ret = test_mm_fmsub_ps(mTestFloatPointer1, mTestFloatPointer2,
+                                   mTestFloatPointer2);
+            break;
+        case IT_MM_FNMADD_PS:
+            ret = test_mm_fnmadd_ps(mTestFloatPointer1, mTestFloatPointer2,
+                                    mTestFloatPointer2);
+            break;
+        case IT_MM_FNMSUB_PS:
+            ret = test_mm_fnmsub_ps(mTestFloatPointer1, mTestFloatPointer2,
+                                    mTestFloatPointer2);
             break;
         case IT_MM_MALLOC:
             ret = test_mm_malloc((const size_t *) mTestIntPointer1,

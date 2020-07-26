@@ -178,6 +178,10 @@ enum InstructionTest {
 
     // Others
     IT_MM_CLMULEPI64_SI128,
+    IT_MM_FMADD_PS,
+    IT_MM_FMSUB_PS,
+    IT_MM_FNMADD_PS,
+    IT_MM_FNMSUB_PS,
     IT_MM_POPCNT_U32,
     IT_MM_POPCNT_U64,
     IT_MM_SHUFFLE_EPI32_DEFAULT,     // Unimplemented

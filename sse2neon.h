@@ -1307,7 +1307,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 
 // Shuffle packed 8-bit integers in a according to shuffle control mask in the
 // corresponding 8-bit element of b, and store the results in dst.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_epi8
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_epi8&expand=5146
 FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 {
     int8x16_t tbl = vreinterpretq_s8_m128i(a);   // input a
@@ -2003,7 +2003,7 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and
 // mask, and return 1 if the result is zero, otherwise return 0.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_test_all_zeros
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_test_all_zeros&expand=5871
 FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
 {
     int64x2_t a_and_mask =
@@ -2498,7 +2498,7 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
 //
 // Return Value
 // Multiplies A and B, and adds C to the temporary result before returning it.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd_ps
 FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 {
 #if defined(__aarch64__)
@@ -2510,11 +2510,46 @@ FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 #endif
 }
 
+// Computes the fused multiple add product of 32-bit floating point numbers.
+//
+// Return Value
+// Multiplies A and B, and adds C to the temporary result before returning it.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmsub_ps
+// AARCH64 NEON has vfmsq_f32 but it computes A - B*C instead of A*B - C,
+// an extra multiplication by -1.0f might not be worth it.
+FORCE_INLINE __m128 _mm_fmsub_ps(__m128 a, __m128 b, __m128 c)
+{
+    return _mm_sub_ps(_mm_mul_ps(a, b), c);
+}
+
+// Computes the negated fused multiple add product of 32-bit floating point
+// numbers. Returns OUT = -A*B + C
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fnmadd_ps
+FORCE_INLINE __m128 _mm_fnmadd_ps(__m128 a, __m128 b, __m128 c)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vfmsq_f32(vreinterpretq_f32_m128(c),
+                                            vreinterpretq_f32_m128(b),
+                                            vreinterpretq_f32_m128(a)));
+#else
+    return _mm_sub_ps(c, _mm_mul_ps(a, b));
+#endif
+}
+
+// Computes the negated fused multiple sub product of 32-bit floating point
+// numbers. Returns OUT = -A*B -C
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fnmsub_ps
+FORCE_INLINE __m128 _mm_fnmsub_ps(__m128 a, __m128 b, __m128 c)
+{
+    __m128 negate_mask = {-1.0f, -1.0f, -1.0f, -1.0f};
+    return _mm_mul_ps(negate_mask, _mm_fmadd_ps(a, b, c));
+}
+
 // Alternatively add and subtract packed single-precision (32-bit)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.
 //
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_addsub_ps
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
     __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
