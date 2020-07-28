@@ -2004,10 +2004,9 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 {
     uint32x4_t input = vreinterpretq_u32_m128(a);
 #if defined(__aarch64__)
-    static const int32x4_t shift = {-31, -30, -29, -28};
-    static const uint32x4_t highbit = {0x80000000, 0x80000000, 0x80000000,
-                                       0x80000000};
-    return vaddvq_u32(vshlq_u32(vandq_u32(input, highbit), shift));
+    static const int32x4_t shift = {0, 1, 2, 3};
+    uint32x4_t tmp = vshrq_n_u32(input, 31);
+    return vaddvq_u32(vshlq_u32(tmp, shift));
 #else
     // Uses the exact same method as _mm_movemask_epi8, see that for details.
     // Shift out everything but the sign bits with a 32-bit unsigned shift
