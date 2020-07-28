@@ -4591,9 +4591,21 @@ FORCE_INLINE void _mm_sfence(void)
     __sync_synchronize();
 }
 
+// Store 128-bits (composed of 4 packed single-precision (32-bit) floating-
+// point elements) from a into memory using a non-temporal memory hint.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_ps
+void _mm_stream_ps(float *p, __m128 a)
+{
+#if __has_builtin(__builtin_nontemporal_store)
+    __builtin_nontemporal_store(a, (float32x4_t *) p);
+#else
+    vst1q_f32(p, vreinterpretq_f32_m128(a));
+#endif
+}
+
 // Stores the data in a to the address p without polluting the caches.  If the
 // cache line containing address p is already in the cache, the cache will be
-// updated.Address p must be 16 - byte aligned.
+// updated.
 // https://msdn.microsoft.com/en-us/library/ba08y07y%28v=vs.90%29.aspx
 FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 {
@@ -4601,6 +4613,18 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
     __builtin_nontemporal_store(a, p);
 #else
     vst1q_s64((int64_t *) p, vreinterpretq_s64_m128i(a));
+#endif
+}
+
+// Load 128-bits of integer data from memory into dst using a non-temporal
+// memory hint.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_load_si128
+__m128i _mm_stream_load_si128(const __m128i *p)
+{
+#if __has_builtin(__builtin_nontemporal_store)
+    return __builtin_nontemporal_load(p);
+#else
+    return vreinterpretq_m128i_s64(vld1q_s64((const int64_t *) p));
 #endif
 }
 
