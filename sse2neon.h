@@ -96,6 +96,11 @@
 
 #include <arm_neon.h>
 
+/* Rounding functions require either Aarch64 instructions or libm failback */
+#if !defined(__aarch64__)
+#include <math.h>
+#endif
+
 /* "__has_builtin" can be used to query support for built-in functions
  * provided by gcc/clang and other compilers that support it.
  */
