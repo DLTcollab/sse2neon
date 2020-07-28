@@ -1592,17 +1592,6 @@ FORCE_INLINE __m128i _mm_blendv_epi8(__m128i _a, __m128i _b, __m128i _mask)
 
 /* Shifts */
 
-// Shifts the 4 signed 32-bit integers in a right by count bits while shifting
-// in the sign bit.
-//
-//   r0 := a0 >> count
-//   r1 := a1 >> count
-//   r2 := a2 >> count
-//   r3 := a3 >> count immediate
-FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, int count)
-{
-    return (__m128i) vshlq_s32((int32x4_t) a, vdupq_n_s32(-count));
-}
 
 // Shift packed 16-bit integers in a right by imm while shifting in sign
 // bits, and store the results in dst.
