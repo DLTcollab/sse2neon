@@ -179,6 +179,7 @@ enum InstructionTest {
     IT_MM_BLENDV_PS,  // Unimplemented
     IT_MM_CEIL_PS,
     IT_MM_CMPEQ_EPI64,
+    IT_MM_DP_PS,
     IT_MM_FLOOR_PS,
     IT_MM_MAX_EPI32,  // Unimplemented
     IT_MM_MIN_EPI32,  // Unimplemented

@@ -307,6 +307,9 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_MUL_PS:
         ret = "MM_MUL_PS";
         break;
+    case IT_MM_DP_PS:
+        ret = "MM_DP_PS";
+        break;
     case IT_MM_DIV_PS:
         ret = "MM_DIV_PS";
         break;
@@ -1538,6 +1541,25 @@ bool test_mm_mul_ps(const float *_a, const float *_b)
     __m128 b = test_mm_load_ps(_b);
     __m128 c = _mm_mul_ps(a, b);
     return validateFloat(c, dx, dy, dz, dw);
+}
+
+bool test_mm_dp_ps(const float *_a, const float *_b)
+{
+    const int imm = 0xFF;
+    __m128 a = test_mm_load_ps(_a);
+    __m128 b = test_mm_load_ps(_b);
+    __m128 out = _mm_dp_ps(a, b, imm);
+
+    float r[4]; /* the reference */
+    float sum = 0;
+
+    for (size_t i = 0; i < 4; i++)
+        sum += ((imm) & (1 << (i + 4))) ? _a[i] * _b[i] : 0;
+    for (size_t i = 0; i < 4; i++)
+        r[i] = (imm & (1 << i)) ? sum : 0;
+
+    /* the epsilon has to be large enough, otherwise test suite fails. */
+    return validateFloatEpsilon(out, r[0], r[1], r[2], r[3], 2050.0f);
 }
 
 bool test_mm_rcp_ps(const float *_a)
@@ -3599,6 +3621,9 @@ public:
             break;
         case IT_MM_MUL_PS:
             ret = test_mm_mul_ps(mTestFloatPointer1, mTestFloatPointer2);
+            break;
+        case IT_MM_DP_PS:
+            ret = test_mm_dp_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
         case IT_MM_RCP_PS:
             ret = test_mm_rcp_ps(mTestFloatPointer1);

@@ -2900,6 +2900,60 @@ FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s32(vsubq_s32(ab02, ab13));
 }
 
+// Kahan summation for accurate summation of floating-point numbers.
+// http://blog.zachbjornson.com/2019/08/11/fast-float-summation.html
+FORCE_INLINE void sse2neon_kadd_f32(float *sum, float *c, float y)
+{
+    y -= *c;
+    float t = *sum + y;
+    *c = (t - *sum) - y;
+    *sum = t;
+}
+
+// Conditionally multiply the packed single-precision (32-bit) floating-point
+// elements in a and b using the high 4 bits in imm8, sum the four products,
+// and conditionally store the sum in dst using the low 4 bits of imm.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_dp_ps
+FORCE_INLINE __m128 _mm_dp_ps(__m128 a, __m128 b, const int imm)
+{
+#if defined(__aarch64__)
+    /* shortcuts */
+    if (imm == 0xFF) {
+        return _mm_set1_ps(vaddvq_f32(_mm_mul_ps(a, b)));
+    }
+    if (imm == 0x7F) {
+        float32x4_t m = _mm_mul_ps(a, b);
+        m[3] = 0;
+        return _mm_set1_ps(vaddvq_f32(m));
+    }
+#endif
+
+    float s = 0, c = 0;
+    float32x4_t f32a = vreinterpretq_f32_m128(a);
+    float32x4_t f32b = vreinterpretq_f32_m128(b);
+
+    /* To improve the accuracy of floating-point summation, Kahan algorithm
+     * is used for each operation.
+     */
+    if (imm & (1 << 4))
+        sse2neon_kadd_f32(&s, &c, f32a[0] * f32b[0]);
+    if (imm & (1 << 5))
+        sse2neon_kadd_f32(&s, &c, f32a[1] * f32b[1]);
+    if (imm & (1 << 6))
+        sse2neon_kadd_f32(&s, &c, f32a[2] * f32b[2]);
+    if (imm & (1 << 7))
+        sse2neon_kadd_f32(&s, &c, f32a[3] * f32b[3]);
+    s += c;
+
+    float32x4_t res = {
+        (imm & 0x1) ? s : 0,
+        (imm & 0x2) ? s : 0,
+        (imm & 0x4) ? s : 0,
+        (imm & 0x8) ? s : 0,
+    };
+    return vreinterpretq_m128_f32(res);
+}
+
 /* Compare operations */
 
 // Compares for less than
