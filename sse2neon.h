@@ -4390,17 +4390,18 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 // (32-bit) floating-point elements in row0, row1, row2, and row3, and store the
 // transposed matrix in these vectors (row0 now contains column 0, etc.).
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=MM_TRANSPOSE4_PS
-#define _MM_TRANSPOSE4_PS(row0, row1, row2, row3) \
-    do {                                          \
-        __m128 tmp0, tmp1, tmp2, tmp3;            \
-        tmp0 = _mm_unpacklo_ps(row0, row1);       \
-        tmp2 = _mm_unpacklo_ps(row2, row3);       \
-        tmp1 = _mm_unpackhi_ps(row0, row1);       \
-        tmp3 = _mm_unpackhi_ps(row2, row3);       \
-        row0 = _mm_movelh_ps(tmp0, tmp2);         \
-        row1 = _mm_movehl_ps(tmp2, tmp0);         \
-        row2 = _mm_movelh_ps(tmp1, tmp3);         \
-        row3 = _mm_movehl_ps(tmp3, tmp1);         \
+#define _MM_TRANSPOSE4_PS(row0, row1, row2, row3)         \
+    do {                                                  \
+        float32x4x2_t ROW01 = vtrnq_f32(row0, row1);      \
+        float32x4x2_t ROW23 = vtrnq_f32(row2, row3);      \
+        row0 = vcombine_f32(vget_low_f32(ROW01.val[0]),   \
+                            vget_low_f32(ROW23.val[0]));  \
+        row1 = vcombine_f32(vget_low_f32(ROW01.val[1]),   \
+                            vget_low_f32(ROW23.val[1]));  \
+        row2 = vcombine_f32(vget_high_f32(ROW01.val[0]),  \
+                            vget_high_f32(ROW23.val[0])); \
+        row3 = vcombine_f32(vget_high_f32(ROW01.val[1]),  \
+                            vget_high_f32(ROW23.val[1])); \
     } while (0)
 
 /* Crypto Extensions */
