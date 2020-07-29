@@ -160,6 +160,11 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [SSE2NEON - High Performance MPC on ARM](https://github.com/rons1404/biu-cybercenter-proj-sse2neon)
 * [AvxToNeon](https://github.com/kunpengcompute/AvxToNeon)
 
+## Reference
+* [Intel Intrinsics Guide](https://software.intel.com/sites/landingpage/IntrinsicsGuide/)
+* [Arm Neon Intrinsics Reference](https://developer.arm.com/architectures/instruction-sets/simd-isas/neon/intrinsics)
+* [qemu/target/i386/ops_sse.h](https://github.com/qemu/qemu/blob/master/target/i386/ops_sse.h): Comprehensive SSE instruction emulation in C. Ideal for semantic checks.
+
 ## Licensing
 
 `sse2neon` is freely redistributable under the MIT License.
