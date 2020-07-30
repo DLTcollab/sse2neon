@@ -1604,15 +1604,12 @@ FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, int count)
     return (__m128i) vshlq_s32((int32x4_t) a, vdupq_n_s32(-count));
 }
 
-// Shifts the 8 signed 16-bit integers in a right by count bits while shifting
-// in the sign bit.
-//
-//   r0 := a0 >> count
-//   r1 := a1 >> count
-//   ...
-//   r7 := a7 >> count
-FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int count)
+// Shift packed 16-bit integers in a right by imm while shifting in sign
+// bits, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srai_epi16
+FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 {
+    const int count = (imm & ~15) ? 15 : imm;
     return (__m128i) vshlq_s16((int16x8_t) a, vdupq_n_s16(-count));
 }
 

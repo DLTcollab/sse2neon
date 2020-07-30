@@ -144,6 +144,7 @@ enum InstructionTest {
     IT_MM_SLLI_EPI16,
     IT_MM_SRA_EPI16,
     IT_MM_SRA_EPI32,
+    IT_MM_SRAI_EPI16,
     IT_MM_SRL_EPI16,
     IT_MM_SRL_EPI32,
     IT_MM_SRL_EPI64,
