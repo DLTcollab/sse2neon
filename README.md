@@ -93,34 +93,14 @@ Once the conversion is implemented, the test can be added with the following ste
 
 * File `tests/impl.h`
 
-  Add the intrinsic in `enum InstructionTest`. The naming convention should be `IT_MM_XXX`.
-  And place it in the correct classification with the alphabetical order.
+  Add the intrinsic under `#define INTRIN_FOREACH(TYPE)` macro. The naming convention
+  should be `mm_xxx`.
+  Place it in the correct classification with the alphabetical order.
   The classification can be referenced from [Intel Intrinsics Guide](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#).
 
 * File `tests/impl.cpp`
-
-  * For the test name generation:
-
-    Add the corresponding switch-case in `getInstructionTestString()`.
     ```c
-    case IT_MM_XX:
-        ret = "MM_XXX";
-        break;
-    ```
-
-  * For running the test:
-
-    Add the corresponding switch-case in `runSingleTest()`.
-    ```c
-    case IT_MM_XXX:
-        ret = test_mm_xxx();
-        break;
-    ```
-
-  * The test implementation:
-
-    ```c
-    bool test_mm_xxx()
+    result_t test_mm_xxx()
     {
         // The C implementation
         ...
@@ -128,7 +108,8 @@ Once the conversion is implemented, the test can be added with the following ste
         // The Neon implementation
         ret = _mm_xxx();
 
-        // Compare the result of two implementations and return it
+        // Compare the result of two implementations and return either
+        // TEST_SUCCESS, TEST_FAIL, or TEST_UNIMPL
         ...
     }
     ```

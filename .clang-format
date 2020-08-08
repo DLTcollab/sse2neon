@@ -16,3 +16,4 @@ AccessModifierOffset: -4
 ForEachMacros:
   - SET_FOREACH
   - RB_FOREACH
+AlignEscapedNewlines: Left

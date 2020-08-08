@@ -7,26 +7,26 @@ int main(int /*argc*/, const char ** /*argv*/)
     SSE2NEON::SSE2NEONTest *test = SSE2NEON::SSE2NEONTest::create();
     uint32_t passCount = 0;
     uint32_t failedCount = 0;
-    for (uint32_t i = 0; i < SSE2NEON::IT_LAST; i++) {
+    uint32_t ignoreCount = 0;
+    for (uint32_t i = 0; i < SSE2NEON::it_last; i++) {
         SSE2NEON::InstructionTest it = SSE2NEON::InstructionTest(i);
-        printf("Running Test %s\n",
-               SSE2NEON::SSE2NEONTest::getInstructionTestString(it));
-        bool ok = test->runTest(it);
+        SSE2NEON::result_t ret = test->runTest(it);
         // If the test fails, we will run it again so we can step into the
         // debugger and figure out why!
-        if (!ok) {
-            printf("**FAILURE** SSE2NEONTest %s\n",
-                   SSE2NEON::SSE2NEONTest::getInstructionTestString(it));
-        }
-        if (ok) {
-            passCount++;
-        } else {
+        if (ret == SSE2NEON::TEST_FAIL) {
+            printf("Test %s failed\n", SSE2NEON::instructionString[it]);
             failedCount++;
+        } else if (ret == SSE2NEON::TEST_UNIMPL) {
+            printf("Test %s skipped\n", SSE2NEON::instructionString[it]);
+            ignoreCount++;
+        } else {
+            printf("Test %s passed\n", SSE2NEON::instructionString[it]);
+            passCount++;
         }
     }
     test->release();
-    printf("SSE2NEONTest Complete: Passed %d tests : Failed %d\n", passCount,
-           failedCount);
+    printf("SSE2NEONTest Complete: Passed %d tests : Failed %d : Ignored %d\n",
+           passCount, failedCount, ignoreCount);
 
     return failedCount ? -1 : 0;
 }
