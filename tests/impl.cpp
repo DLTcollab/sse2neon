@@ -277,6 +277,8 @@ const char *SSE2NEONTest::getInstructionTestString(InstructionTest test)
     case IT_MM_SUB_EPI32:
         ret = "MM_SUB_EPI32";
         break;
+    case IT_MM_ABS_EPI32:
+        ret = "IT_MM_ABS_EPI32";
     case IT_MM_ADD_PS:
         ret = "MM_ADD_PS";
         break;
@@ -1379,6 +1381,19 @@ bool test_mm_sub_epi64(const int64_t *_a, const int64_t *_b)
     __m128i b = test_mm_load_ps((const int32_t *) _b);
     __m128i c = _mm_sub_epi64(a, b);
     return validateInt64(c, d0, d1);
+}
+
+bool test_mm_abs_epi32(const int32_t *_a)
+{
+    __m128i a = test_mm_load_ps(_a);
+    __m128i c = _mm_abs_epi32(a);
+
+    uint32_t d0 = (_a[0] < 0) ? -_a[0] : _a[0];
+    uint32_t d1 = (_a[1] < 0) ? -_a[1] : _a[1];
+    uint32_t d2 = (_a[2] < 0) ? -_a[2] : _a[2];
+    uint32_t d3 = (_a[3] < 0) ? -_a[3] : _a[3];
+
+    return validateInt32(c, d0, d1, d2, d3);
 }
 
 bool test_mm_add_ps(const float *_a, const float *_b)
@@ -3627,6 +3642,8 @@ public:
         case IT_MM_SUB_EPI32:
             ret = test_mm_sub_epi32(mTestIntPointer1, mTestIntPointer2);
             break;
+        case IT_MM_ABS_EPI32:
+            ret = test_mm_abs_epi32(mTestIntPointer1);
         case IT_MM_ADD_PS:
             ret = test_mm_add_ps(mTestFloatPointer1, mTestFloatPointer2);
             break;
