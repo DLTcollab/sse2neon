@@ -172,6 +172,7 @@ enum InstructionTest {
     IT_MM_MOVELDUP_PS,
 
     // SSSE3
+    IT_MM_ABS_EPI32,
     IT_MM_HADD_EPI16,
     IT_MM_MADDUBS_EPI16,
     IT_MM_SHUFFLE_EPI8,
