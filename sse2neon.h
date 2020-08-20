@@ -2566,10 +2566,15 @@ FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/edaw8147(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(
+        vdivq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+#else
     float32x4_t recip0 = vrecpeq_f32(vreinterpretq_f32_m128(b));
     float32x4_t recip1 =
         vmulq_f32(recip0, vrecpsq_f32(recip0, vreinterpretq_f32_m128(b)));
     return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(a), recip1));
+#endif
 }
 
 // Divides the scalar single-precision floating point value of a by b.
