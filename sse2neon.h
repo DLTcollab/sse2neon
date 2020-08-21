@@ -21,6 +21,7 @@
 //   Developer Ecosystem Engineering <DeveloperEcosystemEngineering@apple.com>
 //   Danila Kutenin <danilak@google.com>
 //   François Turban (JishinMaster) <francois.turban@gmail.com>
+//   Pei-Hsuan Hung <afcidk@gmail.com>
 
 /*
  * sse2neon is freely redistributable under the MIT License.
