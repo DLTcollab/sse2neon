@@ -38,6 +38,7 @@ CXXFLAGS += -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -std=gnu++14
 LDFLAGS	+= -lm
 OBJS = \
     tests/binding.o \
+    tests/common.o \
     tests/impl.o \
     tests/main.o
 deps := $(OBJS:%.o=%.o.d)

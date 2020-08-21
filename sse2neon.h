@@ -4767,7 +4767,7 @@ FORCE_INLINE void _mm_sfence(void)
 // Store 128-bits (composed of 4 packed single-precision (32-bit) floating-
 // point elements) from a into memory using a non-temporal memory hint.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_ps
-void _mm_stream_ps(float *p, __m128 a)
+FORCE_INLINE void _mm_stream_ps(float *p, __m128 a)
 {
 #if __has_builtin(__builtin_nontemporal_store)
     __builtin_nontemporal_store(a, (float32x4_t *) p);
@@ -4792,7 +4792,7 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 // Load 128-bits of integer data from memory into dst using a non-temporal
 // memory hint.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_load_si128
-__m128i _mm_stream_load_si128(const __m128i *p)
+FORCE_INLINE __m128i _mm_stream_load_si128(const __m128i *p)
 {
 #if __has_builtin(__builtin_nontemporal_store)
     return __builtin_nontemporal_load(p);
