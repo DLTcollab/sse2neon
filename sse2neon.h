@@ -153,7 +153,7 @@ typedef float64x2_t __m128d; /* 128-bit vector containing 2 doubles */
 #else
 typedef float32x4_t __m128d;
 #endif
-typedef int64x1_t __m64i;
+typedef int64x1_t __m64;
 typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 
 /* type-safe casting between types */
@@ -206,25 +206,25 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpretq_u32_m128i(x) vreinterpretq_u32_s64(x)
 #define vreinterpretq_u64_m128i(x) vreinterpretq_u64_s64(x)
 
-#define vreinterpret_m64i_s8(x) vreinterpret_s64_s8(x)
-#define vreinterpret_m64i_s16(x) vreinterpret_s64_s16(x)
-#define vreinterpret_m64i_s32(x) vreinterpret_s64_s32(x)
-#define vreinterpret_m64i_s64(x) (x)
+#define vreinterpret_m64_s8(x) vreinterpret_s64_s8(x)
+#define vreinterpret_m64_s16(x) vreinterpret_s64_s16(x)
+#define vreinterpret_m64_s32(x) vreinterpret_s64_s32(x)
+#define vreinterpret_m64_s64(x) (x)
 
-#define vreinterpret_m64i_u8(x) vreinterpret_s64_u8(x)
-#define vreinterpret_m64i_u16(x) vreinterpret_s64_u16(x)
-#define vreinterpret_m64i_u32(x) vreinterpret_s64_u32(x)
-#define vreinterpret_m64i_u64(x) vreinterpret_s64_u64(x)
+#define vreinterpret_m64_u8(x) vreinterpret_s64_u8(x)
+#define vreinterpret_m64_u16(x) vreinterpret_s64_u16(x)
+#define vreinterpret_m64_u32(x) vreinterpret_s64_u32(x)
+#define vreinterpret_m64_u64(x) vreinterpret_s64_u64(x)
 
-#define vreinterpret_u8_m64i(x) vreinterpret_u8_s64(x)
-#define vreinterpret_u16_m64i(x) vreinterpret_u16_s64(x)
-#define vreinterpret_u32_m64i(x) vreinterpret_u32_s64(x)
-#define vreinterpret_u64_m64i(x) vreinterpret_u64_s64(x)
+#define vreinterpret_u8_m64(x) vreinterpret_u8_s64(x)
+#define vreinterpret_u16_m64(x) vreinterpret_u16_s64(x)
+#define vreinterpret_u32_m64(x) vreinterpret_u32_s64(x)
+#define vreinterpret_u64_m64(x) vreinterpret_u64_s64(x)
 
-#define vreinterpret_s8_m64i(x) vreinterpret_s8_s64(x)
-#define vreinterpret_s16_m64i(x) vreinterpret_s16_s64(x)
-#define vreinterpret_s32_m64i(x) vreinterpret_s32_s64(x)
-#define vreinterpret_s64_m64i(x) (x)
+#define vreinterpret_s8_m64(x) vreinterpret_s8_s64(x)
+#define vreinterpret_s16_m64(x) vreinterpret_s16_s64(x)
+#define vreinterpret_s32_m64(x) vreinterpret_s32_s64(x)
+#define vreinterpret_s64_m64(x) (x)
 
 #if defined(__aarch64__)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
@@ -4204,15 +4204,15 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 #if defined(__aarch64__)
     min = vminvq_u16(vreinterpretq_u16_m128i(a));
 #else
-    __m64i tmp;
-    tmp = vreinterpret_m64i_u16(
+    __m64 tmp;
+    tmp = vreinterpret_m64_u16(
         vmin_u16(vget_low_u16(vreinterpretq_u16_m128i(a)),
                  vget_high_u16(vreinterpretq_u16_m128i(a))));
-    tmp = vreinterpret_m64i_u16(
-        vpmin_u16(vreinterpret_u16_m64i(tmp), vreinterpret_u16_m64i(tmp)));
-    tmp = vreinterpret_m64i_u16(
-        vpmin_u16(vreinterpret_u16_m64i(tmp), vreinterpret_u16_m64i(tmp)));
-    min = vget_lane_u16(vreinterpret_u16_m64i(tmp), 0);
+    tmp = vreinterpret_m64_u16(
+        vpmin_u16(vreinterpret_u16_m64(tmp), vreinterpret_u16_m64(tmp)));
+    tmp = vreinterpret_m64_u16(
+        vpmin_u16(vreinterpret_u16_m64(tmp), vreinterpret_u16_m64(tmp)));
+    min = vget_lane_u16(vreinterpret_u16_m64(tmp), 0);
 #endif
     // Get the index of the minimum value
     int i;
