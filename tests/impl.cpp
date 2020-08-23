@@ -1729,6 +1729,26 @@ result_t test_mm_hadd_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt16(ret, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+result_t test_mm_cvt_ss2si(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    int32_t d0;
+    int32_t f = (int32_t) floor(_a[0]);
+    int32_t c = (int32_t) ceil(_a[0]);
+    float diff = _a[0] - floor(_a[0]);
+    // Round to nearest, ties to even
+    if (diff > 0.5)
+        d0 = c;
+    else if (diff == 0.5)
+        d0 = c & 1 ? f : c;
+    else
+        d0 = f;
+
+    __m128 a = do_mm_load_ps(_a);
+    int32_t ret = _mm_cvt_ss2si(a);
+    return ret == d0 ? TEST_SUCCESS : TEST_FAIL;
+}
+
 result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
