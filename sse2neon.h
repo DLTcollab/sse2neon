@@ -144,7 +144,7 @@
  * a suffix, it contains floats. An integer vector type can contain any type
  * of integer, from chars to shorts to unsigned long longs.
  */
-typedef float32x2_t __m64;
+typedef int64x1_t __m64;
 typedef float32x4_t __m128; /* 128-bit vector containing 4 floats */
 // On ARM 32-bit architecture, the float64x2_t is not supported.
 // The data type __m128d should be represented in a different way for related
@@ -154,7 +154,6 @@ typedef float64x2_t __m128d; /* 128-bit vector containing 2 doubles */
 #else
 typedef float32x4_t __m128d;
 #endif
-typedef int64x1_t __m64i;
 typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 
 /* type-safe casting between types */
@@ -207,25 +206,29 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpretq_u32_m128i(x) vreinterpretq_u32_s64(x)
 #define vreinterpretq_u64_m128i(x) vreinterpretq_u64_s64(x)
 
-#define vreinterpret_m64i_s8(x) vreinterpret_s64_s8(x)
-#define vreinterpret_m64i_s16(x) vreinterpret_s64_s16(x)
-#define vreinterpret_m64i_s32(x) vreinterpret_s64_s32(x)
-#define vreinterpret_m64i_s64(x) (x)
+#define vreinterpret_m64_s8(x) vreinterpret_s64_s8(x)
+#define vreinterpret_m64_s16(x) vreinterpret_s64_s16(x)
+#define vreinterpret_m64_s32(x) vreinterpret_s64_s32(x)
+#define vreinterpret_m64_s64(x) (x)
 
-#define vreinterpret_m64i_u8(x) vreinterpret_s64_u8(x)
-#define vreinterpret_m64i_u16(x) vreinterpret_s64_u16(x)
-#define vreinterpret_m64i_u32(x) vreinterpret_s64_u32(x)
-#define vreinterpret_m64i_u64(x) vreinterpret_s64_u64(x)
+#define vreinterpret_m64_u8(x) vreinterpret_s64_u8(x)
+#define vreinterpret_m64_u16(x) vreinterpret_s64_u16(x)
+#define vreinterpret_m64_u32(x) vreinterpret_s64_u32(x)
+#define vreinterpret_m64_u64(x) vreinterpret_s64_u64(x)
 
-#define vreinterpret_u8_m64i(x) vreinterpret_u8_s64(x)
-#define vreinterpret_u16_m64i(x) vreinterpret_u16_s64(x)
-#define vreinterpret_u32_m64i(x) vreinterpret_u32_s64(x)
-#define vreinterpret_u64_m64i(x) vreinterpret_u64_s64(x)
+#define vreinterpret_m64_f16(x) vreinterpret_s64_f16(x)
+#define vreinterpret_m64_f32(x) vreinterpret_s64_f32(x)
+#define vreinterpret_m64_f64(x) vreinterpret_s64_f64(x)
 
-#define vreinterpret_s8_m64i(x) vreinterpret_s8_s64(x)
-#define vreinterpret_s16_m64i(x) vreinterpret_s16_s64(x)
-#define vreinterpret_s32_m64i(x) vreinterpret_s32_s64(x)
-#define vreinterpret_s64_m64i(x) (x)
+#define vreinterpret_u8_m64(x) vreinterpret_u8_s64(x)
+#define vreinterpret_u16_m64(x) vreinterpret_u16_s64(x)
+#define vreinterpret_u32_m64(x) vreinterpret_u32_s64(x)
+#define vreinterpret_u64_m64(x) vreinterpret_u64_s64(x)
+
+#define vreinterpret_s8_m64(x) vreinterpret_s8_s64(x)
+#define vreinterpret_s16_m64(x) vreinterpret_s16_s64(x)
+#define vreinterpret_s32_m64(x) vreinterpret_s32_s64(x)
+#define vreinterpret_s64_m64(x) (x)
 
 #if defined(__aarch64__)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
@@ -700,7 +703,7 @@ FORCE_INLINE void _mm_storel_epi64(__m128i *a, __m128i b)
 // https://msdn.microsoft.com/en-us/library/h54t98ks(v=vs.90).aspx
 FORCE_INLINE void _mm_storel_pi(__m64 *p, __m128 a)
 {
-    *p = vget_low_f32(a);
+    *p = vreinterpret_m64_f32(vget_low_f32(a));
 }
 
 // Stores the upper two single-precision, floating-point values of a to the
@@ -712,7 +715,7 @@ FORCE_INLINE void _mm_storel_pi(__m64 *p, __m128 a)
 // https://msdn.microsoft.com/en-us/library/a7525fs8(v%3dvs.90).aspx
 FORCE_INLINE void _mm_storeh_pi(__m64 *p, __m128 a)
 {
-    *p = vget_high_f32(a);
+    *p = vreinterpret_m64_f32(vget_high_f32(a));
 }
 
 // Loads a single single-precision, floating-point value, copying it into all
@@ -3799,7 +3802,7 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 #if defined(__aarch64__)
 FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
 {
-    __m64 tmp = vcvtx_f32_f64((float64x2_t) a);
+    __m64 tmp = vreinterpret_m64_f32(vcvtx_f32_f64((float64x2_t) a));
     return (__m128) _mm_set_epi64(tmp, tmp);
 }
 #endif
@@ -4231,15 +4234,15 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 #if defined(__aarch64__)
     min = vminvq_u16(vreinterpretq_u16_m128i(a));
 #else
-    __m64i tmp;
-    tmp = vreinterpret_m64i_u16(
+    __m64 tmp;
+    tmp = vreinterpret_m64_u16(
         vmin_u16(vget_low_u16(vreinterpretq_u16_m128i(a)),
                  vget_high_u16(vreinterpretq_u16_m128i(a))));
-    tmp = vreinterpret_m64i_u16(
-        vpmin_u16(vreinterpret_u16_m64i(tmp), vreinterpret_u16_m64i(tmp)));
-    tmp = vreinterpret_m64i_u16(
-        vpmin_u16(vreinterpret_u16_m64i(tmp), vreinterpret_u16_m64i(tmp)));
-    min = vget_lane_u16(vreinterpret_u16_m64i(tmp), 0);
+    tmp = vreinterpret_m64_u16(
+        vpmin_u16(vreinterpret_u16_m64(tmp), vreinterpret_u16_m64(tmp)));
+    tmp = vreinterpret_m64_u16(
+        vpmin_u16(vreinterpret_u16_m64(tmp), vreinterpret_u16_m64(tmp)));
+    min = vget_lane_u16(vreinterpret_u16_m64(tmp), 0);
 #endif
     // Get the index of the minimum value
     int i;
