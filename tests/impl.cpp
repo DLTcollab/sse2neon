@@ -3265,6 +3265,42 @@ result_t test_mm_slli_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_avg_pu16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint16_t *_a = (const uint16_t *) impl.mTestIntPointer1;
+    const uint16_t *_b = (const uint16_t *) impl.mTestIntPointer2;
+    uint16_t d0 = (_a[0] + _b[0] + 1) >> 1;
+    uint16_t d1 = (_a[1] + _b[1] + 1) >> 1;
+    uint16_t d2 = (_a[2] + _b[2] + 1) >> 1;
+    uint16_t d3 = (_a[3] + _b[3] + 1) >> 1;
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_avg_pu16(*a, *b);
+
+    return validateUInt16(c, d0, d1, d2, d3);
+}
+
+result_t test_mm_avg_pu8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    uint8_t d0 = (_a[0] + _b[0] + 1) >> 1;
+    uint8_t d1 = (_a[1] + _b[1] + 1) >> 1;
+    uint8_t d2 = (_a[2] + _b[2] + 1) >> 1;
+    uint8_t d3 = (_a[3] + _b[3] + 1) >> 1;
+    uint8_t d4 = (_a[4] + _b[4] + 1) >> 1;
+    uint8_t d5 = (_a[5] + _b[5] + 1) >> 1;
+    uint8_t d6 = (_a[6] + _b[6] + 1) >> 1;
+    uint8_t d7 = (_a[7] + _b[7] + 1) >> 1;
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_avg_pu8(*a, *b);
+
+    return validateUInt8(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 result_t test_mm_avg_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;

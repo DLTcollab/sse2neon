@@ -2241,6 +2241,36 @@ FORCE_INLINE __m128i _mm_sign_epi32(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s32(res);
 }
 
+// Average packed unsigned 16-bit integers in a and b, and store the results in
+// dst.
+//
+//   FOR j := 0 to 3
+//     i := j*16
+//     dst[i+15:i] := (a[i+15:i] + b[i+15:i] + 1) >> 1
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_avg_pu16
+FORCE_INLINE __m64 _mm_avg_pu16(__m64 a, __m64 b)
+{
+    return vreinterpret_m64_u16(
+        vrhadd_u16(vreinterpret_u16_m64(a), vreinterpret_u16_m64(b)));
+}
+
+// Average packed unsigned 8-bit integers in a and b, and store the results in
+// dst.
+//
+//   FOR j := 0 to 7
+//     i := j*8
+//     dst[i+7:i] := (a[i+7:i] + b[i+7:i] + 1) >> 1
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_avg_pu8
+FORCE_INLINE __m64 _mm_avg_pu8(__m64 a, __m64 b)
+{
+    return vreinterpret_m64_u8(
+        vrhadd_u8(vreinterpret_u8_m64(a), vreinterpret_u8_m64(b)));
+}
+
 // Computes the average of the 16 unsigned 8-bit integers in a and the 16
 // unsigned 8-bit integers in b and rounds.
 //

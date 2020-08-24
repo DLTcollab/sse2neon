@@ -11,8 +11,10 @@
     /* SSE */                         \
     TYPE(mm_add_ps)                   \
     TYPE(mm_add_ss)                   \
-    TYPE(mm_andnot_ps)                \
     TYPE(mm_and_ps)                   \
+    TYPE(mm_andnot_ps)                \
+    TYPE(mm_avg_pu16)                 \
+    TYPE(mm_avg_pu8)                  \
     TYPE(mm_cmpeq_ps)                 \
     TYPE(mm_cmpeq_ss)                 \
     TYPE(mm_cmpge_ps)                 \

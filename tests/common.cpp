@@ -93,6 +93,20 @@ result_t validateUInt16(__m128i a,
     return TEST_SUCCESS;
 }
 
+result_t validateUInt16(__m64 a,
+                        uint16_t u0,
+                        uint16_t u1,
+                        uint16_t u2,
+                        uint16_t u3)
+{
+    const uint16_t *t = (const uint16_t *) &a;
+    ASSERT_RETURN(t[0] == u0);
+    ASSERT_RETURN(t[1] == u1);
+    ASSERT_RETURN(t[2] == u2);
+    ASSERT_RETURN(t[3] == u3);
+    return TEST_SUCCESS;
+}
+
 result_t validateInt8(__m128i a,
                       int8_t i0,
                       int8_t i1,
@@ -166,6 +180,28 @@ result_t validateUInt8(__m128i a,
     ASSERT_RETURN(t[13] == u13);
     ASSERT_RETURN(t[14] == u14);
     ASSERT_RETURN(t[15] == u15);
+    return TEST_SUCCESS;
+}
+
+result_t validateUInt8(__m64 a,
+                       uint8_t u0,
+                       uint8_t u1,
+                       uint8_t u2,
+                       uint8_t u3,
+                       uint8_t u4,
+                       uint8_t u5,
+                       uint8_t u6,
+                       uint8_t u7)
+{
+    const uint8_t *t = (const uint8_t *) &a;
+    ASSERT_RETURN(t[0] == u0);
+    ASSERT_RETURN(t[1] == u1);
+    ASSERT_RETURN(t[2] == u2);
+    ASSERT_RETURN(t[3] == u3);
+    ASSERT_RETURN(t[4] == u4);
+    ASSERT_RETURN(t[5] == u5);
+    ASSERT_RETURN(t[6] == u6);
+    ASSERT_RETURN(t[7] == u7);
     return TEST_SUCCESS;
 }
 
