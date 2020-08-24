@@ -254,6 +254,7 @@
     TYPE(mm_insert_epi32)             \
     TYPE(mm_insert_epi64)             \
     TYPE(mm_insert_epi8)              \
+    TYPE(mm_max_epi8)                 \
     TYPE(mm_max_epi32)                \
     TYPE(mm_min_epi32)                \
     TYPE(mm_minpos_epu16)             \
