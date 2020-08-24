@@ -87,6 +87,11 @@ result_t validateUInt16(__m128i a,
                         uint16_t u5,
                         uint16_t u6,
                         uint16_t u7);
+result_t validateUInt16(__m64 a,
+                        uint16_t u0,
+                        uint16_t u1,
+                        uint16_t u2,
+                        uint16_t u3);
 result_t validateInt8(__m128i a,
                       int8_t i0,
                       int8_t i1,
@@ -121,6 +126,15 @@ result_t validateUInt8(__m128i a,
                        uint8_t u13,
                        uint8_t u14,
                        uint8_t u15);
+result_t validateUInt8(__m64 a,
+                       uint8_t u0,
+                       uint8_t u1,
+                       uint8_t u2,
+                       uint8_t u3,
+                       uint8_t u4,
+                       uint8_t u5,
+                       uint8_t u6,
+                       uint8_t u7);
 result_t validateSingleFloatPair(float a, float b);
 result_t validateSingleDoublePair(double a, double b);
 result_t validateFloat(__m128 a, float f0, float f1, float f2, float f3);
