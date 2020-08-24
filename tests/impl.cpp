@@ -788,6 +788,19 @@ result_t test_mm_add_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(c, dx, dy, dz, dw);
 }
 
+result_t test_mm_add_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    double d0 = _a[0] + _b[0];
+    double d1 = _a[1] + _b[1];
+
+    __m128d a = _mm_load_pd((const double *) _a);
+    __m128d b = _mm_load_pd((const double *) _b);
+    __m128d c = _mm_add_pd(a, b);
+    return validateDouble(c, d0, d1);
+}
+
 result_t test_mm_add_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = impl.mTestIntPointer1;
