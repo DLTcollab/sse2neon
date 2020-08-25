@@ -1,3 +1,4 @@
 *.o
 tests/*.d
 tests/main
+gcc-arm-*
