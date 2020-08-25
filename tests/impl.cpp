@@ -3294,6 +3294,11 @@ result_t test_mm_slli_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_undefined_ps(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    return TEST_UNIMPL;
+}
+
 result_t test_mm_avg_pu16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const uint16_t *_a = (const uint16_t *) impl.mTestIntPointer1;
