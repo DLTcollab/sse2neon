@@ -67,6 +67,8 @@
     TYPE(mm_movemask_ps)              \
     TYPE(mm_mul_ps)                   \
     TYPE(mm_or_ps)                    \
+    TYPE(m_pavgb)                     \
+    TYPE(m_pavgw)                     \
     TYPE(mm_prefetch)                 \
     TYPE(mm_rcp_ps)                   \
     TYPE(mm_rsqrt_ps)                 \
