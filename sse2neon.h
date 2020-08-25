@@ -842,6 +842,14 @@ FORCE_INLINE __m128 _mm_move_ss(__m128 a, __m128 b)
                        vreinterpretq_f32_m128(a), 0));
 }
 
+// Return vector of type __m128 with undefined elements.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_undefined_ps
+FORCE_INLINE __m128 _mm_undefined_ps(void)
+{
+    __m128 a;
+    return a;
+}
+
 /* Logic/Binary operations */
 
 // Computes the bitwise AND-NOT of the four single-precision, floating-point
