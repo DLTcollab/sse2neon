@@ -2337,6 +2337,35 @@ result_t test_mm_adds_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
                          (int16_t) d7);
 }
 
+result_t test_mm_max_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+    int8_t d0 = _a[0] > _b[0] ? _a[0] : _b[0];
+    int8_t d1 = _a[1] > _b[1] ? _a[1] : _b[1];
+    int8_t d2 = _a[2] > _b[2] ? _a[2] : _b[2];
+    int8_t d3 = _a[3] > _b[3] ? _a[3] : _b[3];
+    int8_t d4 = _a[4] > _b[4] ? _a[4] : _b[4];
+    int8_t d5 = _a[5] > _b[5] ? _a[5] : _b[5];
+    int8_t d6 = _a[6] > _b[6] ? _a[6] : _b[6];
+    int8_t d7 = _a[7] > _b[7] ? _a[7] : _b[7];
+    int8_t d8 = _a[8] > _b[8] ? _a[8] : _b[8];
+    int8_t d9 = _a[9] > _b[9] ? _a[9] : _b[9];
+    int8_t d10 = _a[10] > _b[10] ? _a[10] : _b[10];
+    int8_t d11 = _a[11] > _b[11] ? _a[11] : _b[11];
+    int8_t d12 = _a[12] > _b[12] ? _a[12] : _b[12];
+    int8_t d13 = _a[13] > _b[13] ? _a[13] : _b[13];
+    int8_t d14 = _a[14] > _b[14] ? _a[14] : _b[14];
+    int8_t d15 = _a[15] > _b[15] ? _a[15] : _b[15];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+
+    __m128i c = _mm_max_epi8(a, b);
+    return validateInt8(c, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11,
+                        d12, d13, d14, d15);
+}
+
 result_t test_mm_max_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;

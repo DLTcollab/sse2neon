@@ -2862,6 +2862,15 @@ FORCE_INLINE __m128i _mm_min_epi16(__m128i a, __m128i b)
         vminq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
+// Compare packed signed 8-bit integers in a and b, and store packed maximum
+// values in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_max_epi8
+FORCE_INLINE __m128i _mm_max_epi8(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_s8(
+        vmaxq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+}
+
 // Computes the pairwise maxima of the 8 signed 16-bit integers from a and the 8
 // signed 16-bit integers from b.
 // https://msdn.microsoft.com/en-us/LIBRary/3x060h7c(v=vs.100).aspx
