@@ -483,6 +483,13 @@ FORCE_INLINE __m128i _mm_setr_epi32(int i3, int i2, int i1, int i0)
     return vreinterpretq_m128i_s32(vld1q_s32(data));
 }
 
+// Set packed 64-bit integers in dst with the supplied values in reverse order.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_setr_epi64
+FORCE_INLINE __m128i _mm_setr_epi64(__m64 e1, __m64 e0)
+{
+    return vreinterpretq_m128i_s64(vcombine_s64(e1, e0));
+}
+
 // Sets the 16 signed 8-bit integer values to b.
 //
 //   r0 := b
