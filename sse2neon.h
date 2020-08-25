@@ -3026,6 +3026,22 @@ FORCE_INLINE __m128i _mm_hadd_epi16(__m128i _a, __m128i _b)
 #endif
 }
 
+// Horizontally substract adjacent pairs of single-precision (32-bit)
+// floating-point elements in a and b, and pack the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_ps
+FORCE_INLINE __m128 _mm_hsub_ps(__m128 _a, __m128 _b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vsubq_f32(
+        vuzp1q_f32(vreinterpretq_f32_m128(_a), vreinterpretq_f32_m128(_b)),
+        vuzp2q_f32(vreinterpretq_f32_m128(_a), vreinterpretq_f32_m128(_b))));
+#else
+    float32x4x2_t c =
+        vuzpq_f32(vreinterpretq_f32_m128(_a), vreinterpretq_f32_m128(_b));
+    return vreinterpretq_m128_f32(vsubq_f32(c.val[0], c.val[1]));
+#endif
+}
+
 // Computes pairwise difference of each argument as a 16-bit signed or unsigned
 // integer values a and b.
 FORCE_INLINE __m128i _mm_hsub_epi16(__m128i _a, __m128i _b)
