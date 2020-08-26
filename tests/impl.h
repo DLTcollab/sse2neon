@@ -118,7 +118,6 @@
     TYPE(mm_cmpeq_epi8)               \
     TYPE(mm_cmpgt_epi16)              \
     TYPE(mm_cmpgt_epi32)              \
-    TYPE(mm_cmpgt_epi64)              \
     TYPE(mm_cmpgt_epi8)               \
     TYPE(mm_cmplt_epi16)              \
     TYPE(mm_cmplt_epi32)              \
@@ -268,6 +267,7 @@
     TYPE(mm_test_all_zeros)           \
     TYPE(mm_testz_si128)              \
     /* SSE4.2 */                      \
+    TYPE(mm_cmpgt_epi64)              \
     TYPE(mm_crc32_u16)                \
     TYPE(mm_crc32_u32)                \
     TYPE(mm_crc32_u64)                \
