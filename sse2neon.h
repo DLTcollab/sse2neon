@@ -22,6 +22,7 @@
 //   Danila Kutenin <danilak@google.com>
 //   François Turban (JishinMaster) <francois.turban@gmail.com>
 //   Pei-Hsuan Hung <afcidk@gmail.com>
+//   Yang-Hao Yuan <yanghau@biilabs.io>
 
 /*
  * sse2neon is freely redistributable under the MIT License.
