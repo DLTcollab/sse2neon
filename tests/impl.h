@@ -212,6 +212,7 @@
     /* SSE3 */                        \
     TYPE(mm_addsub_ps)                \
     TYPE(mm_hadd_ps)                  \
+    TYPE(mm_hsub_ps)                  \
     TYPE(mm_movehdup_ps)              \
     TYPE(mm_moveldup_ps)              \
     /* SSSE3 */                       \
