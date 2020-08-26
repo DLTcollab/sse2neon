@@ -2598,6 +2598,13 @@ result_t test_mm_setr_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt32(c, _a[0], _a[1], _a[2], _a[3]);
 }
 
+result_t test_mm_setr_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const __m64 *_a = (const __m64 *) impl.mTestIntPointer1;
+    __m128i c = _mm_setr_epi64(_a[0], _a[1]);
+    return validateInt64(c, (int64_t) _a[0], (int64_t) _a[1]);
+}
+
 result_t test_mm_min_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
