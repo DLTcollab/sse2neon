@@ -2661,6 +2661,22 @@ result_t test_mm_minpos_epu16(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateUInt16(ret, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+result_t test_mm_test_all_ones(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    __m128i a = do_mm_load_ps(_a);
+
+    int32_t d0 = ~_a[0] & (~(uint32_t) 0);
+    int32_t d1 = ~_a[1] & (~(uint32_t) 0);
+    int32_t d2 = ~_a[2] & (~(uint32_t) 0);
+    int32_t d3 = ~_a[3] & (~(uint32_t) 0);
+    int32_t result = ((d0 | d1 | d2 | d3) == 0) ? 1 : 0;
+
+    int32_t ret = _mm_test_all_ones(a);
+
+    return result == ret ? TEST_SUCCESS : TEST_FAIL;
+}
+
 result_t test_mm_test_all_zeros(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;

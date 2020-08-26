@@ -264,6 +264,7 @@
     TYPE(mm_packus_epi32)             \
     TYPE(mm_round_ps)                 \
     TYPE(mm_stream_load_si128)        \
+    TYPE(mm_test_all_ones)            \
     TYPE(mm_test_all_zeros)           \
     TYPE(mm_testz_si128)              \
     /* SSE4.2 */                      \
