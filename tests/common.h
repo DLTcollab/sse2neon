@@ -69,6 +69,7 @@ result_t validateInt32(__m128i a,
                        int32_t i1,
                        int32_t i2,
                        int32_t i3);
+result_t validateInt32(__m64 a, int32_t u0, int32_t u1);
 result_t validateInt16(__m128i a,
                        int16_t i0,
                        int16_t i1,

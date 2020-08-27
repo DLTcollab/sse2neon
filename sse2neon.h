@@ -3106,6 +3106,15 @@ FORCE_INLINE __m64 _mm_hadd_pi16(__m64 a, __m64 b)
         vpadd_s16(vreinterpret_s16_m64(a), vreinterpret_s16_m64(b)));
 }
 
+// Horizontally add adjacent pairs of 32-bit integers in a and b, and pack the
+// signed 32-bit results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hadd_pi32
+FORCE_INLINE __m64 _mm_hadd_pi32(__m64 a, __m64 b)
+{
+    return vreinterpret_m64_s32(
+        vpadd_s32(vreinterpret_s32_m64(a), vreinterpret_s32_m64(b)));
+}
+
 // Computes pairwise difference of each argument as a 16-bit signed or unsigned
 // integer values a and b.
 FORCE_INLINE __m128i _mm_hsub_epi16(__m128i _a, __m128i _b)
