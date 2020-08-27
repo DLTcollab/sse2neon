@@ -233,7 +233,10 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 
 #if defined(__aarch64__)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
+#define vreinterpretq_m128d_f64(x) (x)
+
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f64(x)
+#define vreinterpretq_f64_m128d(x) (x)
 #endif
 
 // A struct is defined in this header file called 'SIMDVec' which can be used
@@ -2357,6 +2360,24 @@ FORCE_INLINE __m128 _mm_add_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_f32(
         vaddq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
+}
+
+// Add packed double-precision (64-bit) floating-point elements in a and b, and
+// store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_add_pd
+FORCE_INLINE __m128d _mm_add_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vaddq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[2];
+    c[0] = da[0] + db[0];
+    c[1] = da[1] + db[1];
+    return vld1q_f32((float32_t *) c);
+#endif
 }
 
 // adds the scalar single-precision floating point values of a and b.
