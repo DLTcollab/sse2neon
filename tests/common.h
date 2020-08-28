@@ -78,6 +78,7 @@ result_t validateInt16(__m128i a,
                        int16_t i5,
                        int16_t i6,
                        int16_t i7);
+result_t validateInt16(__m64 a, int16_t i0, int16_t i1, int16_t i2, int16_t i3);
 result_t validateUInt16(__m128i a,
                         uint16_t u0,
                         uint16_t u1,
