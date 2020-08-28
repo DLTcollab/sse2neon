@@ -469,6 +469,25 @@ result_t test_mm_andnot_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return r;
 }
 
+result_t test_mm_andnot_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    __m128d a = _mm_load_pd(_a);
+    __m128d b = _mm_load_pd(_b);
+    __m128d c = _mm_andnot_pd(a, b);
+
+    // Take AND operation a complement of 'a' and 'b'. Bitwise operations are
+    // not allowed on float/double datatype, so 'a' and 'b' are calculated in
+    // uint64_t datatype.
+    const uint64_t *ia = (const uint64_t *) &a;
+    const uint64_t *ib = (const uint64_t *) &b;
+    uint64_t r0 = ~ia[0] & ib[0];
+    uint64_t r1 = ~ia[1] & ib[1];
+    return validateUInt64(*(const __m128i *) &c, r0, r1);
+}
+
 result_t test_mm_and_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
