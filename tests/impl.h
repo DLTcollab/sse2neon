@@ -166,6 +166,7 @@
     TYPE(mm_set_epi64)                \
     TYPE(mm_set_epi64x)               \
     TYPE(mm_set_epi8)                 \
+    TYPE(mm_set_pd)                   \
     TYPE(mm_setr_epi16)               \
     TYPE(mm_setr_epi32)               \
     TYPE(mm_setr_epi64)               \

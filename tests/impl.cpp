@@ -336,6 +336,15 @@ result_t test_mm_set_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt32(a, w, z, y, x);
 }
 
+result_t test_mm_set_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *p = (const double *) impl.mTestFloatPointer1;
+    double x = p[0];
+    double y = p[1];
+    __m128d a = _mm_set_pd(x, y);
+    return validateDouble(a, y, x);
+}
+
 result_t test_mm_store_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     int32_t *p = impl.mTestIntPointer1;

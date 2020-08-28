@@ -237,6 +237,10 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f64(x)
 #define vreinterpretq_f64_m128d(x) (x)
+#else
+#define vreinterpretq_m128d_f32(x) (x)
+
+#define vreinterpretq_f32_m128d(x) (x)
 #endif
 
 // A struct is defined in this header file called 'SIMDVec' which can be used
@@ -639,6 +643,19 @@ FORCE_INLINE __m128i _mm_set_epi64x(int64_t i1, int64_t i2)
 FORCE_INLINE __m128i _mm_set_epi64(__m64 i1, __m64 i2)
 {
     return _mm_set_epi64x((int64_t) i1, (int64_t) i2);
+}
+
+// Set packed double-precision (64-bit) floating-point elements in dst with the
+// supplied values.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_pd
+FORCE_INLINE __m128d _mm_set_pd(double e1, double e0)
+{
+    double ALIGN_STRUCT(16) data[2] = {e0, e1};
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vld1q_f64((float64_t *) data));
+#else
+    return vreinterpretq_m128d_f32(vld1q_f32((float32_t *) data));
+#endif
 }
 
 // Stores four single-precision, floating-point values.
