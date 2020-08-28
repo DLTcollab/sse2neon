@@ -693,15 +693,18 @@ FORCE_INLINE void _mm_store_ss(float *p, __m128 a)
     vst1q_lane_f32(p, vreinterpretq_f32_m128(a), 0);
 }
 
-/* FIXME: Add A32 implementation */
-#if defined(__aarch64__)
-// Stores two double-precision to 16-byte aligned memory, floating-point values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=store_pd
-FORCE_INLINE void _mm_store_pd(double *p, __m128d a)
+// Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
+// elements) from a into memory. mem_addr must be aligned on a 16-byte boundary
+// or a general-protection exception may be generated.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_store_pd
+FORCE_INLINE void _mm_store_pd(double *mem_addr, __m128d a)
 {
-    vst1q_f64(p, (__m128d)(a));
-}
+#if defined(__aarch64__)
+    vst1q_f64((float64_t *) mem_addr, vreinterpretq_f64_m128d(a));
+#else
+    vst1q_f32((float32_t *) mem_addr, vreinterpretq_f32_m128d(a));
 #endif
+}
 
 /* FIXME: Add A32 implementation */
 // Stores two double-precision to unaligned memory, floating-point values.

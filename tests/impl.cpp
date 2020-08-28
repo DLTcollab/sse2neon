@@ -2989,7 +2989,15 @@ result_t test_mm_set_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_store_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    double *p = (double *) impl.mTestFloatPointer1;
+    double x = impl.mTestFloats[i + 4];
+    double y = impl.mTestFloats[i + 6];
+
+    __m128d a = _mm_set_pd(x, y);
+    _mm_store_pd(p, a);
+    ASSERT_RETURN(p[0] == y);
+    ASSERT_RETURN(p[1] == x);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_storeu_pd(const SSE2NEONTestImpl &impl, uint32_t i)
