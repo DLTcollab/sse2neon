@@ -2051,6 +2051,15 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 #endif
 }
 
+// Compute the bitwise NOT of a and then AND with a 128-bit vector containing
+// all 1's, and return 1 if the result is zero, otherwise return 0.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_test_all_ones
+FORCE_INLINE int _mm_test_all_ones(__m128i a)
+{
+    return (uint64_t)(vgetq_lane_s64(a, 0) & vgetq_lane_s64(a, 1)) ==
+           ~(uint64_t) 0;
+}
+
 // Compute the bitwise AND of 128 bits (representing integer data) in a and
 // mask, and return 1 if the result is zero, otherwise return 0.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_test_all_zeros
