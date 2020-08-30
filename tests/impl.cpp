@@ -2798,10 +2798,24 @@ result_t test_mm_loadu_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
 }
+
 result_t test_mm_max_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer1;
+
+    float f0 = _a[0] > _b[0] ? _a[0] : _b[0];
+    float f1 = _a[1];
+    float f2 = _a[2];
+    float f3 = _a[3];
+
+    __m128 a = _mm_load_ps(_a);
+    __m128 b = _mm_load_ps(_b);
+    __m128 c = _mm_max_ss(a, b);
+
+    return validateFloat(c, f0, f1, f2, f3);
 }
+
 result_t test_mm_min_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
