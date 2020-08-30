@@ -706,15 +706,14 @@ FORCE_INLINE void _mm_store_pd(double *mem_addr, __m128d a)
 #endif
 }
 
-/* FIXME: Add A32 implementation */
-// Stores two double-precision to unaligned memory, floating-point values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=storeu_pd
-#if defined(__aarch64__)
-FORCE_INLINE void _mm_storeu_pd(double *p, __m128d a)
+// Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
+// elements) from a into memory. mem_addr does not need to be aligned on any
+// particular boundary.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storeu_pd
+FORCE_INLINE void _mm_storeu_pd(double *mem_addr, __m128d a)
 {
-    vst1q_f64(p, (__m128d)(a));
+    _mm_store_pd(mem_addr, a);
 }
-#endif
 
 // Reads the lower 64 bits of b and stores them into the lower 64 bits of a.
 // https://msdn.microsoft.com/en-us/library/hhwf428f%28v=vs.90%29.aspx
