@@ -106,6 +106,7 @@
     TYPE(mm_adds_epi16)               \
     TYPE(mm_adds_epu16)               \
     TYPE(mm_adds_epu8)                \
+    TYPE(mm_andnot_pd)                \
     TYPE(mm_andnot_si128)             \
     TYPE(mm_and_si128)                \
     TYPE(mm_avg_epu16)                \

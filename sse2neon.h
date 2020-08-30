@@ -233,12 +233,18 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 
 #if defined(__aarch64__)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
+
 #define vreinterpretq_m128d_f64(x) (x)
 
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f64(x)
+
 #define vreinterpretq_f64_m128d(x) (x)
 #else
+#define vreinterpretq_m128d_s64(x) vreinterpretq_f32_s64(x)
+
 #define vreinterpretq_m128d_f32(x) (x)
+
+#define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f32(x)
 
 #define vreinterpretq_f32_m128d(x) (x)
 #endif
@@ -896,6 +902,22 @@ FORCE_INLINE __m128 _mm_andnot_ps(__m128 a, __m128 b)
     return vreinterpretq_m128_s32(
         vbicq_s32(vreinterpretq_s32_m128(b),
                   vreinterpretq_s32_m128(a)));  // *NOTE* argument swap
+}
+
+// Compute the bitwise NOT of packed double-precision (64-bit) floating-point
+// elements in a and then AND with b, and store the results in dst.
+//
+//   FOR j := 0 to 1
+// 	     i := j*64
+// 	     dst[i+63:i] := ((NOT a[i+63:i]) AND b[i+63:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_andnot_pd
+FORCE_INLINE __m128d _mm_andnot_pd(__m128d a, __m128d b)
+{
+    // *NOTE* argument swap
+    return vreinterpretq_m128d_s64(
+        vbicq_s64(vreinterpretq_s64_m128d(b), vreinterpretq_s64_m128d(a)));
 }
 
 // Computes the bitwise AND of the 128-bit value in b and the bitwise NOT of the
