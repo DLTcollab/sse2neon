@@ -1680,7 +1680,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
         __m128i ret;                                             \
         if ((imm) <= 0) {                                        \
             ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
+        } else if ((imm) > 15) {                                 \
             ret = _mm_setzero_si128();                           \
         } else {                                                 \
             ret = vreinterpretq_m128i_s16(                       \
