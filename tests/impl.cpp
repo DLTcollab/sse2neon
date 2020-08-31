@@ -2956,10 +2956,22 @@ result_t test_mm_min_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
 }
+
 result_t test_mm_mullo_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = impl.mTestIntPointer1;
+    const int32_t *_b = impl.mTestIntPointer2;
+    int32_t d[4];
+
+    for (int i = 0; i < 4; i++) {
+        d[i] = (int32_t)((int64_t) _a[i] * (int64_t) _b[i]);
+    }
+    __m128i a = do_mm_load_ps(_a);
+    __m128i b = do_mm_load_ps(_b);
+    __m128i c = _mm_mullo_epi32(a, b);
+    return validateInt32(c, d[0], d[1], d[2], d[3]);
 }
+
 result_t test_mm_shuffle_epi32_default(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
