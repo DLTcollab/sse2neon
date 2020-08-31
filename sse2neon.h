@@ -3977,30 +3977,60 @@ FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
     return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
 }
 
-/* FIXME: Add A32 implementation */
-#if defined(__aarch64__)
+// Convert packed double-precision (64-bit) floating-point elements in a to
+// packed single-precision (32-bit) floating-point elements, and store the
+// results in dst.
+//
+//   FOR j := 0 to 1
+//     i := 32*j
+//     k := 64*j
+//     dst[i+31:i] := Convert_FP64_To_FP32(a[k+64:k])
+//   ENDFOR
+//   dst[127:64] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpd_ps
 FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
 {
-    __m64 tmp = vreinterpret_m64_f32(vcvtx_f32_f64((float64x2_t) a));
-    return (__m128) _mm_set_epi64(tmp, tmp);
-}
-#endif
-
-/* FIXME: Add A32 implementation */
 #if defined(__aarch64__)
+    float32x2_t tmp = vcvt_f32_f64(vreinterpretq_f64_m128d(a));
+    return vreinterpretq_m128_f32(vcombine_f32(tmp, vdup_n_f32(0)));
+#else
+    float a0 = (float) ((double *) &a)[0];
+    float a1 = (float) ((double *) &a)[1];
+    return _mm_set_ps(0, 0, a1, a0);
+#endif
+}
+
+// Convert packed single-precision (32-bit) floating-point elements in a to
+// packed double-precision (64-bit) floating-point elements, and store the
+// results in dst.
+//
+//   FOR j := 0 to 1
+//     i := 64*j
+//     k := 32*j
+//     dst[i+63:i] := Convert_FP32_To_FP64(a[k+31:k])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pd
 FORCE_INLINE __m128d _mm_cvtps_pd(__m128 a)
 {
-    return (__m128d) vcvt_high_f64_f32((float32x4_t) a);
-}
-#endif
-
-/* FIXME: Add A32 implementation */
 #if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vcvt_f64_f32(vget_low_f32(vreinterpretq_f32_m128(a))));
+#else
+    double a0 = (double) vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
+    double a1 = (double) vgetq_lane_f32(vreinterpretq_f32_m128(a), 1);
+    return _mm_set_pd(a1, a0);
+#endif
+}
+
+// Cast vector of type __m128d to type __m128i. This intrinsic is only used for
+// compilation and does not generate any instructions, thus it has zero latency.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_castpd_si128
 FORCE_INLINE __m128i _mm_castpd_si128(__m128d a)
 {
     return vreinterpretq_m128i_s64(vreinterpretq_s64_m128d(a));
 }
-#endif
 
 // Blend packed single-precision (32-bit) floating-point elements from a and b
 // using mask, and store the results in dst.

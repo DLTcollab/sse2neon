@@ -3339,17 +3339,37 @@ result_t test_mm_cvtsi64_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtpd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    float f0 = (float) _a[0];
+    float f1 = (float) _a[1];
+    const __m128d a = _mm_load_pd((const double *) _a);
+
+    __m128 r = _mm_cvtpd_ps(a);
+
+    return validateFloat(r, f0, f1, 0, 0);
 }
 
 result_t test_mm_cvtps_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    double d0 = (double) _a[0];
+    double d1 = (double) _a[1];
+    const __m128 a = do_mm_load_ps(_a);
+
+    __m128d r = _mm_cvtps_pd(a);
+
+    return validateDouble(r, d0, d1);
 }
 
 result_t test_mm_castpd_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const __m128d a = _mm_load_pd((const double *) _a);
+    const __m128i *_c = (const __m128i *) _a;
+
+    __m128i r = _mm_castpd_si128(a);
+
+    return validate128(r, *_c);
 }
 
 result_t test_mm_packus_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
