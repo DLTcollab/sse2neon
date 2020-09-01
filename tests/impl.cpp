@@ -3234,7 +3234,23 @@ result_t test_mm_hsub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_hsub_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer1;
+
+    int16_t d0 = _a[0] - _a[1];
+    int16_t d1 = _a[2] - _a[3];
+    int16_t d2 = _a[4] - _a[5];
+    int16_t d3 = _a[6] - _a[7];
+    int16_t d4 = _b[0] - _b[1];
+    int16_t d5 = _b[2] - _b[3];
+    int16_t d6 = _b[4] - _b[5];
+    int16_t d7 = _b[6] - _b[7];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_hsub_epi16(a, b);
+
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
 result_t test_mm_hadds_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
