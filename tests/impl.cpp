@@ -3440,7 +3440,19 @@ result_t test_mm_extract_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_insert_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t insert = (int32_t) *impl.mTestIntPointer2;
+    const int imm8 = 2;
+
+    int32_t d[4];
+    for (int i = 0; i < 4; i++) {
+        d[i] = _a[i];
+    }
+    d[imm8] = insert;
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i b = _mm_insert_epi32(a, (int) insert, imm8);
+    return validateInt32(b, d[0], d[1], d[2], d[3]);
 }
 
 result_t test_mm_extract_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
