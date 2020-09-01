@@ -1784,6 +1784,18 @@ result_t test_mm_hadd_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt16(ret, d0, d1, d2, d3);
 }
 
+result_t test_mm_hadd_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+    int32_t d0 = _a[0] + _a[1];
+    int32_t d1 = _b[0] + _b[1];
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 ret = _mm_hadd_pi32(*a, *b);
+    return validateInt32(ret, d0, d1);
+}
+
 result_t test_mm_cvt_ss2si(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
