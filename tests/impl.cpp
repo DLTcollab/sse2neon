@@ -3447,7 +3447,20 @@ result_t test_mm_extract_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_insert_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t insert = (int8_t) *impl.mTestIntPointer2;
+    const int imm8 = 2;
+
+    int8_t d[16];
+    for (int i = 0; i < 16; i++) {
+        d[i] = _a[i];
+    }
+    d[imm8] = insert;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = _mm_insert_epi8(a, insert, imm8);
+    return validateInt8(b, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8],
+                        d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
 }
 
 result_t test_mm_extract_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
