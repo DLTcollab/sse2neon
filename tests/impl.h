@@ -74,7 +74,7 @@
     TYPE(mm_rcp_ps)                   \
     TYPE(mm_rsqrt_ps)                 \
     TYPE(mm_rsqrt_ss)                 \
-    TYPE(mm_sad_epu8)                 \
+    TYPE(mm_sad_pu8)                  \
     TYPE(mm_set1_ps)                  \
     TYPE(mm_set_ps1)                  \
     TYPE(mm_set_ps)                   \
@@ -158,6 +158,7 @@
     TYPE(mm_packs_epi16)              \
     TYPE(mm_packs_epi32)              \
     TYPE(mm_packus_epi16)             \
+    TYPE(mm_sad_epu8)                 \
     TYPE(mm_set1_epi16)               \
     TYPE(mm_set1_epi32)               \
     TYPE(mm_set1_epi64)               \

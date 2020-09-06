@@ -2680,22 +2680,11 @@ FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
     return _mm_fmadd_ps(b, mask, a);
 }
 
-// Computes the absolute difference of the 16 unsigned 8-bit integers from a
-// and the 16 unsigned 8-bit integers from b.
-//
-// Return Value
-// Sums the upper 8 differences and lower 8 differences and packs the
-// resulting 2 unsigned 16-bit integers into the upper and lower 64-bit
-// elements.
-//
-//   r0 := abs(a0 - b0) + abs(a1 - b1) +...+ abs(a7 - b7)
-//   r1 := 0x0
-//   r2 := 0x0
-//   r3 := 0x0
-//   r4 := abs(a8 - b8) + abs(a9 - b9) +...+ abs(a15 - b15)
-//   r5 := 0x0
-//   r6 := 0x0
-//   r7 := 0x0
+// Compute the absolute differences of packed unsigned 8-bit integers in a and
+// b, then horizontally sum each consecutive 8 differences to produce two
+// unsigned 16-bit integers, and pack these unsigned 16-bit integers in the low
+// 16 bits of 64-bit elements in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sad_epu8
 FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 {
     uint16x8_t t = vpaddlq_u8(vabdq_u8((uint8x16_t) a, (uint8x16_t) b));
@@ -2703,6 +2692,19 @@ FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
     uint16_t r4 = t[4] + t[5] + t[6] + t[7];
     uint16x8_t r = vsetq_lane_u16(r0, vdupq_n_u16(0), 0);
     return (__m128i) vsetq_lane_u16(r4, r, 4);
+}
+
+// Compute the absolute differences of packed unsigned 8-bit integers in a and
+// b, then horizontally sum each consecutive 8 differences to produce four
+// unsigned 16-bit integers, and pack these unsigned 16-bit integers in the low
+// 16 bits of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sad_pu8
+FORCE_INLINE __m64 _mm_sad_pu8(__m64 a, __m64 b)
+{
+    uint16x4_t t =
+        vpaddl_u8(vabd_u8(vreinterpret_u8_m64(a), vreinterpret_u8_m64(b)));
+    uint16_t r0 = t[0] + t[1] + t[2] + t[3];
+    return vreinterpret_m64_u16(vset_lane_u16(r0, vdup_n_u16(0), 0));
 }
 
 // Divides the four single-precision, floating-point values of a and b.
