@@ -1082,6 +1082,22 @@ result_t test_mm_min_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+result_t test_mm_mulhi_pu16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint16_t *_a = (const uint16_t *) impl.mTestIntPointer1;
+    const uint16_t *_b = (const uint16_t *) impl.mTestIntPointer2;
+    uint16_t d[4];
+    for (uint32_t i = 0; i < 4; i++) {
+        uint32_t m = (uint32_t) _a[i] * (uint32_t) _b[i];
+        d[i] = (uint16_t)(m >> 16);
+    }
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_mulhi_pu16(*a, *b);
+    return validateUInt16(c, d[0], d[1], d[2], d[3]);
+}
+
 result_t test_mm_mulhi_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
