@@ -3234,7 +3234,36 @@ result_t test_mm_addsub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_sad_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    uint16_t d0 = 0;
+    uint16_t d1 = 0;
+    for (int i = 0; i < 8; i++) {
+        d0 += abs(_a[i] - _b[i]);
+    }
+    for (int i = 8; i < 16; i++) {
+        d1 += abs(_a[i] - _b[i]);
+    }
+
+    const __m128i a = do_mm_load_ps((const int32_t *) _a);
+    const __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_sad_epu8(a, b);
+    return validateUInt16(c, d0, 0, 0, 0, d1, 0, 0, 0);
+}
+
+result_t test_mm_sad_pu8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    uint16_t d = 0;
+    for (int i = 0; i < 8; i++) {
+        d += abs(_a[i] - _b[i]);
+    }
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_sad_pu8(*a, *b);
+    return validateUInt16(c, d, 0, 0, 0);
 }
 
 result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t i)
