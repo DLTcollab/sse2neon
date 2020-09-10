@@ -3459,6 +3459,17 @@ result_t test_mm_cvtps_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateDouble(r, d0, d1);
 }
 
+result_t test_mm_castps_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    const __m128 a = do_mm_load_ps(_a);
+    const __m128d *_c = (const __m128d *) _a;
+
+    __m128d r = _mm_castps_pd(a);
+
+    return validate128(r, *_c);
+}
+
 result_t test_mm_castpd_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;

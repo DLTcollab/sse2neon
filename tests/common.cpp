@@ -19,6 +19,18 @@ result_t validate128(__m128i a, __m128i b)
     return TEST_SUCCESS;
 }
 
+result_t validate128(__m128d a, __m128d b)
+{
+    const int32_t *t1 = (const int32_t *) &a;
+    const int32_t *t2 = (const int32_t *) &b;
+
+    ASSERT_RETURN(t1[0] == t2[0]);
+    ASSERT_RETURN(t1[1] == t2[1]);
+    ASSERT_RETURN(t1[2] == t2[2]);
+    ASSERT_RETURN(t1[3] == t2[3]);
+    return TEST_SUCCESS;
+}
+
 result_t validateInt64(__m128i a, int64_t i0, int64_t i1)
 {
     const int64_t *t = (const int64_t *) &a;

@@ -62,6 +62,7 @@ inline bool isNAN(float a)
     return (*ia) == NaN ? true : false;
 }
 result_t validate128(__m128i a, __m128i b);
+result_t validate128(__m128d a, __m128d b);
 result_t validateInt64(__m128i a, int64_t i0, int64_t i1);
 result_t validateUInt64(__m128i a, uint64_t u0, uint64_t u1);
 result_t validateInt32(__m128i a,
