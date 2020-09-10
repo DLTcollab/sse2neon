@@ -3375,7 +3375,19 @@ result_t test_mm_hadd_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_hsub_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = impl.mTestIntPointer1;
+    const int32_t *_b = impl.mTestIntPointer1;
+
+    int32_t d0 = _a[0] - _a[1];
+    int32_t d1 = _a[2] - _a[3];
+    int32_t d2 = _b[0] - _b[1];
+    int32_t d3 = _b[2] - _b[3];
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i b = do_mm_load_ps(_b);
+    __m128i c = _mm_hsub_epi32(a, b);
+
+    return validateInt32(c, d0, d1, d2, d3);
 }
 
 result_t test_mm_cmpeq_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
