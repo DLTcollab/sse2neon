@@ -2634,6 +2634,16 @@ FORCE_INLINE __m128i _mm_mulhrs_epi16(__m128i a, __m128i b)
 //   ENDFOR
 FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
 {
+#if defined(__aarch64__)
+    uint8x16_t a = vreinterpretq_u8_m128i(_a);
+    int8x16_t b = vreinterpretq_s8_m128i(_b);
+    int16x8_t tl = vmulq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_low_u8(a))),
+                             vmovl_s8(vget_low_s8(b)));
+    int16x8_t th = vmulq_s16(vreinterpretq_s16_u16(vmovl_u8(vget_high_u8(a))),
+                             vmovl_s8(vget_high_s8(b)));
+    return vreinterpretq_m128i_s16(
+        vqaddq_s16(vuzp1q_s16(tl, th), vuzp2q_s16(tl, th)));
+#else
     // This would be much simpler if x86 would choose to zero extend OR sign
     // extend, not both. This could probably be optimized better.
     uint16x8_t a = vreinterpretq_u16_m128i(_a);
@@ -2653,6 +2663,7 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
 
     // saturated add
     return vreinterpretq_m128i_s16(vqaddq_s16(prod1, prod2));
+#endif
 }
 
 // Computes the fused multiple add product of 32-bit floating point numbers.
