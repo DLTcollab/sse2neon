@@ -61,6 +61,20 @@ result_t validateInt32(__m128i a,
     return TEST_SUCCESS;
 }
 
+result_t validateUInt32(__m128i a,
+                        uint32_t u0,
+                        uint32_t u1,
+                        uint32_t u2,
+                        uint32_t u3)
+{
+    const uint32_t *t = (const uint32_t *) &a;
+    ASSERT_RETURN(t[0] == u0);
+    ASSERT_RETURN(t[1] == u1);
+    ASSERT_RETURN(t[2] == u2);
+    ASSERT_RETURN(t[3] == u3);
+    return TEST_SUCCESS;
+}
+
 result_t validateInt16(__m128i a,
                        int16_t i0,
                        int16_t i1,
