@@ -3361,7 +3361,40 @@ result_t test_mm_hsub_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_hadds_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    int16_t s16_max = 0x7fff;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer1;
+
+    int16_t d0 = (((int32_t) _a[0] + (int32_t) _a[1]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_a[0] + _a[1]);
+    int16_t d1 = (((int32_t) _a[2] + (int32_t) _a[3]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_a[2] + _a[3]);
+    int16_t d2 = (((int32_t) _a[4] + (int32_t) _a[5]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_a[4] + _a[5]);
+    int16_t d3 = (((int32_t) _a[6] + (int32_t) _a[7]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_a[6] + _a[7]);
+    int16_t d4 = (((int32_t) _b[0] + (int32_t) _b[1]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_b[0] + _b[1]);
+    int16_t d5 = (((int32_t) _b[2] + (int32_t) _b[3]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_b[2] + _b[3]);
+    int16_t d6 = (((int32_t) _b[4] + (int32_t) _b[5]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_b[4] + _b[5]);
+    int16_t d7 = (((int32_t) _b[6] + (int32_t) _b[7]) >= (int32_t) s16_max)
+                     ? s16_max
+                     : (_b[6] + _b[7]);
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_hadds_epi16(a, b);
+
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
 result_t test_mm_hsubs_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
