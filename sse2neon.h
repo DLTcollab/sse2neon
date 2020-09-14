@@ -3192,8 +3192,15 @@ FORCE_INLINE __m128i _mm_hadds_epi16(__m128i _a, __m128i _b)
 
 // Computes saturated pairwise difference of each argument as a 16-bit signed
 // integer values a and b.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsubs_epi16
 FORCE_INLINE __m128i _mm_hsubs_epi16(__m128i _a, __m128i _b)
 {
+#if defined(__aarch64__)
+    int16x8_t a = vreinterpretq_s16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+    return vreinterpretq_s64_s16(
+        vqsubq_s16(vuzp1q_s16(a, b), vuzp2q_s16(a, b)));
+#else
     int32x4_t a = vreinterpretq_s32_m128i(_a);
     int32x4_t b = vreinterpretq_s32_m128i(_b);
     // Interleave using vshrn/vmovn
@@ -3203,6 +3210,7 @@ FORCE_INLINE __m128i _mm_hsubs_epi16(__m128i _a, __m128i _b)
     int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
     // Saturated subtract
     return vreinterpretq_m128i_s16(vqsubq_s16(ab0246, ab1357));
+#endif
 }
 
 // Computes pairwise add of each argument as a 32-bit signed or unsigned integer
