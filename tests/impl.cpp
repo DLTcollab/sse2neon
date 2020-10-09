@@ -3241,7 +3241,26 @@ result_t test_mm_adds_epu16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_sign_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+
+    int8_t d[16];
+    for (int i = 0; i < 16; i++) {
+        if (_b[i] < 0) {
+            d[i] = -_a[i];
+        } else if (_b[i] == 0) {
+            d[i] = 0;
+        } else {
+            d[i] = _a[i];
+        }
+    }
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_sign_epi8(a, b);
+
+    return validateInt8(c, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8],
+                        d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
 }
 
 result_t test_mm_sign_epi16(const SSE2NEONTestImpl &impl, uint32_t i)

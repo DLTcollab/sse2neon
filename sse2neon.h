@@ -2229,18 +2229,23 @@ FORCE_INLINE __m128i _mm_sign_epi8(__m128i _a, __m128i _b)
     int8x16_t a = vreinterpretq_s8_m128i(_a);
     int8x16_t b = vreinterpretq_s8_m128i(_b);
 
-    int8x16_t zero = vdupq_n_s8(0);
     // signed shift right: faster than vclt
     // (b < 0) ? 0xFF : 0
     uint8x16_t ltMask = vreinterpretq_u8_s8(vshrq_n_s8(b, 7));
+
     // (b == 0) ? 0xFF : 0
-    int8x16_t zeroMask = vreinterpretq_s8_u8(vceqq_s8(b, zero));
-    // -a
-    int8x16_t neg = vnegq_s8(a);
-    // bitwise select either a or neg based on ltMask
-    int8x16_t masked = vbslq_s8(ltMask, a, neg);
+#if defined(__aarch64__)
+    int8x16_t zeroMask = vreinterpretq_s8_u8(vceqzq_s8(b));
+#else
+    int8x16_t zeroMask = vreinterpretq_s8_u8(vceqq_s8(b, vdupq_n_s8(0)));
+#endif
+
+    // bitwise select either a or nagative 'a' (vnegq_s8(a) return nagative 'a')
+    // based on ltMask
+    int8x16_t masked = vbslq_s8(ltMask, vnegq_s8(a), a);
     // res = masked & (~zeroMask)
     int8x16_t res = vbicq_s8(masked, zeroMask);
+
     return vreinterpretq_m128i_s8(res);
 }
 
