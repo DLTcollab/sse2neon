@@ -276,6 +276,7 @@
     TYPE(mm_stream_load_si128)        \
     TYPE(mm_test_all_ones)            \
     TYPE(mm_test_all_zeros)           \
+    TYPE(mm_testc_si128)              \
     TYPE(mm_testz_si128)              \
     /* SSE4.2 */                      \
     TYPE(mm_cmpgt_epi64)              \
