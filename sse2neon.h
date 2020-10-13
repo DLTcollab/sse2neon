@@ -231,6 +231,8 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpret_s32_m64(x) vreinterpret_s32_s64(x)
 #define vreinterpret_s64_m64(x) (x)
 
+#define vreinterpret_f32_m64(x) vreinterpret_f32_s64(x)
+
 #if defined(__aarch64__)
 #define vreinterpretq_m128d_s32(x) vreinterpretq_f64_s32(x)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
@@ -3766,6 +3768,24 @@ FORCE_INLINE int _mm_comineq_ss(__m128 a, __m128 b)
 #define _mm_ucomineq_ss _mm_comineq_ss
 
 /* Conversions */
+
+// Convert packed signed 32-bit integers in b to packed single-precision
+// (32-bit) floating-point elements, store the results in the lower 2 elements
+// of dst, and copy the upper 2 packed elements from a to the upper elements of
+// dst.
+//
+//   dst[31:0] := Convert_Int32_To_FP32(b[31:0])
+//   dst[63:32] := Convert_Int32_To_FP32(b[63:32])
+//   dst[95:64] := a[95:64]
+//   dst[127:96] := a[127:96]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvt_pi2ps
+FORCE_INLINE __m128 _mm_cvt_pi2ps(__m128 a, __m64 b)
+{
+    return vreinterpretq_m128_f32(
+        vcombine_f32(vcvt_f32_s32(vreinterpret_s32_m64(b)),
+                     vget_high_f32(vreinterpretq_f32_m128(a))));
+}
 
 // Convert the lower single-precision (32-bit) floating-point element in a to a
 // 32-bit integer, and store the result in dst.
