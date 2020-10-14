@@ -1832,6 +1832,21 @@ result_t test_mm_cvt_ss2si(const SSE2NEONTestImpl &impl, uint32_t i)
     return ret == d0 ? TEST_SUCCESS : TEST_FAIL;
 }
 
+result_t test_mm_cvtpi16_ps(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+
+    float dx = (float) _a[0];
+    float dy = (float) _a[1];
+    float dz = (float) _a[2];
+    float dw = (float) _a[3];
+
+    const __m64 *a = (const __m64 *) _a;
+    __m128 c = _mm_cvtpi16_ps(*a);
+
+    return validateFloat(c, dx, dy, dz, dw);
+}
+
 result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
