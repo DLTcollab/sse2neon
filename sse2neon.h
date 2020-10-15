@@ -3788,6 +3788,22 @@ FORCE_INLINE int _mm_cvt_ss2si(__m128 a)
 #endif
 }
 
+// Convert packed 16-bit integers in a to packed single-precision (32-bit)
+// floating-point elements, and store the results in dst.
+//
+//   FOR j := 0 to 3
+//      i := j*16
+//      m := j*32
+//      dst[m+31:m] := Convert_Int16_To_FP32(a[i+15:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpi16_ps
+FORCE_INLINE __m128 _mm_cvtpi16_ps(__m64 a)
+{
+    return vreinterpretq_m128_f32(
+        vcvtq_f32_s32(vmovl_s16(vreinterpret_s16_m64(a))));
+}
+
 // Converts the four single-precision, floating-point values of a to signed
 // 32-bit integer values using truncate.
 // https://msdn.microsoft.com/en-us/library/vstudio/1h005y6x(v=vs.100).aspx
