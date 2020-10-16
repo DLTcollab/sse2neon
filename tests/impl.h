@@ -47,6 +47,7 @@
     TYPE(mm_comineq_ss)               \
     TYPE(mm_cvt_ss2si)                \
     TYPE(mm_cvtpi16_ps)               \
+    TYPE(mm_cvtpi32_ps)               \
     TYPE(mm_cvtss_f32)                \
     TYPE(mm_div_ps)                   \
     TYPE(mm_div_ss)                   \

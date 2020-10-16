@@ -1847,6 +1847,23 @@ result_t test_mm_cvtpi16_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(c, dx, dy, dz, dw);
 }
 
+result_t test_mm_cvtpi32_ps(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+
+    float dx = (float) _b[0];
+    float dy = (float) _b[1];
+    float dz = _a[2];
+    float dw = _a[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    const __m64 *b = (const __m64 *) _b;
+    __m128 c = _mm_cvtpi32_ps(a, *b);
+
+    return validateFloat(c, dx, dy, dz, dw);
+}
+
 result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
