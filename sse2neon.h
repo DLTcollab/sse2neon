@@ -1057,19 +1057,88 @@ FORCE_INLINE __m128 _mm_movelh_ps(__m128 __A, __m128 __B)
     return vreinterpretq_m128_f32(vcombine_f32(a10, b10));
 }
 
+// Compute the absolute value of packed signed 32-bit integers in a, and store
+// the unsigned results in dst.
+//
+//   FOR j := 0 to 3
+//     i := j*32
+//     dst[i+31:i] := ABS(a[i+31:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_abs_epi32
 FORCE_INLINE __m128i _mm_abs_epi32(__m128i a)
 {
     return vreinterpretq_m128i_s32(vabsq_s32(vreinterpretq_s32_m128i(a)));
 }
 
+// Compute the absolute value of packed signed 16-bit integers in a, and store
+// the unsigned results in dst.
+//
+//   FOR j := 0 to 7
+//     i := j*16
+//     dst[i+15:i] := ABS(a[i+15:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_abs_epi16
 FORCE_INLINE __m128i _mm_abs_epi16(__m128i a)
 {
     return vreinterpretq_m128i_s16(vabsq_s16(vreinterpretq_s16_m128i(a)));
 }
 
+// Compute the absolute value of packed signed 8-bit integers in a, and store
+// the unsigned results in dst.
+//
+//   FOR j := 0 to 15
+//     i := j*8
+//     dst[i+7:i] := ABS(a[i+7:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_abs_epi8
 FORCE_INLINE __m128i _mm_abs_epi8(__m128i a)
 {
     return vreinterpretq_m128i_s8(vabsq_s8(vreinterpretq_s8_m128i(a)));
+}
+
+// Compute the absolute value of packed signed 32-bit integers in a, and store
+// the unsigned results in dst.
+//
+//   FOR j := 0 to 1
+//     i := j*32
+//     dst[i+31:i] := ABS(a[i+31:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_abs_pi32
+FORCE_INLINE __m64 _mm_abs_pi32(__m64 a)
+{
+    return vreinterpret_m64_s32(vabs_s32(vreinterpret_s32_m64(a)));
+}
+
+// Compute the absolute value of packed signed 16-bit integers in a, and store
+// the unsigned results in dst.
+//
+//   FOR j := 0 to 3
+//     i := j*16
+//     dst[i+15:i] := ABS(a[i+15:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_abs_pi16
+FORCE_INLINE __m64 _mm_abs_pi16(__m64 a)
+{
+    return vreinterpret_m64_s16(vabs_s16(vreinterpret_s16_m64(a)));
+}
+
+// Compute the absolute value of packed signed 8-bit integers in a, and store
+// the unsigned results in dst.
+//
+//   FOR j := 0 to 7
+//     i := j*8
+//     dst[i+7:i] := ABS(a[i+7:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_abs_pi8
+FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
+{
+    return vreinterpret_m64_s8(vabs_s8(vreinterpret_s8_m64(a)));
 }
 
 // Takes the upper 64 bits of a and places it in the low end of the result

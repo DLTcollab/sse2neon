@@ -787,6 +787,24 @@ result_t test_mm_sub_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt64(c, d0, d1);
 }
 
+result_t test_mm_abs_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_abs_epi16(a);
+
+    uint32_t d0 = (_a[0] < 0) ? -_a[0] : _a[0];
+    uint32_t d1 = (_a[1] < 0) ? -_a[1] : _a[1];
+    uint32_t d2 = (_a[2] < 0) ? -_a[2] : _a[2];
+    uint32_t d3 = (_a[3] < 0) ? -_a[3] : _a[3];
+    uint32_t d4 = (_a[4] < 0) ? -_a[4] : _a[4];
+    uint32_t d5 = (_a[5] < 0) ? -_a[5] : _a[5];
+    uint32_t d6 = (_a[6] < 0) ? -_a[6] : _a[6];
+    uint32_t d7 = (_a[7] < 0) ? -_a[7] : _a[7];
+
+    return validateUInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 result_t test_mm_abs_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
@@ -798,7 +816,78 @@ result_t test_mm_abs_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     uint32_t d2 = (_a[2] < 0) ? -_a[2] : _a[2];
     uint32_t d3 = (_a[3] < 0) ? -_a[3] : _a[3];
 
-    return validateInt32(c, d0, d1, d2, d3);
+    return validateUInt32(c, d0, d1, d2, d3);
+}
+
+result_t test_mm_abs_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_abs_epi8(a);
+
+    uint32_t d0 = (_a[0] < 0) ? -_a[0] : _a[0];
+    uint32_t d1 = (_a[1] < 0) ? -_a[1] : _a[1];
+    uint32_t d2 = (_a[2] < 0) ? -_a[2] : _a[2];
+    uint32_t d3 = (_a[3] < 0) ? -_a[3] : _a[3];
+    uint32_t d4 = (_a[4] < 0) ? -_a[4] : _a[4];
+    uint32_t d5 = (_a[5] < 0) ? -_a[5] : _a[5];
+    uint32_t d6 = (_a[6] < 0) ? -_a[6] : _a[6];
+    uint32_t d7 = (_a[7] < 0) ? -_a[7] : _a[7];
+    uint32_t d8 = (_a[8] < 0) ? -_a[8] : _a[8];
+    uint32_t d9 = (_a[9] < 0) ? -_a[9] : _a[9];
+    uint32_t d10 = (_a[10] < 0) ? -_a[10] : _a[10];
+    uint32_t d11 = (_a[11] < 0) ? -_a[11] : _a[11];
+    uint32_t d12 = (_a[12] < 0) ? -_a[12] : _a[12];
+    uint32_t d13 = (_a[13] < 0) ? -_a[13] : _a[13];
+    uint32_t d14 = (_a[14] < 0) ? -_a[14] : _a[14];
+    uint32_t d15 = (_a[15] < 0) ? -_a[15] : _a[15];
+
+    return validateUInt8(c, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11,
+                         d12, d13, d14, d15);
+}
+
+result_t test_mm_abs_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const __m64 *a = (const __m64 *) _a;
+    __m64 c = _mm_abs_pi16(*a);
+
+    uint32_t d0 = (_a[0] < 0) ? -_a[0] : _a[0];
+    uint32_t d1 = (_a[1] < 0) ? -_a[1] : _a[1];
+    uint32_t d2 = (_a[2] < 0) ? -_a[2] : _a[2];
+    uint32_t d3 = (_a[3] < 0) ? -_a[3] : _a[3];
+
+    return validateUInt16(c, d0, d1, d2, d3);
+}
+
+result_t test_mm_abs_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const __m64 *a = (const __m64 *) _a;
+    __m64 c = _mm_abs_pi32(*a);
+
+    uint32_t d0 = (_a[0] < 0) ? -_a[0] : _a[0];
+    uint32_t d1 = (_a[1] < 0) ? -_a[1] : _a[1];
+
+    return validateUInt32(c, d0, d1);
+}
+
+result_t test_mm_abs_pi8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const __m64 *a = (const __m64 *) _a;
+    __m64 c = _mm_abs_pi8(*a);
+
+    uint32_t d0 = (_a[0] < 0) ? -_a[0] : _a[0];
+    uint32_t d1 = (_a[1] < 0) ? -_a[1] : _a[1];
+    uint32_t d2 = (_a[2] < 0) ? -_a[2] : _a[2];
+    uint32_t d3 = (_a[3] < 0) ? -_a[3] : _a[3];
+    uint32_t d4 = (_a[4] < 0) ? -_a[4] : _a[4];
+    uint32_t d5 = (_a[5] < 0) ? -_a[5] : _a[5];
+    uint32_t d6 = (_a[6] < 0) ? -_a[6] : _a[6];
+    uint32_t d7 = (_a[7] < 0) ? -_a[7] : _a[7];
+
+    return validateUInt8(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
 result_t test_mm_add_ps(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3155,16 +3244,6 @@ result_t test_mm_movehl_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 }
 
 result_t test_mm_movelh_ps(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
-result_t test_mm_abs_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
-result_t test_mm_abs_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
 }

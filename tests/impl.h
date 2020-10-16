@@ -226,6 +226,9 @@
     TYPE(mm_abs_epi16)                \
     TYPE(mm_abs_epi32)                \
     TYPE(mm_abs_epi8)                 \
+    TYPE(mm_abs_pi16)                 \
+    TYPE(mm_abs_pi32)                 \
+    TYPE(mm_abs_pi8)                  \
     TYPE(mm_hadd_epi16)               \
     TYPE(mm_hadd_epi32)               \
     TYPE(mm_hadd_pi16)                \
