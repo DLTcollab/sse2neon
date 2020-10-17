@@ -2339,16 +2339,19 @@ FORCE_INLINE __m128i _mm_sign_epi16(__m128i _a, __m128i _b)
     int16x8_t a = vreinterpretq_s16_m128i(_a);
     int16x8_t b = vreinterpretq_s16_m128i(_b);
 
-    int16x8_t zero = vdupq_n_s16(0);
     // signed shift right: faster than vclt
     // (b < 0) ? 0xFFFF : 0
     uint16x8_t ltMask = vreinterpretq_u16_s16(vshrq_n_s16(b, 15));
     // (b == 0) ? 0xFFFF : 0
-    int16x8_t zeroMask = vreinterpretq_s16_u16(vceqq_s16(b, zero));
-    // -a
-    int16x8_t neg = vnegq_s16(a);
-    // bitwise select either a or neg based on ltMask
-    int16x8_t masked = vbslq_s16(ltMask, a, neg);
+#if defined(__aarch64__)
+    int16x8_t zeroMask = vreinterpretq_s16_u16(vceqzq_s16(b));
+#else
+    int16x8_t zeroMask = vreinterpretq_s16_u16(vceqq_s16(b, vdupq_n_s16(0)));
+#endif
+
+    // bitwise select either a or negative 'a' (vnegq_s16(a) equals to negative
+    // 'a') based on ltMask
+    int16x8_t masked = vbslq_s16(ltMask, vnegq_s16(a), a);
     // res = masked & (~zeroMask)
     int16x8_t res = vbicq_s16(masked, zeroMask);
     return vreinterpretq_m128i_s16(res);
