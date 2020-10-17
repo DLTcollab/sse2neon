@@ -3315,7 +3315,27 @@ result_t test_mm_blendv_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_slli_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+#if defined(__clang__)
+    // Clang compiler does not allow the second argument of _mm_slli_epi32() to
+    // be greater than 31.
+    int count = (uint32_t) _b[0] % 32;
+#else
+    int count = (uint32_t) _b[0] % 64;
+    // The value for doing the modulo should be greater
+    // than 32. Using 64 would provide more equal
+    // distribution for both under 32 and above 32 input value.
+#endif
+
+    int32_t d0 = (count > 31) ? 0 : _a[0] << count;
+    int32_t d1 = (count > 31) ? 0 : _a[1] << count;
+    int32_t d2 = (count > 31) ? 0 : _a[2] << count;
+    int32_t d3 = (count > 31) ? 0 : _a[3] << count;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_slli_epi32(a, count);
+    return validateInt32(c, d0, d1, d2, d3);
 }
 
 result_t test_mm_srai_epi32(const SSE2NEONTestImpl &impl, uint32_t i)

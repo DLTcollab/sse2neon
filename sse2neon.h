@@ -1766,19 +1766,15 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 // shifting in zeros. :
 // https://msdn.microsoft.com/en-us/library/z2k3bbtb%28v=vs.90%29.aspx
 // FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_slli_epi32(a, imm)                                   \
-    __extension__({                                              \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshlq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
-    })
+FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, int imm)
+{
+    if (imm <= 0) /* TODO: add constant range macro: [0, 255] */
+        return a;
+    if (imm > 31) /* TODO: add unlikely macro */
+        return _mm_setzero_si128();
+    return vreinterpretq_m128i_s32(
+        vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(imm)));
+}
 
 // Shift packed 64-bit integers in a left by imm8 while shifting in zeros, and
 // store the results in dst.
