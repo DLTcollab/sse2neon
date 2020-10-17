@@ -2376,16 +2376,20 @@ FORCE_INLINE __m128i _mm_sign_epi32(__m128i _a, __m128i _b)
     int32x4_t a = vreinterpretq_s32_m128i(_a);
     int32x4_t b = vreinterpretq_s32_m128i(_b);
 
-    int32x4_t zero = vdupq_n_s32(0);
     // signed shift right: faster than vclt
     // (b < 0) ? 0xFFFFFFFF : 0
     uint32x4_t ltMask = vreinterpretq_u32_s32(vshrq_n_s32(b, 31));
+
     // (b == 0) ? 0xFFFFFFFF : 0
-    int32x4_t zeroMask = vreinterpretq_s32_u32(vceqq_s32(b, zero));
-    // neg = -a
-    int32x4_t neg = vnegq_s32(a);
-    // bitwise select either a or neg based on ltMask
-    int32x4_t masked = vbslq_s32(ltMask, a, neg);
+#if defined(__aarch64__)
+    int32x4_t zeroMask = vreinterpretq_s32_u32(vceqzq_s32(b));
+#else
+    int32x4_t zeroMask = vreinterpretq_s32_u32(vceqq_s32(b, vdupq_n_s32(0)));
+#endif
+
+    // bitwise select either a or negative 'a' (vnegq_s32(a) equals to negative
+    // 'a') based on ltMask
+    int32x4_t masked = vbslq_s32(ltMask, vnegq_s32(a), a);
     // res = masked & (~zeroMask)
     int32x4_t res = vbicq_s32(masked, zeroMask);
     return vreinterpretq_m128i_s32(res);

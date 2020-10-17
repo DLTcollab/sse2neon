@@ -3416,7 +3416,25 @@ result_t test_mm_sign_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_sign_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+
+    int32_t d[4];
+    for (int i = 0; i < 4; i++) {
+        if (_b[i] < 0) {
+            d[i] = -_a[i];
+        } else if (_b[i] == 0) {
+            d[i] = 0;
+        } else {
+            d[i] = _a[i];
+        }
+    }
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i b = do_mm_load_ps(_b);
+    __m128i c = _mm_sign_epi32(a, b);
+
+    return validateInt32(c, d[0], d[1], d[2], d[3]);
 }
 
 result_t test_mm_sign_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
