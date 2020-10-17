@@ -2317,6 +2317,129 @@ FORCE_INLINE __m128i _mm_sign_epi32(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s32(res);
 }
 
+// Negate packed 16-bit integers in a when the corresponding signed 16-bit
+// integer in b is negative, and store the results in dst. Element in dst are
+// zeroed out when the corresponding element in b is zero.
+//
+//   FOR j := 0 to 3
+//      i := j*16
+//      IF b[i+15:i] < 0
+//        dst[i+15:i] := -(a[i+15:i])
+//      ELSE IF b[i+15:i] == 0
+//        dst[i+15:i] := 0
+//      ELSE
+//        dst[i+15:i] := a[i+15:i]
+//      FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sign_pi16
+FORCE_INLINE __m64 _mm_sign_pi16(__m64 _a, __m64 _b)
+{
+    int16x4_t a = vreinterpret_s16_m64(_a);
+    int16x4_t b = vreinterpret_s16_m64(_b);
+
+    // signed shift right: faster than vclt
+    // (b < 0) ? 0xFFFF : 0
+    uint16x4_t ltMask = vreinterpret_u16_s16(vshr_n_s16(b, 15));
+
+    // (b == 0) ? 0xFFFF : 0
+#if defined(__aarch64__)
+    int16x4_t zeroMask = vreinterpret_s16_u16(vceqz_s16(b));
+#else
+    int16x4_t zeroMask = vreinterpret_s16_u16(vceq_s16(b, vdup_n_s16(0)));
+#endif
+
+    // bitwise select either a or nagative 'a' (vneg_s16(a) return nagative 'a')
+    // based on ltMask
+    int16x4_t masked = vbsl_s16(ltMask, vneg_s16(a), a);
+    // res = masked & (~zeroMask)
+    int16x4_t res = vbic_s16(masked, zeroMask);
+
+    return vreinterpret_m64_s16(res);
+}
+
+// Negate packed 32-bit integers in a when the corresponding signed 32-bit
+// integer in b is negative, and store the results in dst. Element in dst are
+// zeroed out when the corresponding element in b is zero.
+//
+//   FOR j := 0 to 1
+//      i := j*32
+//      IF b[i+31:i] < 0
+//        dst[i+31:i] := -(a[i+31:i])
+//      ELSE IF b[i+31:i] == 0
+//        dst[i+31:i] := 0
+//      ELSE
+//        dst[i+31:i] := a[i+31:i]
+//      FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sign_pi32
+FORCE_INLINE __m64 _mm_sign_pi32(__m64 _a, __m64 _b)
+{
+    int32x2_t a = vreinterpret_s32_m64(_a);
+    int32x2_t b = vreinterpret_s32_m64(_b);
+
+    // signed shift right: faster than vclt
+    // (b < 0) ? 0xFFFFFFFF : 0
+    uint32x2_t ltMask = vreinterpret_u32_s32(vshr_n_s32(b, 31));
+
+    // (b == 0) ? 0xFFFFFFFF : 0
+#if defined(__aarch64__)
+    int32x2_t zeroMask = vreinterpret_s32_u32(vceqz_s32(b));
+#else
+    int32x2_t zeroMask = vreinterpret_s32_u32(vceq_s32(b, vdup_n_s32(0)));
+#endif
+
+    // bitwise select either a or nagative 'a' (vneg_s32(a) return nagative 'a')
+    // based on ltMask
+    int32x2_t masked = vbsl_s32(ltMask, vneg_s32(a), a);
+    // res = masked & (~zeroMask)
+    int32x2_t res = vbic_s32(masked, zeroMask);
+
+    return vreinterpret_m64_s32(res);
+}
+
+// Negate packed 8-bit integers in a when the corresponding signed 8-bit integer
+// in b is negative, and store the results in dst. Element in dst are zeroed out
+// when the corresponding element in b is zero.
+//
+//   FOR j := 0 to 7
+//      i := j*8
+//      IF b[i+7:i] < 0
+//        dst[i+7:i] := -(a[i+7:i])
+//      ELSE IF b[i+7:i] == 0
+//        dst[i+7:i] := 0
+//      ELSE
+//        dst[i+7:i] := a[i+7:i]
+//      FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sign_pi8
+FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
+{
+    int8x8_t a = vreinterpret_s8_m64(_a);
+    int8x8_t b = vreinterpret_s8_m64(_b);
+
+    // signed shift right: faster than vclt
+    // (b < 0) ? 0xFF : 0
+    uint8x8_t ltMask = vreinterpret_u8_s8(vshr_n_s8(b, 7));
+
+    // (b == 0) ? 0xFF : 0
+#if defined(__aarch64__)
+    int8x8_t zeroMask = vreinterpret_s8_u8(vceqz_s8(b));
+#else
+    int8x8_t zeroMask = vreinterpret_s8_u8(vceq_s8(b, vdup_n_s8(0)));
+#endif
+
+    // bitwise select either a or nagative 'a' (vneg_s8(a) return nagative 'a')
+    // based on ltMask
+    int8x8_t masked = vbsl_s8(ltMask, vneg_s8(a), a);
+    // res = masked & (~zeroMask)
+    int8x8_t res = vbic_s8(masked, zeroMask);
+
+    return vreinterpret_m64_s8(res);
+}
+
 // Average packed unsigned 16-bit integers in a and b, and store the results in
 // dst.
 //

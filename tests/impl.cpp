@@ -3288,6 +3288,75 @@ result_t test_mm_sign_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_sign_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+
+    int16_t d[4];
+    for (int i = 0; i < 4; i++) {
+        if (_b[i] < 0) {
+            d[i] = -_a[i];
+        } else if (_b[i] == 0) {
+            d[i] = 0;
+        } else {
+            d[i] = _a[i];
+        }
+    }
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_sign_pi16(*a, *b);
+
+    return validateInt16(c, d[0], d[1], d[2], d[3]);
+}
+
+result_t test_mm_sign_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+
+    int32_t d[2];
+    for (int i = 0; i < 2; i++) {
+        if (_b[i] < 0) {
+            d[i] = -_a[i];
+        } else if (_b[i] == 0) {
+            d[i] = 0;
+        } else {
+            d[i] = _a[i];
+        }
+    }
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_sign_pi32(*a, *b);
+
+    return validateInt32(c, d[0], d[1]);
+}
+
+result_t test_mm_sign_pi8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+
+    int8_t d[8];
+    for (int i = 0; i < 8; i++) {
+        if (_b[i] < 0) {
+            d[i] = -_a[i];
+        } else if (_b[i] == 0) {
+            d[i] = 0;
+        } else {
+            d[i] = _a[i];
+        }
+    }
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_sign_pi8(*a, *b);
+
+    return validateInt8(c, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
+}
+
 result_t test_mm_add_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
