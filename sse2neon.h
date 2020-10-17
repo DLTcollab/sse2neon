@@ -3916,6 +3916,23 @@ FORCE_INLINE __m128 _mm_cvtpi16_ps(__m64 a)
         vcvtq_f32_s32(vmovl_s16(vreinterpret_s16_m64(a))));
 }
 
+// Convert packed 32-bit integers in b to packed single-precision (32-bit)
+// floating-point elements, store the results in the lower 2 elements of dst,
+// and copy the upper 2 packed elements from a to the upper elements of dst.
+//
+//   dst[31:0] := Convert_Int32_To_FP32(b[31:0])
+//   dst[63:32] := Convert_Int32_To_FP32(b[63:32])
+//   dst[95:64] := a[95:64]
+//   dst[127:96] := a[127:96]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpi32_ps
+FORCE_INLINE __m128 _mm_cvtpi32_ps(__m128 a, __m64 b)
+{
+    return vreinterpretq_m128_f32(
+        vcombine_f32(vcvt_f32_s32(vreinterpret_s32_m64(b)),
+                     vget_high_f32(vreinterpretq_f32_m128(a))));
+}
+
 // Converts the four single-precision, floating-point values of a to signed
 // 32-bit integer values using truncate.
 // https://msdn.microsoft.com/en-us/library/vstudio/1h005y6x(v=vs.100).aspx
