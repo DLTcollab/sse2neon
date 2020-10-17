@@ -243,6 +243,9 @@
     TYPE(mm_sign_epi16)               \
     TYPE(mm_sign_epi32)               \
     TYPE(mm_sign_epi8)                \
+    TYPE(mm_sign_pi16)                \
+    TYPE(mm_sign_pi32)                \
+    TYPE(mm_sign_pi8)                 \
     /* SSE4.1 */                      \
     TYPE(mm_blend_epi16)              \
     TYPE(mm_blendv_epi8)              \

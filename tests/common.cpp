@@ -197,6 +197,28 @@ result_t validateInt8(__m128i a,
     return TEST_SUCCESS;
 }
 
+result_t validateInt8(__m64 a,
+                      int8_t i0,
+                      int8_t i1,
+                      int8_t i2,
+                      int8_t i3,
+                      int8_t i4,
+                      int8_t i5,
+                      int8_t i6,
+                      int8_t i7)
+{
+    const int8_t *t = (const int8_t *) &a;
+    ASSERT_RETURN(t[0] == i0);
+    ASSERT_RETURN(t[1] == i1);
+    ASSERT_RETURN(t[2] == i2);
+    ASSERT_RETURN(t[3] == i3);
+    ASSERT_RETURN(t[4] == i4);
+    ASSERT_RETURN(t[5] == i5);
+    ASSERT_RETURN(t[6] == i6);
+    ASSERT_RETURN(t[7] == i7);
+    return TEST_SUCCESS;
+}
+
 result_t validateUInt8(__m128i a,
                        uint8_t u0,
                        uint8_t u1,
