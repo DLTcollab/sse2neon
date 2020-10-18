@@ -1918,6 +1918,22 @@ result_t test_mm_cvt_pi2ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(c, dx, dy, dz, dw);
 }
 
+result_t test_mm_cvt_si2ss(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    const int32_t b = *impl.mTestIntPointer2;
+
+    float dx = (float) b;
+    float dy = _a[1];
+    float dz = _a[2];
+    float dw = _a[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 c = _mm_cvt_si2ss(a, b);
+
+    return validateFloat(c, dx, dy, dz, dw);
+}
+
 result_t test_mm_cvt_ss2si(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
