@@ -3977,6 +3977,22 @@ FORCE_INLINE __m128 _mm_cvtpi32x2_ps(__m64 a, __m64 b)
         vcombine_s32(vreinterpret_s32_m64(a), vreinterpret_s32_m64(b))));
 }
 
+// Convert the lower packed 8-bit integers in a to packed single-precision
+// (32-bit) floating-point elements, and store the results in dst.
+//
+//   FOR j := 0 to 3
+//      i := j*8
+//      m := j*32
+//      dst[m+31:m] := Convert_Int8_To_FP32(a[i+7:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpi8_ps
+FORCE_INLINE __m128 _mm_cvtpi8_ps(__m64 a)
+{
+    return vreinterpretq_m128_f32(vcvtq_f32_s32(
+        vmovl_s16(vget_low_s16(vmovl_s8(vreinterpret_s8_m64(a))))));
+}
+
 // Converts the four single-precision, floating-point values of a to signed
 // 32-bit integer values using truncate.
 // https://msdn.microsoft.com/en-us/library/vstudio/1h005y6x(v=vs.100).aspx
