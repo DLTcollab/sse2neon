@@ -1099,6 +1099,22 @@ result_t test_mm_mul_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(c, dx, dy, dz, dw);
 }
 
+result_t test_mm_mul_ss(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+
+    float dx = _a[0] * _b[0];
+    float dy = _a[1];
+    float dz = _a[2];
+    float dw = _a[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 c = _mm_mul_ss(a, b);
+    return validateFloat(c, dx, dy, dz, dw);
+}
+
 result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;

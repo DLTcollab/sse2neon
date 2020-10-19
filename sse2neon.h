@@ -2762,6 +2762,19 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Multiply the lower single-precision (32-bit) floating-point element in a and
+// b, store the result in the lower element of dst, and copy the upper 3 packed
+// elements from a to the upper elements of dst.
+//
+//   dst[31:0] := a[31:0] * b[31:0]
+//   dst[127:32] := a[127:32]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_mul_ss
+FORCE_INLINE __m128 _mm_mul_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_mul_ps(a, b));
+}
+
 // Multiply the low unsigned 32-bit integers from each packed 64-bit element in
 // a and b, and store the unsigned 64-bit results in dst.
 //
