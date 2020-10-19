@@ -63,9 +63,13 @@
     TYPE(mm_load_ss)                  \
     TYPE(mm_loadu_ps)                 \
     TYPE(mm_malloc)                   \
+    TYPE(mm_max_pi16)                 \
     TYPE(mm_max_ps)                   \
+    TYPE(mm_max_pu8)                  \
     TYPE(mm_max_ss)                   \
+    TYPE(mm_min_pi16)                 \
     TYPE(mm_min_ps)                   \
+    TYPE(mm_min_pu8)                  \
     TYPE(mm_min_ss)                   \
     TYPE(mm_move_ss)                  \
     TYPE(mm_movehl_ps)                \

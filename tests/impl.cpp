@@ -1118,6 +1118,23 @@ result_t test_mm_rcp_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
 }
 
+result_t test_mm_max_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+    int16_t c[4];
+
+    c[0] = _a[0] > _b[0] ? _a[0] : _b[0];
+    c[1] = _a[1] > _b[1] ? _a[1] : _b[1];
+    c[2] = _a[2] > _b[2] ? _a[2] : _b[2];
+    c[3] = _a[3] > _b[3] ? _a[3] : _b[3];
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 ret = _mm_max_pi16(*a, *b);
+    return validateInt16(ret, c[0], c[1], c[2], c[3]);
+}
+
 result_t test_mm_max_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
@@ -1135,6 +1152,44 @@ result_t test_mm_max_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(ret, c[0], c[1], c[2], c[3]);
 }
 
+result_t test_mm_max_pu8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    uint8_t c[8];
+
+    c[0] = _a[0] > _b[0] ? _a[0] : _b[0];
+    c[1] = _a[1] > _b[1] ? _a[1] : _b[1];
+    c[2] = _a[2] > _b[2] ? _a[2] : _b[2];
+    c[3] = _a[3] > _b[3] ? _a[3] : _b[3];
+    c[4] = _a[4] > _b[4] ? _a[4] : _b[4];
+    c[5] = _a[5] > _b[5] ? _a[5] : _b[5];
+    c[6] = _a[6] > _b[6] ? _a[6] : _b[6];
+    c[7] = _a[7] > _b[7] ? _a[7] : _b[7];
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 ret = _mm_max_pu8(*a, *b);
+    return validateUInt8(ret, c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
+}
+
+result_t test_mm_min_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+    int16_t c[4];
+
+    c[0] = _a[0] < _b[0] ? _a[0] : _b[0];
+    c[1] = _a[1] < _b[1] ? _a[1] : _b[1];
+    c[2] = _a[2] < _b[2] ? _a[2] : _b[2];
+    c[3] = _a[3] < _b[3] ? _a[3] : _b[3];
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 ret = _mm_min_pi16(*a, *b);
+    return validateInt16(ret, c[0], c[1], c[2], c[3]);
+}
+
 result_t test_mm_min_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
@@ -1150,6 +1205,27 @@ result_t test_mm_min_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128 b = do_mm_load_ps(_b);
     __m128 ret = _mm_min_ps(a, b);
     return validateFloat(ret, c[0], c[1], c[2], c[3]);
+}
+
+result_t test_mm_min_pu8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    uint8_t c[8];
+
+    c[0] = _a[0] < _b[0] ? _a[0] : _b[0];
+    c[1] = _a[1] < _b[1] ? _a[1] : _b[1];
+    c[2] = _a[2] < _b[2] ? _a[2] : _b[2];
+    c[3] = _a[3] < _b[3] ? _a[3] : _b[3];
+    c[4] = _a[4] < _b[4] ? _a[4] : _b[4];
+    c[5] = _a[5] < _b[5] ? _a[5] : _b[5];
+    c[6] = _a[6] < _b[6] ? _a[6] : _b[6];
+    c[7] = _a[7] < _b[7] ? _a[7] : _b[7];
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 ret = _mm_min_pu8(*a, *b);
+    return validateUInt8(ret, c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7]);
 }
 
 result_t test_mm_min_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
