@@ -104,6 +104,7 @@
     TYPE(mm_storeu_ps)                \
     TYPE(mm_stream_ps)                \
     TYPE(mm_sub_ps)                   \
+    TYPE(mm_sub_ss)                   \
     TYPE(mm_undefined_ps)             \
     TYPE(mm_unpackhi_ps)              \
     TYPE(mm_unpacklo_ps)              \
