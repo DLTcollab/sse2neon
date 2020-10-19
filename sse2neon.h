@@ -2180,6 +2180,20 @@ FORCE_INLINE __m128 _mm_sub_ps(__m128 a, __m128 b)
         vsubq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Subtract the lower single-precision (32-bit) floating-point element in b from
+// the lower single-precision (32-bit) floating-point element in a, store the
+// result in the lower element of dst, and copy the upper 3 packed elements from
+// a to the upper elements of dst.
+//
+//   dst[31:0] := a[31:0] - b[31:0]
+//   dst[127:32] := a[127:32]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sub_ss
+FORCE_INLINE __m128 _mm_sub_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(a, _mm_sub_ps(a, b));
+}
+
 // Subtract 2 packed 64-bit integers in b from 2 packed 64-bit integers in a,
 // and store the results in dst.
 //    r0 := a0 - b0
