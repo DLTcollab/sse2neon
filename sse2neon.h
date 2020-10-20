@@ -409,8 +409,11 @@ FORCE_INLINE void _mm_prefetch(const void *p, int i)
     __builtin_prefetch(p);
 }
 
-// extracts the lower order floating point value from the parameter :
-// https://msdn.microsoft.com/en-us/library/bb514059%28v=vs.120%29.aspx?f=255&MSPPError=-2147217396
+// Copy the lower single-precision (32-bit) floating-point element of a to dst.
+//
+//   dst[31:0] := a[31:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtss_f32
 FORCE_INLINE float _mm_cvtss_f32(__m128 a)
 {
     return vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
