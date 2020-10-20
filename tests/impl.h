@@ -56,11 +56,11 @@
     TYPE(mm_div_ps)                   \
     TYPE(mm_div_ss)                   \
     TYPE(mm_free)                     \
+    TYPE(mm_load_ps)                  \
+    TYPE(mm_load_ss)                  \
     TYPE(mm_load1_ps)                 \
     TYPE(mm_loadh_pi)                 \
     TYPE(mm_loadl_pi)                 \
-    TYPE(mm_load_ps)                  \
-    TYPE(mm_load_ss)                  \
     TYPE(mm_loadu_ps)                 \
     TYPE(mm_malloc)                   \
     TYPE(mm_max_pi16)                 \
@@ -87,22 +87,20 @@
     TYPE(mm_rsqrt_ps)                 \
     TYPE(mm_rsqrt_ss)                 \
     TYPE(mm_sad_pu8)                  \
-    TYPE(mm_set1_ps)                  \
-    TYPE(mm_set_ps1)                  \
     TYPE(mm_set_ps)                   \
+    TYPE(mm_set_ps1)                  \
     TYPE(mm_set_ss)                   \
+    TYPE(mm_set1_ps)                  \
     TYPE(mm_setr_ps)                  \
     TYPE(mm_setzero_ps)               \
     TYPE(mm_sfence)                   \
     TYPE(mm_shuffle_ps)               \
     TYPE(mm_sqrt_ps)                  \
     TYPE(mm_sqrt_ss)                  \
-    TYPE(mm_store_pd)                 \
     TYPE(mm_store_ps)                 \
     TYPE(mm_store_ss)                 \
     TYPE(mm_storeh_pi)                \
     TYPE(mm_storel_pi)                \
-    TYPE(mm_storeu_pd)                \
     TYPE(mm_storeu_ps)                \
     TYPE(mm_stream_ps)                \
     TYPE(mm_sub_ps)                   \
@@ -120,9 +118,9 @@
     TYPE(mm_adds_epi16)               \
     TYPE(mm_adds_epu16)               \
     TYPE(mm_adds_epu8)                \
+    TYPE(mm_and_si128)                \
     TYPE(mm_andnot_pd)                \
     TYPE(mm_andnot_si128)             \
-    TYPE(mm_and_si128)                \
     TYPE(mm_avg_epu16)                \
     TYPE(mm_avg_epu8)                 \
     TYPE(mm_castpd_si128)             \
@@ -150,8 +148,8 @@
     TYPE(mm_cvttps_epi32)             \
     TYPE(mm_extract_epi16)            \
     TYPE(mm_insert_epi16)             \
-    TYPE(mm_load_sd)                  \
     TYPE(mm_load_pd)                  \
+    TYPE(mm_load_sd)                  \
     TYPE(mm_load_si128)               \
     TYPE(mm_loadl_epi64)              \
     TYPE(mm_loadu_pd)                 \
@@ -173,17 +171,17 @@
     TYPE(mm_packs_epi32)              \
     TYPE(mm_packus_epi16)             \
     TYPE(mm_sad_epu8)                 \
-    TYPE(mm_set1_epi16)               \
-    TYPE(mm_set1_epi32)               \
-    TYPE(mm_set1_epi64)               \
-    TYPE(mm_set1_epi64x)              \
-    TYPE(mm_set1_epi8)                \
     TYPE(mm_set_epi16)                \
     TYPE(mm_set_epi32)                \
     TYPE(mm_set_epi64)                \
     TYPE(mm_set_epi64x)               \
     TYPE(mm_set_epi8)                 \
     TYPE(mm_set_pd)                   \
+    TYPE(mm_set1_epi16)               \
+    TYPE(mm_set1_epi32)               \
+    TYPE(mm_set1_epi64)               \
+    TYPE(mm_set1_epi64x)              \
+    TYPE(mm_set1_epi8)                \
     TYPE(mm_setr_epi16)               \
     TYPE(mm_setr_epi32)               \
     TYPE(mm_setr_epi64)               \
@@ -207,8 +205,10 @@
     TYPE(mm_srli_epi32)               \
     TYPE(mm_srli_epi64)               \
     TYPE(mm_srli_si128)               \
-    TYPE(mm_storel_epi64)             \
+    TYPE(mm_store_pd)                 \
     TYPE(mm_store_si128)              \
+    TYPE(mm_storel_epi64)             \
+    TYPE(mm_storeu_pd)                \
     TYPE(mm_storeu_si128)             \
     TYPE(mm_stream_si128)             \
     TYPE(mm_sub_epi16)                \
@@ -285,8 +285,8 @@
     TYPE(mm_insert_epi32)             \
     TYPE(mm_insert_epi64)             \
     TYPE(mm_insert_epi8)              \
-    TYPE(mm_max_epi8)                 \
     TYPE(mm_max_epi32)                \
+    TYPE(mm_max_epi8)                 \
     TYPE(mm_min_epi32)                \
     TYPE(mm_minpos_epu16)             \
     TYPE(mm_mullo_epi32)              \
@@ -313,9 +313,9 @@
     TYPE(mm_clmulepi64_si128)         \
     TYPE(mm_popcnt_u32)               \
     TYPE(mm_popcnt_u64)               \
-    TYPE(mm_shuffle_epi32_splat)      \
     TYPE(mm_shuffle_epi32)            \
     TYPE(mm_shuffle_epi32_default)    \
+    TYPE(mm_shuffle_epi32_splat)      \
     TYPE(mm_shufflehi_epi16)          \
     TYPE(mm_shufflehi_epi16_function) \
     TYPE(mm_shufflelo_epi16)          \
