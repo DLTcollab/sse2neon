@@ -2965,6 +2965,21 @@ FORCE_INLINE __m64 _mm_sad_pu8(__m64 a, __m64 b)
     return vreinterpret_m64_u16(vset_lane_u16(r0, vdup_n_u16(0), 0));
 }
 
+// Compute the absolute differences of packed unsigned 8-bit integers in a and
+// b, then horizontally sum each consecutive 8 differences to produce four
+// unsigned 16-bit integers, and pack these unsigned 16-bit integers in the low
+// 16 bits of dst.
+//
+//   FOR j := 0 to 7
+//      i := j*8
+//      tmp[i+7:i] := ABS(a[i+7:i] - b[i+7:i])
+//   ENDFOR
+//   dst[15:0] := tmp[7:0] + tmp[15:8] + tmp[23:16] + tmp[31:24] + tmp[39:32] +
+//   tmp[47:40] + tmp[55:48] + tmp[63:56] dst[63:16] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_psadbw
+#define _m_psadbw(a, b) _mm_sad_pu8(a, b)
+
 // Divides the four single-precision, floating-point values of a and b.
 //
 //   r0 := a0 / b0
