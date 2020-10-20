@@ -3097,6 +3097,17 @@ FORCE_INLINE __m64 _mm_max_pi16(__m64 a, __m64 b)
         vmax_s16(vreinterpret_s16_m64(a), vreinterpret_s16_m64(b)));
 }
 
+// Compare packed signed 16-bit integers in a and b, and store packed maximum
+// values in dst.
+//
+//   FOR j := 0 to 3
+//      i := j*16
+//      dst[i+15:i] := MAX(a[i+15:i], b[i+15:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_max_pi16
+#define _m_pmaxsw(a, b) _mm_max_pi16(a, b)
+
 // Computes the maximums of the four single-precision, floating-point values of
 // a and b.
 // https://msdn.microsoft.com/en-us/library/vstudio/ff5d607a(v=vs.100).aspx
@@ -3127,6 +3138,17 @@ FORCE_INLINE __m64 _mm_max_pu8(__m64 a, __m64 b)
         vmax_u8(vreinterpret_u8_m64(a), vreinterpret_u8_m64(b)));
 }
 
+// Compare packed unsigned 8-bit integers in a and b, and store packed maximum
+// values in dst.
+//
+//   FOR j := 0 to 7
+//      i := j*8
+//      dst[i+7:i] := MAX(a[i+7:i], b[i+7:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_max_pu8
+#define _m_pmaxub(a, b) _mm_max_pu8(a, b)
+
 // Compare packed signed 16-bit integers in a and b, and store packed minimum
 // values in dst.
 //
@@ -3141,6 +3163,17 @@ FORCE_INLINE __m64 _mm_min_pi16(__m64 a, __m64 b)
     return vreinterpret_m64_s16(
         vmin_s16(vreinterpret_s16_m64(a), vreinterpret_s16_m64(b)));
 }
+
+// Compare packed signed 16-bit integers in a and b, and store packed minimum
+// values in dst.
+//
+//   FOR j := 0 to 3
+//      i := j*16
+//      dst[i+15:i] := MIN(a[i+15:i], b[i+15:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_min_pi16
+#define _m_pminsw(a, b) _mm_min_pi16(a, b)
 
 // Computes the minima of the four single-precision, floating-point values of a
 // and b.
@@ -3171,6 +3204,17 @@ FORCE_INLINE __m64 _mm_min_pu8(__m64 a, __m64 b)
     return vreinterpret_m64_u8(
         vmin_u8(vreinterpret_u8_m64(a), vreinterpret_u8_m64(b)));
 }
+
+// Compare packed unsigned 8-bit integers in a and b, and store packed minimum
+// values in dst.
+//
+//   FOR j := 0 to 7
+//      i := j*8
+//      dst[i+7:i] := MIN(a[i+7:i], b[i+7:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_min_pu8
+#define _m_pminub(a, b) _mm_min_pu8(a, b)
 
 // Computes the maximum of the two lower scalar single-precision floating point
 // values of a and b.
