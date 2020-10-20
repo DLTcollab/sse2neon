@@ -1149,6 +1149,20 @@ result_t test_mm_rcp_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
 }
 
+result_t test_mm_rcp_ss(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+
+    float dx = 1.0f / _a[0];
+    float dy = _a[1];
+    float dz = _a[2];
+    float dw = _a[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 c = _mm_rcp_ss(a);
+    return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+}
+
 result_t test_mm_max_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;

@@ -2990,6 +2990,20 @@ FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
     return vreinterpretq_m128_f32(recip);
 }
 
+// Compute the approximate reciprocal of the lower single-precision (32-bit)
+// floating-point element in a, store the result in the lower element of dst,
+// and copy the upper 3 packed elements from a to the upper elements of dst. The
+// maximum relative error for this approximation is less than 1.5*2^-12.
+//
+//   dst[31:0] := (1.0 / a[31:0])
+//   dst[127:32] := a[127:32]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_rcp_ss
+FORCE_INLINE __m128 _mm_rcp_ss(__m128 a)
+{
+    return _mm_move_ss(a, _mm_rcp_ps(a));
+}
+
 // Computes the approximations of square roots of the four single-precision,
 // floating-point values of a. First computes reciprocal square roots and then
 // reciprocals of the four values.

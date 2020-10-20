@@ -83,6 +83,7 @@
     TYPE(m_pavgw)                     \
     TYPE(mm_prefetch)                 \
     TYPE(mm_rcp_ps)                   \
+    TYPE(mm_rcp_ss)                   \
     TYPE(mm_rsqrt_ps)                 \
     TYPE(mm_rsqrt_ss)                 \
     TYPE(mm_sad_pu8)                  \
