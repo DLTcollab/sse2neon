@@ -2751,6 +2751,19 @@ FORCE_INLINE __m128i _mm_mullo_epi32(__m128i a, __m128i b)
         vmulq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
+// Multiply the packed unsigned 16-bit integers in a and b, producing
+// intermediate 32-bit integers, and store the high 16 bits of the intermediate
+// integers in dst.
+//
+//   FOR j := 0 to 3
+//      i := j*16
+//      tmp[31:0] := a[i+15:i] * b[i+15:i]
+//      dst[i+15:i] := tmp[31:16]
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pmulhuw
+#define _m_pmulhuw(a, b) _mm_mulhi_pu16(a, b)
+
 // Multiplies the four single-precision, floating-point values of a and b.
 //
 //   r0 := a0 * b0
@@ -3270,8 +3283,8 @@ FORCE_INLINE __m128i _mm_min_epu32(__m128i a, __m128i b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_mulhi_pu16
 FORCE_INLINE __m64 _mm_mulhi_pu16(__m64 a, __m64 b)
 {
-    return vreinterpret_m64_u16(vmovn_u32(vshrq_n_u32(
-        vmull_u16(vreinterpret_u16_m64(a), vreinterpret_u16_m64(b)), 16)));
+    return vreinterpret_m64_u16(vshrn_n_u32(
+        vmull_u16(vreinterpret_u16_m64(a), vreinterpret_u16_m64(b)), 16));
 }
 
 // Multiplies the 8 signed 16-bit integers from a by the 8 signed 16-bit
