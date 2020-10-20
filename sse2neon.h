@@ -4247,8 +4247,11 @@ FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 #endif
 }
 
-// Moves the least significant 32 bits of a to a 32-bit integer.
-// https://msdn.microsoft.com/en-us/library/5z7a9642%28v=vs.90%29.aspx
+// Copy the lower 32-bit integer in a to dst.
+//
+//   dst[31:0] := a[31:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsi128_si32
 FORCE_INLINE int _mm_cvtsi128_si32(__m128i a)
 {
     return vgetq_lane_s32(vreinterpretq_s32_m128i(a), 0);
