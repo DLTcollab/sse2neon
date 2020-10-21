@@ -2110,6 +2110,20 @@ result_t test_mm_add_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateDouble(c, d0, d1);
 }
 
+result_t test_mm_add_si64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+
+    int64_t d0 = _a[0] + _b[0];
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_add_si64(*a, *b);
+
+    return validateInt64(c, d0);
+}
+
 result_t test_mm_adds_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
