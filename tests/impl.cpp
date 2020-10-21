@@ -4192,7 +4192,25 @@ result_t test_mm_srli_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_slli_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+#if defined(__clang__)
+    // Clang compiler does not allow the second argument of `_mm_slli_epi64()`
+    // to be greater than 63.
+    int count = (uint64_t) _b[0] % 64;
+#else
+    int count =
+        (uint64_t) _b[0] %
+        128;  // The value for doing the modulo should be greater
+              // than 64. Using 128 would provide more equal
+              // distribution for both under 64 and above 64 input value.
+#endif
+    int64_t d0 = (count > 63) ? 0 : _a[0] << count;
+    int64_t d1 = (count > 63) ? 0 : _a[1] << count;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_slli_epi64(a, count);
+    return validateInt64(c, d0, d1);
 }
 
 result_t test_mm_undefined_ps(const SSE2NEONTestImpl &impl, uint32_t i)
