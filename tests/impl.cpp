@@ -1542,7 +1542,17 @@ result_t test_mm_min_pu8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_min_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+    float c;
+
+    c = _a[0] < _b[0] ? _a[0] : _b[0];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 ret = _mm_min_ss(a, b);
+
+    return validateFloat(ret, c, _a[1], _a[2], _a[3]);
 }
 
 result_t test_mm_move_ss(const SSE2NEONTestImpl &impl, uint32_t i)
