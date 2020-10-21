@@ -4465,6 +4465,20 @@ FORCE_INLINE __m128 _mm_cvtpd_ps(__m128d a)
 #endif
 }
 
+// Copy the lower double-precision (64-bit) floating-point element of a to dst.
+//
+//   dst[63:0] := a[63:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_f64
+FORCE_INLINE double _mm_cvtsd_f64(__m128d a)
+{
+#if defined(__aarch64__)
+    return (double) vgetq_lane_f64(vreinterpretq_f64_m128d(a), 0);
+#else
+    return ((double *) &a)[0];
+#endif
+}
+
 // Convert packed single-precision (32-bit) floating-point elements in a to
 // packed double-precision (64-bit) floating-point elements, and store the
 // results in dst.
