@@ -4165,6 +4165,39 @@ FORCE_INLINE __m128 _mm_cvtpi8_ps(__m64 a)
         vmovl_s16(vget_low_s16(vmovl_s8(vreinterpret_s8_m64(a))))));
 }
 
+// Convert packed unsigned 16-bit integers in a to packed single-precision
+// (32-bit) floating-point elements, and store the results in dst.
+//
+//   FOR j := 0 to 3
+//      i := j*16
+//      m := j*32
+//      dst[m+31:m] := Convert_UInt16_To_FP32(a[i+15:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpu16_ps
+FORCE_INLINE __m128 _mm_cvtpu16_ps(__m64 a)
+{
+    return vreinterpretq_m128_f32(
+        vcvtq_f32_u32(vmovl_u16(vreinterpret_u16_m64(a))));
+}
+
+// Convert the lower packed unsigned 8-bit integers in a to packed
+// single-precision (32-bit) floating-point elements, and store the results in
+// dst.
+//
+//   FOR j := 0 to 3
+//      i := j*8
+//      m := j*32
+//      dst[m+31:m] := Convert_UInt8_To_FP32(a[i+7:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpu8_ps
+FORCE_INLINE __m128 _mm_cvtpu8_ps(__m64 a)
+{
+    return vreinterpretq_m128_f32(vcvtq_f32_u32(
+        vmovl_u16(vget_low_u16(vmovl_u8(vreinterpret_u8_m64(a))))));
+}
+
 // Converts the four single-precision, floating-point values of a to signed
 // 32-bit integer values using truncate.
 // https://msdn.microsoft.com/en-us/library/vstudio/1h005y6x(v=vs.100).aspx
