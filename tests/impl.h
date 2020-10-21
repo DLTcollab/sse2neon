@@ -52,6 +52,8 @@
     TYPE(mm_cvtpi32_ps)               \
     TYPE(mm_cvtpi32x2_ps)             \
     TYPE(mm_cvtpi8_ps)                \
+    TYPE(mm_cvtpu16_ps)               \
+    TYPE(mm_cvtpu8_ps)                \
     TYPE(mm_cvtss_f32)                \
     TYPE(mm_div_ps)                   \
     TYPE(mm_div_ss)                   \
