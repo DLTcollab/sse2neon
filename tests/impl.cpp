@@ -3767,7 +3767,19 @@ result_t test_mm_xor_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 /* SSE3 */
 result_t test_mm_addsub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+
+    float f0 = _a[0] - _b[0];
+    float f1 = _a[1] + _b[1];
+    float f2 = _a[2] - _b[2];
+    float f3 = _a[3] + _b[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 c = _mm_addsub_ps(a, b);
+
+    return validateFloat(c, f0, f1, f2, f3);
 }
 
 result_t test_mm_hadd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
