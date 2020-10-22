@@ -1604,12 +1604,36 @@ result_t test_mm_move_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_movehl_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+
+    float f0 = _b[2];
+    float f1 = _b[3];
+    float f2 = _a[2];
+    float f3 = _a[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 ret = _mm_movehl_ps(a, b);
+
+    return validateFloat(ret, f0, f1, f2, f3);
 }
 
 result_t test_mm_movelh_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+
+    float f0 = _a[0];
+    float f1 = _a[1];
+    float f2 = _b[0];
+    float f3 = _b[1];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 ret = _mm_movelh_ps(a, b);
+
+    return validateFloat(ret, f0, f1, f2, f3);
 }
 
 result_t test_mm_movemask_ps(const SSE2NEONTestImpl &impl, uint32_t i)
