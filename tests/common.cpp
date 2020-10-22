@@ -39,6 +39,13 @@ result_t validateInt64(__m128i a, int64_t i0, int64_t i1)
     return TEST_SUCCESS;
 }
 
+result_t validateInt64(__m64 a, int64_t i0)
+{
+    const int64_t *t = (const int64_t *) &a;
+    ASSERT_RETURN(t[0] == i0);
+    return TEST_SUCCESS;
+}
+
 result_t validateUInt64(__m128i a, uint64_t u0, uint64_t u1)
 {
     const uint64_t *t = (const uint64_t *) &a;

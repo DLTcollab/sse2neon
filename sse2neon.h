@@ -2641,6 +2641,17 @@ FORCE_INLINE __m128d _mm_add_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Add 64-bit integers a and b, and store the result in dst.
+//
+//   dst[63:0] := a[63:0] + b[63:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_add_si64
+FORCE_INLINE __m64 _mm_add_si64(__m64 a, __m64 b)
+{
+    return vreinterpret_m64_s64(
+        vadd_s64(vreinterpret_s64_m64(a), vreinterpret_s64_m64(b)));
+}
+
 // adds the scalar single-precision floating point values of a and b.
 // https://msdn.microsoft.com/en-us/library/be94x2y6(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_add_ss(__m128 a, __m128 b)
