@@ -985,6 +985,21 @@ FORCE_INLINE __m128 _mm_xor_ps(__m128 a, __m128 b)
         veorq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)));
 }
 
+// Compute the bitwise XOR of packed double-precision (64-bit) floating-point
+// elements in a and b, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//      i := j*64
+//      dst[i+63:i] := a[i+63:i] XOR b[i+63:i]
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_xor_pd
+FORCE_INLINE __m128d _mm_xor_pd(__m128d a, __m128d b)
+{
+    return vreinterpretq_m128d_s64(
+        veorq_s64(vreinterpretq_s64_m128d(a), vreinterpretq_s64_m128d(b)));
+}
+
 // Computes the bitwise OR of the 128-bit value in a and the 128-bit value in b.
 //
 //   r := a | b

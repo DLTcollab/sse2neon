@@ -229,6 +229,7 @@
     TYPE(mm_unpacklo_epi32)           \
     TYPE(mm_unpacklo_epi64)           \
     TYPE(mm_unpacklo_epi8)            \
+    TYPE(mm_xor_pd)                   \
     TYPE(mm_xor_si128)                \
     /* SSE3 */                        \
     TYPE(mm_addsub_ps)                \
