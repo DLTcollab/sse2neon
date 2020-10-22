@@ -1797,7 +1797,11 @@ result_t test_mm_set_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_set_ps1(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    float a = impl.mTestFloats[i];
+
+    __m128 ret = _mm_set_ps1(a);
+
+    return validateFloat(ret, a, a, a, a);
 }
 
 result_t test_mm_set_ss(const SSE2NEONTestImpl &impl, uint32_t i)
