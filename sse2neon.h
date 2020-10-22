@@ -2245,6 +2245,17 @@ FORCE_INLINE __m128i _mm_sub_epi8(__m128i a, __m128i b)
         vsubq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
 }
 
+// Subtract 64-bit integer b from 64-bit integer a, and store the result in dst.
+//
+//   dst[63:0] := a[63:0] - b[63:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sub_si64
+FORCE_INLINE __m64 _mm_sub_si64(__m64 a, __m64 b)
+{
+    return vreinterpret_m64_s64(
+        vsub_s64(vreinterpret_s64_m64(a), vreinterpret_s64_m64(b)));
+}
+
 // Subtracts the 8 unsigned 16-bit integers of bfrom the 8 unsigned 16-bit
 // integers of a and saturates..
 // https://technet.microsoft.com/en-us/subscriptions/index/f44y0s19(v=vs.90).aspx
