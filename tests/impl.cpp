@@ -4703,7 +4703,17 @@ result_t test_mm_minpos_epu16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_mul_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+
+    int64_t dx = (int64_t)(_a[0]) * (int64_t)(_b[0]);
+    int64_t dy = (int64_t)(_a[2]) * (int64_t)(_b[2]);
+
+    __m128i a = _mm_loadu_si128((const __m128i *) _a);
+    __m128i b = _mm_loadu_si128((const __m128i *) _b);
+    __m128i r = _mm_mul_epi32(a, b);
+
+    return validateInt64(r, dx, dy);
 }
 
 result_t test_mm_mullo_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
