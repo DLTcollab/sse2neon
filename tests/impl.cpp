@@ -3721,7 +3721,17 @@ result_t test_mm_xor_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_xor_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+
+    int64_t d0 = _a[0] ^ _b[0];
+    int64_t d1 = _a[1] ^ _b[1];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_xor_si128(a, b);
+
+    return validateInt64(c, d0, d1);
 }
 
 /* SSE3 */
