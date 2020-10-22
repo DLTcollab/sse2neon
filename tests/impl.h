@@ -81,8 +81,6 @@
     TYPE(mm_mul_ss)                   \
     TYPE(mm_mulhi_pu16)               \
     TYPE(mm_or_ps)                    \
-    TYPE(m_pavgb)                     \
-    TYPE(m_pavgw)                     \
     TYPE(mm_prefetch)                 \
     TYPE(mm_rcp_ps)                   \
     TYPE(mm_rcp_ss)                   \
