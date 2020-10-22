@@ -4299,62 +4299,178 @@ result_t test_mm_cmpeq_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtepi16_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+
+    int32_t i0 = (int32_t) _a[0];
+    int32_t i1 = (int32_t) _a[1];
+    int32_t i2 = (int32_t) _a[2];
+    int32_t i3 = (int32_t) _a[3];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepi16_epi32(a);
+
+    return validateInt32(ret, i0, i1, i2, i3);
 }
 
 result_t test_mm_cvtepi16_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+
+    int64_t i0 = (int64_t) _a[0];
+    int64_t i1 = (int64_t) _a[1];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepi16_epi64(a);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_cvtepi32_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+
+    int64_t i0 = (int64_t) _a[0];
+    int64_t i1 = (int64_t) _a[1];
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i ret = _mm_cvtepi32_epi64(a);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_cvtepi8_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+
+    int16_t i0 = (int16_t) _a[0];
+    int16_t i1 = (int16_t) _a[1];
+    int16_t i2 = (int16_t) _a[2];
+    int16_t i3 = (int16_t) _a[3];
+    int16_t i4 = (int16_t) _a[4];
+    int16_t i5 = (int16_t) _a[5];
+    int16_t i6 = (int16_t) _a[6];
+    int16_t i7 = (int16_t) _a[7];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepi8_epi16(a);
+
+    return validateInt16(ret, i0, i1, i2, i3, i4, i5, i6, i7);
 }
 
 result_t test_mm_cvtepi8_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+
+    int32_t i0 = (int32_t) _a[0];
+    int32_t i1 = (int32_t) _a[1];
+    int32_t i2 = (int32_t) _a[2];
+    int32_t i3 = (int32_t) _a[3];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepi8_epi32(a);
+
+    return validateInt32(ret, i0, i1, i2, i3);
 }
 
 result_t test_mm_cvtepi8_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+
+    int64_t i0 = (int64_t) _a[0];
+    int64_t i1 = (int64_t) _a[1];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepi8_epi64(a);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_cvtepu16_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint16_t *_a = (const uint16_t *) impl.mTestIntPointer1;
+
+    int32_t i0 = (int32_t) _a[0];
+    int32_t i1 = (int32_t) _a[1];
+    int32_t i2 = (int32_t) _a[2];
+    int32_t i3 = (int32_t) _a[3];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepu16_epi32(a);
+
+    return validateInt32(ret, i0, i1, i2, i3);
 }
 
 result_t test_mm_cvtepu16_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint16_t *_a = (const uint16_t *) impl.mTestIntPointer1;
+
+    int64_t i0 = (int64_t) _a[0];
+    int64_t i1 = (int64_t) _a[1];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepu16_epi64(a);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_cvtepu32_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint32_t *_a = (const uint32_t *) impl.mTestIntPointer1;
+
+    int64_t i0 = (int64_t) _a[0];
+    int64_t i1 = (int64_t) _a[1];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepu32_epi64(a);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_cvtepu8_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+
+    int16_t i0 = (int16_t) _a[0];
+    int16_t i1 = (int16_t) _a[1];
+    int16_t i2 = (int16_t) _a[2];
+    int16_t i3 = (int16_t) _a[3];
+    int16_t i4 = (int16_t) _a[4];
+    int16_t i5 = (int16_t) _a[5];
+    int16_t i6 = (int16_t) _a[6];
+    int16_t i7 = (int16_t) _a[7];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepu8_epi16(a);
+
+    return validateInt16(ret, i0, i1, i2, i3, i4, i5, i6, i7);
 }
 
 result_t test_mm_cvtepu8_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+
+    int32_t i0 = (int32_t) _a[0];
+    int32_t i1 = (int32_t) _a[1];
+    int32_t i2 = (int32_t) _a[2];
+    int32_t i3 = (int32_t) _a[3];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepu8_epi32(a);
+
+    return validateInt32(ret, i0, i1, i2, i3);
 }
 
 result_t test_mm_cvtepu8_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+
+    int64_t i0 = (int64_t) _a[0];
+    int64_t i1 = (int64_t) _a[1];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_cvtepu8_epi64(a);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t i)
