@@ -4615,7 +4615,18 @@ result_t test_mm_testz_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 /* SSE4.2 */
 result_t test_mm_cmpgt_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+
+    int64_t result[2];
+    result[0] = _a[0] > _b[0] ? -1 : 0;
+    result[1] = _a[1] > _b[1] ? -1 : 0;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i iret = _mm_cmpgt_epi64(a, b);
+
+    return validateInt64(iret, result[0], result[1]);
 }
 
 result_t test_mm_crc32_u16(const SSE2NEONTestImpl &impl, uint32_t i)
