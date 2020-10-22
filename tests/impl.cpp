@@ -3544,6 +3544,20 @@ result_t test_mm_sub_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
                         d12, d13, d14, d15);
 }
 
+result_t test_mm_sub_si64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+
+    int64_t d = _a[0] - _b[0];
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 c = _mm_sub_si64(*a, *b);
+
+    return validateInt64(c, d);
+}
+
 result_t test_mm_subs_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;

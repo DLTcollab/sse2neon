@@ -216,6 +216,7 @@
     TYPE(mm_sub_epi32)                \
     TYPE(mm_sub_epi64)                \
     TYPE(mm_sub_epi8)                 \
+    TYPE(mm_sub_si64)                 \
     TYPE(mm_subs_epi16)               \
     TYPE(mm_subs_epi8)                \
     TYPE(mm_subs_epu16)               \
