@@ -2917,11 +2917,6 @@ result_t test_mm_movemask_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_SUCCESS;
 }
 
-result_t test_mm_mul_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
 result_t test_mm_mul_epu32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const uint32_t *_a = (const uint32_t *) impl.mTestIntPointer1;
@@ -4680,6 +4675,11 @@ result_t test_mm_minpos_epu16(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i ret = _mm_minpos_epu16(a);
     return validateUInt16(ret, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
+result_t test_mm_mul_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    return TEST_UNIMPL;
 }
 
 result_t test_mm_mullo_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
