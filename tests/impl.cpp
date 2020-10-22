@@ -2885,6 +2885,19 @@ result_t test_mm_min_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
                         d12, d13, d14, d15);
 }
 
+result_t test_mm_move_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    int64_t d0 = _a[0];
+    int64_t d1 = 0;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_move_epi64(a);
+
+    return validateInt64(c, d0, d1);
+}
+
 result_t test_mm_movemask_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = impl.mTestIntPointer1;
