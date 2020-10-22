@@ -3690,6 +3690,21 @@ result_t test_mm_unpacklo_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_xor_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestFloatPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestFloatPointer2;
+
+    int64_t d0 = _a[0] ^ _b[0];
+    int64_t d1 = _a[1] ^ _b[1];
+
+    __m128d a = _mm_load_pd((const double *) _a);
+    __m128d b = _mm_load_pd((const double *) _b);
+    __m128d c = _mm_xor_pd(a, b);
+
+    return validateDouble(c, *((double *) &d0), *((double *) &d1));
+}
+
 result_t test_mm_xor_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
