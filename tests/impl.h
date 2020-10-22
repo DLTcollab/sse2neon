@@ -163,6 +163,8 @@
     TYPE(mm_min_epu32)                \
     TYPE(mm_min_epu8)                 \
     TYPE(mm_movemask_epi8)            \
+    TYPE(mm_movepi64_pi64)            \
+    TYPE(mm_movpi64_epi64)            \
     TYPE(mm_mul_epu32)                \
     TYPE(mm_mulhi_epi16)              \
     TYPE(mm_mullo_epi16)              \

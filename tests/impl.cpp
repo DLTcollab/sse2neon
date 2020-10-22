@@ -2917,6 +2917,30 @@ result_t test_mm_movemask_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_SUCCESS;
 }
 
+result_t test_mm_movepi64_pi64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    int64_t d0 = _a[0];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m64 c = _mm_movepi64_pi64(a);
+
+    return validateInt64(c, d0);
+}
+
+result_t test_mm_movpi64_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    int64_t d0 = _a[0];
+
+    const __m64 *a = (const __m64 *) _a;
+    __m128i c = _mm_movpi64_epi64(*a);
+
+    return validateInt64(c, d0, 0);
+}
+
 result_t test_mm_mul_epu32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const uint32_t *_a = (const uint32_t *) impl.mTestIntPointer1;

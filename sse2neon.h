@@ -2134,6 +2134,29 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
 #endif
 }
 
+// Copy the lower 64-bit integer in a to dst.
+//
+//   dst[63:0] := a[63:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movepi64_pi64
+FORCE_INLINE __m64 _mm_movepi64_pi64(__m128i a)
+{
+    return vreinterpret_m64_s64(vget_low_s64(vreinterpretq_s64_m128i(a)));
+}
+
+// Copy the 64-bit integer a to the lower element of dst, and zero the upper
+// element.
+//
+//   dst[63:0] := a[63:0]
+//   dst[127:64] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movpi64_epi64
+FORCE_INLINE __m128i _mm_movpi64_epi64(__m64 a)
+{
+    return vreinterpretq_m128i_s64(
+        vcombine_s64(vreinterpret_s64_m64(a), vdup_n_s64(0)));
+}
+
 // NEON does not provide this method
 // Creates a 4-bit mask from the most significant bits of the four
 // single-precision, floating-point values.
