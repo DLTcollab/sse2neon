@@ -3720,42 +3720,168 @@ result_t test_mm_subs_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_unpackhi_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+
+    int16_t i0 = _a[4];
+    int16_t i1 = _b[4];
+    int16_t i2 = _a[5];
+    int16_t i3 = _b[5];
+    int16_t i4 = _a[6];
+    int16_t i5 = _b[6];
+    int16_t i6 = _a[7];
+    int16_t i7 = _b[7];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_unpackhi_epi16(a, b);
+
+    return validateInt16(ret, i0, i1, i2, i3, i4, i5, i6, i7);
 }
 
 result_t test_mm_unpackhi_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+
+    int32_t i0 = _a[2];
+    int32_t i1 = _b[2];
+    int32_t i2 = _a[3];
+    int32_t i3 = _b[3];
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i b = do_mm_load_ps(_b);
+    __m128i ret = _mm_unpackhi_epi32(a, b);
+
+    return validateInt32(ret, i0, i1, i2, i3);
 }
 
 result_t test_mm_unpackhi_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+
+    int64_t i0 = _a[1];
+    int64_t i1 = _b[1];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_unpackhi_epi64(a, b);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_unpackhi_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+
+    int8_t i0 = _a[8];
+    int8_t i1 = _b[8];
+    int8_t i2 = _a[9];
+    int8_t i3 = _b[9];
+    int8_t i4 = _a[10];
+    int8_t i5 = _b[10];
+    int8_t i6 = _a[11];
+    int8_t i7 = _b[11];
+    int8_t i8 = _a[12];
+    int8_t i9 = _b[12];
+    int8_t i10 = _a[13];
+    int8_t i11 = _b[13];
+    int8_t i12 = _a[14];
+    int8_t i13 = _b[14];
+    int8_t i14 = _a[15];
+    int8_t i15 = _b[15];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_unpackhi_epi8(a, b);
+
+    return validateInt8(ret, i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11,
+                        i12, i13, i14, i15);
 }
 
 result_t test_mm_unpacklo_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+
+    int16_t i0 = _a[0];
+    int16_t i1 = _b[0];
+    int16_t i2 = _a[1];
+    int16_t i3 = _b[1];
+    int16_t i4 = _a[2];
+    int16_t i5 = _b[2];
+    int16_t i6 = _a[3];
+    int16_t i7 = _b[3];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_unpacklo_epi16(a, b);
+
+    return validateInt16(ret, i0, i1, i2, i3, i4, i5, i6, i7);
 }
 
 result_t test_mm_unpacklo_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestIntPointer2;
+
+    int32_t i0 = _a[0];
+    int32_t i1 = _b[0];
+    int32_t i2 = _a[1];
+    int32_t i3 = _b[1];
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i b = do_mm_load_ps(_b);
+    __m128i ret = _mm_unpacklo_epi32(a, b);
+
+    return validateInt32(ret, i0, i1, i2, i3);
 }
 
 result_t test_mm_unpacklo_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+
+    int64_t i0 = _a[0];
+    int64_t i1 = _b[0];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_unpacklo_epi64(a, b);
+
+    return validateInt64(ret, i0, i1);
 }
 
 result_t test_mm_unpacklo_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+
+    int8_t i0 = _a[0];
+    int8_t i1 = _b[0];
+    int8_t i2 = _a[1];
+    int8_t i3 = _b[1];
+    int8_t i4 = _a[2];
+    int8_t i5 = _b[2];
+    int8_t i6 = _a[3];
+    int8_t i7 = _b[3];
+    int8_t i8 = _a[4];
+    int8_t i9 = _b[4];
+    int8_t i10 = _a[5];
+    int8_t i11 = _b[5];
+    int8_t i12 = _a[6];
+    int8_t i13 = _b[6];
+    int8_t i14 = _a[7];
+    int8_t i15 = _b[7];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_unpacklo_epi8(a, b);
+
+    return validateInt8(ret, i0, i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11,
+                        i12, i13, i14, i15);
 }
 
 result_t test_mm_xor_pd(const SSE2NEONTestImpl &impl, uint32_t i)
