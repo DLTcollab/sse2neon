@@ -2592,7 +2592,7 @@ FORCE_INLINE __m64 _mm_avg_pu8(__m64 a, __m64 b)
 //   ENDFOR
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pavgw
-#define _m_pavgb(a, b) _mm_avg_pu16(a, b)
+#define _m_pavgw(a, b) _mm_avg_pu16(a, b)
 
 // Computes the average of the 16 unsigned 8-bit integers in a and the 16
 // unsigned 8-bit integers in b and rounds.
