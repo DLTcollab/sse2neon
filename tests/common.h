@@ -61,8 +61,18 @@ inline bool isNAN(float a)
     const int32_t *ia = (const int32_t *) &a;
     return (*ia) == NaN ? true : false;
 }
-result_t validate128(__m128i a, __m128i b);
-result_t validate128(__m128d a, __m128d b);
+template <typename T>
+result_t validate128(T a, T b)
+{
+    const int32_t *t1 = (const int32_t *) &a;
+    const int32_t *t2 = (const int32_t *) &b;
+
+    ASSERT_RETURN(t1[0] == t2[0]);
+    ASSERT_RETURN(t1[1] == t2[1]);
+    ASSERT_RETURN(t1[2] == t2[2]);
+    ASSERT_RETURN(t1[3] == t2[3]);
+    return TEST_SUCCESS;
+}
 result_t validateInt64(__m128i a, int64_t i0, int64_t i1);
 result_t validateInt64(__m64 a, int64_t i0);
 result_t validateUInt64(__m128i a, uint64_t u0, uint64_t u1);
