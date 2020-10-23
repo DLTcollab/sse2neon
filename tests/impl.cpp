@@ -2318,6 +2318,21 @@ result_t test_mm_adds_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
                         d12, d13, d14, d15);
 }
 
+result_t test_mm_and_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestFloatPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestFloatPointer2;
+
+    int64_t d0 = _a[0] & _b[0];
+    int64_t d1 = _a[1] & _b[1];
+
+    __m128d a = _mm_load_pd((const double *) _a);
+    __m128d b = _mm_load_pd((const double *) _b);
+    __m128d c = _mm_and_pd(a, b);
+
+    return validateDouble(c, *((double *) &d0), *((double *) &d1));
+}
+
 result_t test_mm_and_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = impl.mTestIntPointer1;
