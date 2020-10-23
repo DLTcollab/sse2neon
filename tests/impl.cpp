@@ -2228,6 +2228,31 @@ result_t test_mm_adds_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
                          (int16_t) d7);
 }
 
+result_t test_mm_adds_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+
+    int16_t d[16];
+    for (int i = 0; i < 16; i++) {
+        d[i] = (int16_t) _a[i] + (int16_t) _b[i];
+        if (d[i] > 127)
+            d[i] = 127;
+        if (d[i] < -128)
+            d[i] = -128;
+    }
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_adds_epi8(a, b);
+
+    return validateInt8(
+        c, (int8_t) d[0], (int8_t) d[1], (int8_t) d[2], (int8_t) d[3],
+        (int8_t) d[4], (int8_t) d[5], (int8_t) d[6], (int8_t) d[7],
+        (int8_t) d[8], (int8_t) d[9], (int8_t) d[10], (int8_t) d[11],
+        (int8_t) d[12], (int8_t) d[13], (int8_t) d[14], (int8_t) d[15]);
+}
+
 result_t test_mm_adds_epu16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
