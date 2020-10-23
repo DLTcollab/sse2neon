@@ -2039,7 +2039,20 @@ result_t test_mm_unpacklo_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_xor_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestFloatPointer1;
+    const int32_t *_b = (const int32_t *) impl.mTestFloatPointer2;
+
+    int32_t d0 = _a[0] ^ _b[0];
+    int32_t d1 = _a[1] ^ _b[1];
+    int32_t d2 = _a[2] ^ _b[2];
+    int32_t d3 = _a[3] ^ _b[3];
+
+    __m128 a = do_mm_load_ps((const float *) _a);
+    __m128 b = do_mm_load_ps((const float *) _b);
+    __m128 c = _mm_xor_ps(a, b);
+
+    return validateFloat(c, *((float *) &d0), *((float *) &d1),
+                         *((float *) &d2), *((float *) &d3));
 }
 
 /* SSE2 */
