@@ -980,6 +980,21 @@ FORCE_INLINE __m128 _mm_and_ps(__m128 a, __m128 b)
         vandq_s32(vreinterpretq_s32_m128(a), vreinterpretq_s32_m128(b)));
 }
 
+// Compute the bitwise AND of packed double-precision (64-bit) floating-point
+// elements in a and b, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//     i := j*64
+//     dst[i+63:i] := a[i+63:i] AND b[i+63:i]
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_and_pd
+FORCE_INLINE __m128d _mm_and_pd(__m128d a, __m128d b)
+{
+    return vreinterpretq_m128d_s64(
+        vandq_s64(vreinterpretq_s64_m128d(a), vreinterpretq_s64_m128d(b)));
+}
+
 // Computes the bitwise OR of the four single-precision, floating-point values
 // of a and b.
 // https://msdn.microsoft.com/en-us/library/vstudio/7ctdsyy0(v=vs.100).aspx
