@@ -2897,6 +2897,18 @@ FORCE_INLINE __m128i _mm_mul_epu32(__m128i a, __m128i b)
     return vreinterpretq_m128i_u64(vmull_u32(a_lo, b_lo));
 }
 
+// Multiply the low unsigned 32-bit integers from a and b, and store the
+// unsigned 64-bit result in dst.
+//
+//   dst[63:0] := a[31:0] * b[31:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_mul_su32
+FORCE_INLINE __m64 _mm_mul_su32(__m64 a, __m64 b)
+{
+    return vreinterpret_m64_u64(vget_low_u64(
+        vmull_u32(vreinterpret_u32_m64(a), vreinterpret_u32_m64(b))));
+}
+
 // Multiply the low signed 32-bit integers from each packed 64-bit element in
 // a and b, and store the signed 64-bit results in dst.
 //

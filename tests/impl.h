@@ -168,6 +168,7 @@
     TYPE(mm_movepi64_pi64)            \
     TYPE(mm_movpi64_epi64)            \
     TYPE(mm_mul_epu32)                \
+    TYPE(mm_mul_su32)                 \
     TYPE(mm_mulhi_epi16)              \
     TYPE(mm_mullo_epi16)              \
     TYPE(mm_or_si128)                 \

@@ -66,6 +66,7 @@ result_t validate128(__m128d a, __m128d b);
 result_t validateInt64(__m128i a, int64_t i0, int64_t i1);
 result_t validateInt64(__m64 a, int64_t i0);
 result_t validateUInt64(__m128i a, uint64_t u0, uint64_t u1);
+result_t validateUInt64(__m64 a, uint64_t i0);
 result_t validateInt32(__m128i a,
                        int32_t i0,
                        int32_t i1,
