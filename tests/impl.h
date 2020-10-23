@@ -117,6 +117,7 @@
     TYPE(mm_add_pd)                   \
     TYPE(mm_add_si64)                 \
     TYPE(mm_adds_epi16)               \
+    TYPE(mm_adds_epi8)                \
     TYPE(mm_adds_epu16)               \
     TYPE(mm_adds_epu8)                \
     TYPE(mm_and_si128)                \

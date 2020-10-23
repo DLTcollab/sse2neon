@@ -2781,6 +2781,21 @@ FORCE_INLINE __m128i _mm_adds_epi16(__m128i a, __m128i b)
         vqaddq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
+// Add packed signed 8-bit integers in a and b using saturation, and store the
+// results in dst.
+//
+//   FOR j := 0 to 15
+//     i := j*8
+//     dst[i+7:i] := Saturate8( a[i+7:i] + b[i+7:i] )
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_adds_epi8
+FORCE_INLINE __m128i _mm_adds_epi8(__m128i a, __m128i b)
+{
+    return vreinterpretq_m128i_s8(
+        vqaddq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+}
+
 // Adds the 16 unsigned 8-bit integers in a to the 16 unsigned 8-bit integers in
 // b and saturates..
 // https://msdn.microsoft.com/en-us/library/9hahyddy(v=vs.100).aspx
