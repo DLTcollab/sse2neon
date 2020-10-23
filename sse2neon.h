@@ -885,6 +885,19 @@ FORCE_INLINE __m128 _mm_move_ss(__m128 a, __m128 b)
                        vreinterpretq_f32_m128(a), 0));
 }
 
+// Copy the lower 64-bit integer in a to the lower element of dst, and zero the
+// upper element.
+//
+//   dst[63:0] := a[63:0]
+//   dst[127:64] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_move_epi64
+FORCE_INLINE __m128i _mm_move_epi64(__m128i a)
+{
+    return vreinterpretq_m128i_s64(
+        vsetq_lane_s64(0, vreinterpretq_s64_m128i(a), 1));
+}
+
 // Return vector of type __m128 with undefined elements.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_undefined_ps
 FORCE_INLINE __m128 _mm_undefined_ps(void)
