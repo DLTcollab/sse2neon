@@ -2449,12 +2449,9 @@ result_t test_mm_cmpeq_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
     int16_t d1 = (_a[1] == _b[1]) ? 0xffff : 0x0;
     int16_t d2 = (_a[2] == _b[2]) ? 0xffff : 0x0;
     int16_t d3 = (_a[3] == _b[3]) ? 0xffff : 0x0;
-    ;
     int16_t d4 = (_a[4] == _b[4]) ? 0xffff : 0x0;
-    ;
     int16_t d5 = (_a[5] == _b[5]) ? 0xffff : 0x0;
     int16_t d6 = (_a[6] == _b[6]) ? 0xffff : 0x0;
-    ;
     int16_t d7 = (_a[7] == _b[7]) ? 0xffff : 0x0;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
@@ -2465,7 +2462,19 @@ result_t test_mm_cmpeq_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cmpeq_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = impl.mTestIntPointer1;
+    const int32_t *_b = impl.mTestIntPointer2;
+
+    int32_t d0 = (_a[0] == _b[0]) ? 0xffffffff : 0x0;
+    int32_t d1 = (_a[1] == _b[1]) ? 0xffffffff : 0x0;
+    int32_t d2 = (_a[2] == _b[2]) ? 0xffffffff : 0x0;
+    int32_t d3 = (_a[3] == _b[3]) ? 0xffffffff : 0x0;
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i b = do_mm_load_ps(_b);
+    __m128i c = _mm_cmpeq_epi32(a, b);
+
+    return validateInt32(c, d0, d1, d2, d3);
 }
 
 result_t test_mm_cmpeq_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
