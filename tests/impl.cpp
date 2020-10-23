@@ -2641,17 +2641,36 @@ result_t test_mm_cvtsi128_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtsi128_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    int64_t d = _a[0];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    int64_t c = _mm_cvtsi128_si64(a);
+
+    return d == c ? TEST_SUCCESS : TEST_FAIL;
 }
 
 result_t test_mm_cvtsi32_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+
+    int32_t d = _a[0];
+
+    __m128i c = _mm_cvtsi32_si128(*_a);
+
+    return validateInt32(c, d, 0, 0, 0);
 }
 
 result_t test_mm_cvtsi64_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    int64_t d = _a[0];
+
+    __m128i c = _mm_cvtsi64_si128(*_a);
+
+    return validateInt64(c, d, 0);
 }
 
 result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
