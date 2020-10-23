@@ -3041,6 +3041,20 @@ result_t test_mm_mul_epu32(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateUInt64(r, dx, dy);
 }
 
+result_t test_mm_mul_su32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint32_t *_a = (const uint32_t *) impl.mTestIntPointer1;
+    const uint32_t *_b = (const uint32_t *) impl.mTestIntPointer2;
+
+    uint64_t u = (uint64_t)(_a[0]) * (uint64_t)(_b[0]);
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 r = _mm_mul_su32(*a, *b);
+
+    return validateUInt64(r, u);
+}
+
 result_t test_mm_mulhi_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
