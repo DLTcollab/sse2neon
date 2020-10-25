@@ -144,6 +144,7 @@
     TYPE(mm_cvtpd_ps)                 \
     TYPE(mm_cvtps_epi32)              \
     TYPE(mm_cvtps_pd)                 \
+    TYPE(mm_cvtsd_f64)                \
     TYPE(mm_cvtsi128_si32)            \
     TYPE(mm_cvtsi128_si64)            \
     TYPE(mm_cvtsi32_si128)            \

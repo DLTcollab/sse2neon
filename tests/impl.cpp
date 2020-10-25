@@ -2741,6 +2741,18 @@ result_t test_mm_cvtps_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateDouble(r, d0, d1);
 }
 
+result_t test_mm_cvtsd_f64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+
+    double d = _a[0];
+
+    const __m128d *a = (const __m128d *) _a;
+    double r = _mm_cvtsd_f64(*a);
+
+    return r == d ? TEST_SUCCESS : TEST_FAIL;
+}
+
 result_t test_mm_cvtsi128_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
