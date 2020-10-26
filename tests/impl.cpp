@@ -1386,12 +1386,20 @@ result_t test_mm_free(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_load_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *addr = impl.mTestFloatPointer1;
+
+    __m128 ret = _mm_load_ps(addr);
+
+    return validateFloat(ret, addr[0], addr[1], addr[2], addr[3]);
 }
 
 result_t test_mm_load_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *addr = impl.mTestFloatPointer1;
+
+    __m128 ret = _mm_load_ss(addr);
+
+    return validateFloat(ret, addr[0], 0, 0, 0);
 }
 
 result_t test_mm_load1_ps(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -1425,7 +1433,11 @@ result_t test_mm_loadl_pi(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_loadu_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *addr = impl.mTestFloatPointer1;
+
+    __m128 ret = _mm_loadu_ps(addr);
+
+    return validateFloat(ret, addr[0], addr[1], addr[2], addr[3]);
 }
 
 result_t test_mm_malloc(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -2875,12 +2887,20 @@ result_t test_mm_load_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_load_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *addr = impl.mTestIntPointer1;
+
+    __m128i ret = _mm_load_si128((const __m128i *) addr);
+
+    return validateInt32(ret, addr[0], addr[1], addr[2], addr[3]);
 }
 
 result_t test_mm_loadl_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *addr = (const int64_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_loadl_epi64((const __m128i *) addr);
+
+    return validateInt64(ret, addr[0], 0);
 }
 
 result_t test_mm_loadu_pd(const SSE2NEONTestImpl &impl, uint32_t i)
