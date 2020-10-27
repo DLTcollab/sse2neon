@@ -1393,6 +1393,15 @@ result_t test_mm_load_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(ret, addr[0], addr[1], addr[2], addr[3]);
 }
 
+result_t test_mm_load_ps1(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *addr = impl.mTestFloatPointer1;
+
+    __m128 ret = _mm_load_ps1(addr);
+
+    return validateFloat(ret, addr[0], addr[0], addr[0], addr[0]);
+}
+
 result_t test_mm_load_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *addr = impl.mTestFloatPointer1;
@@ -1431,6 +1440,15 @@ result_t test_mm_loadl_pi(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(c, p2[0], p2[1], p1[2], p1[3]);
 }
 
+result_t test_mm_loadr_ps(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *addr = impl.mTestFloatPointer1;
+
+    __m128 ret = _mm_loadr_ps(addr);
+
+    return validateFloat(ret, addr[3], addr[2], addr[1], addr[0]);
+}
+
 result_t test_mm_loadu_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *addr = impl.mTestFloatPointer1;
@@ -1438,6 +1456,29 @@ result_t test_mm_loadu_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128 ret = _mm_loadu_ps(addr);
 
     return validateFloat(ret, addr[0], addr[1], addr[2], addr[3]);
+}
+
+result_t test_mm_loadu_si16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+#if defined(__clang__)
+    const int16_t *addr = (const int16_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_loadu_si16((const void *) addr);
+
+    return validateInt16(ret, addr[0], 0, 0, 0, 0, 0, 0, 0);
+#else
+    // The intrinsic _mm_loadu_si16() does not exist in GCC
+    return TEST_UNIMPL;
+#endif
+}
+
+result_t test_mm_loadu_si64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *addr = (const int64_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_loadu_si64((const void *) addr);
+
+    return validateInt64(ret, addr[0], 0);
 }
 
 result_t test_mm_malloc(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -2894,6 +2935,26 @@ result_t test_mm_load_si128(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt32(ret, addr[0], addr[1], addr[2], addr[3]);
 }
 
+result_t test_mm_load1_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *addr = (const double *) impl.mTestFloatPointer1;
+
+    __m128d ret = _mm_load1_pd((const double *) addr);
+
+    return validateDouble(ret, addr[0], addr[0]);
+}
+
+result_t test_mm_loadh_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *addr = (const double *) impl.mTestFloatPointer2;
+
+    __m128d a = _mm_load_pd(_a);
+    __m128d ret = _mm_loadh_pd(a, addr);
+
+    return validateDouble(ret, _a[0], addr[0]);
+}
+
 result_t test_mm_loadl_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int64_t *addr = (const int64_t *) impl.mTestIntPointer1;
@@ -2901,6 +2962,26 @@ result_t test_mm_loadl_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128i ret = _mm_loadl_epi64((const __m128i *) addr);
 
     return validateInt64(ret, addr[0], 0);
+}
+
+result_t test_mm_loadl_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *addr = (const double *) impl.mTestFloatPointer2;
+
+    __m128d a = _mm_load_pd(_a);
+    __m128d ret = _mm_loadl_pd(a, addr);
+
+    return validateDouble(ret, addr[0], _a[1]);
+}
+
+result_t test_mm_loadr_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *addr = (const double *) impl.mTestFloatPointer1;
+
+    __m128d ret = _mm_loadr_pd(addr);
+
+    return validateDouble(ret, addr[1], addr[0]);
 }
 
 result_t test_mm_loadu_pd(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -2915,6 +2996,20 @@ result_t test_mm_loadu_si128(const SSE2NEONTestImpl &impl, uint32_t i)
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     __m128i c = _mm_loadu_si128((const __m128i *) _a);
     return validateInt32(c, _a[0], _a[1], _a[2], _a[3]);
+}
+
+result_t test_mm_loadu_si32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+#if defined(__clang__)
+    const int32_t *addr = (const int32_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_loadu_si32((const void *) addr);
+
+    return validateInt32(ret, addr[0], 0, 0, 0);
+#else
+    // The intrinsic _mm_loadu_si32() does not exist in GCC
+    return TEST_UNIMPL;
+#endif
 }
 
 result_t test_mm_madd_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -5335,7 +5430,11 @@ result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_stream_load_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    int32_t *addr = impl.mTestIntPointer1;
+
+    __m128i ret = _mm_stream_load_si128((__m128i *) addr);
+
+    return validateInt32(ret, addr[0], addr[1], addr[2], addr[3]);
 }
 
 result_t test_mm_test_all_ones(const SSE2NEONTestImpl &impl, uint32_t i)

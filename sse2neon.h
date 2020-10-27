@@ -768,6 +768,16 @@ FORCE_INLINE __m128 _mm_load1_ps(const float *p)
 {
     return vreinterpretq_m128_f32(vld1q_dup_f32(p));
 }
+
+// Load a single-precision (32-bit) floating-point element from memory into all
+// elements of dst.
+//
+//   dst[31:0] := MEM[mem_addr+31:mem_addr]
+//   dst[63:32] := MEM[mem_addr+31:mem_addr]
+//   dst[95:64] := MEM[mem_addr+31:mem_addr]
+//   dst[127:96] := MEM[mem_addr+31:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_load_ps1
 #define _mm_load_ps1 _mm_load1_ps
 
 // Sets the lower two single-precision, floating-point values with 64
@@ -785,6 +795,22 @@ FORCE_INLINE __m128 _mm_loadl_pi(__m128 a, __m64 const *p)
 {
     return vreinterpretq_m128_f32(
         vcombine_f32(vld1_f32((const float32_t *) p), vget_high_f32(a)));
+}
+
+// Load 4 single-precision (32-bit) floating-point elements from memory into dst
+// in reverse order. mem_addr must be aligned on a 16-byte boundary or a
+// general-protection exception may be generated.
+//
+//   dst[31:0] := MEM[mem_addr+127:mem_addr+96]
+//   dst[63:32] := MEM[mem_addr+95:mem_addr+64]
+//   dst[95:64] := MEM[mem_addr+63:mem_addr+32]
+//   dst[127:96] := MEM[mem_addr+31:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadr_ps
+FORCE_INLINE __m128 _mm_loadr_ps(const float *p)
+{
+    float32x4_t v = vrev64q_f32(vld1q_f32(p));
+    return vreinterpretq_m128_f32(vextq_f32(v, v, 2));
 }
 
 // Sets the upper two single-precision, floating-point values with 64
@@ -819,44 +845,71 @@ FORCE_INLINE __m128 _mm_loadu_ps(const float *p)
     return vreinterpretq_m128_f32(vld1q_f32(p));
 }
 
-// Loads a double-precision, floating-point value.
-// The upper double-precision, floating-point is set to zero. The address p does
-// not need to be 16-byte aligned.
-// https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/574w9fdd(v%3dvs.100)
+// Load unaligned 16-bit integer from memory into the first element of dst.
+//
+//   dst[15:0] := MEM[mem_addr+15:mem_addr]
+//   dst[MAX:16] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadu_si16
+FORCE_INLINE __m128i _mm_loadu_si16(const void *p)
+{
+    return vreinterpretq_m128i_s16(
+        vsetq_lane_s16(*(const int16_t *) p, vdupq_n_s16(0), 0));
+}
+
+// Load unaligned 64-bit integer from memory into the first element of dst.
+//
+//   dst[63:0] := MEM[mem_addr+63:mem_addr]
+//   dst[MAX:64] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadu_si64
+FORCE_INLINE __m128i _mm_loadu_si64(const void *p)
+{
+    return vreinterpretq_m128i_s64(
+        vcombine_s64(vld1_s64((const int64_t *) p), vdup_n_s64(0)));
+}
+
+// Load a double-precision (64-bit) floating-point element from memory into the
+// lower of dst, and zero the upper element. mem_addr does not need to be
+// aligned on any particular boundary.
+//
+//   dst[63:0] := MEM[mem_addr+63:mem_addr]
+//   dst[127:64] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_load_sd
 FORCE_INLINE __m128d _mm_load_sd(const double *p)
 {
 #if defined(__aarch64__)
-    return vsetq_lane_f64(*p, vdupq_n_f64(0), 0);
+    return vreinterpretq_m128d_f64(vsetq_lane_f64(*p, vdupq_n_f64(0), 0));
 #else
     const float *fp = (const float *) p;
     float ALIGN_STRUCT(16) data[4] = {fp[0], fp[1], 0, 0};
-    return vld1q_f32(data);
+    return vreinterpretq_m128d_f32(vld1q_f32(data));
 #endif
 }
 
 // Loads two double-precision from 16-byte aligned memory, floating-point
 // values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=load_pd
+//
+//   dst[127:0] := MEM[mem_addr+127:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_load_pd
 FORCE_INLINE __m128d _mm_load_pd(const double *p)
 {
 #if defined(__aarch64__)
-    return (__m128d)(vld1q_f64(p));
+    return vreinterpretq_m128d_f64(vld1q_f64(p));
 #else
     const float *fp = (const float *) p;
     float ALIGN_STRUCT(16) data[4] = {fp[0], fp[1], fp[2], fp[3]};
-    return vld1q_f32(data);
+    return vreinterpretq_m128d_f32(vld1q_f32(data));
 #endif
 }
 
 // Loads two double-precision from unaligned memory, floating-point values.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=loadu_pd
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadu_pd
 FORCE_INLINE __m128d _mm_loadu_pd(const double *p)
 {
-#if defined(__aarch64__)
-    return (__m128d)(vld1q_f64(p));
-#else
     return _mm_load_pd(p);
-#endif
 }
 
 // Loads an single - precision, floating - point value into the low word and
@@ -874,6 +927,45 @@ FORCE_INLINE __m128i _mm_loadl_epi64(__m128i const *p)
      */
     return vreinterpretq_m128i_s32(
         vcombine_s32(vld1_s32((int32_t const *) p), vcreate_s32(0)));
+}
+
+// Load a double-precision (64-bit) floating-point element from memory into the
+// lower element of dst, and copy the upper element from a to dst. mem_addr does
+// not need to be aligned on any particular boundary.
+//
+//   dst[63:0] := MEM[mem_addr+63:mem_addr]
+//   dst[127:64] := a[127:64]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadl_pd
+FORCE_INLINE __m128d _mm_loadl_pd(__m128d a, const double *p)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vcombine_f64(vld1_f64(p), vget_high_f64(vreinterpretq_f64_m128d(a))));
+#else
+    return vreinterpretq_m128d_f32(
+        vcombine_f32(vld1_f32((const float *) p),
+                     vget_high_f32(vreinterpretq_f32_m128d(a))));
+#endif
+}
+
+// Load 2 double-precision (64-bit) floating-point elements from memory into dst
+// in reverse order. mem_addr must be aligned on a 16-byte boundary or a
+// general-protection exception may be generated.
+//
+//   dst[63:0] := MEM[mem_addr+127:mem_addr+64]
+//   dst[127:64] := MEM[mem_addr+63:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadr_pd
+FORCE_INLINE __m128d _mm_loadr_pd(const double *p)
+{
+#if defined(__aarch64__)
+    float64x2_t v = vld1q_f64(p);
+    return vreinterpretq_m128d_f64(vextq_f64(v, v, 1));
+#else
+    int64x2_t v = vld1q_s64((const int64_t *) p);
+    return vreinterpretq_m128d_s64(vextq_s64(v, v, 1));
+#endif
 }
 
 // Sets the low word to the single-precision, floating-point value of b
@@ -4553,11 +4645,76 @@ FORCE_INLINE __m128i _mm_load_si128(const __m128i *p)
     return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
 }
 
+// Load a double-precision (64-bit) floating-point element from memory into both
+// elements of dst.
+//
+//   dst[63:0] := MEM[mem_addr+63:mem_addr]
+//   dst[127:64] := MEM[mem_addr+63:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_load1_pd
+FORCE_INLINE __m128d _mm_load1_pd(const double *p)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vld1q_dup_f64(p));
+#else
+    return vreinterpretq_m128d_s64(vdupq_n_s64(*(const int64_t *) p));
+#endif
+}
+
+// Load a double-precision (64-bit) floating-point element from memory into the
+// upper element of dst, and copy the lower element from a to dst. mem_addr does
+// not need to be aligned on any particular boundary.
+//
+//   dst[63:0] := a[63:0]
+//   dst[127:64] := MEM[mem_addr+63:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadh_pd
+FORCE_INLINE __m128d _mm_loadh_pd(__m128d a, const double *p)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vcombine_f64(vget_low_f64(vreinterpretq_f64_m128d(a)), vld1_f64(p)));
+#else
+    return vreinterpretq_m128d_f32(vcombine_f32(
+        vget_low_f32(vreinterpretq_f32_m128d(a)), vld1_f32((const float *) p)));
+#endif
+}
+
+// Load a double-precision (64-bit) floating-point element from memory into both
+// elements of dst.
+//
+//   dst[63:0] := MEM[mem_addr+63:mem_addr]
+//   dst[127:64] := MEM[mem_addr+63:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_load_pd1
+#define _mm_load_pd1 _mm_load1_pd
+
+// Load a double-precision (64-bit) floating-point element from memory into both
+// elements of dst.
+//
+//   dst[63:0] := MEM[mem_addr+63:mem_addr]
+//   dst[127:64] := MEM[mem_addr+63:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loaddup_pd
+#define _mm_loaddup_pd _mm_load1_pd
+
 // Loads 128-bit value. :
 // https://msdn.microsoft.com/zh-cn/library/f4k12ae8(v=vs.90).aspx
 FORCE_INLINE __m128i _mm_loadu_si128(const __m128i *p)
 {
     return vreinterpretq_m128i_s32(vld1q_s32((const int32_t *) p));
+}
+
+// Load unaligned 32-bit integer from memory into the first element of dst.
+//
+//   dst[31:0] := MEM[mem_addr+31:mem_addr]
+//   dst[MAX:32] := 0
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadu_si32
+FORCE_INLINE __m128i _mm_loadu_si32(const void *p)
+{
+    return vreinterpretq_m128i_s32(
+        vsetq_lane_s32(*(const int32_t *) p, vdupq_n_s32(0), 0));
 }
 
 // Convert packed double-precision (64-bit) floating-point elements in a to
@@ -4703,7 +4860,14 @@ FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
     return _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
 }
 
-// _mm_lddqu_si128 functions the same as _mm_loadu_si128.
+
+// Load 128-bits of integer data from unaligned memory into dst. This intrinsic
+// may perform better than _mm_loadu_si128 when the data crosses a cache line
+// boundary.
+//
+//   dst[127:0] := MEM[mem_addr+127:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_lddqu_si128
 #define _mm_lddqu_si128 _mm_loadu_si128
 
 /* Miscellaneous Operations */
@@ -5634,14 +5798,18 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 }
 
 // Load 128-bits of integer data from memory into dst using a non-temporal
-// memory hint.
+// memory hint. mem_addr must be aligned on a 16-byte boundary or a
+// general-protection exception may be generated.
+//
+//   dst[127:0] := MEM[mem_addr+127:mem_addr]
+//
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_load_si128
-FORCE_INLINE __m128i _mm_stream_load_si128(const __m128i *p)
+FORCE_INLINE __m128i _mm_stream_load_si128(__m128i *p)
 {
 #if __has_builtin(__builtin_nontemporal_store)
     return __builtin_nontemporal_load(p);
 #else
-    return vreinterpretq_m128i_s64(vld1q_s64((const int64_t *) p));
+    return vreinterpretq_m128i_s64(vld1q_s64((int64_t *) p));
 #endif
 }
 
