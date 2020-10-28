@@ -621,9 +621,9 @@ FORCE_INLINE __m128i _mm_set1_epi32(int _i)
 
 // Sets the 2 signed 64-bit integer values to i.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/whtfzhzk(v=vs.100)
-FORCE_INLINE __m128i _mm_set1_epi64(int64_t _i)
+FORCE_INLINE __m128i _mm_set1_epi64(__m64 _i)
 {
-    return vreinterpretq_m128i_s64(vdupq_n_s64(_i));
+    return vreinterpretq_m128i_s64(vdupq_n_s64((int64_t) _i));
 }
 
 // Sets the 2 signed 64-bit integer values to i.
