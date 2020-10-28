@@ -3286,12 +3286,20 @@ result_t test_mm_set_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_set_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_set_epi64((__m64) _a[1], (__m64) _a[0]);
+
+    return validateInt64(ret, _a[0], _a[1]);
 }
 
 result_t test_mm_set_epi64x(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_set_epi64x(_a[1], _a[0]);
+
+    return validateInt64(ret, _a[0], _a[1]);
 }
 
 result_t test_mm_set_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3347,12 +3355,20 @@ result_t test_mm_set1_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_set1_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_set1_epi64((__m64) _a[0]);
+
+    return validateInt64(ret, _a[0], _a[0]);
 }
 
 result_t test_mm_set1_epi64x(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    __m128i ret = _mm_set1_epi64x(_a[0]);
+
+    return validateInt64(ret, _a[0], _a[0]);
 }
 
 result_t test_mm_set1_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3366,7 +3382,13 @@ result_t test_mm_set1_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_setr_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+
+    __m128i c =
+        _mm_setr_epi16(_a[0], _a[1], _a[2], _a[3], _a[4], _a[5], _a[6], _a[7]);
+
+    return validateInt16(c, _a[0], _a[1], _a[2], _a[3], _a[4], _a[5], _a[6],
+                         _a[7]);
 }
 
 result_t test_mm_setr_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3385,7 +3407,15 @@ result_t test_mm_setr_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_setr_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+
+    __m128i c = _mm_setr_epi8(_a[0], _a[1], _a[2], _a[3], _a[4], _a[5], _a[6],
+                              _a[7], _a[8], _a[9], _a[10], _a[11], _a[12],
+                              _a[13], _a[14], _a[15]);
+
+    return validateInt8(c, _a[0], _a[1], _a[2], _a[3], _a[4], _a[5], _a[6],
+                        _a[7], _a[8], _a[9], _a[10], _a[11], _a[12], _a[13],
+                        _a[14], _a[15]);
 }
 
 result_t test_mm_setzero_si128(const SSE2NEONTestImpl &impl, uint32_t i)
