@@ -121,6 +121,7 @@ Use the command `$ make indent` to follow the coding convention.
 Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
 * [Apache Impala](https://impala.apache.org/) is a lightning-fast, distributed SQL queries for petabytes of data stored in Apache Hadoop clusters.
 * [Apache Kudu](https://kudu.apache.org/) completes Hadoop's storage layer to enable fast analytics on fast data.
+* [Catcoon](https://github.com/i-evi/catcoon) is a [feedforward neural network](https://en.wikipedia.org/wiki/Feedforward_neural_network) implementation in C.
 * [dab-cmdline](https://github.com/JvanKatwijk/dab-cmdline) provides entries for the functionality to handle Digital audio broadcasting (DAB)/DAB+ through some simple calls.
 * [FoundationDB](https://www.foundationdb.org) is a distributed database designed to handle large volumes of structured data across clusters of commodity servers.
 * [iqtree_arm_neon](https://github.com/joshlvmh/iqtree_arm_neon) is the Arm NEON port of [IQ-TREE](http://www.iqtree.org/), fast and effective stochastic algorithm to infer phylogenetic trees by maximum likelihood.
