@@ -4806,8 +4806,8 @@ FORCE_INLINE __m128i _mm_packs_epi32(__m128i a, __m128i b)
 FORCE_INLINE __m128i _mm_packus_epi32(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_u16(
-        vcombine_u16(vqmovn_u32(vreinterpretq_u32_m128i(a)),
-                     vqmovn_u32(vreinterpretq_u32_m128i(b))));
+        vcombine_u16(vqmovun_s32(vreinterpretq_s32_m128i(a)),
+                     vqmovun_s32(vreinterpretq_s32_m128i(b))));
 }
 
 // Interleaves the lower 8 signed or unsigned 8-bit integers in a with the lower
