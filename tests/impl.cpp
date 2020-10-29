@@ -3546,7 +3546,24 @@ result_t test_mm_slli_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_slli_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // FIXME:
+    // The shift value should be tested with random constant immediate value.
+    const int32_t *_a = impl.mTestIntPointer1;
+
+    int8_t d[16];
+    int count = 5;
+    for (int i = 0; i < 16; i++) {
+        if (i < count)
+            d[i] = 0;
+        else
+            d[i] = ((const int8_t *) _a)[i - count];
+    }
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i ret = _mm_slli_si128(a, 5);
+
+    return validateInt8(ret, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
+                        d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
 }
 
 result_t test_mm_sra_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3624,7 +3641,19 @@ result_t test_mm_srai_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_srai_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int32_t b = (const int32_t) impl.mTestInts[i];
+
+    int32_t d[4];
+    int count = (b & ~31) ? 31 : b;
+    for (int i = 0; i < 4; i++) {
+        d[i] = _a[i] >> count;
+    }
+
+    __m128i a = _mm_load_si128((const __m128i *) _a);
+    __m128i c = _mm_srai_epi32(a, b);
+
+    return validateInt32(c, d[0], d[1], d[2], d[3]);
 }
 
 result_t test_mm_srl_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3683,35 +3712,73 @@ result_t test_mm_srl_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 result_t test_mm_srli_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
-    const int count = 3;
+    const int count = impl.mTestInts[i];
 
-    int16_t d0 = (uint16_t)(_a[0]) >> count;
-    int16_t d1 = (uint16_t)(_a[1]) >> count;
-    int16_t d2 = (uint16_t)(_a[2]) >> count;
-    int16_t d3 = (uint16_t)(_a[3]) >> count;
-    int16_t d4 = (uint16_t)(_a[4]) >> count;
-    int16_t d5 = (uint16_t)(_a[5]) >> count;
-    int16_t d6 = (uint16_t)(_a[6]) >> count;
-    int16_t d7 = (uint16_t)(_a[7]) >> count;
+    int16_t d0 = count & (~15) ? 0 : (uint16_t)(_a[0]) >> count;
+    int16_t d1 = count & (~15) ? 0 : (uint16_t)(_a[1]) >> count;
+    int16_t d2 = count & (~15) ? 0 : (uint16_t)(_a[2]) >> count;
+    int16_t d3 = count & (~15) ? 0 : (uint16_t)(_a[3]) >> count;
+    int16_t d4 = count & (~15) ? 0 : (uint16_t)(_a[4]) >> count;
+    int16_t d5 = count & (~15) ? 0 : (uint16_t)(_a[5]) >> count;
+    int16_t d6 = count & (~15) ? 0 : (uint16_t)(_a[6]) >> count;
+    int16_t d7 = count & (~15) ? 0 : (uint16_t)(_a[7]) >> count;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i c = _mm_srli_epi16(a, count);
+
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
 result_t test_mm_srli_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const int count = impl.mTestInts[i];
+
+    int32_t d0 = count & (~31) ? 0 : (uint32_t)(_a[0]) >> count;
+    int32_t d1 = count & (~31) ? 0 : (uint32_t)(_a[1]) >> count;
+    int32_t d2 = count & (~31) ? 0 : (uint32_t)(_a[2]) >> count;
+    int32_t d3 = count & (~31) ? 0 : (uint32_t)(_a[3]) >> count;
+
+    __m128i a = do_mm_load_ps(_a);
+    __m128i c = _mm_srli_epi32(a, count);
+
+    return validateInt32(c, d0, d1, d2, d3);
 }
 
 result_t test_mm_srli_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int count = impl.mTestInts[i];
+
+    int64_t d0 = count & (~63) ? 0 : (uint64_t)(_a[0]) >> count;
+    int64_t d1 = count & (~63) ? 0 : (uint64_t)(_a[1]) >> count;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_srli_epi64(a, count);
+
+    return validateInt64(c, d0, d1);
 }
 
 result_t test_mm_srli_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // FIXME:
+    // The shift value should be tested with random constant immediate value.
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    int count = 5;
+
+    int8_t d[16];
+    for (int i = 0; i < 16; i++) {
+        if (i >= (16 - count))
+            d[i] = 0;
+        else
+            d[i] = _a[i + count];
+    }
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i ret = _mm_srli_si128(a, 5);
+
+    return validateInt8(ret, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
+                        d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);
 }
 
 result_t test_mm_store_pd(const SSE2NEONTestImpl &impl, uint32_t i)
