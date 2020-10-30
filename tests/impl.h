@@ -59,11 +59,15 @@
     TYPE(mm_div_ss)                   \
     TYPE(mm_free)                     \
     TYPE(mm_load_ps)                  \
+    TYPE(mm_load_ps1)                 \
     TYPE(mm_load_ss)                  \
     TYPE(mm_load1_ps)                 \
     TYPE(mm_loadh_pi)                 \
     TYPE(mm_loadl_pi)                 \
+    TYPE(mm_loadr_ps)                 \
     TYPE(mm_loadu_ps)                 \
+    TYPE(mm_loadu_si16)               \
+    TYPE(mm_loadu_si64)               \
     TYPE(mm_malloc)                   \
     TYPE(mm_max_pi16)                 \
     TYPE(mm_max_ps)                   \
@@ -155,9 +159,14 @@
     TYPE(mm_load_pd)                  \
     TYPE(mm_load_sd)                  \
     TYPE(mm_load_si128)               \
+    TYPE(mm_load1_pd)                 \
+    TYPE(mm_loadh_pd)                 \
     TYPE(mm_loadl_epi64)              \
+    TYPE(mm_loadl_pd)                 \
+    TYPE(mm_loadr_pd)                 \
     TYPE(mm_loadu_pd)                 \
     TYPE(mm_loadu_si128)              \
+    TYPE(mm_loadu_si32)               \
     TYPE(mm_madd_epi16)               \
     TYPE(mm_max_epi16)                \
     TYPE(mm_max_epu8)                 \
