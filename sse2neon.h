@@ -1926,82 +1926,115 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
         vshlq_s64(vreinterpretq_s64_m128i(a), vdupq_n_s64(imm)));
 }
 
-// Shifts the 8 signed or unsigned 16-bit integers in a right by count bits
-// while shifting in zeros.
+// Shift packed 16-bit integers in a right by imm8 while shifting in zeros, and
+// store the results in dst.
 //
-//   r0 := srl(a0, count)
-//   r1 := srl(a1, count)
-//   ...
-//   r7 := srl(a7, count)
+//   FOR j := 0 to 7
+//     i := j*16
+//     IF imm8[7:0] > 15
+//       dst[i+15:i] := 0
+//     ELSE
+//       dst[i+15:i] := ZeroExtend16(a[i+15:i] >> imm8[7:0])
+//     FI
+//   ENDFOR
 //
-// https://msdn.microsoft.com/en-us/library/6tcwd38t(v=vs.90).aspx
-#define _mm_srli_epi16(a, imm)                                   \
-    __extension__({                                              \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_u16(                       \
-                vshrq_n_u16(vreinterpretq_u16_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_epi16
+#define _mm_srli_epi16(a, imm)                                             \
+    __extension__({                                                        \
+        __m128i ret;                                                       \
+        if ((imm) == 0) {                                                  \
+            ret = a;                                                       \
+        } else if (0 < (imm) && (imm) < 16) {                              \
+            ret = vreinterpretq_m128i_u16(                                 \
+                vshlq_u16(vreinterpretq_u16_m128i(a), vdupq_n_s16(-imm))); \
+        } else {                                                           \
+            ret = _mm_setzero_si128();                                     \
+        }                                                                  \
+        ret;                                                               \
     })
 
-// Shifts the 4 signed or unsigned 32-bit integers in a right by count bits
-// while shifting in zeros.
-// https://msdn.microsoft.com/en-us/library/w486zcfa(v=vs.100).aspx FORCE_INLINE
-// __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_srli_epi32(a, imm)                                   \
-    __extension__({                                              \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_u32(                       \
-                vshrq_n_u32(vreinterpretq_u32_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
+// Shift packed 32-bit integers in a right by imm8 while shifting in zeros, and
+// store the results in dst.
+//
+//   FOR j := 0 to 3
+//     i := j*32
+//     IF imm8[7:0] > 31
+//       dst[i+31:i] := 0
+//     ELSE
+//       dst[i+31:i] := ZeroExtend32(a[i+31:i] >> imm8[7:0])
+//     FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_epi32
+// FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
+#define _mm_srli_epi32(a, imm)                                             \
+    __extension__({                                                        \
+        __m128i ret;                                                       \
+        if ((imm) == 0) {                                                  \
+            ret = a;                                                       \
+        } else if (0 < (imm) && (imm) < 32) {                              \
+            ret = vreinterpretq_m128i_u32(                                 \
+                vshlq_u32(vreinterpretq_u32_m128i(a), vdupq_n_s32(-imm))); \
+        } else {                                                           \
+            ret = _mm_setzero_si128();                                     \
+        }                                                                  \
+        ret;                                                               \
     })
 
 // Shift packed 64-bit integers in a right by imm8 while shifting in zeros, and
 // store the results in dst.
-#define _mm_srli_epi64(a, imm)                                   \
-    __extension__({                                              \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 63) {                                 \
-            ret = _mm_setzero_si128();                           \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_u64(                       \
-                vshrq_n_u64(vreinterpretq_u64_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
+//
+//   FOR j := 0 to 1
+//     i := j*64
+//     IF imm8[7:0] > 63
+//       dst[i+63:i] := 0
+//     ELSE
+//       dst[i+63:i] := ZeroExtend64(a[i+63:i] >> imm8[7:0])
+//     FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_epi64
+#define _mm_srli_epi64(a, imm)                                             \
+    __extension__({                                                        \
+        __m128i ret;                                                       \
+        if ((imm) == 0) {                                                  \
+            ret = a;                                                       \
+        } else if (0 < (imm) && (imm) < 64) {                              \
+            ret = vreinterpretq_m128i_u64(                                 \
+                vshlq_u64(vreinterpretq_u64_m128i(a), vdupq_n_s64(-imm))); \
+        } else {                                                           \
+            ret = _mm_setzero_si128();                                     \
+        }                                                                  \
+        ret;                                                               \
     })
 
-// Shifts the 4 signed 32 - bit integers in a right by count bits while shifting
-// in the sign bit.
-// https://msdn.microsoft.com/en-us/library/z1939387(v=vs.100).aspx
+// Shift packed 32-bit integers in a right by imm8 while shifting in sign bits,
+// and store the results in dst.
+//
+//   FOR j := 0 to 3
+//     i := j*32
+//     IF imm8[7:0] > 31
+//       dst[i+31:i] := (a[i+31] ? 0xFFFFFFFF : 0x0)
+//     ELSE
+//       dst[i+31:i] := SignExtend32(a[i+31:i] >> imm8[7:0])
+//     FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srai_epi32
 // FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_srai_epi32(a, imm)                                   \
-    __extension__({                                              \
-        __m128i ret;                                             \
-        if ((imm) <= 0) {                                        \
-            ret = a;                                             \
-        } else if ((imm) > 31) {                                 \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshrq_n_s32(vreinterpretq_s32_m128i(a), 16));    \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshrq_n_s32(vreinterpretq_s32_m128i(ret), 16));  \
-        } else {                                                 \
-            ret = vreinterpretq_m128i_s32(                       \
-                vshrq_n_s32(vreinterpretq_s32_m128i(a), (imm))); \
-        }                                                        \
-        ret;                                                     \
+#define _mm_srai_epi32(a, imm)                                             \
+    __extension__({                                                        \
+        __m128i ret;                                                       \
+        if ((imm) == 0) {                                                  \
+            ret = a;                                                       \
+        } else if (0 < (imm) && (imm) < 32) {                              \
+            ret = vreinterpretq_m128i_s32(                                 \
+                vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(-imm))); \
+        } else {                                                           \
+            ret = vreinterpretq_m128i_s32(                                 \
+                vshrq_n_s32(vreinterpretq_s32_m128i(a), 31));              \
+        }                                                                  \
+        ret;                                                               \
     })
 
 // Shifts the 128 - bit value in a right by imm bytes while shifting in
