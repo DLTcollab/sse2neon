@@ -2026,7 +2026,12 @@ result_t test_mm_storel_pi(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_storeu_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    float *_a = impl.mTestFloatPointer1;
+    float f[4];
+    __m128 a = _mm_load_ps(_a);
+
+    _mm_storeu_ps(f, a);
+    return validateFloat(a, f[0], f[1], f[2], f[3]);
 }
 
 result_t test_mm_stream_ps(const SSE2NEONTestImpl &impl, uint32_t i)
