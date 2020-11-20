@@ -231,6 +231,8 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpret_s32_m64(x) vreinterpret_s32_s64(x)
 #define vreinterpret_s64_m64(x) (x)
 
+#define vreinterpret_m64_s32(x) vreinterpret_s64_s32(x)
+
 #define vreinterpret_f32_m64(x) vreinterpret_f32_s64(x)
 
 #if defined(__aarch64__)
@@ -1137,6 +1139,15 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s32(
         veorq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
+}
+
+// Compute the bitwise XOR of 64 bits (representing integer data) in a and b,
+// and store the result in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_xor_si64
+FORCE_INLINE __m64 _mm_xor_si64(__m64 a, __m64 b)
+{
+    return vreinterpret_m64_s32(
+        veor_s32(vreinterpret_s32_m64(a), vreinterpret_s32_m64(b)));
 }
 
 // Duplicate odd-indexed single-precision (32-bit) floating-point elements

@@ -4442,6 +4442,19 @@ result_t test_mm_xor_si128(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt64(c, d0, d1);
 }
 
+result_t test_mm_xor_si64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestIntPointer2;
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+
+    int64_t d = _a[0] ^ _b[0];
+
+    __m64 c = _mm_xor_si64(*a, *b);
+    return validateInt64(c, d);
+}
+
 /* SSE3 */
 result_t test_mm_addsub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
