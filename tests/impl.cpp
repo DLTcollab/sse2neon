@@ -1991,7 +1991,13 @@ result_t test_mm_store_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_store_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    float x = impl.mTestFloats[i];
+    float p[4];
+
+    __m128 a = _mm_set_ss(x);
+    _mm_store_ss(p, a);
+    ASSERT_RETURN(p[0] == x);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_storeh_pi(const SSE2NEONTestImpl &impl, uint32_t i)
