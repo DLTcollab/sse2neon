@@ -64,7 +64,7 @@ but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instru
 
 ## Compile-time Configurations
 
-Considering the balance between correctness and peformance, `sse2neon` recognizes the following compile-time configurations:
+Considering the balance between correctness and performance, `sse2neon` recognizes the following compile-time configurations:
 * `SSE2NEON_PRECISE_MINMAX`: Enable precise implementation of `_mm_min_ps` and `_mm_max_ps`. Turned off by default. If you need consistent results such as NaN special cases, define the macro as `1` before including `sse2neon.h`.
 
 ## Run Built-in Test Suite
