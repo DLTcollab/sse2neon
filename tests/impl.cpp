@@ -1889,6 +1889,12 @@ result_t test_mm_setzero_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(a, 0, 0, 0, 0);
 }
 
+result_t test_mm_setzero_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    __m128d a = _mm_setzero_pd();
+    return validateDouble(a, 0, 0);
+}
+
 result_t test_mm_sfence(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
