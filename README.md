@@ -123,6 +123,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Apache Kudu](https://kudu.apache.org/) completes Hadoop's storage layer to enable fast analytics on fast data.
 * [Catcoon](https://github.com/i-evi/catcoon) is a [feedforward neural network](https://en.wikipedia.org/wiki/Feedforward_neural_network) implementation in C.
 * [dab-cmdline](https://github.com/JvanKatwijk/dab-cmdline) provides entries for the functionality to handle Digital audio broadcasting (DAB)/DAB+ through some simple calls.
+* [emp-tool](https://github.com/emp-toolkit/emp-tool) aims to provide a benchmark for secure computation and allowing other researchers to experiment and extend.
 * [FoundationDB](https://www.foundationdb.org) is a distributed database designed to handle large volumes of structured data across clusters of commodity servers.
 * [iqtree_arm_neon](https://github.com/joshlvmh/iqtree_arm_neon) is the Arm NEON port of [IQ-TREE](http://www.iqtree.org/), fast and effective stochastic algorithm to infer phylogenetic trees by maximum likelihood.
 * [kram](https://github.com/alecazam/kram) is a wrapper to several popular encoders to and from PNG/[KTX](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) files with [LDR/HDR and BC/ASTC/ETC2](https://developer.arm.com/solutions/graphics-and-gaming/developer-guides/learn-the-basics/adaptive-scalable-texture-compression/single-page).
