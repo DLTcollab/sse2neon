@@ -433,6 +433,17 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
     return vreinterpretq_m128_f32(vdupq_n_f32(0));
 }
 
+// Return vector of type __m128d with all elements set to zero.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_setzero_pd
+FORCE_INLINE __m128d _mm_setzero_pd(void)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vdupq_n_f64(0));
+#else
+    return vreinterpretq_m128d_f32(vdupq_n_f32(0));
+#endif
+}
+
 // Sets the four single-precision, floating-point values to w.
 //
 //   r0 := r1 := r2 := r3 := w
