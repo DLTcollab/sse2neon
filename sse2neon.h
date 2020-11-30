@@ -3252,14 +3252,20 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
         vsetq_lane_f32(value, vreinterpretq_f32_m128(a), 0));
 }
 
-// Computes the approximations of reciprocals of the four single-precision,
-// floating-point values of a.
-// https://msdn.microsoft.com/en-us/library/vstudio/796k1tty(v=vs.100).aspx
+// Compute the approximate reciprocal of packed single-precision (32-bit)
+// floating-point elements in a, and store the results in dst. The maximum
+// relative error for this approximation is less than 1.5*2^-12.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_rcp_ps
 FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(
+        vdivq_f32(vdupq_n_f32(1.0f), vreinterpretq_f32_m128(in)));
+#else
     float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(in));
     recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
     return vreinterpretq_m128_f32(recip);
+#endif
 }
 
 // Compute the approximate reciprocal of the lower single-precision (32-bit)
