@@ -4350,9 +4350,32 @@ FORCE_INLINE __m128 _mm_cvt_pi2ps(__m128 a, __m64 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvt_si2ss
 FORCE_INLINE __m128 _mm_cvt_si2ss(__m128 a, int b)
 {
-    __m128 ret = a;
     return vreinterpretq_m128_f32(
-        vsetq_lane_f32((float) b, vreinterpretq_f32_m128(ret), 0));
+        vsetq_lane_f32((float) b, vreinterpretq_f32_m128(a), 0));
+}
+
+// Convert the signed 32-bit integer b to a single-precision (32-bit)
+// floating-point element, store the result in the lower element of dst, and
+// copy the upper 3 packed elements from a to the upper elements of dst.
+//
+//   dst[31:0] := Convert_Int32_To_FP32(b[31:0])
+//   dst[127:32] := a[127:32]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsi32_ss
+#define _mm_cvtsi32_ss(a, b) _mm_cvt_si2ss(a, b)
+
+// Convert the signed 64-bit integer b to a single-precision (32-bit)
+// floating-point element, store the result in the lower element of dst, and
+// copy the upper 3 packed elements from a to the upper elements of dst.
+//
+//   dst[31:0] := Convert_Int64_To_FP32(b[63:0])
+//   dst[127:32] := a[127:32]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsi64_ss
+FORCE_INLINE __m128 _mm_cvtsi64_ss(__m128 a, int64_t b)
+{
+    return vreinterpretq_m128_f32(
+        vsetq_lane_f32((float) b, vreinterpretq_f32_m128(a), 0));
 }
 
 // Convert the lower single-precision (32-bit) floating-point element in a to a
