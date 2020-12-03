@@ -3160,21 +3160,6 @@ result_t test_mm_min_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
-result_t test_mm_min_epu32(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    const uint32_t *_a = (const uint32_t *) impl.mTestIntPointer1;
-    const uint32_t *_b = (const uint32_t *) impl.mTestIntPointer2;
-    uint32_t d0 = _a[0] < _b[0] ? _a[0] : _b[0];
-    uint32_t d1 = _a[1] < _b[1] ? _a[1] : _b[1];
-    uint32_t d2 = _a[2] < _b[2] ? _a[2] : _b[2];
-    uint32_t d3 = _a[3] < _b[3] ? _a[3] : _b[3];
-
-    __m128i a = do_mm_load_ps((const int32_t *) _a);
-    __m128i b = do_mm_load_ps((const int32_t *) _b);
-    __m128i c = _mm_min_epu32(a, b);
-    return validateUInt32(c, d0, d1, d2, d3);
-}
-
 result_t test_mm_min_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
@@ -5415,6 +5400,27 @@ result_t test_mm_max_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
                         d12, d13, d14, d15);
 }
 
+result_t test_mm_max_epu16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint16_t *_a = (const uint16_t *) impl.mTestIntPointer1;
+    const uint16_t *_b = (const uint16_t *) impl.mTestIntPointer2;
+
+    uint16_t d0 = _a[0] > _b[0] ? _a[0] : _b[0];
+    uint16_t d1 = _a[1] > _b[1] ? _a[1] : _b[1];
+    uint16_t d2 = _a[2] > _b[2] ? _a[2] : _b[2];
+    uint16_t d3 = _a[3] > _b[3] ? _a[3] : _b[3];
+    uint16_t d4 = _a[4] > _b[4] ? _a[4] : _b[4];
+    uint16_t d5 = _a[5] > _b[5] ? _a[5] : _b[5];
+    uint16_t d6 = _a[6] > _b[6] ? _a[6] : _b[6];
+    uint16_t d7 = _a[7] > _b[7] ? _a[7] : _b[7];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_max_epu16(a, b);
+
+    return validateUInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
 result_t test_mm_max_epu32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const uint32_t *_a = (const uint32_t *) impl.mTestIntPointer1;
@@ -5447,6 +5453,74 @@ result_t test_mm_min_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128i c = _mm_min_epi32(a, b);
 
     return validateInt32(c, d0, d1, d2, d3);
+}
+
+result_t test_mm_min_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+
+    int8_t d0 = _a[0] < _b[0] ? _a[0] : _b[0];
+    int8_t d1 = _a[1] < _b[1] ? _a[1] : _b[1];
+    int8_t d2 = _a[2] < _b[2] ? _a[2] : _b[2];
+    int8_t d3 = _a[3] < _b[3] ? _a[3] : _b[3];
+    int8_t d4 = _a[4] < _b[4] ? _a[4] : _b[4];
+    int8_t d5 = _a[5] < _b[5] ? _a[5] : _b[5];
+    int8_t d6 = _a[6] < _b[6] ? _a[6] : _b[6];
+    int8_t d7 = _a[7] < _b[7] ? _a[7] : _b[7];
+    int8_t d8 = _a[8] < _b[8] ? _a[8] : _b[8];
+    int8_t d9 = _a[9] < _b[9] ? _a[9] : _b[9];
+    int8_t d10 = _a[10] < _b[10] ? _a[10] : _b[10];
+    int8_t d11 = _a[11] < _b[11] ? _a[11] : _b[11];
+    int8_t d12 = _a[12] < _b[12] ? _a[12] : _b[12];
+    int8_t d13 = _a[13] < _b[13] ? _a[13] : _b[13];
+    int8_t d14 = _a[14] < _b[14] ? _a[14] : _b[14];
+    int8_t d15 = _a[15] < _b[15] ? _a[15] : _b[15];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+
+    __m128i c = _mm_min_epi8(a, b);
+    return validateInt8(c, d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11,
+                        d12, d13, d14, d15);
+}
+
+result_t test_mm_min_epu16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint16_t *_a = (const uint16_t *) impl.mTestIntPointer1;
+    const uint16_t *_b = (const uint16_t *) impl.mTestIntPointer2;
+
+    uint16_t d0 = _a[0] < _b[0] ? _a[0] : _b[0];
+    uint16_t d1 = _a[1] < _b[1] ? _a[1] : _b[1];
+    uint16_t d2 = _a[2] < _b[2] ? _a[2] : _b[2];
+    uint16_t d3 = _a[3] < _b[3] ? _a[3] : _b[3];
+    uint16_t d4 = _a[4] < _b[4] ? _a[4] : _b[4];
+    uint16_t d5 = _a[5] < _b[5] ? _a[5] : _b[5];
+    uint16_t d6 = _a[6] < _b[6] ? _a[6] : _b[6];
+    uint16_t d7 = _a[7] < _b[7] ? _a[7] : _b[7];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_min_epu16(a, b);
+
+    return validateUInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
+}
+
+result_t test_mm_min_epu32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const uint32_t *_a = (const uint32_t *) impl.mTestIntPointer1;
+    const uint32_t *_b = (const uint32_t *) impl.mTestIntPointer2;
+
+    uint32_t d0 = _a[0] < _b[0] ? _a[0] : _b[0];
+    uint32_t d1 = _a[1] < _b[1] ? _a[1] : _b[1];
+    uint32_t d2 = _a[2] < _b[2] ? _a[2] : _b[2];
+    uint32_t d3 = _a[3] < _b[3] ? _a[3] : _b[3];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_min_epu32(a, b);
+
+    return validateUInt32(c, d0, d1, d2, d3);
 }
 
 result_t test_mm_minpos_epu16(const SSE2NEONTestImpl &impl, uint32_t i)

@@ -172,7 +172,6 @@
     TYPE(mm_max_epi16)                \
     TYPE(mm_max_epu8)                 \
     TYPE(mm_min_epi16)                \
-    TYPE(mm_min_epu32)                \
     TYPE(mm_min_epu8)                 \
     TYPE(mm_move_epi64)               \
     TYPE(mm_movemask_epi8)            \
@@ -305,8 +304,12 @@
     TYPE(mm_insert_epi8)              \
     TYPE(mm_max_epi32)                \
     TYPE(mm_max_epi8)                 \
+    TYPE(mm_max_epu16)                \
     TYPE(mm_max_epu32)                \
     TYPE(mm_min_epi32)                \
+    TYPE(mm_min_epi8)                 \
+    TYPE(mm_min_epu16)                \
+    TYPE(mm_min_epu32)                \
     TYPE(mm_minpos_epu16)             \
     TYPE(mm_mul_epi32)                \
     TYPE(mm_mullo_epi32)              \
