@@ -4892,6 +4892,27 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 #endif
 }
 
+// Convert packed single-precision (32-bit) floating-point elements in a to
+// packed 32-bit integers, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//       i := 32*j
+//       dst[i+31:i] := Convert_FP32_To_Int32(a[i+31:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvt_ps2pi
+FORCE_INLINE __m64 _mm_cvt_ps2pi(__m128 a)
+{
+#if defined(__aarch64__)
+    return vreinterpret_m64_s32(
+        vget_low_s32(vcvtnq_s32_f32(vreinterpretq_f32_m128(a))));
+#else
+    return vreinterpret_m64_s32(
+        vcvt_s32_f32(vget_low_f32(vreinterpretq_f32_m128(
+            _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC)))));
+#endif
+}
+
 // Round the packed single-precision (32-bit) floating-point elements in a up to
 // an integer value, and store the results as packed single-precision
 // floating-point elements in dst.

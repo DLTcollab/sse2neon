@@ -1227,6 +1227,30 @@ result_t test_mm_cvt_pi2ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(c, dx, dy, dz, dw);
 }
 
+result_t test_mm_cvt_ps2pi(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    int32_t d[2];
+
+    for (int i = 0; i < 2; i++) {
+        int32_t f = (int32_t) floor(_a[i]);
+        int32_t c = (int32_t) ceil(_a[i]);
+        float diff = _a[i] - floor(_a[i]);
+        // Round to nearest, ties to even
+        if (diff > 0.5)
+            d[i] = c;
+        else if (diff == 0.5)
+            d[i] = c & 1 ? f : c;
+        else
+            d[i] = f;
+    }
+
+    __m128 a = do_mm_load_ps(_a);
+    __m64 ret = _mm_cvt_ps2pi(a);
+
+    return validateInt32(ret, d[0], d[1]);
+}
+
 result_t test_mm_cvt_si2ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
