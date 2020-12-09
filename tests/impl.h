@@ -58,6 +58,8 @@
     TYPE(mm_cvtsi32_ss)               \
     TYPE(mm_cvtsi64_ss)               \
     TYPE(mm_cvtss_f32)                \
+    TYPE(mm_cvtss_si32)               \
+    TYPE(mm_cvtss_si64)               \
     TYPE(mm_div_ps)                   \
     TYPE(mm_div_ss)                   \
     TYPE(mm_free)                     \

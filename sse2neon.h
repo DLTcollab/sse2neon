@@ -419,6 +419,39 @@ FORCE_INLINE float _mm_cvtss_f32(__m128 a)
     return vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
 }
 
+// Convert the lower single-precision (32-bit) floating-point element in a to a
+// 32-bit integer, and store the result in dst.
+//
+//   dst[31:0] := Convert_FP32_To_Int32(a[31:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtss_si32
+#define _mm_cvtss_si32(a) _mm_cvt_ss2si(a)
+
+// Convert the lower single-precision (32-bit) floating-point element in a to a
+// 64-bit integer, and store the result in dst.
+//
+//   dst[63:0] := Convert_FP32_To_Int64(a[31:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtss_si64
+FORCE_INLINE int _mm_cvtss_si64(__m128 a)
+{
+#if defined(__aarch64__)
+    return vgetq_lane_s64(
+        vreinterpretq_s64_s32(vcvtnq_s32_f32(vreinterpretq_f32_m128(a))), 0);
+#else
+    float32_t data = vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
+    float32_t diff = data - floor(data);
+    if (diff > 0.5)
+        return (int64_t) ceil(data);
+    if (diff == 0.5) {
+        int64_t f = (int64_t) floor(data);
+        int64_t c = (int64_t) ceil(data);
+        return c & 1 ? f : c;
+    }
+    return (int64_t) floor(data);
+#endif
+}
+
 // Sets the 128-bit value to zero
 // https://msdn.microsoft.com/en-us/library/vstudio/ys7dw0kh(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_setzero_si128(void)
