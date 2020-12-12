@@ -23,6 +23,7 @@
 //   François Turban (JishinMaster) <francois.turban@gmail.com>
 //   Pei-Hsuan Hung <afcidk@gmail.com>
 //   Yang-Hao Yuan <yanghau@biilabs.io>
+//   Remi Arnaud <remi@acm.org>
 
 /*
  * sse2neon is freely redistributable under the MIT License.
@@ -741,6 +742,24 @@ FORCE_INLINE void _mm_store_si128(__m128i *p, __m128i a)
 FORCE_INLINE void _mm_storeu_si128(__m128i *p, __m128i a)
 {
     vst1q_s32((int32_t *) p, vreinterpretq_s32_m128i(a));
+}
+
+FORCE_INLINE void _mm_storeu_si64(void *p, __m128i a)
+{
+    int64x1_t lo =  vget_low_s64(vreinterpretq_s64_m128i(a));
+	* (int64x1_t *) p = lo;
+}
+
+FORCE_INLINE void _mm_storeu_si32(void *p, __m128i a)
+{
+	int32x2_t lo = vget_low_s32(vreinterpretq_s32_m128i(a));
+	* (uint32_t*) p = lo[0];
+}
+
+FORCE_INLINE void _mm_storeu_si16(void *p, __m128i a)
+{
+	int16x4_t lo = vget_low_s16(vreinterpretq_s16_m128i(a));
+	* (int16_t*) p = lo[0];
 }
 
 // Stores the lower single - precision, floating - point value.
