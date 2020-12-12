@@ -2568,12 +2568,32 @@ result_t test_mm_storeu_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_storeu_si16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+    // The GCC version before 11 does not implement intrinsic function
+    // _mm_storeu_si16. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
+    // for more information.
+#if defined(__GNUC__) && __GNUC__ <= 10
     return TEST_UNIMPL;
+#else
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    __m128i b;
+    __m128i a = do_mm_load_ps(_a);
+    _mm_storeu_si16(&b, a);
+    int16_t *_b = (int16_t *) &b;
+    int16_t *_c = (int16_t *) &a;
+    return validateInt16(b, _c[0], _b[1], _b[2], _b[3], _b[4], _b[5], _b[6],
+                         _b[7]);
+#endif
 }
 
 result_t test_mm_storeu_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    __m128i b;
+    __m128i a = do_mm_load_ps(_a);
+    _mm_storeu_si64(&b, a);
+    int64_t *_b = (int64_t *) &b;
+    int64_t *_c = (int64_t *) &a;
+    return validateInt64(b, _c[0], _b[1]);
 }
 
 result_t test_mm_stream_pi(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -5337,7 +5357,7 @@ result_t test_mm_storeu_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     __m128i b;
-    __m128i a = _mm_loadu_si128((const __m128i *) _a);
+    __m128i a = do_mm_load_ps(_a);
     _mm_storeu_si128(&b, a);
     int32_t *_b = (int32_t *) &b;
     return validateInt32(a, _b[0], _b[1], _b[2], _b[3]);
@@ -5345,7 +5365,19 @@ result_t test_mm_storeu_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_storeu_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+    // The GCC version before 11 does not implement intrinsic function
+    // _mm_storeu_si32. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
+    // for more information.
+#if defined(__GNUC__) && __GNUC__ <= 10
     return TEST_UNIMPL;
+#else
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    __m128i b;
+    __m128i a = do_mm_load_ps(_a);
+    _mm_storeu_si32(&b, a);
+    int32_t *_b = (int32_t *) &b;
+    return validateInt32(b, _a[0], _b[1], _b[2], _b[3]);
+#endif
 }
 
 result_t test_mm_stream_pd(const SSE2NEONTestImpl &impl, uint32_t i)
