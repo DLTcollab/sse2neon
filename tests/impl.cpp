@@ -261,11 +261,12 @@ result_t test_mm_storeu_si16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     __m128i b;
-    __m128i a = _mm_loadu_si128((const __m128i *) _a);
+    __m128i a = do_mm_load_ps(_a);
     _mm_storeu_si16(&b, a);
     int16_t *_b = (int16_t *) &b;
-    return validateInt16(a, _b[0], _a[1], _a[2], _a[3], _a[4], _a[5], _a[6],
-                         _a[7]);
+    int16_t *_c = (int16_t *) &a;
+    return validateInt16(a, _b[0], _c[1], _c[2], _c[3], _c[4], _c[5], _c[6],
+                         _c[7]);
 }
 
 result_t test_mm_storeu_si64(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -4122,7 +4123,7 @@ result_t test_mm_storeu_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     __m128i b;
-    __m128i a = _mm_loadu_si128((const __m128i *) _a);
+    __m128i a = do_mm_load_ps(_a);
     _mm_storeu_si32(&b, a);
     int32_t *_b = (int32_t *) &b;
     return validateInt32(a, _b[0], _a[1], _a[2], _a[3]);
@@ -4132,7 +4133,7 @@ result_t test_mm_storeu_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     __m128i b;
-    __m128i a = _mm_loadu_si128((const __m128i *) _a);
+    __m128i a = do_mm_load_ps(_a);
     _mm_storeu_si128(&b, a);
     int32_t *_b = (int32_t *) &b;
     return validateInt32(a, _b[0], _b[1], _b[2], _b[3]);
