@@ -111,6 +111,8 @@
     TYPE(mm_storeh_pi)                \
     TYPE(mm_storel_pi)                \
     TYPE(mm_storeu_ps)                \
+    TYPE(mm_storeu_si16)              \
+    TYPE(mm_storeu_si64)              \
     TYPE(mm_stream_ps)                \
     TYPE(mm_sub_ps)                   \
     TYPE(mm_sub_ss)                   \
@@ -228,6 +230,7 @@
     TYPE(mm_store_si128)              \
     TYPE(mm_storel_epi64)             \
     TYPE(mm_storeu_pd)                \
+    TYPE(mm_storeu_si32)              \
     TYPE(mm_storeu_si128)             \
     TYPE(mm_stream_si128)             \
     TYPE(mm_sub_epi16)                \

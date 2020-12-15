@@ -737,29 +737,35 @@ FORCE_INLINE void _mm_store_si128(__m128i *p, __m128i a)
     vst1q_s32((int32_t *) p, vreinterpretq_s32_m128i(a));
 }
 
-// Stores four 32-bit integer values as (as a __m128i value) at the address p.
-// https://msdn.microsoft.com/en-us/library/vstudio/edk11s13(v=vs.100).aspx
+// Stores 128-bits of integer data a at the address p.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storeu_si128
 FORCE_INLINE void _mm_storeu_si128(__m128i *p, __m128i a)
 {
     vst1q_s32((int32_t *) p, vreinterpretq_s32_m128i(a));
 }
 
+// Stores 64-bits of integer data a at the address p.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storeu_si64
 FORCE_INLINE void _mm_storeu_si64(void *p, __m128i a)
 {
-    int64x1_t lo =  vget_low_s64(vreinterpretq_s64_m128i(a));
-	* (int64x1_t *) p = lo;
+    int64x1_t lo = vget_low_s64(vreinterpretq_s64_m128i(a));
+    *(int64x1_t *) p = lo;
 }
 
+// Stores 32-bits of integer data a at the address p.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storeu_si32
 FORCE_INLINE void _mm_storeu_si32(void *p, __m128i a)
 {
-	int32x2_t lo = vget_low_s32(vreinterpretq_s32_m128i(a));
-	* (uint32_t*) p = lo[0];
+    int32x2_t lo = vget_low_s32(vreinterpretq_s32_m128i(a));
+    *(uint32_t *) p = lo[0];
 }
 
+// Stores 16-bits of integer data a at the address p.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storeu_si16
 FORCE_INLINE void _mm_storeu_si16(void *p, __m128i a)
 {
-	int16x4_t lo = vget_low_s16(vreinterpretq_s16_m128i(a));
-	* (int16_t*) p = lo[0];
+    int16x4_t lo = vget_low_s16(vreinterpretq_s16_m128i(a));
+    *(int16_t *) p = lo[0];
 }
 
 // Stores the lower single - precision, floating - point value.
