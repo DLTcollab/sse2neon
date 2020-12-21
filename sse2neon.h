@@ -4540,6 +4540,30 @@ FORCE_INLINE __m128i _mm_cvttps_epi32(__m128 a)
     return vreinterpretq_m128i_s32(vcvtq_s32_f32(vreinterpretq_f32_m128(a)));
 }
 
+// Convert the lower double-precision (64-bit) floating-point element in a to a
+// 64-bit integer with truncation, and store the result in dst.
+//
+//   dst[63:0] := Convert_FP64_To_Int64_Truncate(a[63:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvttsd_si64
+FORCE_INLINE int64_t _mm_cvttsd_si64(__m128d a)
+{
+#if defined(__aarch64__)
+    return vgetq_lane_s64(vcvtq_s64_f64(vreinterpretq_f64_m128d(a)), 0);
+#else
+    double ret = *((double *) &a);
+    return (int64_t) ret;
+#endif
+}
+
+// Convert the lower double-precision (64-bit) floating-point element in a to a
+// 64-bit integer with truncation, and store the result in dst.
+//
+//   dst[63:0] := Convert_FP64_To_Int64_Truncate(a[63:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvttsd_si64x
+#define _mm_cvttsd_si64x(a) _mm_cvttsd_si64(a)
+
 // Converts the four signed 32-bit integer values of a to single-precision,
 // floating-point values
 // https://msdn.microsoft.com/en-us/library/vstudio/36bwxcx5(v=vs.100).aspx
