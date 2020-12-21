@@ -1469,6 +1469,54 @@ result_t test_mm_cvtss_si64(const SSE2NEONTestImpl &impl, uint32_t i)
     return ret == d0 ? TEST_SUCCESS : TEST_FAIL;
 }
 
+result_t test_mm_cvtt_ps2pi(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    int32_t d[2];
+
+    d[0] = (int32_t) _a[0];
+    d[1] = (int32_t) _a[1];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m64 ret = _mm_cvtt_ps2pi(a);
+
+    return validateInt32(ret, d[0], d[1]);
+}
+
+result_t test_mm_cvtt_ss2si(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+
+    __m128 a = do_mm_load_ps(_a);
+    int ret = _mm_cvtt_ss2si(a);
+
+    return ret == (int32_t) _a[0] ? TEST_SUCCESS : TEST_FAIL;
+}
+
+result_t test_mm_cvttps_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    int32_t d[2];
+
+    d[0] = (int32_t) _a[0];
+    d[1] = (int32_t) _a[1];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m64 ret = _mm_cvttps_pi32(a);
+
+    return validateInt32(ret, d[0], d[1]);
+}
+
+result_t test_mm_cvttss_si32(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+
+    __m128 a = do_mm_load_ps(_a);
+    int ret = _mm_cvttss_si32(a);
+
+    return ret == (int32_t) _a[0] ? TEST_SUCCESS : TEST_FAIL;
+}
+
 result_t test_mm_div_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;

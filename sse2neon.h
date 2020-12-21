@@ -452,6 +452,51 @@ FORCE_INLINE int _mm_cvtss_si64(__m128 a)
 #endif
 }
 
+// Convert packed single-precision (32-bit) floating-point elements in a to
+// packed 32-bit integers with truncation, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//      i := 32*j
+//      dst[i+31:i] := Convert_FP32_To_Int32_Truncate(a[i+31:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtt_ps2pi
+FORCE_INLINE __m64 _mm_cvtt_ps2pi(__m128 a)
+{
+    return vreinterpret_m64_s32(
+        vget_low_s32(vcvtq_s32_f32(vreinterpretq_f32_m128(a))));
+}
+
+// Convert the lower single-precision (32-bit) floating-point element in a to a
+// 32-bit integer with truncation, and store the result in dst.
+//
+//   dst[31:0] := Convert_FP32_To_Int32_Truncate(a[31:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtt_ss2si
+FORCE_INLINE int _mm_cvtt_ss2si(__m128 a)
+{
+    return vgetq_lane_s32(vcvtq_s32_f32(vreinterpretq_f32_m128(a)), 0);
+}
+
+// Convert packed single-precision (32-bit) floating-point elements in a to
+// packed 32-bit integers with truncation, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//      i := 32*j
+//      dst[i+31:i] := Convert_FP32_To_Int32_Truncate(a[i+31:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvttps_pi32
+#define _mm_cvttps_pi32(a) _mm_cvtt_ps2pi(a)
+
+// Convert the lower single-precision (32-bit) floating-point element in a to a
+// 32-bit integer with truncation, and store the result in dst.
+//
+//   dst[31:0] := Convert_FP32_To_Int32_Truncate(a[31:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvttss_si32
+#define _mm_cvttss_si32(a) _mm_cvtt_ss2si(a)
+
 // Sets the 128-bit value to zero
 // https://msdn.microsoft.com/en-us/library/vstudio/ys7dw0kh(v=vs.100).aspx
 FORCE_INLINE __m128i _mm_setzero_si128(void)
