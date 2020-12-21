@@ -3007,6 +3007,31 @@ result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt32(ret, trun[0], trun[1], trun[2], trun[3]);
 }
 
+result_t test_mm_cvttsd_si64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+
+    __m128d a = _mm_load_sd(_a);
+    int64_t ret = _mm_cvttsd_si64(a);
+
+    return ret == (int64_t) _a[0] ? TEST_SUCCESS : TEST_FAIL;
+}
+
+result_t test_mm_cvttsd_si64x(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+#if defined(__clang__)
+    // The intrinsic _mm_cvttsd_si64x() does not exist in Clang
+    return TEST_UNIMPL;
+#else
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+
+    __m128d a = _mm_load_sd(_a);
+    int64_t ret = _mm_cvttsd_si64x(a);
+
+    return ret == (int64_t) _a[0] ? TEST_SUCCESS : TEST_FAIL;
+#endif
+}
+
 result_t test_mm_extract_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;

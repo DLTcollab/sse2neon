@@ -159,6 +159,8 @@
     TYPE(mm_cvtsi32_si128)            \
     TYPE(mm_cvtsi64_si128)            \
     TYPE(mm_cvttps_epi32)             \
+    TYPE(mm_cvttsd_si64)              \
+    TYPE(mm_cvttsd_si64x)             \
     TYPE(mm_extract_epi16)            \
     TYPE(mm_insert_epi16)             \
     TYPE(mm_load_pd)                  \
