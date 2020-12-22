@@ -1517,6 +1517,16 @@ result_t test_mm_cvttss_si32(const SSE2NEONTestImpl &impl, uint32_t i)
     return ret == (int32_t) _a[0] ? TEST_SUCCESS : TEST_FAIL;
 }
 
+result_t test_mm_cvttss_si64(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+
+    __m128 a = do_mm_load_ps(_a);
+    int64_t ret = _mm_cvttss_si64(a);
+
+    return ret == (int64_t) _a[0] ? TEST_SUCCESS : TEST_FAIL;
+}
+
 result_t test_mm_div_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
