@@ -64,6 +64,7 @@
     TYPE(mm_cvtt_ss2si)               \
     TYPE(mm_cvttps_pi32)              \
     TYPE(mm_cvttss_si32)              \
+    TYPE(mm_cvttss_si64)              \
     TYPE(mm_div_ps)                   \
     TYPE(mm_div_ss)                   \
     TYPE(mm_free)                     \
