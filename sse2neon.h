@@ -3736,6 +3736,31 @@ FORCE_INLINE __m128i _mm_mulhi_epi16(__m128i a, __m128i b)
     return vreinterpretq_m128i_u16(r.val[1]);
 }
 
+// Multiply the packed unsigned 16-bit integers in a and b, producing
+// intermediate 32-bit integers, and store the high 16 bits of the intermediate
+// integers in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_mulhi_epu16
+FORCE_INLINE __m128i _mm_mulhi_epu16(__m128i a, __m128i b)
+{
+    uint16x4_t a3210 = vget_low_u16(vreinterpretq_u16_m128i(a));
+    uint16x4_t b3210 = vget_low_u16(vreinterpretq_u16_m128i(b));
+    uint32x4_t ab3210 = vmull_u16(a3210, b3210);
+#if defined(__aarch64__)
+    uint32x4_t ab7654 =
+        vmull_high_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b));
+    uint16x8_t r = vuzp2q_u16(vreinterpretq_u16_u32(ab3210),
+                              vreinterpretq_u16_u32(ab7654));
+    return vreinterpretq_m128i_u16(r);
+#else
+    uint16x4_t a7654 = vget_high_u16(vreinterpretq_u16_m128i(a));
+    uint16x4_t b7654 = vget_high_u16(vreinterpretq_u16_m128i(b));
+    uint32x4_t ab7654 = vmull_u16(a7654, b7654);
+    uint16x8x2_t r =
+        vuzpq_u16(vreinterpretq_u16_u32(ab3210), vreinterpretq_u16_u32(ab7654));
+    return vreinterpretq_m128i_u16(r.val[1]);
+#endif
+}
+
 // Computes pairwise add of each argument as single-precision, floating-point
 // values a and b.
 // https://msdn.microsoft.com/en-us/library/yd9wecaa.aspx
