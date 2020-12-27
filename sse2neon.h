@@ -3097,6 +3097,24 @@ FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 }
 
+// Multiply packed double-precision (64-bit) floating-point elements in a and b,
+// and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_mul_pd
+FORCE_INLINE __m128d _mm_mul_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vmulq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[2];
+    c[0] = da[0] * db[0];
+    c[1] = da[1] * db[1];
+    return vld1q_f32((float32_t *) c);
+#endif
+}
+
 // Multiply the lower single-precision (32-bit) floating-point element in a and
 // b, store the result in the lower element of dst, and copy the upper 3 packed
 // elements from a to the upper elements of dst.
