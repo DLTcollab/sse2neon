@@ -2382,8 +2382,8 @@ result_t test_mm_add_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     double d0 = _a[0] + _b[0];
     double d1 = _a[1] + _b[1];
 
-    __m128d a = _mm_load_pd((const double *) _a);
-    __m128d b = _mm_load_pd((const double *) _b);
+    __m128d a = _mm_load_pd(_a);
+    __m128d b = _mm_load_pd(_b);
     __m128d c = _mm_add_pd(a, b);
     return validateDouble(c, d0, d1);
 }
@@ -2961,7 +2961,7 @@ result_t test_mm_cvtpd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     const double *_a = (const double *) impl.mTestFloatPointer1;
     float f0 = (float) _a[0];
     float f1 = (float) _a[1];
-    const __m128d a = _mm_load_pd((const double *) _a);
+    const __m128d a = _mm_load_pd(_a);
 
     __m128 r = _mm_cvtpd_ps(a);
 
@@ -3139,7 +3139,7 @@ result_t test_mm_load1_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const double *addr = (const double *) impl.mTestFloatPointer1;
 
-    __m128d ret = _mm_load1_pd((const double *) addr);
+    __m128d ret = _mm_load1_pd(addr);
 
     return validateDouble(ret, addr[0], addr[0]);
 }
