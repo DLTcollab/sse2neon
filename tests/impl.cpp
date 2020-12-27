@@ -7404,6 +7404,26 @@ result_t test_mm_fmadd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_fmadd_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double _a[2]{(double) impl.mTestFloats[0],
+                       (double) impl.mTestFloats[1]};
+    const double _b[2]{(double) impl.mTestFloats[2],
+                       (double) impl.mTestFloats[3]};
+    const double _c[2]{(double) impl.mTestFloats[4],
+                       (double) impl.mTestFloats[5]};
+
+    __m128d a = _mm_load_pd(_a);
+    __m128d b = _mm_load_pd(_b);
+    __m128d c = _mm_load_pd(_c);
+
+    double f0 = _a[0] * _b[0] + _c[0];
+    double f1 = _a[1] * _b[1] + _c[1];
+
+    __m128d d = _mm_fmadd_pd(a, b, c);
+    return validateDoubleEpsilon(d, f0, f1, 0.0001f);
+}
+
 /* Others */
 result_t test_mm_clmulepi64_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {

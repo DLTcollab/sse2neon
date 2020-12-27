@@ -3630,6 +3630,21 @@ FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 #endif
 }
 
+// Multiply packed double-precision (64-bit) floating-point elements in a and b,
+// add the intermediate result to packed elements in c, and store the results in
+// dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd_pd
+FORCE_INLINE __m128d _mm_fmadd_pd(__m128d a, __m128d b, __m128d c)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vfmaq_f64(vreinterpretq_f64_m128d(c),
+                                             vreinterpretq_f64_m128d(b),
+                                             vreinterpretq_f64_m128d(a)));
+#else
+    return _mm_add_pd(_mm_mul_pd(a, b), c);
+#endif
+}
+
 // Alternatively add and subtract packed single-precision (32-bit)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.

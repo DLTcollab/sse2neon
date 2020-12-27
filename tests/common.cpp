@@ -345,4 +345,14 @@ result_t validateDouble(__m128d a, double d0, double d1)
     return TEST_SUCCESS;
 }
 
+result_t validateDoubleEpsilon(__m128d a, double f0, double f1, double epsilon)
+{
+    const double *t = (const double *) &a;
+    double df0 = fabs(t[0] - f0);
+    double df1 = fabs(t[1] - f1);
+    ASSERT_RETURN(df0 < epsilon);
+    ASSERT_RETURN(df1 < epsilon);
+    return TEST_SUCCESS;
+}
+
 }  // namespace SSE2NEON
