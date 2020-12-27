@@ -92,6 +92,7 @@
     TYPE(mm_movelh_ps)                \
     TYPE(mm_movemask_ps)              \
     TYPE(mm_mul_ps)                   \
+    TYPE(mm_mul_pd)                   \
     TYPE(mm_mul_ss)                   \
     TYPE(mm_mulhi_pu16)               \
     TYPE(mm_or_ps)                    \
