@@ -1636,7 +1636,22 @@ result_t test_mm_div_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+    // FIXME GCC has bug on `_mm_extract_pi16` intrinsics. We will enable this
+    // test when GCC fix this bug.
+    // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98495 for more
+    // information
+#if defined(__clang__)
+    uint64_t *_a = (uint64_t *) impl.mTestIntPointer1;
+    const int imm = 1;
+
+    const __m64 *a = ((const __m64 *) _a);
+    int32_t c = _mm_extract_pi16(*a, imm);
+    ASSERT_RETURN((uint64_t) c == ((*_a >> ((imm & 0x3) * 16)) & 0xFFFF));
+    ASSERT_RETURN(0 == ((uint64_t) c & 0xFFFF0000));
+    return TEST_SUCCESS;
+#else
     return TEST_UNIMPL;
+#endif
 }
 
 result_t test_mm_free(const SSE2NEONTestImpl &impl, uint32_t i)
