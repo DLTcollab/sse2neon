@@ -3092,7 +3092,13 @@ result_t test_mm_cvttsd_si64x(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_extract_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    uint16_t *_a = (uint16_t *) impl.mTestIntPointer1;
+    const int imm = 1;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    int c = _mm_extract_epi16(a, imm);
+    ASSERT_RETURN(c == *(_a + imm));
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_insert_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
