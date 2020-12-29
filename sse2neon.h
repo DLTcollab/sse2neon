@@ -237,11 +237,13 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpretq_m128d_s32(x) vreinterpretq_f64_s32(x)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
 
+#define vreinterpretq_m128d_f32(x) vreinterpretq_f64_f32(x)
 #define vreinterpretq_m128d_f64(x) (x)
 
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f64(x)
 
 #define vreinterpretq_f64_m128d(x) (x)
+#define vreinterpretq_f32_m128d(x) vreinterpretq_f32_f64(x)
 #else
 #define vreinterpretq_m128d_s32(x) vreinterpretq_f32_s32(x)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f32_s64(x)
@@ -1076,6 +1078,21 @@ FORCE_INLINE __m128 _mm_move_ss(__m128 a, __m128 b)
     return vreinterpretq_m128_f32(
         vsetq_lane_f32(vgetq_lane_f32(vreinterpretq_f32_m128(b), 0),
                        vreinterpretq_f32_m128(a), 0));
+}
+
+// Move the lower double-precision (64-bit) floating-point element from b to the
+// lower element of dst, and copy the upper element from a to the upper element
+// of dst.
+//
+//   dst[63:0] := b[63:0]
+//   dst[127:64] := a[127:64]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_move_sd
+FORCE_INLINE __m128d _mm_move_sd(__m128d a, __m128d b)
+{
+    return vreinterpretq_m128d_f32(
+        vcombine_f32(vget_low_f32(vreinterpretq_f32_m128d(b)),
+                     vget_high_f32(vreinterpretq_f32_m128d(a))));
 }
 
 // Copy the lower 64-bit integer in a to the lower element of dst, and zero the
