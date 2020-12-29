@@ -4227,6 +4227,21 @@ result_t test_mm_store_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_SUCCESS;
 }
 
+result_t test_mm_store_pd1(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    double *p = (double *) impl.mTestFloatPointer1;
+    double _a[2] = {(double) impl.mTestFloats[i],
+                    (double) impl.mTestFloats[i + 1]};
+
+    __m128d a = do_mm_load_pd((const double *) _a);
+    _mm_store_pd1(p, a);
+    ASSERT_RETURN(p[0] == impl.mTestFloats[i]);
+    ASSERT_RETURN(p[1] == impl.mTestFloats[i]);
+    return TEST_SUCCESS;
+}
+
+#define test_mm_store1_pd test_mm_store_pd1
+
 result_t test_mm_store_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
