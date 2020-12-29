@@ -186,6 +186,7 @@
     TYPE(mm_min_epi16)                \
     TYPE(mm_min_epu8)                 \
     TYPE(mm_move_epi64)               \
+    TYPE(mm_move_sd)                  \
     TYPE(mm_movemask_epi8)            \
     TYPE(mm_movepi64_pi64)            \
     TYPE(mm_movpi64_epi64)            \

@@ -3398,6 +3398,21 @@ result_t test_mm_move_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt64(c, d0, d1);
 }
 
+result_t test_mm_move_sd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+
+    double result[2];
+    result[0] = _b[0];
+    result[1] = _a[1];
+
+    __m128d ret = _mm_move_sd(a, b);
+    return validateDouble(ret, result[0], result[1]);
+}
+
 result_t test_mm_movemask_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = impl.mTestIntPointer1;
