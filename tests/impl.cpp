@@ -232,6 +232,15 @@ __m128i do_mm_load_ps(const int32_t *p)
 }
 
 // This function is not called from `runSingleTest`, but for other intrinsic
+// tests that might need to call `_mm_load_pd`.
+__m128d do_mm_load_pd(const double *p)
+{
+    __m128d a = _mm_load_pd(p);
+    validateDouble(a, p[0], p[1]);
+    return a;
+}
+
+// This function is not called from `runSingleTest`, but for other intrinsic
 // tests that might need to call `_mm_store_ps`.
 result_t do_mm_store_ps(float *p, float x, float y, float z, float w)
 {
@@ -2395,8 +2404,8 @@ result_t test_mm_add_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     double d0 = _a[0] + _b[0];
     double d1 = _a[1] + _b[1];
 
-    __m128d a = _mm_load_pd(_a);
-    __m128d b = _mm_load_pd(_b);
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
     __m128d c = _mm_add_pd(a, b);
     return validateDouble(c, d0, d1);
 }
@@ -2592,8 +2601,8 @@ result_t test_mm_and_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     int64_t d0 = _a[0] & _b[0];
     int64_t d1 = _a[1] & _b[1];
 
-    __m128d a = _mm_load_pd((const double *) _a);
-    __m128d b = _mm_load_pd((const double *) _b);
+    __m128d a = do_mm_load_pd((const double *) _a);
+    __m128d b = do_mm_load_pd((const double *) _b);
     __m128d c = _mm_and_pd(a, b);
 
     return validateDouble(c, *((double *) &d0), *((double *) &d1));
@@ -2627,8 +2636,8 @@ result_t test_mm_andnot_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
 
-    __m128d a = _mm_load_pd(_a);
-    __m128d b = _mm_load_pd(_b);
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
     __m128d c = _mm_andnot_pd(a, b);
 
     // Take AND operation a complement of 'a' and 'b'. Bitwise operations are
@@ -2713,7 +2722,7 @@ result_t test_mm_avg_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
 result_t test_mm_castpd_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
-    const __m128d a = _mm_load_pd((const double *) _a);
+    const __m128d a = do_mm_load_pd((const double *) _a);
     const __m128i *_c = (const __m128i *) _a;
 
     __m128i r = _mm_castpd_si128(a);
@@ -2974,7 +2983,7 @@ result_t test_mm_cvtpd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     const double *_a = (const double *) impl.mTestFloatPointer1;
     float f0 = (float) _a[0];
     float f1 = (float) _a[1];
-    const __m128d a = _mm_load_pd(_a);
+    const __m128d a = do_mm_load_pd(_a);
 
     __m128 r = _mm_cvtpd_ps(a);
 
@@ -3162,7 +3171,7 @@ result_t test_mm_loadh_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *addr = (const double *) impl.mTestFloatPointer2;
 
-    __m128d a = _mm_load_pd(_a);
+    __m128d a = do_mm_load_pd(_a);
     __m128d ret = _mm_loadh_pd(a, addr);
 
     return validateDouble(ret, _a[0], addr[0]);
@@ -3182,7 +3191,7 @@ result_t test_mm_loadl_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *addr = (const double *) impl.mTestFloatPointer2;
 
-    __m128d a = _mm_load_pd(_a);
+    __m128d a = do_mm_load_pd(_a);
     __m128d ret = _mm_loadl_pd(a, addr);
 
     return validateDouble(ret, addr[0], _a[1]);
@@ -4634,8 +4643,8 @@ result_t test_mm_xor_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     int64_t d0 = _a[0] ^ _b[0];
     int64_t d1 = _a[1] ^ _b[1];
 
-    __m128d a = _mm_load_pd((const double *) _a);
-    __m128d b = _mm_load_pd((const double *) _b);
+    __m128d a = do_mm_load_pd((const double *) _a);
+    __m128d b = do_mm_load_pd((const double *) _b);
     __m128d c = _mm_xor_pd(a, b);
 
     return validateDouble(c, *((double *) &d0), *((double *) &d1));
