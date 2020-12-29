@@ -2730,6 +2730,17 @@ result_t test_mm_castpd_si128(const SSE2NEONTestImpl &impl, uint32_t i)
     return validate128(r, *_c);
 }
 
+result_t test_mm_castpd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    const __m128d a = do_mm_load_pd((const double *) _a);
+    const __m128 _c = do_mm_load_ps(_a);
+
+    __m128 r = _mm_castpd_ps(a);
+
+    return validate128(r, _c);
+}
+
 result_t test_mm_castps_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
