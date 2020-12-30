@@ -5,4 +5,4 @@ SOURCES=$(find $(git rev-parse --show-toplevel) | egrep "\.(cpp|h)\$" | egrep -v
 
 set -x
 
-exit $(clang-format --output-replacements-xml ${SOURCES} | egrep -c "</replacement>")
+exit $(clang-format-6.0 --output-replacements-xml ${SOURCES} | egrep -c "</replacement>")
