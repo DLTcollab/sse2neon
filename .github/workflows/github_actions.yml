@@ -1,0 +1,56 @@
+name: Github Actions
+
+on: [push, pull_request]
+
+jobs:
+  test_x86:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        cxx_compiler: [g++-10, clang++-10]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: test
+        env:
+          CXX: ${{ matrix.cxx_compiler }}
+        run: |
+          sh .ci/cross-tool.sh
+          make check
+          sh .ci/cross-check.sh
+
+  test_arm:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        arch: [armv7, aarch64]
+        cxx_compiler: [g++-10, clang++-10]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: test
+        # The Github Action for non-x86 CPU
+        # https://github.com/uraimo/run-on-arch-action
+        uses: uraimo/run-on-arch-action@v2.0.5
+        with:
+          arch: ${{ matrix.arch }}
+          env: |
+            CXX: ${{ matrix.cxx_compiler }}
+          install: |
+            apt-get update -y
+            # Install add-apt-repository
+            apt-get install -y software-properties-common
+            # For installing g++-10
+            add-apt-repository ppa:ubuntu-toolchain-r/test -y
+            apt-get update -y
+            apt-get install -y g++-10 clang++-10 make
+          run: make check
+
+  coding_convention:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: coding convention
+        run: sh .ci/check-format.sh
+        shell: bash

@@ -28,7 +28,7 @@ ifeq ($(processor),aarch64)
     ARCH_CFLAGS = -march=armv8-a+fp+simd+crc
 else ifeq ($(processor),$(filter $(processor),i386 x86_64))
     ARCH_CFLAGS = -maes -mpclmul -mssse3 -msse4.2
-else ifeq ($(processor),arm)
+else ifeq ($(processor),$(filter $(processor),arm armv7l))
     ARCH_CFLAGS = -mfpu=neon
 else
     $(error Unsupported architecture)
