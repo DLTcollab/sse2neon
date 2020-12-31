@@ -133,6 +133,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [N2](https://github.com/oddconcepts/n2o) is an approximate nearest neighborhoods algorithm library written in C++, providing a much faster search speed than other implementations when modeling large dataset.
 * [niimath](https://github.com/rordenlab/niimath) is a general image calculator with superior performance.
 * [OBS Studio](https://github.com/obsproject/obs-studio) is software designed for capturing, compositing, encoding, recording, and streaming video content, efficiently.
+* [OGRE](https://github.com/OGRECave/ogre) is a scene-oriented, flexible 3D engine written in C++ designed to make it easier and more intuitive for developers to produce games and demos utilising 3D hardware.
 * [OpenXRay](https://github.com/OpenXRay/xray-16) is an improved version of the X-Ray engine, used in world famous S.T.A.L.K.E.R. game series by GSC Game World.
 * [parallel-n64](https://github.com/libretro/parallel-n64) is an optimized/rewritten Nintendo 64 emulator made specifically for [Libretro](https://www.libretro.com/).
 * [PFFFT](https://github.com/marton78/pffft) does 1D Fast Fourier Transforms, of single precision real and complex vectors.
