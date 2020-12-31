@@ -141,6 +141,7 @@
     TYPE(mm_andnot_si128)             \
     TYPE(mm_avg_epu16)                \
     TYPE(mm_avg_epu8)                 \
+    TYPE(mm_castpd_ps)                \
     TYPE(mm_castpd_si128)             \
     TYPE(mm_castps_pd)                \
     TYPE(mm_castps_si128)             \

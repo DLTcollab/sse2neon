@@ -5060,6 +5060,14 @@ FORCE_INLINE __m128i _mm_castpd_si128(__m128d a)
     return vreinterpretq_m128i_s64(vreinterpretq_s64_m128d(a));
 }
 
+// Cast vector of type __m128d to type __m128. This intrinsic is only used for
+// compilation and does not generate any instructions, thus it has zero latency.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_castpd_ps
+FORCE_INLINE __m128 _mm_castpd_ps(__m128d a)
+{
+    return vreinterpretq_m128_s64(vreinterpretq_s64_m128d(a));
+}
+
 // Blend packed single-precision (32-bit) floating-point elements from a and b
 // using mask, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_blendv_ps
