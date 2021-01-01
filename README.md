@@ -1,5 +1,5 @@
 # sse2neon
-[![Build Status](https://travis-ci.com/DLTcollab/sse2neon.svg?branch=master)](https://travis-ci.com/DLTcollab/sse2neon)
+![Github Actions](https://github.com/DLTcollab/sse2neon/workflows/Github%20Actions/badge.svg?branch=master)
 
 A C/C++ header file that converts Intel SSE intrinsics to Arm/Aarch64 NEON intrinsics.
 
