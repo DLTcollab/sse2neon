@@ -293,6 +293,7 @@
     /* SSE4.1 */                      \
     TYPE(mm_blend_epi16)              \
     TYPE(mm_blendv_epi8)              \
+    TYPE(mm_blendv_pd)                \
     TYPE(mm_blendv_ps)                \
     TYPE(mm_ceil_ps)                  \
     TYPE(mm_cmpeq_epi64)              \
