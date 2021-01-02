@@ -5321,7 +5321,29 @@ result_t test_mm_blendv_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_blendv_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+    const float _mask[] = {impl.mTestFloats[i], impl.mTestFloats[i+1],
+                           impl.mTestFloats[i+2], impl.mTestFloats[i+3]};
+
+    float _c[4];
+    for (int i = 0; i < 4; i++) {
+        // signed shift right would return a result which is either all 1's from
+        // negative numbers or all 0's from positive numbers
+        if ((*(const int32_t *) (_mask + i)) >> 31) {
+            _c[i] = _b[i];
+        } else {
+            _c[i] = _a[i];
+        }
+    }
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 mask = do_mm_load_ps(_mask);
+
+    __m128 c = _mm_blendv_ps(a, b, mask);
+
+    return validateFloat(c, _c[0], _c[1], _c[2], _c[3]);
 }
 
 result_t test_mm_blendv_pd(const SSE2NEONTestImpl &impl, uint32_t i)
