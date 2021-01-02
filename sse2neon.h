@@ -822,6 +822,29 @@ FORCE_INLINE void _mm_store_pd(double *mem_addr, __m128d a)
 #endif
 }
 
+// Store the lower double-precision (64-bit) floating-point element from a into
+// 2 contiguous elements in memory. mem_addr must be aligned on a 16-byte
+// boundary or a general-protection exception may be generated.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_store_pd1
+FORCE_INLINE void _mm_store_pd1(double *mem_addr, __m128d a)
+{
+#if defined(__aarch64__)
+    float64x1_t a_low = vget_low_f64(vreinterpretq_f64_m128d(a));
+    vst1q_f64((float64_t *) mem_addr,
+              vreinterpretq_f64_m128d(vcombine_f64(a_low, a_low)));
+#else
+    float32x2_t a_low = vget_low_f32(vreinterpretq_f32_m128d(a));
+    vst1q_f32((float32_t *) mem_addr,
+              vreinterpretq_f32_m128d(vcombine_f32(a_low, a_low)));
+#endif
+}
+
+// Store the lower double-precision (64-bit) floating-point element from a into
+// 2 contiguous elements in memory. mem_addr must be aligned on a 16-byte
+// boundary or a general-protection exception may be generated.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#expand=9,526,5601&text=_mm_store1_pd
+#define _mm_store1_pd _mm_store_pd1
+
 // Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
 // elements) from a into memory. mem_addr does not need to be aligned on any
 // particular boundary.

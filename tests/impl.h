@@ -236,6 +236,8 @@
     TYPE(mm_srli_epi64)               \
     TYPE(mm_srli_si128)               \
     TYPE(mm_store_pd)                 \
+    TYPE(mm_store_pd1)                \
+    TYPE(mm_store1_pd)                \
     TYPE(mm_store_si128)              \
     TYPE(mm_storel_epi64)             \
     TYPE(mm_storeu_pd)                \
