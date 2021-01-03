@@ -3179,6 +3179,15 @@ FORCE_INLINE __m128d _mm_mul_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Multiply the lower double-precision (64-bit) floating-point element in a and
+// b, store the result in the lower element of dst, and copy the upper element
+// from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_mul_sd
+FORCE_INLINE __m128d _mm_mul_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_mul_pd(a, b));
+}
+
 // Multiply the lower single-precision (32-bit) floating-point element in a and
 // b, store the result in the lower element of dst, and copy the upper 3 packed
 // elements from a to the upper elements of dst.
