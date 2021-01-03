@@ -3813,6 +3813,14 @@ result_t test_mm_set1_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
                         d0, d0, d0);
 }
 
+result_t test_mm_set1_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    double d0 = _a[0];
+    __m128d c = _mm_set1_pd(d0);
+    return validateDouble(c, d0, d0);
+}
+
 result_t test_mm_setr_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;

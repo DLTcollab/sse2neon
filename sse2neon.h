@@ -627,6 +627,18 @@ FORCE_INLINE __m128i _mm_set1_epi8(signed char w)
     return vreinterpretq_m128i_s8(vdupq_n_s8(w));
 }
 
+// Broadcast double-precision (64-bit) floating-point value a to all elements of
+// dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set1_pd
+FORCE_INLINE __m128d _mm_set1_pd(double d)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vdupq_n_f64(d));
+#else
+    return vreinterpretq_m128d_s64(vdupq_n_s64(*(int64_t *) &d));
+#endif
+}
+
 // Sets the 8 signed 16-bit integer values to w.
 //
 //   r0 := w
