@@ -195,6 +195,7 @@
     TYPE(mm_mul_su32)                 \
     TYPE(mm_mulhi_epi16)              \
     TYPE(mm_mullo_epi16)              \
+    TYPE(mm_or_pd)                    \
     TYPE(mm_or_si128)                 \
     TYPE(mm_packs_epi16)              \
     TYPE(mm_packs_epi32)              \

@@ -3551,6 +3551,21 @@ result_t test_mm_mullo_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
+result_t test_mm_or_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int64_t *_a = (const int64_t *) impl.mTestFloatPointer1;
+    const int64_t *_b = (const int64_t *) impl.mTestFloatPointer2;
+
+    int64_t d0 = _a[0] | _b[0];
+    int64_t d1 = _a[1] | _b[1];
+
+    __m128d a = do_mm_load_pd((const double *) _a);
+    __m128d b = do_mm_load_pd((const double *) _b);
+    __m128d c = _mm_or_pd(a, b);
+
+    return validateDouble(c, *((double *) &d0), *((double *) &d1));
+}
+
 result_t test_mm_or_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int32_t *_a = impl.mTestIntPointer1;
