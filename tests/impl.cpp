@@ -5283,6 +5283,33 @@ result_t test_mm_blendv_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_blendv_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    const double _mask[] = {(double) impl.mTestFloats[i],
+                            (double) impl.mTestFloats[i + 1]};
+
+    double _c[2];
+    for (int i = 0; i < 2; i++) {
+        // signed shift right would return a result which is either all 1's from
+        // negative numbers or all 0's from positive numbers
+        if ((*(const int64_t *) (_mask + i)) >> 63) {
+            _c[i] = _b[i];
+        } else {
+            _c[i] = _a[i];
+        }
+    }
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d mask = do_mm_load_pd(_mask);
+
+    __m128d c = _mm_blendv_pd(a, b, mask);
+
+    return validateDouble(c, _c[0], _c[1]);
+}
+
 result_t test_mm_ceil_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;

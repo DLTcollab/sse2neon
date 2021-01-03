@@ -247,10 +247,13 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #else
 #define vreinterpretq_m128d_s32(x) vreinterpretq_f32_s32(x)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f32_s64(x)
+#define vreinterpretq_m128d_u64(x) vreinterpretq_f32_u64(x)
 
 #define vreinterpretq_m128d_f32(x) (x)
 
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f32(x)
+
+#define vreinterpretq_u64_m128d(x) vreinterpretq_u64_f32(x)
 
 #define vreinterpretq_f32_m128d(x) (x)
 #endif
@@ -5099,6 +5102,24 @@ FORCE_INLINE __m128 _mm_blendv_ps(__m128 a, __m128 b, __m128 mask)
     return vreinterpretq_m128_f32(vbslq_f32(vreinterpretq_u32_m128(mask),
                                             vreinterpretq_f32_m128(b),
                                             vreinterpretq_f32_m128(a)));
+}
+
+// Blend packed double-precision (64-bit) floating-point elements from a and b
+// using mask, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_blendv_pd
+FORCE_INLINE __m128d _mm_blendv_pd(__m128d _a, __m128d _b, __m128d _mask)
+{
+    uint64x2_t mask =
+        vreinterpretq_u64_s64(vshrq_n_s64(vreinterpretq_s64_m128d(_mask), 63));
+#if defined(__aarch64__)
+    float64x2_t a = vreinterpretq_f64_m128d(_a);
+    float64x2_t b = vreinterpretq_f64_m128d(_b);
+    return vreinterpretq_m128d_f64(vbslq_f64(mask, b, a));
+#else
+    uint64x2_t a = vreinterpretq_u64_m128d(_a);
+    uint64x2_t b = vreinterpretq_u64_m128d(_b);
+    return vreinterpretq_m128d_u64(vbslq_u64(mask, b, a));
+#endif
 }
 
 // Round the packed single-precision (32-bit) floating-point elements in a using
