@@ -5654,6 +5654,15 @@ FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
             vsetq_lane_s16((b), vreinterpretq_s16_m128i(a), (imm))); \
     })
 
+// Copy a to dst, and insert the 16-bit integer i into dst at the location
+// specified by imm8.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_insert_pi16
+#define _mm_insert_pi16(a, b, imm)                               \
+    __extension__({                                              \
+        vreinterpret_m64_s16(                                    \
+            vset_lane_s16((b), vreinterpret_s16_m64(a), (imm))); \
+    })
+
 // Extracts the selected signed or unsigned 32-bit integer from a and zero
 // extends.
 // FORCE_INLINE int _mm_extract_epi32(__m128i a, __constrange(0,4) int imm)

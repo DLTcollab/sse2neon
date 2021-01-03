@@ -3151,6 +3151,24 @@ result_t test_mm_insert_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateInt16(b, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
 }
 
+result_t test_mm_insert_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t insert = (int16_t) impl.mTestInts[i];
+    const int imm8 = 2;
+
+    int16_t d[4];
+    for (int i = 0; i < 4; i++) {
+        d[i] = _a[i];
+    }
+    d[imm8] = insert;
+
+    const __m64 *a = (const __m64 *) _a;
+    __m64 b = _mm_insert_pi16(*a, insert, imm8);
+
+    return validateInt16(b, d[0], d[1], d[2], d[3]);
+}
+
 result_t test_mm_load_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const double *p = (const double *) impl.mTestFloatPointer1;

@@ -68,6 +68,7 @@
     TYPE(mm_div_ps)                   \
     TYPE(mm_div_ss)                   \
     TYPE(mm_free)                     \
+    TYPE(mm_insert_pi16)              \
     TYPE(mm_load_ps)                  \
     TYPE(mm_load_ps1)                 \
     TYPE(mm_load_ss)                  \
