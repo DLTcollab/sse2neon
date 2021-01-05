@@ -139,6 +139,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [PFFFT](https://github.com/marton78/pffft) does 1D Fast Fourier Transforms, of single precision real and complex vectors.
 * [PlutoSDR Firmware](https://github.com/seanstone/plutosdr-fw) is the customized firmware for the [PlutoSDR](https://wiki.analog.com/university/tools/pluto) that can be used to introduce fundamentals of Software Defined Radio (SDR) or Radio Frequency (RF) or Communications as advanced topics in electrical engineering in a self or instructor lead setting.
 * [Pygame](https://www.pygame.org) is cross-platform and designed to make it easy to write multimedia software, such as games, in Python.
+* [Spack](https://github.com/spack/spack) is a multi-platform package manager that builds and installs multiple versions and configurations of software.
 * [srsLTE](https://github.com/srsLTE/srsLTE) is an open source SDR LTE software suite.
 * [Surge](https://github.com/surge-synthesizer/surge) is an open source digital synthesizer.
 * [XMRig](https://github.com/xmrig/xmrig) is an open source CPU miner for [Monero](https://web.getmonero.org/) cryptocurrency.
