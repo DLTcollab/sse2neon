@@ -1907,6 +1907,19 @@ result_t test_mm_mul_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateDouble(c, d0, d1);
 }
 
+result_t test_mm_mul_sd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    double dx = _a[0] * _b[0];
+    double dy = _a[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d c = _mm_mul_sd(a, b);
+    return validateDouble(c, dx, dy);
+}
+
 result_t test_mm_mul_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
@@ -6674,11 +6687,6 @@ result_t test_mm_min_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 }
 
 result_t test_mm_movemask_pd(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
-result_t test_mm_mul_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
 }
