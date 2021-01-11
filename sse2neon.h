@@ -2651,6 +2651,31 @@ FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b)
         vqsubq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
+// Subtract packed double-precision (64-bit) floating-point elements in b from
+// packed double-precision (64-bit) floating-point elements in a, and store the
+// results in dst.
+//
+//   FOR j := 0 to 1
+//     i := j*64
+//     dst[i+63:i] := a[i+63:i] - b[i+63:i]
+//   ENDFOR
+//
+//  https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_sub_pd
+FORCE_INLINE __m128d _mm_sub_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vsubq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[2];
+    c[0] = da[0] - db[0];
+    c[1] = da[1] - db[1];
+    return vld1q_f32((float32_t *) c);
+#endif
+}
+
 FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_u16(
