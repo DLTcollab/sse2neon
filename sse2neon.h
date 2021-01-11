@@ -3433,6 +3433,30 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
         vsetq_lane_f32(value, vreinterpretq_f32_m128(a), 0));
 }
 
+// Divide packed double-precision (64-bit) floating-point elements in a by
+// packed elements in b, and store the results in dst.
+//
+//  FOR j := 0 to 1
+//    i := 64*j
+//    dst[i+63:i] := a[i+63:i] / b[i+63:i]
+//  ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_div_pd
+FORCE_INLINE __m128d _mm_div_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vdivq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[2];
+    c[0] = da[0] / db[0];
+    c[1] = da[1] / db[1];
+    return vld1q_f32((float32_t *) c);
+#endif
+}
+
 // Compute the approximate reciprocal of packed single-precision (32-bit)
 // floating-point elements in a, and store the results in dst. The maximum
 // relative error for this approximation is less than 1.5*2^-12.
