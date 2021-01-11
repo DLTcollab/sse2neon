@@ -237,22 +237,29 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpretq_m128d_s32(x) vreinterpretq_f64_s32(x)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f64_s64(x)
 
+#define vreinterpretq_m128d_u64(x) vreinterpretq_f64_u64(x)
+
 #define vreinterpretq_m128d_f32(x) vreinterpretq_f64_f32(x)
 #define vreinterpretq_m128d_f64(x) (x)
 
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f64(x)
+
+#define vreinterpretq_u64_m128d(x) vreinterpretq_u64_f64(x)
 
 #define vreinterpretq_f64_m128d(x) (x)
 #define vreinterpretq_f32_m128d(x) vreinterpretq_f32_f64(x)
 #else
 #define vreinterpretq_m128d_s32(x) vreinterpretq_f32_s32(x)
 #define vreinterpretq_m128d_s64(x) vreinterpretq_f32_s64(x)
+
+#define vreinterpretq_m128d_u32(x) vreinterpretq_f32_u32(x)
 #define vreinterpretq_m128d_u64(x) vreinterpretq_f32_u64(x)
 
 #define vreinterpretq_m128d_f32(x) (x)
 
 #define vreinterpretq_s64_m128d(x) vreinterpretq_s64_f32(x)
 
+#define vreinterpretq_u32_m128d(x) vreinterpretq_u32_f32(x)
 #define vreinterpretq_u64_m128d(x) vreinterpretq_u64_f32(x)
 
 #define vreinterpretq_f32_m128d(x) (x)
@@ -4275,6 +4282,23 @@ FORCE_INLINE __m128i _mm_cmpeq_epi8(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_u8(
         vceqq_s8(vreinterpretq_s8_m128i(a), vreinterpretq_s8_m128i(b)));
+}
+
+// Compare packed double-precision (64-bit) floating-point elements in a and b
+// for equality, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpeq_pd
+FORCE_INLINE __m128d _mm_cmpeq_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_u64(
+        vceqq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    // (a == b) -> (a_lo == b_lo) && (a_hi == b_hi)
+    uint32x4_t cmp =
+        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
+    uint32x4_t swapped = vrev64q_u32(cmp);
+    return vreinterpretq_m128d_u32(vandq_u32(cmp, swapped));
+#endif
 }
 
 // Compares the 8 signed or unsigned 16-bit integers in a and the 8 signed or
