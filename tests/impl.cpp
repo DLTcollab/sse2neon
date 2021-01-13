@@ -2858,6 +2858,19 @@ result_t test_mm_cmpeq_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
                         d12, d13, d14, d15);
 }
 
+result_t test_mm_cmpeq_pd(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    uint64_t d0 = (_a[0] == _b[0]) ? 0xffffffffffffffff : 0;
+    uint64_t d1 = (_a[1] == _b[1]) ? 0xffffffffffffffff : 0;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d c = _mm_cmpeq_pd(a, b);
+    return validateDouble(c, *(double*) &d0, *(double*) &d1);
+}
+
 result_t test_mm_cmpgt_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
@@ -5336,8 +5349,8 @@ result_t test_mm_blendv_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
-    const float _mask[] = {impl.mTestFloats[i], impl.mTestFloats[i+1],
-                           impl.mTestFloats[i+2], impl.mTestFloats[i+3]};
+    const float _mask[] = {impl.mTestFloats[i], impl.mTestFloats[i + 1],
+                           impl.mTestFloats[i + 2], impl.mTestFloats[i + 3]};
 
     float _c[4];
     for (int i = 0; i < 4; i++) {
@@ -6423,11 +6436,6 @@ result_t test_mm_castsi128_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
-result_t test_mm_cmpeq_pd(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
 result_t test_mm_cmpeq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;
@@ -6665,9 +6673,9 @@ result_t test_mm_div_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     double d0;
     double d1;
 
-    if(_b[0] != 0.0)
+    if (_b[0] != 0.0)
         d0 = _a[0] / _b[0];
-    if(_b[1] != 0.0)
+    if (_b[1] != 0.0)
         d1 = _a[1] / _b[1];
 
     __m128d a = do_mm_load_pd(_a);
