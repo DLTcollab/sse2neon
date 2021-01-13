@@ -25,8 +25,11 @@ int main(int /*argc*/, const char ** /*argv*/)
         }
     }
     test->release();
-    printf("SSE2NEONTest Complete: Passed %d tests : Failed %d : Ignored %d\n",
-           passCount, failedCount, ignoreCount);
+    printf(
+        "SSE2NEONTest Complete: Passed %d tests : Failed %d : Ignored %d. "
+        "Coverage rate: %.2f%%\n",
+        passCount, failedCount, ignoreCount,
+        (float) passCount / (passCount + failedCount + ignoreCount) * 100);
 
     return failedCount ? -1 : 0;
 }
