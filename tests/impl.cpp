@@ -2868,7 +2868,7 @@ result_t test_mm_cmpeq_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128d a = do_mm_load_pd(_a);
     __m128d b = do_mm_load_pd(_b);
     __m128d c = _mm_cmpeq_pd(a, b);
-    return validateDouble(c, *(double*) &d0, *(double*) &d1);
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpgt_epi16(const SSE2NEONTestImpl &impl, uint32_t i)

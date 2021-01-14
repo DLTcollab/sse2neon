@@ -52,5 +52,7 @@ jobs:
       - name: checkout code
         uses: actions/checkout@v2
       - name: coding convention
-        run: sh .ci/check-format.sh
+        run: |
+            sudo apt-get install -y clang-format-6.0
+            sh .ci/check-format.sh
         shell: bash
