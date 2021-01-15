@@ -1068,6 +1068,8 @@ FORCE_INLINE __m128 _mm_load_ss(const float *p)
     return vreinterpretq_m128_f32(vsetq_lane_f32(*p, vdupq_n_f32(0), 0));
 }
 
+// Load 64-bit integer from memory into the first element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loadl_epi64
 FORCE_INLINE __m128i _mm_loadl_epi64(__m128i const *p)
 {
     /* Load the lower 64 bits of the value pointed to by p into the
@@ -2581,12 +2583,18 @@ FORCE_INLINE __m128i _mm_sub_epi32(__m128i a, __m128i b)
         vsubq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
+// Subtract packed 16-bit integers in b from packed 16-bit integers in a, and
+// store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sub_epi16
 FORCE_INLINE __m128i _mm_sub_epi16(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s16(
         vsubq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
 }
 
+// Subtract packed 8-bit integers in b from packed 8-bit integers in a, and
+// store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sub_epi8
 FORCE_INLINE __m128i _mm_sub_epi8(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_s8(
@@ -2683,6 +2691,9 @@ FORCE_INLINE __m128d _mm_sub_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Add packed unsigned 16-bit integers in a and b using saturation, and store
+// the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_adds_epu16
 FORCE_INLINE __m128i _mm_adds_epu16(__m128i a, __m128i b)
 {
     return vreinterpretq_m128i_u16(
@@ -5986,6 +5997,9 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 }
 #endif  // ARMv7 polyfill
 
+// Perform a carry-less multiplication of two 64-bit integers, selected from a
+// and b according to imm8, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_clmulepi64_si128
 FORCE_INLINE __m128i _mm_clmulepi64_si128(__m128i _a, __m128i _b, const int imm)
 {
     uint64x2_t a = vreinterpretq_u64_m128i(_a);
@@ -6139,6 +6153,9 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
 #endif
 }
 
+// Perform the last round of an AES encryption flow on data (state) in a using
+// the round key in RoundKey, and store the result in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_aesenclast_si128
 FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 {
     /* FIXME: optimized for NEON */
@@ -6299,6 +6316,8 @@ FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
     return NULL;
 }
 
+// Free aligned memory that was allocated with _mm_malloc.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_free
 FORCE_INLINE void _mm_free(void *addr)
 {
     free(addr);
