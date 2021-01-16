@@ -2691,6 +2691,16 @@ FORCE_INLINE __m128d _mm_sub_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Subtract the lower double-precision (64-bit) floating-point element in b from
+// the lower double-precision (64-bit) floating-point element in a, store the
+// result in the lower element of dst, and copy the upper element from a to the
+// upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sub_sd
+FORCE_INLINE __m128d _mm_sub_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_sub_pd(a, b));
+}
+
 // Add packed unsigned 16-bit integers in a and b using saturation, and store
 // the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_adds_epu16
