@@ -4973,6 +4973,18 @@ FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 #endif
 }
 
+// Convert packed single-precision (32-bit) floating-point elements in a to
+// packed 16-bit integers, and store the results in dst. Note: this intrinsic
+// will generate 0x7FFF, rather than 0x8000, for input values between 0x7FFF and
+// 0x7FFFFFFF.
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi16
+FORCE_INLINE __m64 _mm_cvtps_pi16(__m128 a)
+{
+    return vreinterpret_m64_s16(
+        vmovn_s32(vreinterpretq_s32_m128i(_mm_cvtps_epi32(a))));
+}
+
 // Copy the lower 32-bit integer in a to dst.
 //
 //   dst[31:0] := a[31:0]
