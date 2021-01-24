@@ -124,6 +124,7 @@
     TYPE(mm_sad_pu8)                  \
     TYPE(mm_set_ps)                   \
     TYPE(mm_set_ps1)                  \
+    TYPE(mm_set_rounding_mode)        \
     TYPE(mm_set_ss)                   \
     TYPE(mm_set1_ps)                  \
     TYPE(mm_setcsr)                   \
