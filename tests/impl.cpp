@@ -1362,7 +1362,23 @@ result_t test_mm_cvtpi8_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtps_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    float _b[4];
+    int16_t trun[4];
+
+    // Beyond int16_t range _mm_cvtps_pi16 function (both native and arm)
+    // do not behave the same as BankersRounding.
+    // Forcing the float input values to be in the int16_t range
+    // Dividing by 10.0f ensures (with the current data set) it,
+    // without forcing a saturation.
+    for (int j = 0; j < 4; j++) {
+        _b[j] = fabsf(_a[j]) > 32767.0f ? _a[j] / 10.0f : _a[j];
+        trun[j] = (int16_t)(bankersRounding(_b[j]));
+    }
+
+    __m128 b = do_mm_load_ps(_b);
+    __m64 ret = _mm_cvtps_pi16(b);
+    return validateInt16(ret, trun[0], trun[1], trun[2], trun[3]);
 }
 
 result_t test_mm_cvtps_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
