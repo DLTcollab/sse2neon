@@ -3063,6 +3063,28 @@ FORCE_INLINE __m128d _mm_add_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Add the lower double-precision (64-bit) floating-point element in a and b,
+// store the result in the lower element of dst, and copy the upper element from
+// a to the upper element of dst.
+//
+//   dst[63:0] := a[63:0] + b[63:0]
+//   dst[127:64] := a[127:64]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_add_sd
+FORCE_INLINE __m128d _mm_add_sd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return _mm_move_sd(a, _mm_add_pd(a, b));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[2];
+    c[0] = da[0] + db[0];
+    c[1] = da[1];
+    return vld1q_f32((float32_t *) c);
+#endif
+}
+
 // Add 64-bit integers a and b, and store the result in dst.
 //
 //   dst[63:0] := a[63:0] + b[63:0]
