@@ -2321,7 +2321,17 @@ result_t test_mm_store_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_store_ps1(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    float *p = impl.mTestFloatPointer1;
+    float d[4];
+
+    __m128 a = do_mm_load_ps(p);
+    _mm_store_ps1(d, a);
+
+    ASSERT_RETURN(d[0] == *p);
+    ASSERT_RETURN(d[1] == *p);
+    ASSERT_RETURN(d[2] == *p);
+    ASSERT_RETURN(d[3] == *p);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_store_ss(const SSE2NEONTestImpl &impl, uint32_t i)
