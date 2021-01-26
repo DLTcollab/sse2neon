@@ -197,6 +197,9 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #define vreinterpretq_m128i_u32(x) vreinterpretq_s64_u32(x)
 #define vreinterpretq_m128i_u64(x) vreinterpretq_s64_u64(x)
 
+#define vreinterpretq_f32_m128i(x) vreinterpretq_f32_s64(x)
+#define vreinterpretq_f64_m128i(x) vreinterpretq_f64_s64(x)
+
 #define vreinterpretq_s8_m128i(x) vreinterpretq_s8_s64(x)
 #define vreinterpretq_s16_m128i(x) vreinterpretq_s16_s64(x)
 #define vreinterpretq_s32_m128i(x) vreinterpretq_s32_s64(x)
@@ -5100,6 +5103,18 @@ FORCE_INLINE __m128d _mm_castps_pd(__m128 a)
 FORCE_INLINE __m128i _mm_castps_si128(__m128 a)
 {
     return vreinterpretq_m128i_s32(vreinterpretq_s32_m128(a));
+}
+
+// Cast vector of type __m128i to type __m128d. This intrinsic is only used for
+// compilation and does not generate any instructions, thus it has zero latency.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_castsi128_pd
+FORCE_INLINE __m128d _mm_castsi128_pd(__m128i a)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vreinterpretq_f64_m128i(a));
+#else
+    return vreinterpretq_m128d_f32(vreinterpretq_f32_m128i(a));
+#endif
 }
 
 // Applies a type cast to reinterpret four 32-bit integers passed in as a

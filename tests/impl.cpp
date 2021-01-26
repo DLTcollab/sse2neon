@@ -3013,7 +3013,14 @@ result_t test_mm_castps_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_castsi128_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = impl.mTestIntPointer1;
+
+    const __m128d *_c = (const __m128d *) _a;
+
+    const __m128i a = do_mm_load_ps(_a);
+    __m128d r = _mm_castsi128_pd(a);
+
+    return validate128(r, *_c);
 }
 
 result_t test_mm_castsi128_ps(const SSE2NEONTestImpl &impl, uint32_t i)
