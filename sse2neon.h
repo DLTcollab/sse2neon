@@ -834,6 +834,23 @@ FORCE_INLINE void _mm_store_ps1(float *p, __m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_store1_ps
 #define _mm_store1_ps _mm_store_ps1
 
+// Store 4 single-precision (32-bit) floating-point elements from a into memory
+// in reverse order. mem_addr must be aligned on a 16-byte boundary or a
+// general-protection exception may be generated.
+//
+//   MEM[mem_addr+31:mem_addr] := a[127:96]
+//   MEM[mem_addr+63:mem_addr+32] := a[95:64]
+//   MEM[mem_addr+95:mem_addr+64] := a[63:32]
+//   MEM[mem_addr+127:mem_addr+96] := a[31:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storer_ps
+FORCE_INLINE void _mm_storer_ps(float *p, __m128 a)
+{
+    float32x4_t tmp = vrev64q_f32(vreinterpretq_f32_m128(a));
+    float32x4_t rev = vextq_f32(tmp, tmp, 2);
+    vst1q_f32(p, rev);
+}
+
 // Stores four single-precision, floating-point values.
 // https://msdn.microsoft.com/en-us/library/44e30x22(v=vs.100).aspx
 FORCE_INLINE void _mm_storeu_ps(float *p, __m128 a)
