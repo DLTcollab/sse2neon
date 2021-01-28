@@ -3700,7 +3700,9 @@ result_t test_mm_load_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_load_pd1(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *p = (const double *) impl.mTestFloatPointer1;
+    __m128d a = _mm_load_pd1(p);
+    return validateDouble(a, p[0], p[0]);
 }
 
 result_t test_mm_load_sd(const SSE2NEONTestImpl &impl, uint32_t i)
