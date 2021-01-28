@@ -774,8 +774,8 @@ FORCE_INLINE __m128i _mm_set_epi32(int i3, int i2, int i1, int i0)
 // https://msdn.microsoft.com/en-us/library/dk2sdw0h(v=vs.120).aspx
 FORCE_INLINE __m128i _mm_set_epi64x(int64_t i1, int64_t i2)
 {
-    int64_t ALIGN_STRUCT(16) data[2] = {i2, i1};
-    return vreinterpretq_m128i_s64(vld1q_s64(data));
+    return vreinterpretq_m128i_s64(
+        vcombine_s64(vcreate_s64(i2), vcreate_s64(i1)));
 }
 
 // Returns the __m128i structure with its two 64-bit integer values
