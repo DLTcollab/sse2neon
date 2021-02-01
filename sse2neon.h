@@ -4699,11 +4699,11 @@ FORCE_INLINE int _mm_comineq_ss(__m128 a, __m128 b)
 
 // according to the documentation, these intrinsics behave the same as the
 // non-'u' versions.  We'll just alias them here.
-#define _mm_ucomilt_ss _mm_comilt_ss
-#define _mm_ucomile_ss _mm_comile_ss
-#define _mm_ucomigt_ss _mm_comigt_ss
-#define _mm_ucomige_ss _mm_comige_ss
 #define _mm_ucomieq_ss _mm_comieq_ss
+#define _mm_ucomige_ss _mm_comige_ss
+#define _mm_ucomigt_ss _mm_comigt_ss
+#define _mm_ucomile_ss _mm_comile_ss
+#define _mm_ucomilt_ss _mm_comilt_ss
 #define _mm_ucomineq_ss _mm_comineq_ss
 
 /* Conversions */
