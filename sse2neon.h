@@ -813,6 +813,11 @@ FORCE_INLINE __m128d _mm_set_sd(double a)
     return _mm_set_pd(0, a);
 }
 
+// Broadcast double-precision (64-bit) floating-point value a to all elements of
+// dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_pd1
+#define _mm_set_pd1 _mm_set1_pd
+
 // Stores four single-precision, floating-point values.
 // https://msdn.microsoft.com/en-us/library/vstudio/s3h4ay6y(v=vs.100).aspx
 FORCE_INLINE void _mm_store_ps(float *p, __m128 a)
