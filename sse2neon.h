@@ -5350,6 +5350,23 @@ FORCE_INLINE __m128 _mm_blendv_ps(__m128 _a, __m128 _b, __m128 _mask)
     return vreinterpretq_m128_f32(vbslq_f32(mask, b, a));
 }
 
+
+// Blend packed single-precision (32-bit) floating-point elements from a and b
+// using mask, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_blend_ps
+FORCE_INLINE __m128 _mm_blend_ps(__m128 _a, __m128 _b, const char imm8)
+{
+    const uint32_t ALIGN_STRUCT(16)
+        data[4] = {((imm8) & (1 << 0)) ? UINT32_MAX : 0,
+                   ((imm8) & (1 << 1)) ? UINT32_MAX : 0,
+                   ((imm8) & (1 << 2)) ? UINT32_MAX : 0,
+                   ((imm8) & (1 << 3)) ? UINT32_MAX : 0};
+    uint32x4_t mask = vld1q_u32(data);
+    float32x4_t a = vreinterpretq_f32_m128(_a);
+    float32x4_t b = vreinterpretq_f32_m128(_b);
+    return vreinterpretq_m128_f32(vbslq_f32(mask, b, a));
+}
+
 // Blend packed double-precision (64-bit) floating-point elements from a and b
 // using mask, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_blendv_pd

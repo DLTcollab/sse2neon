@@ -6175,7 +6175,30 @@ result_t test_mm_blend_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_blend_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+#if __x86_64__
     return TEST_UNIMPL;
+#else
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+
+    const char mask = (char) i;
+
+    float _c[4];
+    for (int i = 0; i < 4; i++) {
+        if (mask & (1 << i)) {
+            _c[i] = _b[i];
+        } else {
+            _c[i] = _a[i];
+        }
+    }
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+
+    __m128 c = _mm_blend_ps(a, b, (mask & 0xF));
+
+    return validateFloat(c, _c[0], _c[1], _c[2], _c[3]);
+#endif
 }
 
 result_t test_mm_blendv_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
