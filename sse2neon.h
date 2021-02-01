@@ -3566,6 +3566,23 @@ FORCE_INLINE __m128d _mm_div_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Divide the lower double-precision (64-bit) floating-point element in a by the
+// lower double-precision (64-bit) floating-point element in b, store the result
+// in the lower element of dst, and copy the upper element from a to the upper
+// element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_div_sd
+FORCE_INLINE __m128d _mm_div_sd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    float64x2_t tmp =
+        vdivq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b));
+    return vreinterpretq_m128d_f64(
+        vsetq_lane_f64(vgetq_lane_f64(vreinterpretq_f64_m128d(a), 1), tmp, 1));
+#else
+    return _mm_move_sd(a, _mm_div_pd(a, b));
+#endif
+}
+
 // Compute the approximate reciprocal of packed single-precision (32-bit)
 // floating-point elements in a, and store the results in dst. The maximum
 // relative error for this approximation is less than 1.5*2^-12.
