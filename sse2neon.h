@@ -805,6 +805,14 @@ FORCE_INLINE __m128d _mm_set_pd(double e1, double e0)
 #endif
 }
 
+// Copy double-precision (64-bit) floating-point element a to the lower element
+// of dst, and zero the upper element.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_sd
+FORCE_INLINE __m128d _mm_set_sd(double a)
+{
+    return _mm_set_pd(0, a);
+}
+
 // Stores four single-precision, floating-point values.
 // https://msdn.microsoft.com/en-us/library/vstudio/s3h4ay6y(v=vs.100).aspx
 FORCE_INLINE void _mm_store_ps(float *p, __m128 a)

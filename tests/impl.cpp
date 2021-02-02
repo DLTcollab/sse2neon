@@ -4416,7 +4416,13 @@ result_t test_mm_set_pd1(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_set_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+
+    double f0 = _a[0];
+    double f1 = 0.0;
+
+    __m128d a = _mm_set_sd(_a[0]);
+    return validateDouble(a, f0, f1);
 }
 
 result_t test_mm_set1_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
