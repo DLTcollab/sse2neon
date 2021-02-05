@@ -4309,7 +4309,8 @@ result_t test_mm_packus_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_pause(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    _mm_pause();
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_sad_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
