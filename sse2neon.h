@@ -317,9 +317,11 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 /* Backwards compatibility for compilers with lack of specific type support */
 
 // Older gcc does not define vld1q_u8_x4 type
-#if defined(__GNUC__) && !defined(__clang__)
-#if __GNUC__ <= 9
-FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
+#if defined(__GNUC__) && !defined(__clang__) &&   \
+    ((__GNUC__ == 10 && (__GNUC_MINOR__ <= 1)) || \
+     (__GNUC__ == 9 && (__GNUC_MINOR__ <= 3)) ||  \
+     (__GNUC__ == 8 && (__GNUC_MINOR__ <= 4)) || __GNUC__ <= 7)
+FORCE_INLINE uint8x16x4_t sse2neon_vld1q_u8_x4(const uint8_t *p)
 {
     uint8x16x4_t ret;
     ret.val[0] = vld1q_u8(p + 0);
@@ -328,7 +330,11 @@ FORCE_INLINE uint8x16x4_t vld1q_u8_x4(const uint8_t *p)
     ret.val[3] = vld1q_u8(p + 48);
     return ret;
 }
-#endif
+#else
+FORCE_INLINE uint8x16x4_t sse2neon_vld1q_u8_x4(const uint8_t *p)
+{
+    return vld1q_u8_x4(p);
+}
 #endif
 
 /* Function Naming Conventions
@@ -6269,10 +6275,10 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
     w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
 
     // sub bytes
-    v = vqtbl4q_u8(vld1q_u8_x4(SSE2NEON_sbox), w);
-    v = vqtbx4q_u8(v, vld1q_u8_x4(SSE2NEON_sbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, vld1q_u8_x4(SSE2NEON_sbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, vld1q_u8_x4(SSE2NEON_sbox + 0xc0), w - 0xc0);
+    v = vqtbl4q_u8(sse2neon_vld1q_u8_x4(SSE2NEON_sbox), w);
+    v = vqtbx4q_u8(v, sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x40), w - 0x40);
+    v = vqtbx4q_u8(v, sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x80), w - 0x80);
+    v = vqtbx4q_u8(v, sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0xc0), w - 0xc0);
 
     // mix columns
     w = (v << 1) ^ (uint8x16_t)(((int8x16_t) v >> 7) & 0x1b);
