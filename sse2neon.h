@@ -430,6 +430,16 @@ FORCE_INLINE void _mm_prefetch(const void *p, int i)
     __builtin_prefetch(p);
 }
 
+// Pause the processor. This is typically used in spin-wait loops and depending
+// on the x86 processor typical values are in the 40-100 cycle range. The
+// 'yield' instruction isn't a good fit beacuse it's effectively a nop on most
+// Arm cores. Experience with several databases has shown has shown an 'isb' is
+// a reasonable approximation.
+FORCE_INLINE void _mm_pause()
+{
+    __asm__ __volatile__("isb\n");
+}
+
 // Copy the lower single-precision (32-bit) floating-point element of a to dst.
 //
 //   dst[31:0] := a[31:0]
