@@ -4968,7 +4968,13 @@ result_t test_mm_store_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_store_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    int32_t p[4];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    _mm_store_si128((__m128i *) p, a);
+
+    return validateInt32(a, p[0], p[1], p[2], p[3]);
 }
 
 result_t test_mm_store1_pd(const SSE2NEONTestImpl &impl, uint32_t i)
