@@ -4973,7 +4973,7 @@ result_t test_mm_store_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_store1_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_store_pd1(impl, i);
 }
 
 result_t test_mm_storeh_pd(const SSE2NEONTestImpl &impl, uint32_t i)
