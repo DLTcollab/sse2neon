@@ -2044,12 +2044,12 @@ result_t test_mm_or_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_pavgb(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_avg_pu8(impl, i);
 }
 
 result_t test_m_pavgw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_avg_pu16(impl, i);
 }
 
 result_t test_m_pextrw(const SSE2NEONTestImpl &impl, uint32_t i)
