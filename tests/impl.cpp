@@ -1589,7 +1589,25 @@ result_t test_mm_cvttss_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_div_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+    float f0 = _a[0] / _b[0];
+    float f1 = _a[1] / _b[1];
+    float f2 = _a[2] / _b[2];
+    float f3 = _a[3] / _b[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 c = _mm_div_ps(a, b);
+
+#if defined(__arm__) && !defined(__aarch64__)
+    // The implementation of "_mm_div_ps()" on ARM 32bit doesn't use "DIV"
+    // instruction directly, instead it uses "FRECPE" instruction to approximate
+    // it. Therefore, the precision is not as small as other architecture
+    return validateFloatError(c, f0, f1, f2, f3, 0.00001f);
+#else
+    return validateFloat(c, f0, f1, f2, f3);
+#endif
 }
 
 result_t test_mm_div_ss(const SSE2NEONTestImpl &impl, uint32_t i)
