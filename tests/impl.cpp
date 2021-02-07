@@ -2054,7 +2054,7 @@ result_t test_m_pavgw(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_pextrw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_extract_pi16(impl, i);
 }
 
 result_t test_m_pinsrw(const SSE2NEONTestImpl &impl, uint32_t i)
