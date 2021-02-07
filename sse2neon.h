@@ -1421,6 +1421,20 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
         veorq_s32(vreinterpretq_s32_m128i(a), vreinterpretq_s32_m128i(b)));
 }
 
+// Duplicate the low double-precision (64-bit) floating-point element from a,
+// and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movedup_pd
+FORCE_INLINE __m128d _mm_movedup_pd(__m128d a)
+{
+#if (__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vdupq_laneq_f64(vreinterpretq_f64_m128d(a), 0));
+#else
+    return vreinterpretq_m128d_u64(
+        vdupq_n_u64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0)));
+#endif
+}
+
 // Duplicate odd-indexed single-precision (32-bit) floating-point elements
 // from a, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movehdup_ps
