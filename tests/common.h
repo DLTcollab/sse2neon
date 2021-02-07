@@ -174,6 +174,12 @@ result_t validateFloatEpsilon(__m128 a,
                               float f2,
                               float f3,
                               float epsilon);
+result_t validateFloatError(__m128 a,
+                            float f0,
+                            float f1,
+                            float f2,
+                            float f3,
+                            float err);
 result_t validateDouble(__m128d a, double d0, double d1);
 }  // namespace SSE2NEON
 
