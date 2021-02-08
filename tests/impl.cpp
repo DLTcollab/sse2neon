@@ -6250,7 +6250,9 @@ result_t test_mm_blend_ps(const SSE2NEONTestImpl &impl, uint32_t i)
         c = _mm_blend_ps(a, b, 15);
         break;
     }
+
     return validateFloat(c, _c[0], _c[1], _c[2], _c[3]);
+
 }
 
 result_t test_mm_blendv_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
