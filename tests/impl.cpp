@@ -6230,7 +6230,82 @@ result_t test_mm_blend_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_blend_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+
+    const char mask = (char) i;
+
+    float _c[4];
+    for (int i = 0; i < 4; i++) {
+        if (mask & (1 << i)) {
+            _c[i] = _b[i];
+        } else {
+            _c[i] = _a[i];
+        }
+    }
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+
+    // gcc and clang can't compile call to _mm_blend_ps with 3rd argument as
+    // integer type due 4 bit size limitation and test framework doesn't support
+    // compile time constant so for testing decided explicit define all 16
+    // possible values
+    __m128 c;
+    switch (mask & 0xF) {
+    case 0:
+        c = _mm_blend_ps(a, b, 0);
+        break;
+    case 1:
+        c = _mm_blend_ps(a, b, 1);
+        break;
+    case 2:
+        c = _mm_blend_ps(a, b, 2);
+        break;
+    case 3:
+        c = _mm_blend_ps(a, b, 3);
+        break;
+
+    case 4:
+        c = _mm_blend_ps(a, b, 4);
+        break;
+    case 5:
+        c = _mm_blend_ps(a, b, 5);
+        break;
+    case 6:
+        c = _mm_blend_ps(a, b, 6);
+        break;
+    case 7:
+        c = _mm_blend_ps(a, b, 7);
+        break;
+
+    case 8:
+        c = _mm_blend_ps(a, b, 8);
+        break;
+    case 9:
+        c = _mm_blend_ps(a, b, 9);
+        break;
+    case 10:
+        c = _mm_blend_ps(a, b, 10);
+        break;
+    case 11:
+        c = _mm_blend_ps(a, b, 11);
+        break;
+
+    case 12:
+        c = _mm_blend_ps(a, b, 12);
+        break;
+    case 13:
+        c = _mm_blend_ps(a, b, 13);
+        break;
+    case 14:
+        c = _mm_blend_ps(a, b, 14);
+        break;
+    case 15:
+        c = _mm_blend_ps(a, b, 15);
+        break;
+    }
+    return validateFloat(c, _c[0], _c[1], _c[2], _c[3]);
 }
 
 result_t test_mm_blendv_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
