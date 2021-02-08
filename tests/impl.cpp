@@ -6175,6 +6175,12 @@ result_t test_mm_blend_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_blend_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+// gcc and clang can't compile call to _mm_blend_ps with 3rd argument as integer type due 4 bit constatnt size limitation
+// and test framework doesn't support compile time constant
+// but on target platform its complie , run and passed    
+#if __x86_64__
+    return TEST_UNIMPL;
+#else
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
 
