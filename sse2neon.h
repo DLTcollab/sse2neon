@@ -1573,6 +1573,35 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
         ret;                                                                  \
     })
 
+// Concatenate 8-byte blocks in a and b into a 16-byte temporary result, shift
+// the result right by imm8 bytes, and store the low 8 bytes in dst.
+//
+//   tmp[127:0] := ((a[63:0] << 64)[127:0] OR b[63:0]) >> (imm8*8)
+//   dst[63:0] := tmp[63:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_alignr_pi8
+#define _mm_alignr_pi8(a, b, imm)                                           \
+    __extension__({                                                         \
+        __m64 ret;                                                          \
+        if (unlikely((imm) >= 16)) {                                        \
+            ret = vreinterpret_m64_s8(vdup_n_s8(0));                        \
+        } else {                                                            \
+            uint8x8_t tmp_low, tmp_high;                                    \
+            if (imm >= 8) {                                                 \
+                const int idx = imm - 8;                                    \
+                tmp_low = vreinterpret_u8_m64(a);                           \
+                tmp_high = vdup_n_u8(0);                                    \
+                ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
+            } else {                                                        \
+                const int idx = imm;                                        \
+                tmp_low = vreinterpret_u8_m64(b);                           \
+                tmp_high = vreinterpret_u8_m64(a);                          \
+                ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
+            }                                                               \
+        }                                                                   \
+        ret;                                                                \
+    })
+
 // Takes the upper 64 bits of a and places it in the low end of the result
 // Takes the lower 64 bits of b and places it into the high end of the result.
 FORCE_INLINE __m128 _mm_shuffle_ps_1032(__m128 a, __m128 b)
