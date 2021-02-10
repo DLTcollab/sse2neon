@@ -460,6 +460,27 @@ FORCE_INLINE float _mm_cvtss_f32(__m128 a)
     return vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
 }
 
+// Convert the lower single-precision (32-bit) floating-point element in b to a
+// double-precision (64-bit) floating-point element, store the result in the
+// lower element of dst, and copy the upper element from a to the upper element
+// of dst.
+//
+//   dst[63:0] := Convert_FP32_To_FP64(b[31:0])
+//   dst[127:64] := a[127:64]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtss_sd
+FORCE_INLINE __m128d _mm_cvtss_sd(__m128d a, __m128 b)
+{
+    double d = (double) vgetq_lane_f32(vreinterpretq_f32_m128(b), 0);
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vsetq_lane_f64(d, vreinterpretq_f64_m128d(a), 0));
+#else
+    return vreinterpretq_m128d_s64(
+        vsetq_lane_s64(*(int64_t *) &d, vreinterpretq_s64_m128d(a), 0));
+#endif
+}
+
 // Convert the lower single-precision (32-bit) floating-point element in a to a
 // 32-bit integer, and store the result in dst.
 //
