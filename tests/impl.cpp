@@ -2178,6 +2178,55 @@ result_t test_mm_set_ps1(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateFloat(ret, a, a, a, a);
 }
 
+result_t test_mm_set_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    const float *_a = impl.mTestFloatPointer1;
+    result_t res_toward_zero, res_to_neg_inf, res_to_pos_inf, res_nearest;
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b, c;
+
+// _MM_ROUND_TOWARD_ZERO has not the expected behavior on aarch32
+#if defined(__arm__)
+    res_toward_zero = TEST_SUCCESS;
+#else
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+    b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+    c = _mm_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+    res_toward_zero =
+        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
+                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
+#endif
+
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+    b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+    c = _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+    res_to_neg_inf =
+        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
+                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
+
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+    c = _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+    res_to_pos_inf =
+        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
+                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
+
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+    b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+    c = _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+    res_nearest =
+        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
+                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
+
+    if (res_toward_zero == TEST_SUCCESS && res_to_neg_inf == TEST_SUCCESS &&
+        res_to_pos_inf == TEST_SUCCESS && res_nearest == TEST_SUCCESS) {
+        return TEST_SUCCESS;
+    } else {
+        return TEST_FAIL;
+    }
+}
+
 result_t test_mm_set_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     float a = impl.mTestFloats[i];

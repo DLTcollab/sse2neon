@@ -141,6 +141,10 @@
 #define _MM_FROUND_TO_ZERO 0x03
 #define _MM_FROUND_CUR_DIRECTION 0x04
 #define _MM_FROUND_NO_EXC 0x08
+#define _MM_ROUND_NEAREST 0x0000
+#define _MM_ROUND_DOWN 0x2000
+#define _MM_ROUND_UP 0x4000
+#define _MM_ROUND_TOWARD_ZERO 0x6000
 
 /* indicate immediate constant argument in a given range */
 #define __constrange(a, b) const
@@ -5447,6 +5451,66 @@ FORCE_INLINE __m128d _mm_blendv_pd(__m128d _a, __m128d _b, __m128d _mask)
     uint64x2_t a = vreinterpretq_u64_m128d(_a);
     uint64x2_t b = vreinterpretq_u64_m128d(_b);
     return vreinterpretq_m128d_u64(vbslq_u64(mask, b, a));
+#endif
+}
+
+typedef struct {
+    uint16_t res0;
+    uint8_t res1 : 6;
+    uint8_t bit22 : 1;
+    uint8_t bit23 : 1;
+    uint8_t res2;
+#if defined(__aarch64__)
+    uint32_t res3;
+#endif
+} fpcr_bitfield;
+
+typedef union {
+    fpcr_bitfield field;
+#if defined(__aarch64__)
+    uint64_t value;
+#else
+    uint32_t value;
+#endif
+} reg;
+
+// Macro: Set the rounding mode bits of the MXCSR control and status register to
+// the value in unsigned 32-bit integer a. The rounding mode may contain any of
+// the following flags: _MM_ROUND_NEAREST, _MM_ROUND_DOWN, _MM_ROUND_UP,
+// _MM_ROUND_TOWARD_ZERO
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_MM_SET_ROUNDING_MODE
+FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
+{
+    reg r;
+
+#if defined(__aarch64__)
+    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+#else
+    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+#endif
+
+    switch (rounding) {
+    case _MM_ROUND_TOWARD_ZERO:
+        r.field.bit22 = 1;
+        r.field.bit23 = 1;
+        break;
+    case _MM_ROUND_DOWN:
+        r.field.bit22 = 0;
+        r.field.bit23 = 1;
+        break;
+    case _MM_ROUND_UP:
+        r.field.bit22 = 1;
+        r.field.bit23 = 0;
+        break;
+    default:  //_MM_ROUND_NEAREST
+        r.field.bit22 = 0;
+        r.field.bit23 = 0;
+    }
+
+#if defined(__aarch64__)
+    asm volatile("msr FPCR, %0" ::"r"(r)); /* write */
+#else
+    asm volatile("vmsr FPSCR, %0" ::"r"(r));        /* write */
 #endif
 }
 
