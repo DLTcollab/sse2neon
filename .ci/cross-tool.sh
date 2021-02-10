@@ -15,6 +15,7 @@ fi
 
 set -x
 
+sudo apt-get update
 sudo apt-get install -y curl xz-utils qemu-user
 
 curl -L \
