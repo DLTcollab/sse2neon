@@ -5419,7 +5419,6 @@ FORCE_INLINE __m128 _mm_blendv_ps(__m128 _a, __m128 _b, __m128 _mask)
     return vreinterpretq_m128_f32(vbslq_f32(mask, b, a));
 }
 
-
 // Blend packed single-precision (32-bit) floating-point elements from a and b
 // using mask, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_blend_ps

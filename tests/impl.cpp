@@ -2036,9 +2036,8 @@ result_t test_mm_or_ps(const SSE2NEONTestImpl &impl, uint32_t i)
     uint32_t r3 = ia[3] | ib[3];
     __m128i ret = do_mm_set_epi32(r3, r2, r1, r0);
     result_t r = validateInt32(*(const __m128i *) &c, r0, r1, r2, r3);
-    if (r) {
+    if (r)
         r = validateInt32(ret, r0, r1, r2, r3);
-    }
     return r;
 }
 
