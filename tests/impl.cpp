@@ -5842,7 +5842,35 @@ result_t test_mm_alignr_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_alignr_pi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+#if defined(__clang__)
     return TEST_UNIMPL;
+#else
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    // FIXME: The different immediate value should be tested in the future
+    const int shift = 10;
+    uint8_t d[16];
+
+    if (shift >= 16) {
+        memset((void *) d, 0, sizeof(d));
+    } else {
+        memcpy((void *) d, (const void *) _b, 8);
+        memcpy((void *) (d + 8), (const void *) _a, 8);
+        // shifting
+        for (uint x = 0; x < sizeof(d); x++) {
+            if (x + shift >= sizeof(d))
+                d[x] = 0;
+            else
+                d[x] = d[x + shift];
+        }
+    }
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *b = (const __m64 *) _b;
+    __m64 ret = _mm_alignr_pi8(*a, *b, shift);
+
+    return validateUInt8(ret, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
+#endif
 }
 
 result_t test_mm_hadd_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
