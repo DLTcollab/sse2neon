@@ -5464,15 +5464,6 @@ typedef struct {
 #endif
 } fpcr_bitfield;
 
-typedef union {
-    fpcr_bitfield field;
-#if defined(__aarch64__)
-    uint64_t value;
-#else
-    uint32_t value;
-#endif
-} reg;
-
 // Macro: Set the rounding mode bits of the MXCSR control and status register to
 // the value in unsigned 32-bit integer a. The rounding mode may contain any of
 // the following flags: _MM_ROUND_NEAREST, _MM_ROUND_DOWN, _MM_ROUND_UP,
@@ -5480,7 +5471,14 @@ typedef union {
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_MM_SET_ROUNDING_MODE
 FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
 {
-    reg r;
+    union {
+        fpcr_bitfield field;
+#if defined(__aarch64__)
+        uint64_t value;
+#else
+        uint32_t value;
+#endif
+    } r;
 
 #if defined(__aarch64__)
     asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
