@@ -3165,6 +3165,31 @@ FORCE_INLINE __m64 _mm_avg_pu8(__m64 a, __m64 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pextrw
 #define _m_pextrw(a, imm) _mm_extract_pi16(a, imm)
 
+// Copy a to dst, and insert the 16-bit integer i into dst at the location
+// specified by imm8.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=m_pinsrw
+#define _m_pinsrw(a, i, imm) _mm_insert_pi16(a, i, imm)
+
+// Compare packed signed 16-bit integers in a and b, and store packed maximum
+// values in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pmaxsw
+#define _m_pmaxsw(a, b) _mm_max_pi16(a, b)
+
+// Compare packed unsigned 8-bit integers in a and b, and store packed maximum
+// values in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pmaxub
+#define _m_pmaxub(a, b) _mm_max_pu8(a, b)
+
+// Compare packed signed 16-bit integers in a and b, and store packed minimum
+// values in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pminsw
+#define _m_pminsw(a, b) _mm_min_pi16(a, b)
+
+// Compare packed unsigned 8-bit integers in a and b, and store packed minimum
+// values in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pminub
+#define _m_pminub(a, b) _mm_min_pu8(a, b)
+
 // Computes the average of the 16 unsigned 8-bit integers in a and the 16
 // unsigned 8-bit integers in b and rounds.
 //
