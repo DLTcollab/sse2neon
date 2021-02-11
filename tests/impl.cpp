@@ -5493,7 +5493,14 @@ result_t test_mm_unpackhi_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_unpackhi_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d ret = _mm_unpackhi_pd(a, b);
+
+    return validateDouble(ret, _a[1], _b[1]);
 }
 
 result_t test_mm_unpacklo_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -5581,7 +5588,14 @@ result_t test_mm_unpacklo_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_unpacklo_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d ret = _mm_unpacklo_pd(a, b);
+
+    return validateDouble(ret, _a[0], _b[0]);
 }
 
 result_t test_mm_xor_pd(const SSE2NEONTestImpl &impl, uint32_t i)

@@ -5873,6 +5873,52 @@ FORCE_INLINE __m128 _mm_unpacklo_ps(__m128 a, __m128 b)
 #endif
 }
 
+// Unpack and interleave double-precision (64-bit) floating-point elements from
+// the low half of a and b, and store the results in dst.
+//
+//   DEFINE INTERLEAVE_QWORDS(src1[127:0], src2[127:0]) {
+//     dst[63:0] := src1[63:0]
+//     dst[127:64] := src2[63:0]
+//     RETURN dst[127:0]
+//   }
+//   dst[127:0] := INTERLEAVE_QWORDS(a[127:0], b[127:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_unpacklo_pd
+FORCE_INLINE __m128d _mm_unpacklo_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vzip1q_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    return vreinterpretq_m128d_s64(
+        vcombine_s64(vget_low_s64(vreinterpretq_s64_m128d(a)),
+                     vget_low_s64(vreinterpretq_s64_m128d(b))));
+#endif
+}
+
+// Unpack and interleave double-precision (64-bit) floating-point elements from
+// the high half of a and b, and store the results in dst.
+//
+//   DEFINE INTERLEAVE_HIGH_QWORDS(src1[127:0], src2[127:0]) {
+//     dst[63:0] := src1[127:64]
+//     dst[127:64] := src2[127:64]
+//     RETURN dst[127:0]
+//   }
+//   dst[127:0] := INTERLEAVE_HIGH_QWORDS(a[127:0], b[127:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_unpackhi_pd
+FORCE_INLINE __m128d _mm_unpackhi_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vzip2q_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    return vreinterpretq_m128d_s64(
+        vcombine_s64(vget_high_s64(vreinterpretq_s64_m128d(a)),
+                     vget_high_s64(vreinterpretq_s64_m128d(b))));
+#endif
+}
+
 // Selects and interleaves the upper two single-precision, floating-point values
 // from a and b.
 //
