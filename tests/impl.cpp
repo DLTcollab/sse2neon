@@ -2058,27 +2058,27 @@ result_t test_m_pextrw(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_pinsrw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_insert_pi16(impl, i);
 }
 
 result_t test_m_pmaxsw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_max_pi16(impl, i);
 }
 
 result_t test_m_pmaxub(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_max_pu8(impl, i);
 }
 
 result_t test_m_pminsw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_min_pi16(impl, i);
 }
 
 result_t test_m_pminub(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_min_pu8(impl, i);
 }
 
 result_t test_m_pmovmskb(const SSE2NEONTestImpl &impl, uint32_t i)
