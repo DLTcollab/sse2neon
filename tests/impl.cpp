@@ -5744,7 +5744,11 @@ result_t test_mm_loaddup_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_movedup_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *p = (const double *) impl.mTestFloatPointer1;
+    __m128d a = do_mm_load_pd(p);
+    __m128d b = _mm_movedup_pd(a);
+
+    return validateDouble(b, p[0], p[0]);
 }
 
 result_t test_mm_movehdup_ps(const SSE2NEONTestImpl &impl, uint32_t i)
