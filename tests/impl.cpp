@@ -1589,12 +1589,49 @@ result_t test_mm_cvttss_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_div_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+    float f0 = _a[0] / _b[0];
+    float f1 = _a[1] / _b[1];
+    float f2 = _a[2] / _b[2];
+    float f3 = _a[3] / _b[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 c = _mm_div_ps(a, b);
+
+#if defined(__arm__) && !defined(__aarch64__)
+    // The implementation of "_mm_div_ps()" on ARM 32bit doesn't use "DIV"
+    // instruction directly, instead it uses "FRECPE" instruction to approximate
+    // it. Therefore, the precision is not as small as other architecture
+    return validateFloatError(c, f0, f1, f2, f3, 0.00001f);
+#else
+    return validateFloat(c, f0, f1, f2, f3);
+#endif
 }
 
 result_t test_mm_div_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+
+    float d0 = _a[0] / _b[0];
+    float d1 = _a[1];
+    float d2 = _a[2];
+    float d3 = _a[3];
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 c = _mm_div_ss(a, b);
+
+#if defined(__arm__) && !defined(__aarch64__)
+    // The implementation of "_mm_div_ps()" on ARM 32bit doesn't use "DIV"
+    // instruction directly, instead it uses "FRECPE" instruction to approximate
+    // it. Therefore, the precision is not as small as other architecture
+    return validateFloatError(c, d0, d1, d2, d3, 0.00001f);
+#else
+    return validateFloat(c, d0, d1, d2, d3);
+#endif
 }
 
 result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -2058,27 +2095,27 @@ result_t test_m_pextrw(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_pinsrw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_insert_pi16(impl, i);
 }
 
 result_t test_m_pmaxsw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_max_pi16(impl, i);
 }
 
 result_t test_m_pmaxub(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_max_pu8(impl, i);
 }
 
 result_t test_m_pminsw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_min_pi16(impl, i);
 }
 
 result_t test_m_pminub(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_min_pu8(impl, i);
 }
 
 result_t test_m_pmovmskb(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -2242,7 +2279,7 @@ result_t test_mm_set1_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_setcsr(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_set_rounding_mode(impl, i);
 }
 
 result_t test_mm_setr_ps(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3628,7 +3665,15 @@ result_t test_mm_cvtsi64x_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtss_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+    double d0 = double(_b[0]);
+    double d1 = _a[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128d c = _mm_cvtss_sd(a, b);
+    return validateDouble(c, d0, d1);
 }
 
 result_t test_mm_cvttpd_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -5485,7 +5530,14 @@ result_t test_mm_unpackhi_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_unpackhi_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d ret = _mm_unpackhi_pd(a, b);
+
+    return validateDouble(ret, _a[1], _b[1]);
 }
 
 result_t test_mm_unpacklo_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -5573,7 +5625,14 @@ result_t test_mm_unpacklo_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_unpacklo_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d ret = _mm_unpacklo_pd(a, b);
+
+    return validateDouble(ret, _a[0], _b[0]);
 }
 
 result_t test_mm_xor_pd(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -5685,7 +5744,11 @@ result_t test_mm_loaddup_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_movedup_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *p = (const double *) impl.mTestFloatPointer1;
+    __m128d a = do_mm_load_pd(p);
+    __m128d b = _mm_movedup_pd(a);
+
+    return validateDouble(b, p[0], p[0]);
 }
 
 result_t test_mm_movehdup_ps(const SSE2NEONTestImpl &impl, uint32_t i)
