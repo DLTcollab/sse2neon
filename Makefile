@@ -3,7 +3,7 @@ override CXX = g++
 endif
 
 ifndef CROSS_COMPILE
-    processor := $(shell uname -p)
+    processor := $(shell uname -m)
 else # CROSS_COMPILE was set
     CXX = $(CROSS_COMPILE)g++
     CXXFLAGS += -static
