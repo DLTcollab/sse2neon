@@ -2261,7 +2261,7 @@ result_t test_mm_set1_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_setcsr(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_set_rounding_mode(impl, i);
 }
 
 result_t test_mm_setr_ps(const SSE2NEONTestImpl &impl, uint32_t i)

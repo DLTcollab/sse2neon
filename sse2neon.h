@@ -5586,6 +5586,11 @@ FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
 #endif
 }
 
+FORCE_INLINE void _mm_setcsr(unsigned int a)
+{
+    _MM_SET_ROUNDING_MODE(a);
+}
+
 // Round the packed single-precision (32-bit) floating-point elements in a using
 // the rounding parameter, and store the results as packed single-precision
 // floating-point elements in dst.
