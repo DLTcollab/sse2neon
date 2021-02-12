@@ -318,6 +318,25 @@ result_t validateFloatEpsilon(__m128 a,
     return TEST_SUCCESS;
 }
 
+result_t validateFloatError(__m128 a,
+                            float f0,
+                            float f1,
+                            float f2,
+                            float f3,
+                            float err)
+{
+    const float *t = (const float *) &a;
+    float df0 = fabsf((t[0] - f0) / f0);
+    float df1 = fabsf((t[1] - f1) / f1);
+    float df2 = fabsf((t[2] - f2) / f2);
+    float df3 = fabsf((t[3] - f3) / f3);
+    ASSERT_RETURN(df0 < err);
+    ASSERT_RETURN(df1 < err);
+    ASSERT_RETURN(df2 < err);
+    ASSERT_RETURN(df3 < err);
+    return TEST_SUCCESS;
+}
+
 result_t validateDouble(__m128d a, double d0, double d1)
 {
     const double *t = (const double *) &a;
