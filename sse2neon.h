@@ -325,7 +325,7 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
     ((__GNUC__ == 10 && (__GNUC_MINOR__ <= 1)) || \
      (__GNUC__ == 9 && (__GNUC_MINOR__ <= 3)) ||  \
      (__GNUC__ == 8 && (__GNUC_MINOR__ <= 4)) || __GNUC__ <= 7)
-FORCE_INLINE uint8x16x4_t sse2neon_vld1q_u8_x4(const uint8_t *p)
+FORCE_INLINE uint8x16x4_t _sse2neon_vld1q_u8_x4(const uint8_t *p)
 {
     uint8x16x4_t ret;
     ret.val[0] = vld1q_u8(p + 0);
@@ -335,7 +335,8 @@ FORCE_INLINE uint8x16x4_t sse2neon_vld1q_u8_x4(const uint8_t *p)
     return ret;
 }
 #else
-FORCE_INLINE uint8x16x4_t sse2neon_vld1q_u8_x4(const uint8_t *p)
+// Wraps vld1q_u8_x4
+FORCE_INLINE uint8x16x4_t _sse2neon_vld1q_u8_x4(const uint8_t *p)
 {
     return vld1q_u8_x4(p);
 }
@@ -4328,7 +4329,7 @@ FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
 
 // Kahan summation for accurate summation of floating-point numbers.
 // http://blog.zachbjornson.com/2019/08/11/fast-float-summation.html
-FORCE_INLINE void sse2neon_kadd_f32(float *sum, float *c, float y)
+FORCE_INLINE void _sse2neon_kadd_f32(float *sum, float *c, float y)
 {
     y -= *c;
     float t = *sum + y;
@@ -4362,13 +4363,13 @@ FORCE_INLINE __m128 _mm_dp_ps(__m128 a, __m128 b, const int imm)
      * is used for each operation.
      */
     if (imm & (1 << 4))
-        sse2neon_kadd_f32(&s, &c, f32a[0] * f32b[0]);
+        _sse2neon_kadd_f32(&s, &c, f32a[0] * f32b[0]);
     if (imm & (1 << 5))
-        sse2neon_kadd_f32(&s, &c, f32a[1] * f32b[1]);
+        _sse2neon_kadd_f32(&s, &c, f32a[1] * f32b[1]);
     if (imm & (1 << 6))
-        sse2neon_kadd_f32(&s, &c, f32a[2] * f32b[2]);
+        _sse2neon_kadd_f32(&s, &c, f32a[2] * f32b[2]);
     if (imm & (1 << 7))
-        sse2neon_kadd_f32(&s, &c, f32a[3] * f32b[3]);
+        _sse2neon_kadd_f32(&s, &c, f32a[3] * f32b[3]);
     s += c;
 
     float32x4_t res = {
@@ -6508,10 +6509,10 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
     w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
 
     // sub bytes
-    v = vqtbl4q_u8(sse2neon_vld1q_u8_x4(SSE2NEON_sbox), w);
-    v = vqtbx4q_u8(v, sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0xc0), w - 0xc0);
+    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(SSE2NEON_sbox), w);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x40), w - 0x40);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x80), w - 0x80);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0xc0), w - 0xc0);
 
     // mix columns
     w = (v << 1) ^ (uint8x16_t)(((int8x16_t) v >> 7) & 0x1b);
