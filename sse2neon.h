@@ -2172,6 +2172,25 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 #define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
 #endif
 
+// Shuffle double-precision (64-bit) floating-point elements using the control
+// in imm8, and store the results in dst.
+//
+//   dst[63:0] := (imm8[0] == 0) ? a[63:0] : a[127:64]
+//   dst[127:64] := (imm8[1] == 0) ? b[63:0] : b[127:64]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_pd
+#if __has_builtin(__builtin_shufflevector)
+#define _mm_shuffle_pd(a, b, imm8)                                          \
+    vreinterpretq_m128d_s64(__builtin_shufflevector(                        \
+        vreinterpretq_s64_m128d(a), vreinterpretq_s64_m128d(b), imm8 & 0x1, \
+        ((imm8 & 0x2) >> 1) + 2))
+#else
+#define _mm_shuffle_pd(a, b, imm8)                                     \
+    _mm_castsi128_pd(_mm_set_epi64x(                                   \
+        vgetq_lane_s64(vreinterpretq_s64_m128d(b), (imm8 & 0x2) >> 1), \
+        vgetq_lane_s64(vreinterpretq_s64_m128d(a), imm8 & 0x1)))
+#endif
+
 // Blend packed 16-bit integers from a and b using control mask imm8, and store
 // the results in dst.
 //
