@@ -2553,32 +2553,38 @@ result_t test_mm_sub_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_ucomieq_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // _mm_ucomieq_ss is equal to _mm_comieq_ss
+    return test_mm_comieq_ss(impl, i);
 }
 
 result_t test_mm_ucomige_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // _mm_ucomige_ss is equal to _mm_comige_ss
+    return test_mm_comige_ss(impl, i);
 }
 
 result_t test_mm_ucomigt_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // _mm_ucomigt_ss is equal to _mm_comigt_ss
+    return test_mm_comigt_ss(impl, i);
 }
 
 result_t test_mm_ucomile_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // _mm_ucomile_ss is equal to _mm_comile_ss
+    return test_mm_comile_ss(impl, i);
 }
 
 result_t test_mm_ucomilt_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // _mm_ucomilt_ss is equal to _mm_comilt_ss
+    return test_mm_comilt_ss(impl, i);
 }
 
 result_t test_mm_ucomineq_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    // _mm_ucomineq_ss is equal to _mm_comineq_ss
+    return test_mm_comineq_ss(impl, i);
 }
 
 result_t test_mm_undefined_ps(const SSE2NEONTestImpl &impl, uint32_t i)
