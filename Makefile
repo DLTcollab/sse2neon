@@ -24,7 +24,7 @@ EXEC_WRAPPER = qemu-$(processor)
 endif
 
 # Follow platform-specific configurations
-ifeq ($(processor),aarch64)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64))
     ARCH_CFLAGS = -march=armv8-a+fp+simd+crc
 else ifeq ($(processor),$(filter $(processor),i386 x86_64))
     ARCH_CFLAGS = -maes -mpclmul -mssse3 -msse4.2
