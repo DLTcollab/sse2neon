@@ -61,8 +61,12 @@
 #pragma push_macro("ALIGN_STRUCT")
 #define FORCE_INLINE static inline __attribute__((always_inline))
 #define ALIGN_STRUCT(x) __attribute__((aligned(x)))
+#ifndef likely
 #define likely(x) __builtin_expect(!!(x), 1)
+#endif
+#ifndef unlikely
 #define unlikely(x) __builtin_expect(!!(x), 0)
+#endif
 #else
 #error "Macro name collisions may happen with unsupported compiler."
 #ifdef FORCE_INLINE
@@ -75,6 +79,8 @@
 #endif
 #ifndef likely
 #define likely(x) (x)
+#endif
+#ifndef unlikely
 #define unlikely(x) (x)
 #endif
 
@@ -92,11 +98,15 @@
 #if !defined(__ARM_NEON) || !defined(__ARM_NEON__)
 #error "You must enable NEON instructions (e.g. -mfpu=neon) to use SSE2NEON."
 #endif
+#if !defined(__clang__)
 #pragma GCC push_options
 #pragma GCC target("fpu=neon")
+#endif
 #elif defined(__aarch64__)
+#if !defined(__clang__)
 #pragma GCC push_options
 #pragma GCC target("+simd")
+#endif
 #else
 #error "Unsupported target. Must be either ARMv7-A+NEON or ARMv8-A."
 #endif
@@ -1268,8 +1278,15 @@ FORCE_INLINE __m128i _mm_move_epi64(__m128i a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_undefined_ps
 FORCE_INLINE __m128 _mm_undefined_ps(void)
 {
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#endif
     __m128 a;
     return a;
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 }
 
 /* Logic/Binary operations */
@@ -6832,7 +6849,7 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 #pragma pop_macro("FORCE_INLINE")
 #endif
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC pop_options
 #endif
 
