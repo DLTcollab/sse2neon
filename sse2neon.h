@@ -48,12 +48,21 @@
 
 /* Tunable configurations */
 
-/* Enable precise implementation of _mm_min_ps and _mm_max_ps
+/* Enable precise implementation of math operations
  * This would slow down the computation a bit, but gives consistent result with
  * x86 SSE2. (e.g. would solve a hole or NaN pixel in the rendering result)
  */
+/* _mm_min_ps and _mm_max_ps */
 #ifndef SSE2NEON_PRECISE_MINMAX
 #define SSE2NEON_PRECISE_MINMAX (0)
+#endif
+/* _mm_rcp_ps and _mm_div_ps */
+#ifndef SSE2NEON_PRECISE_DIV
+#define SSE2NEON_PRECISE_DIV (0)
+#endif
+/* _mm_sqrt_ps and _mm_rsqrt_ps */
+#ifndef SSE2NEON_PRECISE_SQRT
+#define SSE2NEON_PRECISE_SQRT (0)
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -3729,14 +3738,17 @@ FORCE_INLINE __m64 _mm_sad_pu8(__m64 a, __m64 b)
 // https://msdn.microsoft.com/en-us/library/edaw8147(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) && !SSE2NEON_PRECISE_DIV
     return vreinterpretq_m128_f32(
         vdivq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 #else
-    float32x4_t recip0 = vrecpeq_f32(vreinterpretq_f32_m128(b));
-    float32x4_t recip1 =
-        vmulq_f32(recip0, vrecpsq_f32(recip0, vreinterpretq_f32_m128(b)));
-    return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(a), recip1));
+    float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(b));
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(b)));
+#if SSE2NEON_PRECISE_DIV
+    // Additional Netwon-Raphson iteration for accuracy
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(b)));
+#endif
+    return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(a), recip));
 #endif
 }
 
@@ -3797,14 +3809,13 @@ FORCE_INLINE __m128d _mm_div_sd(__m128d a, __m128d b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_rcp_ps
 FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
 {
-#if defined(__aarch64__)
-    return vreinterpretq_m128_f32(
-        vdivq_f32(vdupq_n_f32(1.0f), vreinterpretq_f32_m128(in)));
-#else
     float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(in));
     recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
-    return vreinterpretq_m128_f32(recip);
+#if SSE2NEON_PRECISE_DIV
+    // Additional Netwon-Raphson iteration for accuracy
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
 #endif
+    return vreinterpretq_m128_f32(recip);
 }
 
 // Compute the approximate reciprocal of the lower single-precision (32-bit)
@@ -3833,12 +3844,32 @@ FORCE_INLINE __m128 _mm_rcp_ss(__m128 a)
 // https://msdn.microsoft.com/en-us/library/vstudio/8z67bwwk(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_PRECISE_SQRT
+    float32x4_t recip = vrsqrteq_f32(vreinterpretq_f32_m128(in));
+
+    // Test for vrsqrteq_f32(0) -> positive infinity case.
+    // Change to zero, so that s * 1/sqrt(s) result is zero too.
+    const uint32x4_t pos_inf = vdupq_n_u32(0x7F800000);
+    const uint32x4_t div_by_zero =
+        vceqq_u32(pos_inf, vreinterpretq_u32_f32(recip));
+    recip = vreinterpretq_f32_u32(
+        vandq_u32(vmvnq_u32(div_by_zero), vreinterpretq_u32_f32(recip)));
+
+    // Additional Netwon-Raphson iteration for accuracy
+    recip = vmulq_f32(
+        vrsqrtsq_f32(vmulq_f32(recip, recip), vreinterpretq_f32_m128(in)),
+        recip);
+    recip = vmulq_f32(
+        vrsqrtsq_f32(vmulq_f32(recip, recip), vreinterpretq_f32_m128(in)),
+        recip);
+
+    // sqrt(s) = s * 1/sqrt(s)
+    return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(in), recip));
+#elif defined(__aarch64__)
     return vreinterpretq_m128_f32(vsqrtq_f32(vreinterpretq_f32_m128(in)));
 #else
     float32x4_t recipsq = vrsqrteq_f32(vreinterpretq_f32_m128(in));
     float32x4_t sq = vrecpeq_f32(recipsq);
-    // ??? use step versions of both sqrt and recip for better accuracy?
     return vreinterpretq_m128_f32(sq);
 #endif
 }
@@ -3859,7 +3890,15 @@ FORCE_INLINE __m128 _mm_sqrt_ss(__m128 in)
 // https://msdn.microsoft.com/en-us/library/22hfsh53(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
 {
-    return vreinterpretq_m128_f32(vrsqrteq_f32(vreinterpretq_f32_m128(in)));
+    float32x4_t out = vrsqrteq_f32(vreinterpretq_f32_m128(in));
+#if SSE2NEON_PRECISE_SQRT
+    // Additional Netwon-Raphson iteration for accuracy
+    out = vmulq_f32(
+        out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+    out = vmulq_f32(
+        out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+#endif
+    return vreinterpretq_m128_f32(out);
 }
 
 // Compute the approximate reciprocal square root of the lower single-precision
