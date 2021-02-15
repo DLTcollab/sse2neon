@@ -4621,7 +4621,14 @@ result_t test_mm_setr_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_setr_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *p = (const double *) impl.mTestFloatPointer1;
+
+    double x = p[0];
+    double y = p[1];
+
+    __m128d a = _mm_setr_pd(x, y);
+
+    return validateDouble(a, x, y);
 }
 
 result_t test_mm_setzero_pd(const SSE2NEONTestImpl &impl, uint32_t i)

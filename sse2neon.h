@@ -866,6 +866,14 @@ FORCE_INLINE __m128d _mm_set_pd(double e1, double e0)
 #endif
 }
 
+// Set packed double-precision (64-bit) floating-point elements in dst with the
+// supplied values in reverse order.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_setr_pd
+FORCE_INLINE __m128d _mm_setr_pd(double e1, double e0)
+{
+    return _mm_set_pd(e0, e1);
+}
+
 // Copy double-precision (64-bit) floating-point element a to the lower element
 // of dst, and zero the upper element.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_sd
