@@ -6568,7 +6568,16 @@ result_t test_mm_ceil_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_ceil_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer1;
+
+    float f0 = ceilf(_b[0]);
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 c = _mm_ceil_ss(a, b);
+
+    return validateFloat(c, f0, _a[1], _a[2], _a[3]);
 }
 
 result_t test_mm_cmpeq_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -6838,7 +6847,16 @@ result_t test_mm_floor_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_floor_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer1;
+
+    float f0 = floorf(_b[0]);
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 b = do_mm_load_ps(_b);
+    __m128 c = _mm_floor_ss(a, b);
+
+    return validateFloat(c, f0, _a[1], _a[2], _a[3]);
 }
 
 result_t test_mm_insert_epi32(const SSE2NEONTestImpl &impl, uint32_t i)

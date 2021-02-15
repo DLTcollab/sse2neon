@@ -5776,6 +5776,21 @@ FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
     return _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
 }
 
+// Round the lower single-precision (32-bit) floating-point element in b up to
+// an integer value, store the result as a single-precision floating-point
+// element in the lower element of dst, and copy the upper 3 packed elements
+// from a to the upper elements of dst.
+//
+//   dst[31:0] := CEIL(b[31:0])
+//   dst[127:32] := a[127:32]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_ceil_ss
+FORCE_INLINE __m128 _mm_ceil_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(
+        a, _mm_round_ps(b, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC));
+}
+
 // Round the packed single-precision (32-bit) floating-point elements in a down
 // to an integer value, and store the results as packed single-precision
 // floating-point elements in dst.
@@ -5785,6 +5800,20 @@ FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
     return _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
 }
 
+// Round the lower single-precision (32-bit) floating-point element in b down to
+// an integer value, store the result as a single-precision floating-point
+// element in the lower element of dst, and copy the upper 3 packed elements
+// from a to the upper elements of dst.
+//
+//   dst[31:0] := FLOOR(b[31:0])
+//   dst[127:32] := a[127:32]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_floor_ss
+FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
+{
+    return _mm_move_ss(
+        a, _mm_round_ps(b, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC));
+}
 
 // Load 128-bits of integer data from unaligned memory into dst. This intrinsic
 // may perform better than _mm_loadu_si128 when the data crosses a cache line
