@@ -23,6 +23,8 @@
 //   François Turban (JishinMaster) <francois.turban@gmail.com>
 //   Pei-Hsuan Hung <afcidk@gmail.com>
 //   Yang-Hao Yuan <yanghau@biilabs.io>
+//   Syoyo Fujita <syoyo@lighttransport.com>
+//   Brecht Van Lommel <brecht@blender.org>
 
 /*
  * sse2neon is freely redistributable under the MIT License.
