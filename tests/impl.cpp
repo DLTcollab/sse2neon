@@ -5129,7 +5129,14 @@ result_t test_mm_storel_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_storer_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    double *p = (double *) impl.mTestFloatPointer1;
+    double mem[2];
+
+    __m128d a = do_mm_load_pd(p);
+    _mm_storer_pd(mem, a);
+
+    __m128d res = do_mm_load_pd(mem);
+    return validateDouble(res, p[1], p[0]);
 }
 
 result_t test_mm_storeu_pd(const SSE2NEONTestImpl &impl, uint32_t i)
