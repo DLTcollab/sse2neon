@@ -982,6 +982,20 @@ FORCE_INLINE void _mm_store_pd(double *mem_addr, __m128d a)
 #endif
 }
 
+// Store 2 double-precision (64-bit) floating-point elements from a into memory
+// in reverse order. mem_addr must be aligned on a 16-byte boundary or a
+// general-protection exception may be generated.
+//
+//   MEM[mem_addr+63:mem_addr] := a[127:64]
+//   MEM[mem_addr+127:mem_addr+64] := a[63:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storer_pd
+FORCE_INLINE void _mm_storer_pd(double *mem_addr, __m128d a)
+{
+    float32x4_t f = vreinterpretq_f32_m128d(a);
+    _mm_store_pd(mem_addr, vreinterpretq_m128d_f32(vextq_f32(f, f, 2)));
+}
+
 // Store the lower double-precision (64-bit) floating-point element from a into
 // 2 contiguous elements in memory. mem_addr must be aligned on a 16-byte
 // boundary or a general-protection exception may be generated.
