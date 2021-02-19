@@ -3688,12 +3688,27 @@ FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 // Alternatively add and subtract packed single-precision (32-bit)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.
-//
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
     __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
     return _mm_fmadd_ps(b, mask, a);
+}
+
+// Horizontally add adjacent pairs of double-precision (64-bit) floating-point
+// elements in a and b, and pack the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hadd_pd
+FORCE_INLINE __m128d _mm_hadd_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vpaddq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[] = {da[0] + da[1], db[0] + db[1]};
+    return vreinterpretq_m128d_u64(vld1q_u64((uint64_t *) c));
+#endif
 }
 
 // Compute the absolute differences of packed unsigned 8-bit integers in a and
