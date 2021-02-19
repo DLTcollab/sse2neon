@@ -3497,7 +3497,12 @@ result_t test_mm_comineq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtepi32_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = impl.mTestIntPointer1;
+    __m128i a = do_mm_load_ps(_a);
+    double trun[2] = {(double) _a[0], (double) _a[1]};
+
+    __m128d ret = _mm_cvtepi32_pd(a);
+    return validateDouble(ret, trun[0], trun[1]);
 }
 
 result_t test_mm_cvtepi32_ps(const SSE2NEONTestImpl &impl, uint32_t i)
