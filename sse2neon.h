@@ -982,6 +982,36 @@ FORCE_INLINE void _mm_store_pd(double *mem_addr, __m128d a)
 #endif
 }
 
+// Store the upper double-precision (64-bit) floating-point element from a into
+// memory.
+//
+//   MEM[mem_addr+63:mem_addr] := a[127:64]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storeh_pd
+FORCE_INLINE void _mm_storeh_pd(double *mem_addr, __m128d a)
+{
+#if defined(__aarch64__)
+    vst1_f64((float64_t *) mem_addr, vget_high_f64(vreinterpretq_f64_m128d(a)));
+#else
+    vst1_f32((float32_t *) mem_addr, vget_high_f32(vreinterpretq_f32_m128d(a)));
+#endif
+}
+
+// Store the lower double-precision (64-bit) floating-point element from a into
+// memory.
+//
+//   MEM[mem_addr+63:mem_addr] := a[63:0]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_storel_pd
+FORCE_INLINE void _mm_storel_pd(double *mem_addr, __m128d a)
+{
+#if defined(__aarch64__)
+    vst1_f64((float64_t *) mem_addr, vget_low_f64(vreinterpretq_f64_m128d(a)));
+#else
+    vst1_f32((float32_t *) mem_addr, vget_low_f32(vreinterpretq_f32_m128d(a)));
+#endif
+}
+
 // Store 2 double-precision (64-bit) floating-point elements from a into memory
 // in reverse order. mem_addr must be aligned on a 16-byte boundary or a
 // general-protection exception may be generated.

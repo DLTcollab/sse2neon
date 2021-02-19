@@ -5114,7 +5114,14 @@ result_t test_mm_store1_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_storeh_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    double *p = (double *) impl.mTestFloatPointer1;
+    double mem;
+
+    __m128d a = do_mm_load_pd(p);
+    _mm_storeh_pd(&mem, a);
+
+    ASSERT_RETURN(mem == p[1]);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_storel_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -5124,7 +5131,14 @@ result_t test_mm_storel_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_storel_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    double *p = (double *) impl.mTestFloatPointer1;
+    double mem;
+
+    __m128d a = do_mm_load_pd(p);
+    _mm_storel_pd(&mem, a);
+
+    ASSERT_RETURN(mem == p[0]);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_storer_pd(const SSE2NEONTestImpl &impl, uint32_t i)
