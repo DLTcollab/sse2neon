@@ -3304,6 +3304,12 @@ FORCE_INLINE __m64 _mm_avg_pu8(__m64 a, __m64 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pminub
 #define _m_pminub(a, b) _mm_min_pu8(a, b)
 
+// Multiply the packed unsigned 16-bit integers in a and b, producing
+// intermediate 32-bit integers, and store the high 16 bits of the intermediate
+// integers in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pmulhuw
+#define _m_pmulhuw(a, b) _mm_mulhi_pu16(a, b)
+
 // Computes the average of the 16 unsigned 8-bit integers in a and the 16
 // unsigned 8-bit integers in b and rounds.
 //

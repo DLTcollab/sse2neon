@@ -2125,7 +2125,7 @@ result_t test_m_pmovmskb(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_pmulhuw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_mulhi_pu16(impl, i);
 }
 
 result_t test_mm_prefetch(const SSE2NEONTestImpl &impl, uint32_t i)
