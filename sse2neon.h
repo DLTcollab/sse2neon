@@ -5228,6 +5228,28 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
     return vreinterpretq_m128_f32(vcvtq_f32_s32(vreinterpretq_s32_m128i(a)));
 }
 
+// Convert packed signed 32-bit integers in a to packed double-precision
+// (64-bit) floating-point elements, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//     i := j*32
+//     m := j*64
+//     dst[m+63:m] := Convert_Int32_To_FP64(a[i+31:i])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtepi32_pd
+FORCE_INLINE __m128d _mm_cvtepi32_pd(__m128i a)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vcvtq_f64_s64(vmovl_s32(vget_low_s32(vreinterpretq_s32_m128i(a)))));
+#else
+    double a0 = (double) vgetq_lane_s32(vreinterpretq_s32_m128i(a), 0);
+    double a1 = (double) vgetq_lane_s32(vreinterpretq_s32_m128i(a), 1);
+    return _mm_set_pd(a1, a0);
+#endif
+}
+
 // Converts the four unsigned 8-bit integers in the lower 16 bits to four
 // unsigned 32-bit integers.
 FORCE_INLINE __m128i _mm_cvtepu8_epi16(__m128i a)
