@@ -3744,8 +3744,7 @@ result_t test_mm_div_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    double d0;
-    double d1;
+    double d0 = 0.0, d1 = 0.0;
 
     if (_b[0] != 0.0)
         d0 = _a[0] / _b[0];
