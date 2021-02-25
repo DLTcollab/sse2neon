@@ -6410,6 +6410,12 @@ FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
 #define _mm_extract_epi16(a, imm) \
     vgetq_lane_u16(vreinterpretq_u16_m128i(a), (imm))
 
+// Extract a 16-bit integer from a, selected with imm8, and store the result in
+// the lower element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_extract_pi16
+#define _mm_extract_pi16(a, imm) \
+    (int32_t) vget_lane_u16(vreinterpret_u16_m64(a), (imm))
+
 // Inserts the least significant 16 bits of b into the selected 16-bit integer
 // of a.
 // https://msdn.microsoft.com/en-us/library/kaze8hz1%28v=vs.100%29.aspx
