@@ -4260,7 +4260,16 @@ result_t test_mm_movemask_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_movemask_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    unsigned int _c = 0;
+    _c |= ((*(const uint64_t *) _a) >> 63) & 0x1;
+    _c |= (((*(const uint64_t *) (_a + 1)) >> 62) & 0x2);
+
+    __m128d a = do_mm_load_pd(_a);
+    int c = _mm_movemask_pd(a);
+
+    ASSERT_RETURN((unsigned int) c == _c);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_movepi64_pi64(const SSE2NEONTestImpl &impl, uint32_t i)
