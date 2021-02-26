@@ -2008,7 +2008,19 @@ result_t test_mm_movelh_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_movemask_pi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    unsigned int _c = 0;
+    for (int i = 0; i < 8; i++) {
+        if (_a[i] & 0x80) {
+            _c |= (1 << i);
+        }
+    }
+
+    const __m64 *a = (const __m64 *) _a;
+    int c = _mm_movemask_pi8(*a);
+
+    ASSERT_RETURN((unsigned int) c == _c);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_movemask_ps(const SSE2NEONTestImpl &impl, uint32_t i)

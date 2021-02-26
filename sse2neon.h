@@ -1574,6 +1574,27 @@ FORCE_INLINE __m128 _mm_movelh_ps(__m128 __A, __m128 __B)
     return vreinterpretq_m128_f32(vcombine_f32(a10, b10));
 }
 
+// Create mask from the most significant bit of each 8-bit element in a, and
+// store the result in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movemask_pi8
+FORCE_INLINE int _mm_movemask_pi8(__m64 a)
+{
+    uint8x8_t input = vreinterpret_u8_m64(a);
+#if defined(__aarch64__)
+    static const int8x8_t shift = {0, 1, 2, 3, 4, 5, 6, 7};
+    uint8x8_t tmp = vshr_n_u8(input, 7);
+    return vaddv_u8(vshl_u8(tmp, shift));
+#else
+    // Refer the implementation of `_mm_movemask_epi8`
+    uint16x4_t high_bits = vreinterpret_u16_u8(vshr_n_u8(input, 7));
+    uint32x2_t paired16 =
+        vreinterpret_u32_u16(vsra_n_u16(high_bits, high_bits, 7));
+    uint8x8_t paired32 =
+        vreinterpret_u8_u32(vsra_n_u32(paired16, paired16, 14));
+    return vget_lane_u8(paired32, 0) | ((int) vget_lane_u8(paired32, 4) << 4);
+#endif
+}
+
 // Compute the absolute value of packed signed 32-bit integers in a, and store
 // the unsigned results in dst.
 //
