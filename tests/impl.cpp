@@ -3674,7 +3674,7 @@ result_t test_mm_cvtsd_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtsd_si64x(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_cvtsd_si64(impl, i);
 }
 
 result_t test_mm_cvtsd_ss(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -3708,7 +3708,7 @@ result_t test_mm_cvtsi128_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtsi128_si64x(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_cvtsi128_si64(impl, i);
 }
 
 result_t test_mm_cvtsi32_sd(const SSE2NEONTestImpl &impl, uint32_t i)
