@@ -3669,7 +3669,24 @@ result_t test_mm_cvtsd_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtsd_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    // NEON intrinsic "vcvt_s64_f64()" uses rounding mode "Rounding To Zero"
+    // which is defferent from the rounding mode on x86 system, so we need to
+    // apply different testing case here
+    // see:
+    // https://developer.arm.com/architectures/instruction-sets/simd-isas/neon/intrinsics?search=vcvt_s64_f64
+    // and
+    // https://software.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/intrinsics/intrinsics-for-intel-streaming-simd-extensions-2-intel-sse2/integer-intrinsics/conversion-intrinsics-1.html
+#if defined(__x86_64__)
+    int64_t _c = (int64_t) round(_a[0]);
+#else
+    int64_t _c = (int64_t) _a[0];
+#endif
+
+    __m128d a = do_mm_load_pd(_a);
+    int64_t c = _mm_cvtsd_si64(a);
+
+    return _c == c ? TEST_SUCCESS : TEST_FAIL;
 }
 
 result_t test_mm_cvtsd_si64x(const SSE2NEONTestImpl &impl, uint32_t i)

@@ -5731,6 +5731,23 @@ FORCE_INLINE double _mm_cvtsd_f64(__m128d a)
 #endif
 }
 
+// Convert the lower double-precision (64-bit) floating-point element in a to a
+// 64-bit integer, and store the result in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_si64
+FORCE_INLINE int64_t _mm_cvtsd_si64(__m128d a)
+{
+#if defined(__aarch64__)
+    return (int64_t) vcvt_s64_f64(vget_low_f64(vreinterpretq_f64_m128d(a)));
+#else
+    return (int64_t)((double *) &a)[0];
+#endif
+}
+
+// Convert the lower double-precision (64-bit) floating-point element in a to a
+// 64-bit integer, and store the result in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_si64x
+#define _mm_cvtsd_si64x(a) _mm_cvtsd_si64(a)
+
 // Convert packed single-precision (32-bit) floating-point elements in a to
 // packed double-precision (64-bit) floating-point elements, and store the
 // results in dst.
