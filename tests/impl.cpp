@@ -2554,7 +2554,16 @@ result_t test_mm_stream_pi(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_stream_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    __m128 a = do_mm_load_ps(_a);
+    float p[4];
+
+    _mm_stream_ps(p, a);
+    ASSERT_RETURN(p[0] == _a[0]);
+    ASSERT_RETURN(p[1] == _a[1]);
+    ASSERT_RETURN(p[2] == _a[2]);
+    ASSERT_RETURN(p[3] == _a[3]);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_sub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
