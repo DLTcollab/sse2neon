@@ -3337,6 +3337,11 @@ FORCE_INLINE __m64 _mm_avg_pu8(__m64 a, __m64 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pminub
 #define _m_pminub(a, b) _mm_min_pu8(a, b)
 
+// Create mask from the most significant bit of each 8-bit element in a, and
+// store the result in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pmovmskb
+#define _m_pmovmskb(a) _mm_movemask_pi8(a)
+
 // Multiply the packed unsigned 16-bit integers in a and b, producing
 // intermediate 32-bit integers, and store the high 16 bits of the intermediate
 // integers in dst.
