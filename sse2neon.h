@@ -3348,6 +3348,13 @@ FORCE_INLINE __m64 _mm_avg_pu8(__m64 a, __m64 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pmulhuw
 #define _m_pmulhuw(a, b) _mm_mulhi_pu16(a, b)
 
+// Compute the absolute differences of packed unsigned 8-bit integers in a and
+// b, then horizontally sum each consecutive 8 differences to produce four
+// unsigned 16-bit integers, and pack these unsigned 16-bit integers in the low
+// 16 bits of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=m_psadbw
+#define _m_psadbw(a, b) _mm_sad_pu8(a, b)
+
 // Computes the average of the 16 unsigned 8-bit integers in a and the 16
 // unsigned 8-bit integers in b and rounds.
 //
