@@ -2156,7 +2156,7 @@ result_t test_m_pminub(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_pmovmskb(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_movemask_pi8(impl, i);
 }
 
 result_t test_m_pmulhuw(const SSE2NEONTestImpl &impl, uint32_t i)
