@@ -2171,7 +2171,17 @@ result_t test_mm_prefetch(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_psadbw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    uint16_t d = 0;
+    for (int i = 0; i < 8; i++) {
+        d += abs(_a[i] - _b[i]);
+    }
+
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+    __m64 b = do_mm_load_m64((const int64_t *) _b);
+    __m64 c = _mm_sad_pu8(a, b);
+    return validateUInt16(c, d, 0, 0, 0);
 }
 
 result_t test_m_pshufw(const SSE2NEONTestImpl &impl, uint32_t i)
