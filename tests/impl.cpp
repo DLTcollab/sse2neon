@@ -1805,7 +1805,21 @@ result_t test_mm_malloc(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_maskmove_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_mask = (const uint8_t *) impl.mTestIntPointer2;
+    char mem_addr[16];
+
+    const __m64 *a = (const __m64 *) _a;
+    const __m64 *mask = (const __m64 *) _mask;
+    _mm_maskmove_si64(*a, *mask, (char *) mem_addr);
+
+    for (int i = 0; i < 8; i++) {
+        if (_mask[i] >> 7) {
+            ASSERT_RETURN(_a[i] == (uint8_t) mem_addr[i]);
+        }
+    }
+
+    return TEST_SUCCESS;
 }
 
 result_t test_m_maskmovq(const SSE2NEONTestImpl &impl, uint32_t i)
