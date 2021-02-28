@@ -3691,6 +3691,21 @@ FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
     return vreinterpretq_m128i_s32(vcombine_s32(low_sum, high_sum));
 }
 
+// Conditionally store 8-bit integer elements from a into memory using mask
+// (elements are not stored when the highest bit is not set in the corresponding
+// element) and a non-temporal memory hint. mem_addr does not need to be aligned
+// on any particular boundary.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_maskmoveu_si128
+FORCE_INLINE void _mm_maskmoveu_si128(__m128i a, __m128i mask, char *mem_addr)
+{
+    int8x16_t shr_mask = vshrq_n_s8(vreinterpretq_s8_m128i(mask), 7);
+    __m128 b = _mm_load_ps((const float *) mem_addr);
+    int8x16_t masked =
+        vbslq_s8(vreinterpretq_u8_s8(shr_mask), vreinterpretq_s8_m128i(a),
+                 vreinterpretq_s8_m128(b));
+    vst1q_s8((int8_t *) mem_addr, masked);
+}
+
 // Multiply packed signed 16-bit integers in a and b, producing intermediate
 // signed 32-bit integers. Shift right by 15 bits while rounding up, and store
 // the packed 16-bit integers in dst.

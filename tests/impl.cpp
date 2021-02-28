@@ -4018,7 +4018,21 @@ result_t test_mm_madd_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_maskmoveu_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_mask = (const uint8_t *) impl.mTestIntPointer2;
+    char mem_addr[16];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i mask = do_mm_load_ps((const int32_t *) _mask);
+    _mm_maskmoveu_si128(a, mask, mem_addr);
+
+    for (int i = 0; i < 16; i++) {
+        if (_mask[i] >> 7) {
+            ASSERT_RETURN(_a[i] == (uint8_t) mem_addr[i]);
+        }
+    }
+
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_max_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
