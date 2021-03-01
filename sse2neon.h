@@ -3370,6 +3370,16 @@ FORCE_INLINE __m128i _mm_avg_epu8(__m128i a, __m128i b)
         vrhaddq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
+// Shift a left by imm8 bytes while shifting in zeros, and store the results in
+// dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_bslli_si128
+#define _mm_bslli_si128(a, imm) _mm_slli_si128(a, imm)
+
+// Shift a right by imm8 bytes while shifting in zeros, and store the results in
+// dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_bsrli_si128
+#define _mm_bsrli_si128(a, imm) _mm_srli_si128(a, imm)
+
 // Computes the average of the 8 unsigned 16-bit integers in a and the 8
 // unsigned 16-bit integers in b and rounds.
 //
