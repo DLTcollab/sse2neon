@@ -4240,6 +4240,22 @@ FORCE_INLINE __m128d _mm_max_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Compare the lower double-precision (64-bit) floating-point elements in a and
+// b, store the maximum value in the lower element of dst, and copy the upper
+// element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_max_sd
+FORCE_INLINE __m128d _mm_max_sd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return _mm_move_sd(a, _mm_max_pd(a, b));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[2] = {fmax(da[0], db[0]), da[1]};
+    return vld1q_f32((float32_t *) c);
+#endif
+}
+
 // Computes the pairwise minima of the 16 unsigned 8-bit integers from a and the
 // 16 unsigned 8-bit integers from b.
 // https://msdn.microsoft.com/ko-kr/library/17k8cf58(v=vs.100).aspxx
