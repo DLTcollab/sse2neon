@@ -4811,7 +4811,22 @@ result_t test_mm_shuffle_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_shufflehi_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int imm = 112;
+
+    int16_t d0 = _a[0];
+    int16_t d1 = _a[1];
+    int16_t d2 = _a[2];
+    int16_t d3 = _a[3];
+    int16_t d4 = ((const int64_t *) _a)[1] >> ((imm & 0x3) * 16);
+    int16_t d5 = ((const int64_t *) _a)[1] >> (((imm >> 2) & 0x3) * 16);
+    int16_t d6 = ((const int64_t *) _a)[1] >> (((imm >> 4) & 0x3) * 16);
+    int16_t d7 = ((const int64_t *) _a)[1] >> (((imm >> 6) & 0x3) * 16);
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_shufflehi_epi16(a, imm);
+
+    return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
 }
 
 result_t test_mm_shufflelo_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
