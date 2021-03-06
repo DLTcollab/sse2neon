@@ -2954,6 +2954,13 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
         vqsubq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
 }
 
+#define _mm_ucomieq_sd _mm_comieq_sd
+#define _mm_ucomige_sd _mm_comige_sd
+#define _mm_ucomigt_sd _mm_comigt_sd
+#define _mm_ucomile_sd _mm_comile_sd
+#define _mm_ucomilt_sd _mm_comilt_sd
+#define _mm_ucomineq_sd _mm_comineq_sd
+
 // Subtracts the 16 signed 8-bit integers of b from the 16 signed 8-bit integers
 // of a and saturates.
 //
