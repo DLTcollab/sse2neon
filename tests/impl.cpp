@@ -6645,7 +6645,34 @@ result_t test_mm_blend_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_blendv_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+    const int8_t _mask[16] = {(const int8_t) impl.mTestInts[i],
+                              (const int8_t) impl.mTestInts[i + 1],
+                              (const int8_t) impl.mTestInts[i + 2],
+                              (const int8_t) impl.mTestInts[i + 3],
+                              (const int8_t) impl.mTestInts[i + 4],
+                              (const int8_t) impl.mTestInts[i + 5],
+                              (const int8_t) impl.mTestInts[i + 6],
+                              (const int8_t) impl.mTestInts[i + 7]};
+
+    int8_t _c[16];
+    for (int i = 0; i < 16; i++) {
+        if (_mask[i] >> 7) {
+            _c[i] = _b[i];
+        } else {
+            _c[i] = _a[i];
+        }
+    }
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i mask = do_mm_load_ps((const int32_t *) _mask);
+    __m128i c = _mm_blendv_epi8(a, b, mask);
+
+    return validateInt8(c, _c[0], _c[1], _c[2], _c[3], _c[4], _c[5], _c[6],
+                        _c[7], _c[8], _c[9], _c[10], _c[11], _c[12], _c[13],
+                        _c[14], _c[15]);
 }
 
 result_t test_mm_blendv_pd(const SSE2NEONTestImpl &impl, uint32_t i)
