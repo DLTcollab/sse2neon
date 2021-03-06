@@ -4468,6 +4468,23 @@ FORCE_INLINE __m128i _mm_hadd_epi16(__m128i _a, __m128i _b)
 #endif
 }
 
+// Horizontally subtract adjacent pairs of double-precision (64-bit)
+// floating-point elements in a and b, and pack the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_pd
+FORCE_INLINE __m128d _mm_hsub_pd(__m128d _a, __m128d _b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vsubq_f64(
+        vuzp1q_f64(vreinterpretq_f64_m128d(_a), vreinterpretq_f64_m128d(_b)),
+        vuzp2q_f64(vreinterpretq_f64_m128d(_a), vreinterpretq_f64_m128d(_b))));
+#else
+    double *da = (double *) &_a;
+    double *db = (double *) &_b;
+    double c[] = {da[0] - da[1], db[0] - db[1]};
+    return vreinterpretq_m128d_u64(vld1q_u64((uint64_t *) c));
+#endif
+}
+
 // Horizontally substract adjacent pairs of single-precision (32-bit)
 // floating-point elements in a and b, and pack the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_ps
