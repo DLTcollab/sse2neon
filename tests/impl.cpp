@@ -5593,32 +5593,32 @@ result_t test_mm_subs_epu8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_ucomieq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_comieq_sd(impl, i);
 }
 
 result_t test_mm_ucomige_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_comige_sd(impl, i);
 }
 
 result_t test_mm_ucomigt_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_comigt_sd(impl, i);
 }
 
 result_t test_mm_ucomile_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_comile_sd(impl, i);
 }
 
 result_t test_mm_ucomilt_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_comilt_sd(impl, i);
 }
 
 result_t test_mm_ucomineq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_comineq_sd(impl, i);
 }
 
 result_t test_mm_undefined_pd(const SSE2NEONTestImpl &impl, uint32_t i)
