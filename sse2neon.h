@@ -7119,6 +7119,12 @@ FORCE_INLINE void _mm_maskmove_si64(__m64 a, __m64 mask, char *mem_addr)
     vst1_s8((int8_t *) mem_addr, masked);
 }
 
+// Conditionally store 8-bit integer elements from a into memory using mask
+// (elements are not stored when the highest bit is not set in the corresponding
+// element) and a non-temporal memory hint.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_maskmovq
+#define _m_maskmovq(a, mask, mem_addr) _mm_maskmove_si64(a, mask, mem_addr)
+
 // Free aligned memory that was allocated with _mm_malloc.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_free
 FORCE_INLINE void _mm_free(void *addr)

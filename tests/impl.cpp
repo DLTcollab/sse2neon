@@ -1829,7 +1829,7 @@ result_t test_mm_maskmove_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_maskmovq(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_maskmove_si64(impl, i);
 }
 
 result_t test_mm_max_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
