@@ -531,8 +531,6 @@
     TYPE(mm_clmulepi64_si128)         \
     TYPE(mm_popcnt_u32)               \
     TYPE(mm_popcnt_u64)               \
-    TYPE(mm_shuffle_epi32_default)    \
-    TYPE(mm_shuffle_epi32_splat)      \
     TYPE(mm_shufflehi_epi16_function) \
     TYPE(mm_shufflelo_epi16_function) \
     TYPE(last) /* This indicates the end of macros */
