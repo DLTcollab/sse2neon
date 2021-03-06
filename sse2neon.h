@@ -2769,6 +2769,16 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
     return vgetq_lane_u8(paired64, 0) | ((int) vgetq_lane_u8(paired64, 8) << 8);
 }
 
+// Set each bit of mask dst based on the most significant bit of the
+// corresponding packed double-precision (64-bit) floating-point element in a.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movemask_pd
+FORCE_INLINE int _mm_movemask_pd(__m128d a)
+{
+    uint64x2_t input = vreinterpretq_u64_m128d(a);
+    uint64x2_t high_bits = vshrq_n_u64(input, 63);
+    return vgetq_lane_u64(high_bits, 0) | (vgetq_lane_u64(high_bits, 1) << 1);
+}
+
 // Copy the lower 64-bit integer in a to dst.
 //
 //   dst[63:0] := a[63:0]
