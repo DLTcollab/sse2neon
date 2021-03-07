@@ -4775,18 +4775,18 @@ result_t test_mm_setzero_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_shuffle_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
-}
+    const int32_t *_a = impl.mTestIntPointer1;
+    const int imm = 105;
 
-result_t test_mm_shuffle_epi32_function(const SSE2NEONTestImpl &impl,
-                                        uint32_t i)
-{
-    return TEST_UNIMPL;
-}
+    int32_t d0 = _a[((imm) &0x3)];
+    int32_t d1 = _a[((imm >> 2) & 0x3)];
+    int32_t d2 = _a[((imm >> 4) & 0x3)];
+    int32_t d3 = _a[((imm >> 6) & 0x3)];
 
-result_t test_mm_shuffle_epi32_single(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i c = _mm_shuffle_epi32(a, imm);
+
+    return validateInt32(c, d0, d1, d2, d3);
 }
 
 result_t test_mm_shuffle_pd(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -7732,16 +7732,6 @@ result_t test_mm_popcnt_u64(const SSE2NEONTestImpl &impl, uint32_t i)
     const uint64_t *a = (const uint64_t *) impl.mTestIntPointer1;
     ASSERT_RETURN(__builtin_popcountll(a[0]) == _mm_popcnt_u64(a[0]));
     return TEST_SUCCESS;
-}
-
-result_t test_mm_shuffle_epi32_default(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
-result_t test_mm_shuffle_epi32_splat(const SSE2NEONTestImpl &impl, uint32_t i)
-{
-    return TEST_UNIMPL;
 }
 
 result_t test_mm_shufflehi_epi16_function(const SSE2NEONTestImpl &impl,
