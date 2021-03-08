@@ -7086,7 +7086,28 @@ result_t test_mm_extract_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_extract_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = (const float *) impl.mTestFloatPointer1;
+
+    __m128 a = _mm_load_ps(_a);
+    int32_t c;
+
+    switch (i & 0x3) {
+    case 0:
+        c = _mm_extract_ps(a, 0);
+        break;
+    case 1:
+        c = _mm_extract_ps(a, 1);
+        break;
+    case 2:
+        c = _mm_extract_ps(a, 2);
+        break;
+    case 3:
+        c = _mm_extract_ps(a, 3);
+        break;
+    }
+
+    ASSERT_RETURN(c == *(const int32_t *) (_a + (i & 0x3)));
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_floor_pd(const SSE2NEONTestImpl &impl, uint32_t i)
