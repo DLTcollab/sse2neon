@@ -7076,7 +7076,22 @@ result_t test_mm_extract_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_extract_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    int64_t *_a = (int64_t *) impl.mTestIntPointer1;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __int64_t c;
+
+    switch (i & 0x1) {
+    case 0:
+        c = _mm_extract_epi64(a, 0);
+        break;
+    case 1:
+        c = _mm_extract_epi64(a, 1);
+        break;
+    }
+
+    ASSERT_RETURN(c == *(_a + (i & 1)));
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_extract_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
