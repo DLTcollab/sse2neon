@@ -3843,6 +3843,32 @@ FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
 #endif
 }
 
+// Alternatively add and subtract packed double-precision (64-bit)
+// floating-point elements in a to/from packed elements in b, and store the
+// results in dst.
+//
+// FOR j := 0 to 1
+//   i := j*64
+//   IF ((j & 1) == 0)
+//     dst[i+63:i] := a[i+63:i] - b[i+63:i]
+//   ELSE
+//     dst[i+63:i] := a[i+63:i] + b[i+63:i]
+//   FI
+// ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_addsub_pd
+FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
+{
+    __m128d mask = _mm_set_pd(1.0f, -1.0f);
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vfmaq_f64(vreinterpretq_f64_m128d(a),
+                                             vreinterpretq_f64_m128d(b),
+                                             vreinterpretq_f64_m128d(mask)));
+#else
+    return _mm_add_pd(_mm_mul_pd(b, mask), a);
+#endif
+}
+
 // Alternatively add and subtract packed single-precision (32-bit)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.
