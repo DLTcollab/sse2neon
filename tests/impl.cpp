@@ -7802,18 +7802,6 @@ result_t test_mm_popcnt_u64(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_SUCCESS;
 }
 
-result_t test_mm_shufflehi_epi16_function(const SSE2NEONTestImpl &impl,
-                                          uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
-result_t test_mm_shufflelo_epi16_function(const SSE2NEONTestImpl &impl,
-                                          uint32_t i)
-{
-    return TEST_UNIMPL;
-}
-
 SSE2NEONTestImpl::SSE2NEONTestImpl(void)
 {
     mTestFloatPointer1 = (float *) platformAlignedAlloc(sizeof(__m128));
