@@ -2237,7 +2237,19 @@ result_t test_mm_rcp_ss(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_rsqrt_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = (const float *) impl.mTestFloatPointer1;
+
+    float f0 = 1 / sqrt(_a[0]);
+    float f1 = 1 / sqrt(_a[1]);
+    float f2 = 1 / sqrt(_a[2]);
+    float f3 = 1 / sqrt(_a[3]);
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 c = _mm_rsqrt_ps(a);
+
+    // Here, we ensure `_mm_rsqrt_ps()`'s error is under 1% compares to the C
+    // implementation.
+    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
 }
 
 result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t i)

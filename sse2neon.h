@@ -4070,6 +4070,7 @@ FORCE_INLINE __m128 _mm_sqrt_ss(__m128 in)
 
 // Computes the approximations of the reciprocal square roots of the four
 // single-precision floating point values of in.
+// The current precision is 1% error.
 // https://msdn.microsoft.com/en-us/library/22hfsh53(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
 {
