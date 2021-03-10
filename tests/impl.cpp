@@ -2470,7 +2470,19 @@ result_t test_mm_shuffle_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_sqrt_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = (const float *) impl.mTestFloatPointer1;
+
+    float f0 = sqrt(_a[0]);
+    float f1 = sqrt(_a[1]);
+    float f2 = sqrt(_a[2]);
+    float f3 = sqrt(_a[3]);
+
+    __m128 a = do_mm_load_ps(_a);
+    __m128 c = _mm_sqrt_ps(a);
+
+    // Here, we ensure `_mm_sqrt_ps()`'s error is under 1% compares to the C
+    // implementation.
+    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
 }
 
 result_t test_mm_sqrt_ss(const SSE2NEONTestImpl &impl, uint32_t i)
