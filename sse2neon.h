@@ -4350,6 +4350,22 @@ FORCE_INLINE __m128d _mm_min_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Compare the lower double-precision (64-bit) floating-point elements in a and
+// b, store the minimum value in the lower element of dst, and copy the upper
+// element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_min_sd
+FORCE_INLINE __m128d _mm_min_sd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return _mm_move_sd(a, _mm_min_pd(a, b));
+#else
+    double *da = (double *) &a;
+    double *db = (double *) &b;
+    double c[2] = {fmin(da[0], db[0]), da[1]};
+    return vld1q_f32((float32_t *) c);
+#endif
+}
+
 // Computes the pairwise minima of the 8 signed 16-bit integers from a and the 8
 // signed 16-bit integers from b.
 // https://msdn.microsoft.com/en-us/library/vstudio/6te997ew(v=vs.100).aspx

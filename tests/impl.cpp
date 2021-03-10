@@ -4261,7 +4261,16 @@ result_t test_mm_min_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_min_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    double d0 = fmin(_a[0], _b[0]);
+    double d1 = _a[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d c = _mm_min_sd(a, b);
+
+    return validateDouble(c, d0, d1);
 }
 
 result_t test_mm_move_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
