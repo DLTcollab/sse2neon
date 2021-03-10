@@ -6032,7 +6032,7 @@ result_t test_mm_hsub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_lddqu_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_loadu_si128(impl, i);
 }
 
 result_t test_mm_loaddup_pd(const SSE2NEONTestImpl &impl, uint32_t i)
