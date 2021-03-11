@@ -6706,7 +6706,25 @@ result_t test_mm_sign_pi8(const SSE2NEONTestImpl &impl, uint32_t i)
 /* SSE4.1 */
 result_t test_mm_blend_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+    const int mask = 104;
+
+    int16_t _c[8];
+    for (int j = 0; j < 8; j++) {
+        if ((mask >> j) & 0x1) {
+            _c[j] = _b[j];
+        } else {
+            _c[j] = _a[j];
+        }
+    }
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c = _mm_blend_epi16(a, b, mask);
+
+    return validateInt16(c, _c[0], _c[1], _c[2], _c[3], _c[4], _c[5], _c[6],
+                         _c[7]);
 }
 
 result_t test_mm_blend_pd(const SSE2NEONTestImpl &impl, uint32_t i)
