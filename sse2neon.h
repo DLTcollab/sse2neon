@@ -6530,6 +6530,26 @@ FORCE_INLINE __m64 _mm_cvt_ps2pi(__m128 a)
 #endif
 }
 
+// Round the lower single-precision (32-bit) floating-point element in b using
+// the rounding parameter, store the result as a single-precision floating-point
+// element in the lower element of dst, and copy the upper 3 packed elements
+// from a to the upper elements of dst. Rounding is done according to the
+// rounding[3:0] parameter, which can be one of:
+//     (_MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC) // round to nearest, and
+//     suppress exceptions
+//     (_MM_FROUND_TO_NEG_INF |_MM_FROUND_NO_EXC)     // round down, and
+//     suppress exceptions
+//     (_MM_FROUND_TO_POS_INF |_MM_FROUND_NO_EXC)     // round up, and suppress
+//     exceptions
+//     (_MM_FROUND_TO_ZERO |_MM_FROUND_NO_EXC)        // truncate, and suppress
+//     exceptions _MM_FROUND_CUR_DIRECTION // use MXCSR.RC; see
+//     _MM_SET_ROUNDING_MODE
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_ss
+FORCE_INLINE __m128 _mm_round_ss(__m128 a, __m128 b, int rounding)
+{
+    return _mm_move_ss(a, _mm_round_ps(b, rounding));
+}
+
 // Convert packed single-precision (32-bit) floating-point elements in a to
 // packed 32-bit integers, and store the results in dst.
 //
