@@ -5397,7 +5397,14 @@ result_t test_mm_storeh_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_storel_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    int64_t *p = (int64_t *) impl.mTestIntPointer1;
+    __m128i mem;
+
+    __m128i a = do_mm_load_ps((const int32_t *) p);
+    _mm_storel_epi64(&mem, a);
+
+    ASSERT_RETURN(mem[0] == p[0]);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_storel_pd(const SSE2NEONTestImpl &impl, uint32_t i)
