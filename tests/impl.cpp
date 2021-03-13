@@ -6750,7 +6750,25 @@ result_t test_mm_blend_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_blend_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    // the last argument must be a 2-bit immediate
+    const int mask = 3;
+
+    double _c[2];
+    for (int j = 0; j < 2; j++) {
+        if ((mask >> j) & 0x1) {
+            _c[j] = _b[j];
+        } else {
+            _c[j] = _a[j];
+        }
+    }
+
+    __m128d a = do_mm_load_pd((const double *) _a);
+    __m128d b = do_mm_load_pd((const double *) _b);
+    __m128d c = _mm_blend_pd(a, b, mask);
+
+    return validateDouble(c, _c[0], _c[1]);
 }
 
 result_t test_mm_blend_ps(const SSE2NEONTestImpl &impl, uint32_t i)

@@ -2354,6 +2354,20 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
         vreinterpretq_m128i_u16(vbslq_u16(_mask_vec, _b, _a));            \
     })
 
+// Blend packed double-precision (64-bit) floating-point elements from a and b
+// using control mask imm8, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_blend_pd
+#define _mm_blend_pd(a, b, imm)                                \
+    __extension__({                                            \
+        const uint64_t _mask[2] = {                            \
+            ((imm) & (1 << 0)) ? ~UINT64_C(0) : UINT64_C(0),   \
+            ((imm) & (1 << 1)) ? ~UINT64_C(0) : UINT64_C(0)};  \
+        uint64x2_t _mask_vec = vld1q_u64(_mask);               \
+        uint64x2_t _a = vreinterpretq_u64_m128d(a);            \
+        uint64x2_t _b = vreinterpretq_u64_m128d(b);            \
+        vreinterpretq_m128d_u64(vbslq_u64(_mask_vec, _b, _a)); \
+    })
+
 // Blend packed 8-bit integers from a and b using mask, and store the results in
 // dst.
 //
