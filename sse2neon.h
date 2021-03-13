@@ -4942,6 +4942,27 @@ FORCE_INLINE __m128d _mm_cmpeq_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Compare packed double-precision (64-bit) floating-point elements in a and b
+// for greater-than-or-equal, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpge_pd
+FORCE_INLINE __m128d _mm_cmpge_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_u64(
+        vcgeq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#else
+    uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
+    uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
+    uint64_t b0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(b));
+    uint64_t b1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(b));
+    uint64_t d[2];
+    d[0] = (*(double *) &a0) >= (*(double *) &b0) ? ~UINT64_C(0) : UINT64_C(0);
+    d[1] = (*(double *) &a1) >= (*(double *) &b1) ? ~UINT64_C(0) : UINT64_C(0);
+
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
+#endif
+}
+
 // Compares the 8 signed or unsigned 16-bit integers in a and the 8 signed or
 // unsigned 16-bit integers in b for equality.
 // https://msdn.microsoft.com/en-us/library/2ay060te(v=vs.100).aspx
