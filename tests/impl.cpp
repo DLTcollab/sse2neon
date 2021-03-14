@@ -2646,7 +2646,12 @@ result_t test_mm_storeu_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_stream_pi(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    __m64 a = do_mm_load_m64(_a);
+    __m64 p;
+
+    _mm_stream_pi(&p, a);
+    return validateInt64(p, _a[0]);
 }
 
 result_t test_mm_stream_ps(const SSE2NEONTestImpl &impl, uint32_t i)
