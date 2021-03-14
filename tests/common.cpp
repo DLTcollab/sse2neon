@@ -362,7 +362,7 @@ result_t validateDouble(__m128d a, double d0, double d1)
     return TEST_SUCCESS;
 }
 
-result_t validateDoubleError(__m128d a, double d0, double d1, double err)
+result_t validateFloatError(__m128d a, double d0, double d1, double err)
 {
     const double *t = (const double *) &a;
     double td0 = fabs((t[0] - d0) / d0);
