@@ -3368,7 +3368,16 @@ result_t test_mm_cmpeq_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cmpeq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    const uint64_t d0 = (_a[0] == _b[0]) ? ~UINT64_C(0) : 0;
+    const uint64_t d1 = ((const uint64_t *) _a)[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d c = _mm_cmpeq_sd(a, b);
+
+    return validateDouble(c, *(const double *) &d0, *(const double *) &d1);
 }
 
 result_t test_mm_cmpge_pd(const SSE2NEONTestImpl &impl, uint32_t i)
