@@ -7176,6 +7176,14 @@ FORCE_INLINE void _mm_sfence(void)
     __sync_synchronize();
 }
 
+// Store 64-bits of integer data from a into memory using a non-temporal memory
+// hint.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_pi
+FORCE_INLINE void _mm_stream_pi(__m64 *p, __m64 a)
+{
+    vst1_s64((int64_t *) p, vreinterpret_s64_m64(a));
+}
+
 // Store 128-bits (composed of 4 packed single-precision (32-bit) floating-
 // point elements) from a into memory using a non-temporal memory hint.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_ps
