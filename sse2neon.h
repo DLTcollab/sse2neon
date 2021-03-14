@@ -4956,6 +4956,15 @@ FORCE_INLINE __m128d _mm_cmpeq_pd(__m128d a, __m128d b)
 #endif
 }
 
+// Compare the lower double-precision (64-bit) floating-point elements in a and
+// b for equality, store the result in the lower element of dst, and copy the
+// upper element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpeq_sd
+FORCE_INLINE __m128d _mm_cmpeq_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_cmpeq_pd(a, b));
+}
+
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for greater-than-or-equal, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpge_pd
