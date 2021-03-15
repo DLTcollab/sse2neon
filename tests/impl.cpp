@@ -5487,7 +5487,13 @@ result_t test_mm_storeu_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_stream_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    double p[2];
+
+    __m128d a = do_mm_load_pd(_a);
+    _mm_stream_pd(p, a);
+
+    return validateDouble(a, p[0], p[1]);
 }
 
 result_t test_mm_stream_si128(const SSE2NEONTestImpl &impl, uint32_t i)
