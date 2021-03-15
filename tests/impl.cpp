@@ -5503,7 +5503,13 @@ result_t test_mm_stream_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_stream_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t a = (const int32_t) impl.mTestInts[i];
+    int32_t p;
+
+    _mm_stream_si32(&p, a);
+
+    ASSERT_RETURN(a == p)
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_stream_si64(const SSE2NEONTestImpl &impl, uint32_t i)
