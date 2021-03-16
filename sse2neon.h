@@ -7240,6 +7240,22 @@ FORCE_INLINE void _mm_stream_ps(float *p, __m128 a)
 #endif
 }
 
+// Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
+// elements) from a into memory using a non-temporal memory hint. mem_addr must
+// be aligned on a 16-byte boundary or a general-protection exception may be
+// generated.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_pd
+FORCE_INLINE void _mm_stream_pd(double *p, __m128d a)
+{
+#if __has_builtin(__builtin_nontemporal_store)
+    __builtin_nontemporal_store(a, (float32x4_t *) p);
+#elif defined(__aarch64__)
+    vst1q_f64(p, vreinterpretq_f64_m128d(a));
+#else
+    vst1q_s64((int64_t *) p, vreinterpretq_s64_m128d(a));
+#endif
+}
+
 // Stores the data in a to the address p without polluting the caches.  If the
 // cache line containing address p is already in the cache, the cache will be
 // updated.
