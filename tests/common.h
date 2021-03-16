@@ -181,6 +181,7 @@ result_t validateFloatError(__m128 a,
                             float f3,
                             float err);
 result_t validateDouble(__m128d a, double d0, double d1);
+result_t validateFloatError(__m128d a, double d0, double d1, double err);
 }  // namespace SSE2NEON
 
 #endif

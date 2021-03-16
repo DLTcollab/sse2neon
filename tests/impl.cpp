@@ -5120,7 +5120,17 @@ result_t test_mm_slli_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_sqrt_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+
+    float f0 = sqrt(_a[0]);
+    float f1 = sqrt(_a[1]);
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d c = _mm_sqrt_pd(a);
+
+    // Here, we ensure "_mm_sqrt_pd()"'s error is under 1e-5% compares to the C
+    // implementation.
+    return validateFloatError(c, f0, f1, 0.0000001f);
 }
 
 result_t test_mm_sqrt_sd(const SSE2NEONTestImpl &impl, uint32_t i)

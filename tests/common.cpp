@@ -362,4 +362,23 @@ result_t validateDouble(__m128d a, double d0, double d1)
     return TEST_SUCCESS;
 }
 
+result_t validateFloatError(__m128d a, double d0, double d1, double err)
+{
+    const double *t = (const double *) &a;
+    double td0 = fabs((t[0] - d0) / d0);
+    double td1 = fabs((t[1] - d1) / d1);
+
+    if (std::isnan(t[0]) && std::isnan(d0)) {
+        td0 = 0;
+    }
+
+    if (std::isnan(t[1]) && std::isnan(d1)) {
+        td1 = 0;
+    }
+
+    ASSERT_RETURN(td0 < err);
+    ASSERT_RETURN(td1 < err);
+    return TEST_SUCCESS;
+}
+
 }  // namespace SSE2NEON

@@ -2610,6 +2610,20 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
         ret;                                                            \
     })
 
+// Compute the square root of packed double-precision (64-bit) floating-point
+// elements in a, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sqrt_pd
+FORCE_INLINE __m128d _mm_sqrt_pd(__m128d a)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vsqrtq_f64(vreinterpretq_f64_m128d(a)));
+#else
+    double a0 = sqrt(((double *) &a)[0]);
+    double a1 = sqrt(((double *) &a)[1]);
+    return _mm_set_pd(a1, a0);
+#endif
+}
+
 // Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while
 // shifting in zeros.
 //
