@@ -7253,6 +7253,15 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 #endif
 }
 
+// Store 32-bit integer a into memory using a non-temporal hint to minimize
+// cache pollution. If the cache line containing address mem_addr is already in
+// the cache, the cache will be updated.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_si32
+FORCE_INLINE void _mm_stream_si32(int *p, int a)
+{
+    vst1q_lane_s32((int32_t *) p, vdupq_n_s32(a), 0);
+}
+
 // Load 128-bits of integer data from memory into dst using a non-temporal
 // memory hint. mem_addr must be aligned on a 16-byte boundary or a
 // general-protection exception may be generated.
