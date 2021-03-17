@@ -5144,7 +5144,17 @@ result_t test_mm_sqrt_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_sqrt_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    double f0 = sqrt(_b[0]);
+    double f1 = _a[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d c = _mm_sqrt_sd(a, b);
+
+    return validateDouble(c, f0, f1);
 }
 
 result_t test_mm_sra_epi16(const SSE2NEONTestImpl &impl, uint32_t i)

@@ -2624,6 +2624,19 @@ FORCE_INLINE __m128d _mm_sqrt_pd(__m128d a)
 #endif
 }
 
+// Compute the square root of the lower double-precision (64-bit) floating-point
+// element in b, store the result in the lower element of dst, and copy the
+// upper element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sqrt_sd
+FORCE_INLINE __m128d _mm_sqrt_sd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return _mm_move_sd(a, _mm_sqrt_pd(b));
+#else
+    return _mm_set_pd(((double *) &a)[1], sqrt(((double *) &b)[0]));
+#endif
+}
+
 // Shifts the 8 signed or unsigned 16-bit integers in a left by count bits while
 // shifting in zeros.
 //
