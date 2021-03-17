@@ -5881,6 +5881,15 @@ FORCE_INLINE __m128d _mm_load1_pd(const double *p)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_load_pd1
 #define _mm_load_pd1 _mm_load1_pd
 
+// Load a double-precision (64-bit) floating-point element from memory into both
+// elements of dst.
+//
+//   dst[63:0] := MEM[mem_addr+63:mem_addr]
+//   dst[127:64] := MEM[mem_addr+63:mem_addr]
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_loaddup_pd
+#define _mm_loaddup_pd _mm_load1_pd
+
 // Load a double-precision (64-bit) floating-point element from memory into the
 // upper element of dst, and copy the lower element from a to dst. mem_addr does
 // not need to be aligned on any particular boundary.

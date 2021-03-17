@@ -6168,7 +6168,11 @@ result_t test_mm_lddqu_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_loaddup_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *addr = (const double *) impl.mTestFloatPointer1;
+
+    __m128d ret = _mm_loaddup_pd(addr);
+
+    return validateDouble(ret, addr[0], addr[0]);
 }
 
 result_t test_mm_movedup_pd(const SSE2NEONTestImpl &impl, uint32_t i)
