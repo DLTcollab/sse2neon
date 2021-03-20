@@ -3744,7 +3744,14 @@ result_t test_mm_cvtpd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtpi32_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = impl.mTestIntPointer1;
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+
+    double trun[2] = {(double) _a[0], (double) _a[1]};
+
+    __m128d ret = _mm_cvtpi32_pd(a);
+
+    return validateDouble(ret, trun[0], trun[1]);
 }
 
 // https://msdn.microsoft.com/en-us/library/xdc42k5e%28v=vs.90%29.aspx?f=255&MSPPError=-2147217396
