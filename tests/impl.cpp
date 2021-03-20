@@ -3293,14 +3293,14 @@ result_t test_mm_cmpeq_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
-    int16_t d0 = (_a[0] == _b[0]) ? 0xffff : 0x0;
-    int16_t d1 = (_a[1] == _b[1]) ? 0xffff : 0x0;
-    int16_t d2 = (_a[2] == _b[2]) ? 0xffff : 0x0;
-    int16_t d3 = (_a[3] == _b[3]) ? 0xffff : 0x0;
-    int16_t d4 = (_a[4] == _b[4]) ? 0xffff : 0x0;
-    int16_t d5 = (_a[5] == _b[5]) ? 0xffff : 0x0;
-    int16_t d6 = (_a[6] == _b[6]) ? 0xffff : 0x0;
-    int16_t d7 = (_a[7] == _b[7]) ? 0xffff : 0x0;
+    int16_t d0 = (_a[0] == _b[0]) ? ~UINT16_C(0) : 0x0;
+    int16_t d1 = (_a[1] == _b[1]) ? ~UINT16_C(0) : 0x0;
+    int16_t d2 = (_a[2] == _b[2]) ? ~UINT16_C(0) : 0x0;
+    int16_t d3 = (_a[3] == _b[3]) ? ~UINT16_C(0) : 0x0;
+    int16_t d4 = (_a[4] == _b[4]) ? ~UINT16_C(0) : 0x0;
+    int16_t d5 = (_a[5] == _b[5]) ? ~UINT16_C(0) : 0x0;
+    int16_t d6 = (_a[6] == _b[6]) ? ~UINT16_C(0) : 0x0;
+    int16_t d7 = (_a[7] == _b[7]) ? ~UINT16_C(0) : 0x0;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i b = do_mm_load_ps((const int32_t *) _b);
@@ -3313,10 +3313,10 @@ result_t test_mm_cmpeq_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     const int32_t *_a = impl.mTestIntPointer1;
     const int32_t *_b = impl.mTestIntPointer2;
 
-    int32_t d0 = (_a[0] == _b[0]) ? 0xffffffff : 0x0;
-    int32_t d1 = (_a[1] == _b[1]) ? 0xffffffff : 0x0;
-    int32_t d2 = (_a[2] == _b[2]) ? 0xffffffff : 0x0;
-    int32_t d3 = (_a[3] == _b[3]) ? 0xffffffff : 0x0;
+    int32_t d0 = (_a[0] == _b[0]) ? ~UINT64_C(0) : 0x0;
+    int32_t d1 = (_a[1] == _b[1]) ? ~UINT64_C(0) : 0x0;
+    int32_t d2 = (_a[2] == _b[2]) ? ~UINT64_C(0) : 0x0;
+    int32_t d3 = (_a[3] == _b[3]) ? ~UINT64_C(0) : 0x0;
 
     __m128i a = do_mm_load_ps(_a);
     __m128i b = do_mm_load_ps(_b);
@@ -3329,22 +3329,22 @@ result_t test_mm_cmpeq_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
     const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
-    int8_t d0 = (_a[0] == _b[0]) ? 0xff : 0x00;
-    int8_t d1 = (_a[1] == _b[1]) ? 0xff : 0x00;
-    int8_t d2 = (_a[2] == _b[2]) ? 0xff : 0x00;
-    int8_t d3 = (_a[3] == _b[3]) ? 0xff : 0x00;
-    int8_t d4 = (_a[4] == _b[4]) ? 0xff : 0x00;
-    int8_t d5 = (_a[5] == _b[5]) ? 0xff : 0x00;
-    int8_t d6 = (_a[6] == _b[6]) ? 0xff : 0x00;
-    int8_t d7 = (_a[7] == _b[7]) ? 0xff : 0x00;
-    int8_t d8 = (_a[8] == _b[8]) ? 0xff : 0x00;
-    int8_t d9 = (_a[9] == _b[9]) ? 0xff : 0x00;
-    int8_t d10 = (_a[10] == _b[10]) ? 0xff : 0x00;
-    int8_t d11 = (_a[11] == _b[11]) ? 0xff : 0x00;
-    int8_t d12 = (_a[12] == _b[12]) ? 0xff : 0x00;
-    int8_t d13 = (_a[13] == _b[13]) ? 0xff : 0x00;
-    int8_t d14 = (_a[14] == _b[14]) ? 0xff : 0x00;
-    int8_t d15 = (_a[15] == _b[15]) ? 0xff : 0x00;
+    int8_t d0 = (_a[0] == _b[0]) ? ~UINT8_C(0) : 0x00;
+    int8_t d1 = (_a[1] == _b[1]) ? ~UINT8_C(0) : 0x00;
+    int8_t d2 = (_a[2] == _b[2]) ? ~UINT8_C(0) : 0x00;
+    int8_t d3 = (_a[3] == _b[3]) ? ~UINT8_C(0) : 0x00;
+    int8_t d4 = (_a[4] == _b[4]) ? ~UINT8_C(0) : 0x00;
+    int8_t d5 = (_a[5] == _b[5]) ? ~UINT8_C(0) : 0x00;
+    int8_t d6 = (_a[6] == _b[6]) ? ~UINT8_C(0) : 0x00;
+    int8_t d7 = (_a[7] == _b[7]) ? ~UINT8_C(0) : 0x00;
+    int8_t d8 = (_a[8] == _b[8]) ? ~UINT8_C(0) : 0x00;
+    int8_t d9 = (_a[9] == _b[9]) ? ~UINT8_C(0) : 0x00;
+    int8_t d10 = (_a[10] == _b[10]) ? ~UINT8_C(0) : 0x00;
+    int8_t d11 = (_a[11] == _b[11]) ? ~UINT8_C(0) : 0x00;
+    int8_t d12 = (_a[12] == _b[12]) ? ~UINT8_C(0) : 0x00;
+    int8_t d13 = (_a[13] == _b[13]) ? ~UINT8_C(0) : 0x00;
+    int8_t d14 = (_a[14] == _b[14]) ? ~UINT8_C(0) : 0x00;
+    int8_t d15 = (_a[15] == _b[15]) ? ~UINT8_C(0) : 0x00;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i b = do_mm_load_ps((const int32_t *) _b);
@@ -3412,14 +3412,14 @@ result_t test_mm_cmpgt_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
-    uint16_t d0 = _a[0] > _b[0] ? 0xffff : 0;
-    uint16_t d1 = _a[1] > _b[1] ? 0xffff : 0;
-    uint16_t d2 = _a[2] > _b[2] ? 0xffff : 0;
-    uint16_t d3 = _a[3] > _b[3] ? 0xffff : 0;
-    uint16_t d4 = _a[4] > _b[4] ? 0xffff : 0;
-    uint16_t d5 = _a[5] > _b[5] ? 0xffff : 0;
-    uint16_t d6 = _a[6] > _b[6] ? 0xffff : 0;
-    uint16_t d7 = _a[7] > _b[7] ? 0xffff : 0;
+    uint16_t d0 = _a[0] > _b[0] ? ~UINT16_C(0) : 0;
+    uint16_t d1 = _a[1] > _b[1] ? ~UINT16_C(0) : 0;
+    uint16_t d2 = _a[2] > _b[2] ? ~UINT16_C(0) : 0;
+    uint16_t d3 = _a[3] > _b[3] ? ~UINT16_C(0) : 0;
+    uint16_t d4 = _a[4] > _b[4] ? ~UINT16_C(0) : 0;
+    uint16_t d5 = _a[5] > _b[5] ? ~UINT16_C(0) : 0;
+    uint16_t d6 = _a[6] > _b[6] ? ~UINT16_C(0) : 0;
+    uint16_t d7 = _a[7] > _b[7] ? ~UINT16_C(0) : 0;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i b = do_mm_load_ps((const int32_t *) _b);
@@ -3450,22 +3450,22 @@ result_t test_mm_cmpgt_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
     const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
-    int8_t d0 = (_a[0] > _b[0]) ? 0xff : 0x00;
-    int8_t d1 = (_a[1] > _b[1]) ? 0xff : 0x00;
-    int8_t d2 = (_a[2] > _b[2]) ? 0xff : 0x00;
-    int8_t d3 = (_a[3] > _b[3]) ? 0xff : 0x00;
-    int8_t d4 = (_a[4] > _b[4]) ? 0xff : 0x00;
-    int8_t d5 = (_a[5] > _b[5]) ? 0xff : 0x00;
-    int8_t d6 = (_a[6] > _b[6]) ? 0xff : 0x00;
-    int8_t d7 = (_a[7] > _b[7]) ? 0xff : 0x00;
-    int8_t d8 = (_a[8] > _b[8]) ? 0xff : 0x00;
-    int8_t d9 = (_a[9] > _b[9]) ? 0xff : 0x00;
-    int8_t d10 = (_a[10] > _b[10]) ? 0xff : 0x00;
-    int8_t d11 = (_a[11] > _b[11]) ? 0xff : 0x00;
-    int8_t d12 = (_a[12] > _b[12]) ? 0xff : 0x00;
-    int8_t d13 = (_a[13] > _b[13]) ? 0xff : 0x00;
-    int8_t d14 = (_a[14] > _b[14]) ? 0xff : 0x00;
-    int8_t d15 = (_a[15] > _b[15]) ? 0xff : 0x00;
+    int8_t d0 = (_a[0] > _b[0]) ? ~UINT8_C(0) : 0x00;
+    int8_t d1 = (_a[1] > _b[1]) ? ~UINT8_C(0) : 0x00;
+    int8_t d2 = (_a[2] > _b[2]) ? ~UINT8_C(0) : 0x00;
+    int8_t d3 = (_a[3] > _b[3]) ? ~UINT8_C(0) : 0x00;
+    int8_t d4 = (_a[4] > _b[4]) ? ~UINT8_C(0) : 0x00;
+    int8_t d5 = (_a[5] > _b[5]) ? ~UINT8_C(0) : 0x00;
+    int8_t d6 = (_a[6] > _b[6]) ? ~UINT8_C(0) : 0x00;
+    int8_t d7 = (_a[7] > _b[7]) ? ~UINT8_C(0) : 0x00;
+    int8_t d8 = (_a[8] > _b[8]) ? ~UINT8_C(0) : 0x00;
+    int8_t d9 = (_a[9] > _b[9]) ? ~UINT8_C(0) : 0x00;
+    int8_t d10 = (_a[10] > _b[10]) ? ~UINT8_C(0) : 0x00;
+    int8_t d11 = (_a[11] > _b[11]) ? ~UINT8_C(0) : 0x00;
+    int8_t d12 = (_a[12] > _b[12]) ? ~UINT8_C(0) : 0x00;
+    int8_t d13 = (_a[13] > _b[13]) ? ~UINT8_C(0) : 0x00;
+    int8_t d14 = (_a[14] > _b[14]) ? ~UINT8_C(0) : 0x00;
+    int8_t d15 = (_a[15] > _b[15]) ? ~UINT8_C(0) : 0x00;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i b = do_mm_load_ps((const int32_t *) _b);
@@ -3516,14 +3516,14 @@ result_t test_mm_cmplt_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
-    uint16_t d0 = _a[0] < _b[0] ? 0xffff : 0;
-    uint16_t d1 = _a[1] < _b[1] ? 0xffff : 0;
-    uint16_t d2 = _a[2] < _b[2] ? 0xffff : 0;
-    uint16_t d3 = _a[3] < _b[3] ? 0xffff : 0;
-    uint16_t d4 = _a[4] < _b[4] ? 0xffff : 0;
-    uint16_t d5 = _a[5] < _b[5] ? 0xffff : 0;
-    uint16_t d6 = _a[6] < _b[6] ? 0xffff : 0;
-    uint16_t d7 = _a[7] < _b[7] ? 0xffff : 0;
+    uint16_t d0 = _a[0] < _b[0] ? ~UINT16_C(0) : 0;
+    uint16_t d1 = _a[1] < _b[1] ? ~UINT16_C(0) : 0;
+    uint16_t d2 = _a[2] < _b[2] ? ~UINT16_C(0) : 0;
+    uint16_t d3 = _a[3] < _b[3] ? ~UINT16_C(0) : 0;
+    uint16_t d4 = _a[4] < _b[4] ? ~UINT16_C(0) : 0;
+    uint16_t d5 = _a[5] < _b[5] ? ~UINT16_C(0) : 0;
+    uint16_t d6 = _a[6] < _b[6] ? ~UINT16_C(0) : 0;
+    uint16_t d7 = _a[7] < _b[7] ? ~UINT16_C(0) : 0;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i b = do_mm_load_ps((const int32_t *) _b);
@@ -3553,22 +3553,22 @@ result_t test_mm_cmplt_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
     const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
-    int8_t d0 = (_a[0] < _b[0]) ? 0xff : 0x00;
-    int8_t d1 = (_a[1] < _b[1]) ? 0xff : 0x00;
-    int8_t d2 = (_a[2] < _b[2]) ? 0xff : 0x00;
-    int8_t d3 = (_a[3] < _b[3]) ? 0xff : 0x00;
-    int8_t d4 = (_a[4] < _b[4]) ? 0xff : 0x00;
-    int8_t d5 = (_a[5] < _b[5]) ? 0xff : 0x00;
-    int8_t d6 = (_a[6] < _b[6]) ? 0xff : 0x00;
-    int8_t d7 = (_a[7] < _b[7]) ? 0xff : 0x00;
-    int8_t d8 = (_a[8] < _b[8]) ? 0xff : 0x00;
-    int8_t d9 = (_a[9] < _b[9]) ? 0xff : 0x00;
-    int8_t d10 = (_a[10] < _b[10]) ? 0xff : 0x00;
-    int8_t d11 = (_a[11] < _b[11]) ? 0xff : 0x00;
-    int8_t d12 = (_a[12] < _b[12]) ? 0xff : 0x00;
-    int8_t d13 = (_a[13] < _b[13]) ? 0xff : 0x00;
-    int8_t d14 = (_a[14] < _b[14]) ? 0xff : 0x00;
-    int8_t d15 = (_a[15] < _b[15]) ? 0xff : 0x00;
+    int8_t d0 = (_a[0] < _b[0]) ? ~UINT8_C(0) : 0x00;
+    int8_t d1 = (_a[1] < _b[1]) ? ~UINT8_C(0) : 0x00;
+    int8_t d2 = (_a[2] < _b[2]) ? ~UINT8_C(0) : 0x00;
+    int8_t d3 = (_a[3] < _b[3]) ? ~UINT8_C(0) : 0x00;
+    int8_t d4 = (_a[4] < _b[4]) ? ~UINT8_C(0) : 0x00;
+    int8_t d5 = (_a[5] < _b[5]) ? ~UINT8_C(0) : 0x00;
+    int8_t d6 = (_a[6] < _b[6]) ? ~UINT8_C(0) : 0x00;
+    int8_t d7 = (_a[7] < _b[7]) ? ~UINT8_C(0) : 0x00;
+    int8_t d8 = (_a[8] < _b[8]) ? ~UINT8_C(0) : 0x00;
+    int8_t d9 = (_a[9] < _b[9]) ? ~UINT8_C(0) : 0x00;
+    int8_t d10 = (_a[10] < _b[10]) ? ~UINT8_C(0) : 0x00;
+    int8_t d11 = (_a[11] < _b[11]) ? ~UINT8_C(0) : 0x00;
+    int8_t d12 = (_a[12] < _b[12]) ? ~UINT8_C(0) : 0x00;
+    int8_t d13 = (_a[13] < _b[13]) ? ~UINT8_C(0) : 0x00;
+    int8_t d14 = (_a[14] < _b[14]) ? ~UINT8_C(0) : 0x00;
+    int8_t d15 = (_a[15] < _b[15]) ? ~UINT8_C(0) : 0x00;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
     __m128i b = do_mm_load_ps((const int32_t *) _b);
@@ -5179,14 +5179,14 @@ result_t test_mm_sra_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128i b = _mm_set1_epi64x(count);
     __m128i c = _mm_sra_epi16(a, b);
     if (count > 15) {
-        int16_t d0 = _a[0] < 0 ? 0xffff : 0;
-        int16_t d1 = _a[1] < 0 ? 0xffff : 0;
-        int16_t d2 = _a[2] < 0 ? 0xffff : 0;
-        int16_t d3 = _a[3] < 0 ? 0xffff : 0;
-        int16_t d4 = _a[4] < 0 ? 0xffff : 0;
-        int16_t d5 = _a[5] < 0 ? 0xffff : 0;
-        int16_t d6 = _a[6] < 0 ? 0xffff : 0;
-        int16_t d7 = _a[7] < 0 ? 0xffff : 0;
+        int16_t d0 = _a[0] < 0 ? ~UINT16_C(0) : 0;
+        int16_t d1 = _a[1] < 0 ? ~UINT16_C(0) : 0;
+        int16_t d2 = _a[2] < 0 ? ~UINT16_C(0) : 0;
+        int16_t d3 = _a[3] < 0 ? ~UINT16_C(0) : 0;
+        int16_t d4 = _a[4] < 0 ? ~UINT16_C(0) : 0;
+        int16_t d5 = _a[5] < 0 ? ~UINT16_C(0) : 0;
+        int16_t d6 = _a[6] < 0 ? ~UINT16_C(0) : 0;
+        int16_t d7 = _a[7] < 0 ? ~UINT16_C(0) : 0;
 
         return validateInt16(c, d0, d1, d2, d3, d4, d5, d6, d7);
     }
@@ -5211,10 +5211,10 @@ result_t test_mm_sra_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128i b = _mm_set1_epi64x(count);
     __m128i c = _mm_sra_epi32(a, b);
     if (count > 31) {
-        int32_t d0 = _a[0] < 0 ? 0xffffffff : 0;
-        int32_t d1 = _a[1] < 0 ? 0xffffffff : 0;
-        int32_t d2 = _a[2] < 0 ? 0xffffffff : 0;
-        int32_t d3 = _a[3] < 0 ? 0xffffffff : 0;
+        int32_t d0 = _a[0] < 0 ? ~UINT64_C(0) : 0;
+        int32_t d1 = _a[1] < 0 ? ~UINT64_C(0) : 0;
+        int32_t d2 = _a[2] < 0 ? ~UINT64_C(0) : 0;
+        int32_t d3 = _a[3] < 0 ? ~UINT64_C(0) : 0;
 
         return validateInt32(c, d0, d1, d2, d3);
     }

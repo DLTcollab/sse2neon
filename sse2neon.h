@@ -2338,20 +2338,20 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 //   ENDFOR
 // FORCE_INLINE __m128i _mm_blend_epi16(__m128i a, __m128i b,
 //                                      __constrange(0,255) int imm)
-#define _mm_blend_epi16(a, b, imm)                                        \
-    __extension__({                                                       \
-        const uint16_t _mask[8] = {((imm) & (1 << 0)) ? 0xFFFF : 0x0000,  \
-                                   ((imm) & (1 << 1)) ? 0xFFFF : 0x0000,  \
-                                   ((imm) & (1 << 2)) ? 0xFFFF : 0x0000,  \
-                                   ((imm) & (1 << 3)) ? 0xFFFF : 0x0000,  \
-                                   ((imm) & (1 << 4)) ? 0xFFFF : 0x0000,  \
-                                   ((imm) & (1 << 5)) ? 0xFFFF : 0x0000,  \
-                                   ((imm) & (1 << 6)) ? 0xFFFF : 0x0000,  \
-                                   ((imm) & (1 << 7)) ? 0xFFFF : 0x0000}; \
-        uint16x8_t _mask_vec = vld1q_u16(_mask);                          \
-        uint16x8_t _a = vreinterpretq_u16_m128i(a);                       \
-        uint16x8_t _b = vreinterpretq_u16_m128i(b);                       \
-        vreinterpretq_m128i_u16(vbslq_u16(_mask_vec, _b, _a));            \
+#define _mm_blend_epi16(a, b, imm)                                            \
+    __extension__({                                                           \
+        const uint16_t _mask[8] = {((imm) & (1 << 0)) ? (uint16_t) -1 : 0x0,  \
+                                   ((imm) & (1 << 1)) ? (uint16_t) -1 : 0x0,  \
+                                   ((imm) & (1 << 2)) ? (uint16_t) -1 : 0x0,  \
+                                   ((imm) & (1 << 3)) ? (uint16_t) -1 : 0x0,  \
+                                   ((imm) & (1 << 4)) ? (uint16_t) -1 : 0x0,  \
+                                   ((imm) & (1 << 5)) ? (uint16_t) -1 : 0x0,  \
+                                   ((imm) & (1 << 6)) ? (uint16_t) -1 : 0x0,  \
+                                   ((imm) & (1 << 7)) ? (uint16_t) -1 : 0x0}; \
+        uint16x8_t _mask_vec = vld1q_u16(_mask);                              \
+        uint16x8_t _a = vreinterpretq_u16_m128i(a);                           \
+        uint16x8_t _b = vreinterpretq_u16_m128i(b);                           \
+        vreinterpretq_m128i_u16(vbslq_u16(_mask_vec, _b, _a));                \
     })
 
 // Blend packed double-precision (64-bit) floating-point elements from a and b
