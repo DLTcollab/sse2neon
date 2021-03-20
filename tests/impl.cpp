@@ -3831,7 +3831,14 @@ result_t test_mm_cvtsi128_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtsi128_si64x(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+
+    int64_t d = _a[0];
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    int64_t c = _mm_cvtsi128_si64x(a);
+
+    return d == c ? TEST_SUCCESS : TEST_FAIL;
 }
 
 result_t test_mm_cvtsi32_sd(const SSE2NEONTestImpl &impl, uint32_t i)
