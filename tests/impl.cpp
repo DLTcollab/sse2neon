@@ -3518,7 +3518,16 @@ result_t test_mm_cmple_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cmple_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    double *_a = (double *) impl.mTestFloatPointer1;
+    double *_b = (double *) impl.mTestFloatPointer2;
+    uint64_t d0 = (_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = ((uint64_t *) _a)[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d c = _mm_cmple_sd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmplt_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
