@@ -5118,6 +5118,23 @@ FORCE_INLINE __m128d _mm_cmplt_sd(__m128d a, __m128d b)
 #endif
 }
 
+// Compare packed double-precision (64-bit) floating-point elements in a and b
+// for not-equal, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpneq_pd
+FORCE_INLINE __m128d _mm_cmpneq_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_s32(vmvnq_s32(vreinterpretq_s32_u64(
+        vceqq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)))));
+#else
+    // (a == b) -> (a_lo == b_lo) && (a_hi == b_hi)
+    uint32x4_t cmp =
+        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
+    uint32x4_t swapped = vrev64q_u32(cmp);
+    return vreinterpretq_m128d_u32(vmvnq_u32(vandq_u32(cmp, swapped)));
+#endif
+}
+
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for greater than.
 //
