@@ -5152,6 +5152,15 @@ FORCE_INLINE __m128d _mm_cmpnge_pd(__m128d a, __m128d b)
     return _mm_cmplt_pd(a, b);
 }
 
+// Compare the lower double-precision (64-bit) floating-point elements in a and
+// b for not-greater-than-or-equal, store the result in the lower element of
+// dst, and copy the upper element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnge_sd
+FORCE_INLINE __m128d _mm_cmpnge_sd(__m128d a, __m128d b)
+{
+    return _mm_cmplt_sd(a, b);
+}
+
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for greater than.
 //
