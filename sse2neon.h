@@ -5144,6 +5144,14 @@ FORCE_INLINE __m128d _mm_cmpneq_sd(__m128d a, __m128d b)
     return _mm_move_sd(a, _mm_cmpneq_pd(a, b));
 }
 
+// Compare packed double-precision (64-bit) floating-point elements in a and b
+// for not-greater-than-or-equal, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnge_pd
+FORCE_INLINE __m128d _mm_cmpnge_pd(__m128d a, __m128d b)
+{
+    return _mm_cmplt_pd(a, b);
+}
+
 // Compares the 16 signed 8-bit integers in a and the 16 signed 8-bit integers
 // in b for greater than.
 //
