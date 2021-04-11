@@ -5317,9 +5317,9 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
     return vreinterpretq_m128i_u64(
         vcgtq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
 #else
-    return vreinterpretq_m128i_s64(
-        vshrq_n_s64(vqsubq_s64(vreinterpretq_s64_m128i(b),
-            vreinterpretq_s64_m128i(a)), 63));
+    return vreinterpretq_m128i_s64(vshrq_n_s64(
+        vqsubq_s64(vreinterpretq_s64_m128i(b), vreinterpretq_s64_m128i(a)),
+        63));
 #endif
 }
 
