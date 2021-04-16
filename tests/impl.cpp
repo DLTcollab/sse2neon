@@ -3744,7 +3744,6 @@ result_t test_mm_comieq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128d b = do_mm_load_pd(_b);
     int32_t c = _mm_comieq_sd(a, b);
 
-    printf("c == %d, _c == %d\n", c, _c);
     ASSERT_RETURN(c == _c);
     return TEST_SUCCESS;
 }
