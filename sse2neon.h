@@ -343,10 +343,10 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 /* Backwards compatibility for compilers with lack of specific type support */
 
 // Older gcc does not define vld1q_u8_x4 type
-#if defined(__GNUC__) && !defined(__clang__) &&   \
-    ((__GNUC__ == 10 && (__GNUC_MINOR__ <= 1)) || \
-     (__GNUC__ == 9 && (__GNUC_MINOR__ <= 3)) ||  \
-     (__GNUC__ == 8 && (__GNUC_MINOR__ <= 4)) || __GNUC__ <= 7)
+#if defined(__GNUC__) && !defined(__clang__) &&                        \
+    ((__GNUC__ <= 10 && defined(__arm__)) ||                           \
+     (__GNUC__ == 10 && __GNUC_MINOR__ < 3 && defined(__aarch64__)) || \
+     (__GNUC__ <= 9 && defined(__aarch64__)))
 FORCE_INLINE uint8x16x4_t _sse2neon_vld1q_u8_x4(const uint8_t *p)
 {
     uint8x16x4_t ret;
