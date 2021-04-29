@@ -5162,6 +5162,11 @@ FORCE_INLINE __m128d _mm_cmpnge_sd(__m128d a, __m128d b)
     return _mm_cmplt_sd(a, b);
 }
 
+// Compare packed double-precision (64-bit) floating-point elements in a and b
+// for not-greater-than, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_cmpngt_pd
+#define _mm_cmpngt_pd(a, b) _mm_cmple_pd(a, b)
+
 // Compare the lower double-precision (64-bit) floating-point element in a and b
 // for equality, and return the boolean result (0 or 1).
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_comieq_sd
