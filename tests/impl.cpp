@@ -3313,10 +3313,10 @@ result_t test_mm_cmpeq_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     const int32_t *_a = impl.mTestIntPointer1;
     const int32_t *_b = impl.mTestIntPointer2;
 
-    int32_t d0 = (_a[0] == _b[0]) ? ~UINT64_C(0) : 0x0;
-    int32_t d1 = (_a[1] == _b[1]) ? ~UINT64_C(0) : 0x0;
-    int32_t d2 = (_a[2] == _b[2]) ? ~UINT64_C(0) : 0x0;
-    int32_t d3 = (_a[3] == _b[3]) ? ~UINT64_C(0) : 0x0;
+    int32_t d0 = (_a[0] == _b[0]) ? ~UINT32_C(0) : 0x0;
+    int32_t d1 = (_a[1] == _b[1]) ? ~UINT32_C(0) : 0x0;
+    int32_t d2 = (_a[2] == _b[2]) ? ~UINT32_C(0) : 0x0;
+    int32_t d3 = (_a[3] == _b[3]) ? ~UINT32_C(0) : 0x0;
 
     __m128i a = do_mm_load_ps(_a);
     __m128i b = do_mm_load_ps(_b);
@@ -5297,10 +5297,10 @@ result_t test_mm_sra_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128i b = _mm_set1_epi64x(count);
     __m128i c = _mm_sra_epi32(a, b);
     if (count > 31) {
-        int32_t d0 = _a[0] < 0 ? ~UINT64_C(0) : 0;
-        int32_t d1 = _a[1] < 0 ? ~UINT64_C(0) : 0;
-        int32_t d2 = _a[2] < 0 ? ~UINT64_C(0) : 0;
-        int32_t d3 = _a[3] < 0 ? ~UINT64_C(0) : 0;
+        int32_t d0 = _a[0] < 0 ? ~UINT32_C(0) : 0;
+        int32_t d1 = _a[1] < 0 ? ~UINT32_C(0) : 0;
+        int32_t d2 = _a[2] < 0 ? ~UINT32_C(0) : 0;
+        int32_t d3 = _a[3] < 0 ? ~UINT32_C(0) : 0;
 
         return validateInt32(c, d0, d1, d2, d3);
     }
