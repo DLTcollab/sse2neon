@@ -97,6 +97,7 @@ Use the command `$ make indent` to follow the coding convention.
 
 ## Adoptions
 Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
+* [aether-game-utils](https://github.com/johnhues/aether-game-utils) is a collection of cross platform utilities for quickly creating small game prototypes in C++.
 * [Apache Impala](https://impala.apache.org/) is a lightning-fast, distributed SQL queries for petabytes of data stored in Apache Hadoop clusters.
 * [Apache Kudu](https://kudu.apache.org/) completes Hadoop's storage layer to enable fast analytics on fast data.
 * [ART](https://github.com/dinosaure/art) is an implementation in OCaml of [Adaptive Radix Tree](https://db.in.tum.de/~leis/papers/ART.pdf) (ART).
