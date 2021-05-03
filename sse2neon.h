@@ -6878,6 +6878,28 @@ FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
             vsetq_lane_s8((b), vreinterpretq_s8_m128i(a), (imm))); \
     })
 
+// Copy a to tmp, then insert a single-precision (32-bit) floating-point
+// element from b into tmp using the control in imm8. Store tmp to dst using
+// the mask in imm8 (elements are zeroed out when the corresponding bit is set).
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=insert_ps
+#define _mm_insert_ps(a, b, imm8)                                              \
+    __extension__({                                                            \
+        float32x4_t tmp1 = vsetq_lane_f32(vgetq_lane_f32(b, (imm >> 6) & 0x3), \
+                                          vreinterpretq_f32_m128(a), 0);       \
+        float32x4_t tmp2 =                                                     \
+            vsetq_lane_f32(vgetq_lane_f32(tmp1, 0), vreinterpretq_f32_m128(a), \
+                           ((imm >> 4) & 0x3));                                \
+        const uint32_t data[4] = {((imm8) & (1 << 0)) ? UINT32_MAX : 0,        \
+                                  ((imm8) & (1 << 1)) ? UINT32_MAX : 0,        \
+                                  ((imm8) & (1 << 2)) ? UINT32_MAX : 0,        \
+                                  ((imm8) & (1 << 3)) ? UINT32_MAX : 0};       \
+        uint32x4_t mask = vld1q_u32(data);                                     \
+        float32x4_t all_zeros = vdupq_n_f32(0);                                \
+                                                                               \
+        vreinterpretq_m128_f32(                                                \
+            vbslq_f32(mask, all_zeros, vreinterpretq_f32_m128(tmp2)));         \
+    })
+
 // Extracts the selected signed or unsigned 16-bit integer from a and zero
 // extends.
 // https://msdn.microsoft.com/en-us/library/6dceta0c(v=vs.100).aspx

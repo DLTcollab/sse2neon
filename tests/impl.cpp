@@ -7506,7 +7506,24 @@ result_t test_mm_insert_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_insert_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    const float *_b = impl.mTestFloatPointer2;
+    const uint8_t imm = 0x1 << 6 | 0x2 << 4 | 0x1 << 2;
+
+    float d[4] = {_a[0], _a[1], _a[2], _a[3]};
+    d[(imm >> 4) & 0x3] = _b[(imm >> 6) & 0x3];
+
+    for (int j = 0; j < 4; j++) {
+        if (imm & (1 << j)) {
+            d[j] = 0;
+        }
+    }
+
+    __m128 a = _mm_load_ps(_a);
+    __m128 b = _mm_load_ps(_b);
+    __m128 c = _mm_insert_ps(a, b, imm);
+
+    return validateFloat(c, d[0], d[1], d[2], d[3]);
 }
 
 result_t test_mm_max_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
