@@ -2470,8 +2470,7 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
         __m128i ret;                                                       \
         if (unlikely(imm) == 0) {                                          \
             ret = a;                                                       \
-        }                                                                  \
-        if (likely(0 < (imm) && (imm) < 16)) {                             \
+        } else if (likely(0 < (imm) && (imm) < 16)) {                      \
             ret = vreinterpretq_m128i_u16(                                 \
                 vshlq_u16(vreinterpretq_u16_m128i(a), vdupq_n_s16(-imm))); \
         } else {                                                           \
@@ -2499,8 +2498,7 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
         __m128i ret;                                                       \
         if (unlikely((imm) == 0)) {                                        \
             ret = a;                                                       \
-        }                                                                  \
-        if (likely(0 < (imm) && (imm) < 32)) {                             \
+        } else if (likely(0 < (imm) && (imm) < 32)) {                      \
             ret = vreinterpretq_m128i_u32(                                 \
                 vshlq_u32(vreinterpretq_u32_m128i(a), vdupq_n_s32(-imm))); \
         } else {                                                           \
@@ -2527,8 +2525,7 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
         __m128i ret;                                                       \
         if (unlikely((imm) == 0)) {                                        \
             ret = a;                                                       \
-        }                                                                  \
-        if (likely(0 < (imm) && (imm) < 64)) {                             \
+        } else if (likely(0 < (imm) && (imm) < 64)) {                      \
             ret = vreinterpretq_m128i_u64(                                 \
                 vshlq_u64(vreinterpretq_u64_m128i(a), vdupq_n_s64(-imm))); \
         } else {                                                           \
@@ -2556,8 +2553,7 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
         __m128i ret;                                                       \
         if (unlikely((imm) == 0)) {                                        \
             ret = a;                                                       \
-        }                                                                  \
-        if (likely(0 < (imm) && (imm) < 32)) {                             \
+        } else if (likely(0 < (imm) && (imm) < 32)) {                      \
             ret = vreinterpretq_m128i_s32(                                 \
                 vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(-imm))); \
         } else {                                                           \
