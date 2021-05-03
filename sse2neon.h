@@ -6866,6 +6866,7 @@ FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
 // Extracts the selected signed or unsigned 8-bit integer from a and zero
 // extends.
 // FORCE_INLINE int _mm_extract_epi8(__m128i a, __constrange(0,16) int imm)
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_extract_epi8
 #define _mm_extract_epi8(a, imm) vgetq_lane_u8(vreinterpretq_u8_m128i(a), (imm))
 
 // Inserts the least significant 8 bits of b into the selected 8-bit integer

@@ -7386,7 +7386,13 @@ result_t test_mm_extract_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_extract_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    uint8_t *_a = (uint8_t *) impl.mTestIntPointer1;
+    const int imm = 1;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    int c = _mm_extract_epi8(a, imm);
+    ASSERT_RETURN(c == *(_a + imm));
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_extract_ps(const SSE2NEONTestImpl &impl, uint32_t i)
