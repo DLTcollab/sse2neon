@@ -5,4 +5,9 @@ SOURCES=$(find $(git rev-parse --show-toplevel) | egrep "\.(cpp|h)\$" | egrep -v
 
 set -x
 
+for file in ${SOURCES};
+do
+    clang-format-6.0 ${file} > expected-format
+    diff -u -p --label="${file}" --label="expected coding style" ${file} expected-format
+done
 exit $(clang-format-6.0 --output-replacements-xml ${SOURCES} | egrep -c "</replacement>")
