@@ -2199,7 +2199,7 @@ result_t test_m_psadbw(const SSE2NEONTestImpl &impl, uint32_t i)
 
     __m64 a = do_mm_load_m64((const int64_t *) _a);
     __m64 b = do_mm_load_m64((const int64_t *) _b);
-    __m64 c = _mm_sad_pu8(a, b);
+    __m64 c = _m_psadbw(a, b);
     return validateUInt16(c, d, 0, 0, 0);
 }
 
