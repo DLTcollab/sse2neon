@@ -1656,11 +1656,26 @@ result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
     // information
 #if defined(__clang__)
     uint64_t *_a = (uint64_t *) impl.mTestIntPointer1;
-    const int imm = 1;
+    const int idx = i & 0x3;
 
     __m64 a = do_mm_load_m64((const int64_t *) _a);
-    int32_t c = _mm_extract_pi16(a, imm);
-    ASSERT_RETURN((uint64_t) c == ((*_a >> ((imm & 0x3) * 16)) & 0xFFFF));
+    int c;
+    switch (idx) {
+    case 0:
+        c = _mm_extract_pi16(a, 0);
+        break;
+    case 1:
+        c = _mm_extract_pi16(a, 1);
+        break;
+    case 2:
+        c = _mm_extract_pi16(a, 2);
+        break;
+    case 3:
+        c = _mm_extract_pi16(a, 3);
+        break;
+    }
+
+    ASSERT_RETURN((uint64_t) c == ((*_a >> (idx * 16)) & 0xFFFF));
     ASSERT_RETURN(0 == ((uint64_t) c & 0xFFFF0000));
     return TEST_SUCCESS;
 #else
@@ -4080,11 +4095,37 @@ result_t test_mm_div_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 result_t test_mm_extract_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     uint16_t *_a = (uint16_t *) impl.mTestIntPointer1;
-    const int imm = 1;
-
+    const int idx = i & 0x7;
     __m128i a = do_mm_load_ps((const int32_t *) _a);
-    int c = _mm_extract_epi16(a, imm);
-    ASSERT_RETURN(c == *(_a + imm));
+    int c;
+    switch (idx) {
+    case 0:
+        c = _mm_extract_epi16(a, 0);
+        break;
+    case 1:
+        c = _mm_extract_epi16(a, 1);
+        break;
+    case 2:
+        c = _mm_extract_epi16(a, 2);
+        break;
+    case 3:
+        c = _mm_extract_epi16(a, 3);
+        break;
+    case 4:
+        c = _mm_extract_epi16(a, 4);
+        break;
+    case 5:
+        c = _mm_extract_epi16(a, 5);
+        break;
+    case 6:
+        c = _mm_extract_epi16(a, 6);
+        break;
+    case 7:
+        c = _mm_extract_epi16(a, 7);
+        break;
+    }
+
+    ASSERT_RETURN(c == *(_a + idx));
     return TEST_SUCCESS;
 }
 
@@ -7364,12 +7405,25 @@ result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 result_t test_mm_extract_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     int32_t *_a = (int32_t *) impl.mTestIntPointer1;
-    const int imm = 1;
-
+    const int idx = i & 0x3;
     __m128i a = do_mm_load_ps((const int32_t *) _a);
-    int c = _mm_extract_epi32(a, imm);
+    int c;
+    switch (idx) {
+    case 0:
+        c = _mm_extract_epi32(a, 0);
+        break;
+    case 1:
+        c = _mm_extract_epi32(a, 1);
+        break;
+    case 2:
+        c = _mm_extract_epi32(a, 2);
+        break;
+    case 3:
+        c = _mm_extract_epi32(a, 3);
+        break;
+    }
 
-    ASSERT_RETURN(c == *(_a + imm));
+    ASSERT_RETURN(c == *(_a + idx));
     return TEST_SUCCESS;
 }
 
@@ -7396,11 +7450,38 @@ result_t test_mm_extract_epi64(const SSE2NEONTestImpl &impl, uint32_t i)
 result_t test_mm_extract_epi8(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     uint8_t *_a = (uint8_t *) impl.mTestIntPointer1;
-    const int imm = 1;
+    const int idx = i & 0x7;
 
     __m128i a = do_mm_load_ps((const int32_t *) _a);
-    int c = _mm_extract_epi8(a, imm);
-    ASSERT_RETURN(c == *(_a + imm));
+    int c;
+    switch (idx) {
+    case 0:
+        c = _mm_extract_epi8(a, 0);
+        break;
+    case 1:
+        c = _mm_extract_epi8(a, 1);
+        break;
+    case 2:
+        c = _mm_extract_epi8(a, 2);
+        break;
+    case 3:
+        c = _mm_extract_epi8(a, 3);
+        break;
+    case 4:
+        c = _mm_extract_epi8(a, 4);
+        break;
+    case 5:
+        c = _mm_extract_epi8(a, 5);
+        break;
+    case 6:
+        c = _mm_extract_epi8(a, 6);
+        break;
+    case 7:
+        c = _mm_extract_epi8(a, 7);
+        break;
+    }
+
+    ASSERT_RETURN(c == *(_a + idx));
     return TEST_SUCCESS;
 }
 
