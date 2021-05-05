@@ -6004,6 +6004,15 @@ FORCE_INLINE void _mm_stream_si32(int *p, int a)
     vst1q_lane_s32((int32_t *) p, vdupq_n_s32(a), 0);
 }
 
+// Store 64-bit integer a into memory using a non-temporal hint to minimize
+// cache pollution. If the cache line containing address mem_addr is already in
+// the cache, the cache will be updated.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_si64
+FORCE_INLINE void _mm_stream_si64(int64_t *p, int64_t a)
+{
+    vst1_s64(p, vdup_n_s64(a));
+}
+
 // Subtract packed 16-bit integers in b from packed 16-bit integers in a, and
 // store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sub_epi16
