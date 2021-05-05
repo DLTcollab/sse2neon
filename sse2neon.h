@@ -4745,6 +4745,22 @@ FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s32(vsubq_s32(ab02, ab13));
 }
 
+// Horizontally subtract adjacent pairs of 32-bit integers in a and b, and pack
+// the signed 32-bit results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_hsub_pi32
+FORCE_INLINE __m64 _mm_hsub_pi32(__m64 _a, __m64 _b)
+{
+#if defined(__aarch64__)
+    int32x2_t a = vreinterpret_s32_m64(_a);
+    int32x2_t b = vreinterpret_s32_m64(_b);
+    return vreinterpret_m64_s32(vsub_s32(vtrn1_s32(a, b), vtrn2_s32(a, b)));
+#else
+    int32x2x2_t trn_ab =
+        vtrn_s32(vreinterpret_s32_m64(_a), vreinterpret_s32_m64(_b));
+    return vreinterpret_m64_s32(vsub_s32(trn_ab.val[0], trn_ab.val[1]));
+#endif
+}
+
 // Kahan summation for accurate summation of floating-point numbers.
 // http://blog.zachbjornson.com/2019/08/11/fast-float-summation.html
 FORCE_INLINE void _sse2neon_kadd_f32(float *sum, float *c, float y)

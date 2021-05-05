@@ -6717,7 +6717,17 @@ result_t test_mm_hsub_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_hsub_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int32_t *_a = impl.mTestIntPointer1;
+    const int32_t *_b = impl.mTestIntPointer2;
+
+    int32_t d0 = _a[0] - _a[1];
+    int32_t d1 = _b[0] - _b[1];
+
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+    __m64 b = do_mm_load_m64((const int64_t *) _b);
+    __m64 c = _mm_hsub_pi32(a, b);
+
+    return validateInt32(c, d0, d1);
 }
 
 result_t test_mm_hsubs_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
