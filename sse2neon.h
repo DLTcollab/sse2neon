@@ -6238,6 +6238,7 @@ FORCE_INLINE __m128d _mm_blendv_pd(__m128d _a, __m128d _b, __m128d _mask)
 #endif
 }
 
+// The bit field mapping to the FPCR(floating-point control register)
 typedef struct {
     uint16_t res0;
     uint8_t res1 : 6;
@@ -6248,6 +6249,34 @@ typedef struct {
     uint32_t res3;
 #endif
 } fpcr_bitfield;
+
+// Macro: Get the rounding mode bits from the MXCSR control and status register.
+// The rounding mode may contain any of the following flags: _MM_ROUND_NEAREST,
+// _MM_ROUND_DOWN, _MM_ROUND_UP, _MM_ROUND_TOWARD_ZERO
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_MM_GET_ROUNDING_MODE
+FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE()
+{
+    union {
+        fpcr_bitfield field;
+#if defined(__aarch64__)
+        uint64_t value;
+#else
+        uint32_t value;
+#endif
+    } r;
+
+#if defined(__aarch64__)
+    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+#else
+    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+#endif
+
+    if (r.field.bit22) {
+        return r.field.bit23 ? _MM_ROUND_TOWARD_ZERO : _MM_ROUND_UP;
+    } else {
+        return r.field.bit23 ? _MM_ROUND_DOWN : _MM_ROUND_NEAREST;
+    }
+}
 
 // Macro: Set the rounding mode bits of the MXCSR control and status register to
 // the value in unsigned 32-bit integer a. The rounding mode may contain any of

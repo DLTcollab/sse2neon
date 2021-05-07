@@ -1688,6 +1688,25 @@ result_t test_mm_free(const SSE2NEONTestImpl &impl, uint32_t i)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_get_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t i)
+{
+    int res_toward_zero, res_to_neg_inf, res_to_pos_inf, res_nearest;
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+    res_toward_zero = _MM_GET_ROUNDING_MODE() == _MM_ROUND_TOWARD_ZERO ? 1 : 0;
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+    res_to_neg_inf = _MM_GET_ROUNDING_MODE() == _MM_ROUND_DOWN ? 1 : 0;
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+    res_to_pos_inf = _MM_GET_ROUNDING_MODE() == _MM_ROUND_UP ? 1 : 0;
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+    res_nearest = _MM_GET_ROUNDING_MODE() == _MM_ROUND_NEAREST ? 1 : 0;
+
+    if (res_toward_zero && res_to_neg_inf && res_to_pos_inf && res_nearest) {
+        return TEST_SUCCESS;
+    } else {
+        return TEST_FAIL;
+    }
+}
+
 result_t test_mm_getcsr(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     return TEST_UNIMPL;

@@ -72,6 +72,7 @@
     TYPE(mm_div_ss)                \
     TYPE(mm_extract_pi16)          \
     TYPE(mm_free)                  \
+    TYPE(mm_get_rounding_mode)     \
     TYPE(mm_getcsr)                \
     TYPE(mm_insert_pi16)           \
     TYPE(mm_load_ps)               \
