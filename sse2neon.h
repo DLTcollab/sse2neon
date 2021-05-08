@@ -340,6 +340,10 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #define vreinterpretq_nth_u32_m128i(x, n) (((SIMDVec *) &x)->m128_u32[n])
 #define vreinterpretq_nth_u8_m128i(x, n) (((SIMDVec *) &x)->m128_u8[n])
 
+// Function declaration
+FORCE_INLINE __m128 _mm_ceil_ps(__m128);
+FORCE_INLINE __m128 _mm_floor_ps(__m128);
+
 /* Backwards compatibility for compilers with lack of specific type support */
 
 // Older gcc does not define vld1q_u8_x4 type
@@ -6341,9 +6345,9 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
     case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndnq_f32(vreinterpretq_f32_m128(a)));
     case (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC):
-        return vreinterpretq_m128_f32(vrndmq_f32(vreinterpretq_f32_m128(a)));
+        return _mm_floor_ps(a);
     case (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC):
-        return vreinterpretq_m128_f32(vrndpq_f32(vreinterpretq_f32_m128(a)));
+        return _mm_ceil_ps(a);
     case (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndq_f32(vreinterpretq_f32_m128(a)));
     default:  //_MM_FROUND_CUR_DIRECTION
@@ -6376,13 +6380,11 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
     } else if (rounding == (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) ||
                (rounding == _MM_FROUND_CUR_DIRECTION &&
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_DOWN)) {
-        return _mm_set_ps(floorf(v_float[3]), floorf(v_float[2]),
-                          floorf(v_float[1]), floorf(v_float[0]));
+        return _mm_floor_ps(a);
     } else if (rounding == (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) ||
                (rounding == _MM_FROUND_CUR_DIRECTION &&
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_UP)) {
-        return _mm_set_ps(ceilf(v_float[3]), ceilf(v_float[2]),
-                          ceilf(v_float[1]), ceilf(v_float[0]));
+        return _mm_ceil_ps(a);
     }
     return _mm_set_ps((int) v_float[3], (int) v_float[2], (int) v_float[1],
                       (int) v_float[0]);
@@ -6427,7 +6429,12 @@ FORCE_INLINE __m64 _mm_cvt_ps2pi(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_ceil_ps
 FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 {
-    return _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vrndpq_f32(vreinterpretq_f32_m128(a)));
+#else
+    float *f = (float *) &a;
+    return _mm_set_ps(ceilf(f[3]), ceilf(f[2]), ceilf(f[1]), ceilf(f[0]));
+#endif
 }
 
 // Round the lower single-precision (32-bit) floating-point element in b up to
@@ -6441,8 +6448,7 @@ FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_ceil_ss
 FORCE_INLINE __m128 _mm_ceil_ss(__m128 a, __m128 b)
 {
-    return _mm_move_ss(
-        a, _mm_round_ps(b, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC));
+    return _mm_move_ss(a, _mm_ceil_ps(b));
 }
 
 // Round the packed single-precision (32-bit) floating-point elements in a down
@@ -6451,7 +6457,12 @@ FORCE_INLINE __m128 _mm_ceil_ss(__m128 a, __m128 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_floor_ps
 FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
 {
-    return _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vrndmq_f32(vreinterpretq_f32_m128(a)));
+#else
+    float *f = (float *) &a;
+    return _mm_set_ps(floorf(f[3]), floorf(f[2]), floorf(f[1]), floorf(f[0]));
+#endif
 }
 
 // Round the lower single-precision (32-bit) floating-point element in b down to
@@ -6465,8 +6476,7 @@ FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_floor_ss
 FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
 {
-    return _mm_move_ss(
-        a, _mm_round_ps(b, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC));
+    return _mm_move_ss(a, _mm_floor_ps(b));
 }
 
 // Load 128-bits of integer data from unaligned memory into dst. This intrinsic
