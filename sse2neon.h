@@ -6351,28 +6351,41 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
     }
 #else
     float *v_float = (float *) &a;
-    __m128 zero, neg_inf, pos_inf;
 
-    switch (rounding) {
-    case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
-        return _mm_cvtepi32_ps(_mm_cvtps_epi32(a));
-    case (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC):
-        return (__m128){floorf(v_float[0]), floorf(v_float[1]),
-                        floorf(v_float[2]), floorf(v_float[3])};
-    case (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC):
-        return (__m128){ceilf(v_float[0]), ceilf(v_float[1]), ceilf(v_float[2]),
-                        ceilf(v_float[3])};
-    case (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC):
-        zero = _mm_set_ps(0.0f, 0.0f, 0.0f, 0.0f);
-        neg_inf = _mm_set_ps(floorf(v_float[0]), floorf(v_float[1]),
-                             floorf(v_float[2]), floorf(v_float[3]));
-        pos_inf = _mm_set_ps(ceilf(v_float[0]), ceilf(v_float[1]),
-                             ceilf(v_float[2]), ceilf(v_float[3]));
-        return _mm_blendv_ps(pos_inf, neg_inf, _mm_cmple_ps(a, zero));
-    default:  //_MM_FROUND_CUR_DIRECTION
-        return (__m128){roundf(v_float[0]), roundf(v_float[1]),
-                        roundf(v_float[2]), roundf(v_float[3])};
+    if (rounding == (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) ||
+        (rounding == _MM_FROUND_CUR_DIRECTION &&
+         _MM_GET_ROUNDING_MODE() == _MM_ROUND_NEAREST)) {
+        uint32x4_t signmask = vdupq_n_u32(0x80000000);
+        float32x4_t half = vbslq_f32(signmask, vreinterpretq_f32_m128(a),
+                                     vdupq_n_f32(0.5f)); /* +/- 0.5 */
+        int32x4_t r_normal = vcvtq_s32_f32(vaddq_f32(
+            vreinterpretq_f32_m128(a), half)); /* round to integer: [a + 0.5]*/
+        int32x4_t r_trunc = vcvtq_s32_f32(
+            vreinterpretq_f32_m128(a)); /* truncate to integer: [a] */
+        int32x4_t plusone = vreinterpretq_s32_u32(vshrq_n_u32(
+            vreinterpretq_u32_s32(vnegq_s32(r_trunc)), 31)); /* 1 or 0 */
+        int32x4_t r_even = vbicq_s32(vaddq_s32(r_trunc, plusone),
+                                     vdupq_n_s32(1)); /* ([a] + {0,1}) & ~1 */
+        float32x4_t delta = vsubq_f32(
+            vreinterpretq_f32_m128(a),
+            vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
+        uint32x4_t is_delta_half =
+            vceqq_f32(delta, half); /* delta == +/- 0.5 */
+        return vreinterpretq_m128_f32(
+            vcvtq_f32_s32(vbslq_s32(is_delta_half, r_even, r_normal)));
+    } else if (rounding == (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) ||
+               (rounding == _MM_FROUND_CUR_DIRECTION &&
+                _MM_GET_ROUNDING_MODE() == _MM_ROUND_DOWN)) {
+        return _mm_set_ps(floorf(v_float[3]), floorf(v_float[2]),
+                          floorf(v_float[1]), floorf(v_float[0]));
+    } else if (rounding == (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) ||
+               (rounding == _MM_FROUND_CUR_DIRECTION &&
+                _MM_GET_ROUNDING_MODE() == _MM_ROUND_UP)) {
+        return _mm_set_ps(ceilf(v_float[3]), ceilf(v_float[2]),
+                          ceilf(v_float[1]), ceilf(v_float[0]));
     }
+    return _mm_set_ps((int) v_float[3], (int) v_float[2], (int) v_float[1],
+                      (int) v_float[0]);
 #endif
 }
 

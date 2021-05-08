@@ -7904,14 +7904,82 @@ result_t test_mm_round_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
-    float dx = roundf(_a[0]);
-    float dy = roundf(_a[1]);
-    float dz = roundf(_a[2]);
-    float dw = roundf(_a[3]);
+    float f[4];
+    __m128 ret;
 
     __m128 a = do_mm_load_ps(_a);
-    __m128 c = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
+    switch (i & 0x7) {
+    case 0:
+        f[0] = bankersRounding(_a[0]);
+        f[1] = bankersRounding(_a[1]);
+        f[2] = bankersRounding(_a[2]);
+        f[3] = bankersRounding(_a[3]);
+
+        ret = _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+        break;
+    case 1:
+        f[0] = floorf(_a[0]);
+        f[1] = floorf(_a[1]);
+        f[2] = floorf(_a[2]);
+        f[3] = floorf(_a[3]);
+
+        ret = _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+        break;
+    case 2:
+        f[0] = ceilf(_a[0]);
+        f[1] = ceilf(_a[1]);
+        f[2] = ceilf(_a[2]);
+        f[3] = ceilf(_a[3]);
+
+        ret = _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+        break;
+    case 3:
+        f[0] = (int) _a[0];
+        f[1] = (int) _a[1];
+        f[2] = (int) _a[2];
+        f[3] = (int) _a[3];
+
+        ret = _mm_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+        break;
+    case 4:
+        f[0] = bankersRounding(_a[0]);
+        f[1] = bankersRounding(_a[1]);
+        f[2] = bankersRounding(_a[2]);
+        f[3] = bankersRounding(_a[3]);
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        ret = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+        break;
+    case 5:
+        f[0] = floorf(_a[0]);
+        f[1] = floorf(_a[1]);
+        f[2] = floorf(_a[2]);
+        f[3] = floorf(_a[3]);
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        ret = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+        break;
+    case 6:
+        f[0] = ceilf(_a[0]);
+        f[1] = ceilf(_a[1]);
+        f[2] = ceilf(_a[2]);
+        f[3] = ceilf(_a[3]);
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        ret = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+        break;
+    case 7:
+        f[0] = (int) _a[0];
+        f[1] = (int) _a[1];
+        f[2] = (int) _a[2];
+        f[3] = (int) _a[3];
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        ret = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
+        break;
+    }
+
+    return validateFloat(ret, f[0], f[1], f[2], f[3]);
 }
 
 result_t test_mm_round_sd(const SSE2NEONTestImpl &impl, uint32_t i)
