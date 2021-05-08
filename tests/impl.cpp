@@ -3888,13 +3888,36 @@ result_t test_mm_cvtps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
     __m128 a = do_mm_load_ps(_a);
-    int32_t trun[4];
-    for (uint32_t i = 0; i < 4; i++) {
-        trun[i] = (int32_t)(bankersRounding(_a[i]));
+    int32_t d[4];
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        for (uint32_t i = 0; i < 4; i++) {
+            d[i] = (int32_t)(bankersRounding(_a[i]));
+        }
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        for (uint32_t i = 0; i < 4; i++) {
+            d[i] = (int32_t)(floorf(_a[i]));
+        }
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        for (uint32_t i = 0; i < 4; i++) {
+            d[i] = (int32_t)(ceilf(_a[i]));
+        }
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        for (uint32_t i = 0; i < 4; i++) {
+            d[i] = (int32_t)(_a[i]);
+        }
+        break;
     }
 
     __m128i ret = _mm_cvtps_epi32(a);
-    return validateInt32(ret, trun[0], trun[1], trun[2], trun[3]);
+    return validateInt32(ret, d[0], d[1], d[2], d[3]);
 }
 
 result_t test_mm_cvtps_pd(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -6261,6 +6284,8 @@ result_t test_mm_addsub_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_addsub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+    // FIXME: The rounding mode would affect the testing result on ARM platform.
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
 
@@ -6293,6 +6318,8 @@ result_t test_mm_hadd_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_hadd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+    // FIXME: The rounding mode would affect the testing result on ARM platform.
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
 
@@ -6325,6 +6352,8 @@ result_t test_mm_hsub_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_hsub_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+    // FIXME: The rounding mode would affect the testing result on ARM platform.
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
 
@@ -7402,6 +7431,8 @@ result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 {
+    // FIXME: The rounding mode would affect the testing result on ARM platform.
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
     const int imm = 0xFF;

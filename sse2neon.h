@@ -341,6 +341,7 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #define vreinterpretq_nth_u8_m128i(x, n) (((SIMDVec *) &x)->m128_u8[n])
 
 // Function declaration
+FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE();
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
 FORCE_INLINE __m128 _mm_floor_ps(__m128);
 
@@ -5901,24 +5902,49 @@ FORCE_INLINE __m128i _mm_cvtepi32_epi64(__m128i a)
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
 #if defined(__aarch64__)
-    return vreinterpretq_m128i_s32(vcvtnq_s32_f32(a));
+    switch (_MM_GET_ROUNDING_MODE()) {
+    case _MM_ROUND_NEAREST:
+        return vreinterpretq_m128i_s32(vcvtnq_s32_f32(a));
+    case _MM_ROUND_DOWN:
+        return vreinterpretq_m128i_s32(vcvtmq_s32_f32(a));
+    case _MM_ROUND_UP:
+        return vreinterpretq_m128i_s32(vcvtpq_s32_f32(a));
+    default:  // _MM_ROUND_TOWARD_ZERO
+        return vreinterpretq_m128i_s32(vcvtq_s32_f32(a));
+    }
 #else
-    uint32x4_t signmask = vdupq_n_u32(0x80000000);
-    float32x4_t half = vbslq_f32(signmask, vreinterpretq_f32_m128(a),
-                                 vdupq_n_f32(0.5f)); /* +/- 0.5 */
-    int32x4_t r_normal = vcvtq_s32_f32(vaddq_f32(
-        vreinterpretq_f32_m128(a), half)); /* round to integer: [a + 0.5]*/
-    int32x4_t r_trunc =
-        vcvtq_s32_f32(vreinterpretq_f32_m128(a)); /* truncate to integer: [a] */
-    int32x4_t plusone = vreinterpretq_s32_u32(vshrq_n_u32(
-        vreinterpretq_u32_s32(vnegq_s32(r_trunc)), 31)); /* 1 or 0 */
-    int32x4_t r_even = vbicq_s32(vaddq_s32(r_trunc, plusone),
-                                 vdupq_n_s32(1)); /* ([a] + {0,1}) & ~1 */
-    float32x4_t delta = vsubq_f32(
-        vreinterpretq_f32_m128(a),
-        vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
-    uint32x4_t is_delta_half = vceqq_f32(delta, half); /* delta == +/- 0.5 */
-    return vreinterpretq_m128i_s32(vbslq_s32(is_delta_half, r_even, r_normal));
+    float *f = (float *) &a;
+    switch (_MM_GET_ROUNDING_MODE()) {
+    case _MM_ROUND_NEAREST: {
+        uint32x4_t signmask = vdupq_n_u32(0x80000000);
+        float32x4_t half = vbslq_f32(signmask, vreinterpretq_f32_m128(a),
+                                     vdupq_n_f32(0.5f)); /* +/- 0.5 */
+        int32x4_t r_normal = vcvtq_s32_f32(vaddq_f32(
+            vreinterpretq_f32_m128(a), half)); /* round to integer: [a + 0.5]*/
+        int32x4_t r_trunc = vcvtq_s32_f32(
+            vreinterpretq_f32_m128(a)); /* truncate to integer: [a] */
+        int32x4_t plusone = vreinterpretq_s32_u32(vshrq_n_u32(
+            vreinterpretq_u32_s32(vnegq_s32(r_trunc)), 31)); /* 1 or 0 */
+        int32x4_t r_even = vbicq_s32(vaddq_s32(r_trunc, plusone),
+                                     vdupq_n_s32(1)); /* ([a] + {0,1}) & ~1 */
+        float32x4_t delta = vsubq_f32(
+            vreinterpretq_f32_m128(a),
+            vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
+        uint32x4_t is_delta_half =
+            vceqq_f32(delta, half); /* delta == +/- 0.5 */
+        return vreinterpretq_m128i_s32(
+            vbslq_s32(is_delta_half, r_even, r_normal));
+    }
+    case _MM_ROUND_DOWN:
+        return _mm_set_epi32(floorf(f[3]), floorf(f[2]), floorf(f[1]),
+                             floorf(f[0]));
+    case _MM_ROUND_UP:
+        return _mm_set_epi32(ceilf(f[3]), ceilf(f[2]), ceilf(f[1]),
+                             ceilf(f[0]));
+    default:  // _MM_ROUND_TOWARD_ZERO
+        return _mm_set_epi32((int32_t) f[3], (int32_t) f[2], (int32_t) f[1],
+                             (int32_t) f[0]);
+    }
 #endif
 }
 
