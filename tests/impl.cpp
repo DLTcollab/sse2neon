@@ -7965,10 +7965,10 @@ result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t i)
         ret = _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
         break;
     case 3:
-        f[0] = (int) _a[0];
-        f[1] = (int) _a[1];
-        f[2] = (int) _a[2];
-        f[3] = (int) _a[3];
+        f[0] = _a[0] > 0 ? floorf(_a[0]) : ceilf(_a[0]);
+        f[1] = _a[1] > 0 ? floorf(_a[1]) : ceilf(_a[1]);
+        f[2] = _a[2] > 0 ? floorf(_a[2]) : ceilf(_a[2]);
+        f[3] = _a[3] > 0 ? floorf(_a[3]) : ceilf(_a[3]);
 
         ret = _mm_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
         break;
@@ -8000,10 +8000,10 @@ result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t i)
         ret = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
         break;
     case 7:
-        f[0] = (int) _a[0];
-        f[1] = (int) _a[1];
-        f[2] = (int) _a[2];
-        f[3] = (int) _a[3];
+        f[0] = _a[0] > 0 ? floorf(_a[0]) : ceilf(_a[0]);
+        f[1] = _a[1] > 0 ? floorf(_a[1]) : ceilf(_a[1]);
+        f[2] = _a[2] > 0 ? floorf(_a[2]) : ceilf(_a[2]);
+        f[3] = _a[3] > 0 ? floorf(_a[3]) : ceilf(_a[3]);
 
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
         ret = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);

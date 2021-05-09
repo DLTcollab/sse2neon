@@ -6412,8 +6412,10 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_UP)) {
         return _mm_ceil_ps(a);
     }
-    return _mm_set_ps((int) v_float[3], (int) v_float[2], (int) v_float[1],
-                      (int) v_float[0]);
+    return _mm_set_ps(v_float[3] > 0 ? floorf(v_float[3]) : ceilf(v_float[3]),
+                      v_float[2] > 0 ? floorf(v_float[2]) : ceilf(v_float[2]),
+                      v_float[1] > 0 ? floorf(v_float[1]) : ceilf(v_float[1]),
+                      v_float[0] > 0 ? floorf(v_float[0]) : ceilf(v_float[0]));
 #endif
 }
 
