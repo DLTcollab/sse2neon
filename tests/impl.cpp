@@ -2345,38 +2345,25 @@ result_t test_mm_set_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t i)
     __m128 a = do_mm_load_ps(_a);
     __m128 b, c;
 
-// _MM_ROUND_TOWARD_ZERO has not the expected behavior on aarch32
-#if defined(__arm__)
-    res_toward_zero = TEST_SUCCESS;
-#else
     _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
     b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
     c = _mm_round_ps(a, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
-    res_toward_zero =
-        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
-                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
-#endif
+    res_toward_zero = validate128(c, b);
 
     _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
     b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
     c = _mm_round_ps(a, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
-    res_to_neg_inf =
-        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
-                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
+    res_to_neg_inf = validate128(c, b);
 
     _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
     b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
     c = _mm_round_ps(a, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
-    res_to_pos_inf =
-        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
-                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
+    res_to_pos_inf = validate128(c, b);
 
     _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
     b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
     c = _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
-    res_nearest =
-        validateFloatEpsilon(c, ((float *) &b)[0], ((float *) &b)[1],
-                             ((float *) &b)[2], ((float *) &b)[3], 5.0f);
+    res_nearest = validate128(c, b);
 
     if (res_toward_zero == TEST_SUCCESS && res_to_neg_inf == TEST_SUCCESS &&
         res_to_pos_inf == TEST_SUCCESS && res_nearest == TEST_SUCCESS) {
@@ -7223,7 +7210,7 @@ result_t test_mm_ceil_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
     __m128 a = _mm_load_ps(_a);
     __m128 c = _mm_ceil_ps(a);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
+    return validateFloat(c, dx, dy, dz, dw);
 }
 
 result_t test_mm_ceil_sd(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -7586,7 +7573,7 @@ result_t test_mm_floor_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
     __m128 a = do_mm_load_ps(_a);
     __m128 c = _mm_floor_ps(a);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 5.0f);
+    return validateFloat(c, dx, dy, dz, dw);
 }
 
 result_t test_mm_floor_sd(const SSE2NEONTestImpl &impl, uint32_t i)
