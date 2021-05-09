@@ -7425,22 +7425,22 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 {
     /* FIXME: optimized for NEON */
     uint8_t v[4][4] = {
-        [0] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 0)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 5)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 10)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 15)]},
-        [1] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 4)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 9)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 14)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 3)]},
-        [2] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 8)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 13)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 2)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 7)]},
-        [3] = {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 12)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 1)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 6)],
-               SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 11)]},
+        {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 0)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 5)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 10)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 15)]},
+        {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 4)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 9)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 14)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 3)]},
+        {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 8)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 13)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 2)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 7)]},
+        {SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 12)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 1)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 6)],
+         SSE2NEON_sbox[vreinterpretq_nth_u8_m128i(a, 11)]},
     };
     for (int i = 0; i < 16; i++)
         vreinterpretq_nth_u8_m128i(a, i) =
