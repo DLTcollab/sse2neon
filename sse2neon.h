@@ -342,7 +342,9 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 
 // Function declaration
 FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE();
+FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
+FORCE_INLINE __m128d _mm_floor_pd(__m128d);
 FORCE_INLINE __m128 _mm_floor_ps(__m128);
 
 /* Backwards compatibility for compilers with lack of specific type support */
@@ -6435,6 +6437,74 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 #endif
 }
 
+// Round the packed double-precision (64-bit) floating-point elements in a using
+// the rounding parameter, and store the results as packed double-precision
+// floating-point elements in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_pd
+FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
+{
+#if defined(__aarch64__)
+    switch (rounding) {
+    case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
+        return vreinterpretq_m128d_f64(vrndnq_f64(vreinterpretq_f64_m128d(a)));
+    case (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC):
+        return _mm_floor_pd(a);
+    case (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC):
+        return _mm_ceil_pd(a);
+    case (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC):
+        return vreinterpretq_m128d_f64(vrndq_f64(vreinterpretq_f64_m128d(a)));
+    default:  //_MM_FROUND_CUR_DIRECTION
+        return vreinterpretq_m128d_f64(vrndiq_f64(vreinterpretq_f64_m128d(a)));
+    }
+#else
+    double *v_double = (double *) &a;
+
+    if (rounding == (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) ||
+        (rounding == _MM_FROUND_CUR_DIRECTION &&
+         _MM_GET_ROUNDING_MODE() == _MM_ROUND_NEAREST)) {
+        double res[2], tmp;
+        for (int i = 0; i < 2; i++) {
+            tmp = (v_double[i] < 0) ? -v_double[i] : v_double[i];
+            double roundDown = floor(tmp);  // Round down value
+            double roundUp = ceil(tmp);     // Round up value
+            double diffDown = tmp - roundDown;
+            double diffUp = roundUp - tmp;
+            if (diffDown < diffUp) {
+                /* If it's closer to the round down value, then use it */
+                res[i] = roundDown;
+            } else if (diffDown > diffUp) {
+                /* If it's closer to the round up value, then use it */
+                res[i] = roundUp;
+            } else {
+                /* If it's equidistant between round up and round down value,
+                 * pick the one which is an even number */
+                if (*((int64_t *) &roundDown) & 0x1) {
+                    /* If the round down value is odd, return the round up value
+                     */
+                    res[i] = roundUp;
+                } else {
+                    /* If the round up value is odd, return the round down value
+                     */
+                    res[i] = roundDown;
+                }
+            }
+            res[i] = (v_double[i] < 0) ? -res[i] : res[i];
+        }
+        return _mm_set_pd(res[1], res[0]);
+    } else if (rounding == (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) ||
+               (rounding == _MM_FROUND_CUR_DIRECTION &&
+                _MM_GET_ROUNDING_MODE() == _MM_ROUND_DOWN)) {
+        return _mm_floor_pd(a);
+    } else if (rounding == (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) ||
+               (rounding == _MM_FROUND_CUR_DIRECTION &&
+                _MM_GET_ROUNDING_MODE() == _MM_ROUND_UP)) {
+        return _mm_ceil_pd(a);
+    }
+    return _mm_set_pd(v_double[1] > 0 ? floor(v_double[1]) : ceil(v_double[1]),
+                      v_double[0] > 0 ? floor(v_double[0]) : ceil(v_double[0]));
+#endif
+}
+
 // Convert packed single-precision (32-bit) floating-point elements in a to
 // packed 32-bit integers, and store the results in dst.
 //
@@ -6481,6 +6551,20 @@ FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 #endif
 }
 
+// Round the packed double-precision (64-bit) floating-point elements in a up
+// to an integer value, and store the results as packed double-precision
+// floating-point elements in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_ceil_pd
+FORCE_INLINE __m128d _mm_ceil_pd(__m128d a)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vrndpq_f64(vreinterpretq_f64_m128d(a)));
+#else
+    double *f = (double *) &a;
+    return _mm_set_pd(ceil(f[1]), ceil(f[0]));
+#endif
+}
+
 // Round the lower single-precision (32-bit) floating-point element in b up to
 // an integer value, store the result as a single-precision floating-point
 // element in the lower element of dst, and copy the upper 3 packed elements
@@ -6506,6 +6590,20 @@ FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
 #else
     float *f = (float *) &a;
     return _mm_set_ps(floorf(f[3]), floorf(f[2]), floorf(f[1]), floorf(f[0]));
+#endif
+}
+
+// Round the packed double-precision (64-bit) floating-point elements in a down
+// to an integer value, and store the results as packed double-precision
+// floating-point elements in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_floor_pd
+FORCE_INLINE __m128d _mm_floor_pd(__m128d a)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vrndmq_f64(vreinterpretq_f64_m128d(a)));
+#else
+    double *f = (double *) &a;
+    return _mm_set_pd(floor(f[1]), floor(f[0]));
 #endif
 }
 
