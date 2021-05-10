@@ -6478,7 +6478,8 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
             } else {
                 /* If it's equidistant between round up and round down value,
                  * pick the one which is an even number */
-                if (*((int64_t *) &roundDown) & 0x1) {
+                double half = roundDown / 2;
+                if (half != floor(half)) {
                     /* If the round down value is odd, return the round up value
                      */
                     res[i] = roundUp;
