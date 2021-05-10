@@ -169,27 +169,27 @@ static inline float bankersRounding(float val)
         return -bankersRounding(-val);
 
     float ret;
-    int32_t truncateInteger = int32_t(val);
-    int32_t roundInteger = int32_t(val + 0.5f);
-    float diff1 = val - float(truncateInteger);  // Truncate value
-    float diff2 = val - float(roundInteger);     // Round up value
-    if (diff2 < 0)
-        diff2 *= -1;  // get the positive difference from the round up value
-    // If it's closest to the truncate integer; then use it
-    if (diff1 < diff2) {
-        ret = float(truncateInteger);
-    } else if (diff2 <
-               diff1) {  // if it's closest to the round-up integer; use it
-        ret = float(roundInteger);
+    float roundDown = floorf(val);  // Round down value
+    float roundUp = ceilf(val);     // Round up value
+    float diffDown = val - roundDown;
+    float diffUp = roundUp - val;
+
+    if (diffDown < diffUp) {
+        /* If it's closer to the round down value, then use it */
+        ret = roundDown;
+    } else if (diffDown > diffUp) {
+        /* If it's closer to the round up value, then use it */
+        ret = roundUp;
     } else {
-        // If it's equidistant between rounding up and rounding down, pick the
-        // one which is an even number
-        if (truncateInteger &
-            1) {  // If truncate is odd, then return the rounded integer
-            ret = float(roundInteger);
+        /* If it's equidistant between round up and round down value, pick the
+         * one which is an even number */
+        float half = roundDown / 2;
+        if (half != floorf(half)) {
+            /* If the round down value is odd, return the round up value */
+            ret = roundUp;
         } else {
-            // If the rounded up value is odd, use return the truncated integer
-            ret = float(truncateInteger);
+            /* If the round up value is odd, return the round down value */
+            ret = roundDown;
         }
     }
     return ret;
@@ -215,7 +215,8 @@ static inline double bankersRounding(double val)
     } else {
         /* If it's equidistant between round up and round down value, pick the
          * one which is an even number */
-        if (*((int64_t *) &roundDown) & 0x1) {
+        double half = roundDown / 2;
+        if (half != floor(half)) {
             /* If the round down value is odd, return the round up value */
             ret = roundUp;
         } else {
