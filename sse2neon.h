@@ -6506,6 +6506,16 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 #endif
 }
 
+// Round the lower double-precision (64-bit) floating-point element in b using
+// the rounding parameter, store the result as a double-precision floating-point
+// element in the lower element of dst, and copy the upper element from a to the
+// upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_sd
+FORCE_INLINE __m128d _mm_round_sd(__m128d a, __m128d b, int rounding)
+{
+    return _mm_move_sd(a, _mm_round_pd(b, rounding));
+}
+
 // Convert packed single-precision (32-bit) floating-point elements in a to
 // packed 32-bit integers, and store the results in dst.
 //
@@ -6566,6 +6576,16 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d a)
 #endif
 }
 
+// Round the lower double-precision (64-bit) floating-point element in b up to
+// an integer value, store the result as a double-precision floating-point
+// element in the lower element of dst, and copy the upper element from a to the
+// upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_ceil_sd
+FORCE_INLINE __m128d _mm_ceil_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_ceil_pd(b));
+}
+
 // Round the lower single-precision (32-bit) floating-point element in b up to
 // an integer value, store the result as a single-precision floating-point
 // element in the lower element of dst, and copy the upper 3 packed elements
@@ -6606,6 +6626,16 @@ FORCE_INLINE __m128d _mm_floor_pd(__m128d a)
     double *f = (double *) &a;
     return _mm_set_pd(floor(f[1]), floor(f[0]));
 #endif
+}
+
+// Round the lower double-precision (64-bit) floating-point element in b down to
+// an integer value, store the result as a double-precision floating-point
+// element in the lower element of dst, and copy the upper element from a to the
+// upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_floor_sd
+FORCE_INLINE __m128d _mm_floor_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_floor_pd(b));
 }
 
 // Round the lower single-precision (32-bit) floating-point element in b down to

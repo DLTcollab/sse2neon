@@ -7256,7 +7256,17 @@ result_t test_mm_ceil_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_ceil_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    double dx = ceil(_b[0]);
+    double dy = _a[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d ret = _mm_ceil_sd(a, b);
+
+    return validateDouble(ret, dx, dy);
 }
 
 result_t test_mm_ceil_ss(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -7627,7 +7637,17 @@ result_t test_mm_floor_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_floor_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+
+    double dx = floor(_b[0]);
+    double dy = _a[1];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d ret = _mm_floor_sd(a, b);
+
+    return validateDouble(ret, dx, dy);
 }
 
 result_t test_mm_floor_ss(const SSE2NEONTestImpl &impl, uint32_t i)
@@ -8121,7 +8141,62 @@ result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_round_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (double *) impl.mTestFloatPointer1;
+    const double *_b = (double *) impl.mTestFloatPointer2;
+    double d[2];
+    __m128d ret;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    d[1] = _a[1];
+    switch (i & 0x7) {
+    case 0:
+        d[0] = bankersRounding(_b[0]);
+
+        ret = _mm_round_sd(a, b, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC);
+        break;
+    case 1:
+        d[0] = floor(_b[0]);
+
+        ret = _mm_round_sd(a, b, _MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC);
+        break;
+    case 2:
+        d[0] = ceil(_b[0]);
+
+        ret = _mm_round_sd(a, b, _MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC);
+        break;
+    case 3:
+        d[0] = _b[0] > 0 ? floor(_b[0]) : ceil(_b[0]);
+
+        ret = _mm_round_sd(a, b, _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+        break;
+    case 4:
+        d[0] = bankersRounding(_b[0]);
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        ret = _mm_round_sd(a, b, _MM_FROUND_CUR_DIRECTION);
+        break;
+    case 5:
+        d[0] = floor(_b[0]);
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        ret = _mm_round_sd(a, b, _MM_FROUND_CUR_DIRECTION);
+        break;
+    case 6:
+        d[0] = ceil(_b[0]);
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        ret = _mm_round_sd(a, b, _MM_FROUND_CUR_DIRECTION);
+        break;
+    case 7:
+        d[0] = _b[0] > 0 ? floor(_b[0]) : ceil(_b[0]);
+
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        ret = _mm_round_sd(a, b, _MM_FROUND_CUR_DIRECTION);
+        break;
+    }
+
+    return validateDouble(ret, d[0], d[1]);
 }
 
 result_t test_mm_round_ss(const SSE2NEONTestImpl &impl, uint32_t i)
