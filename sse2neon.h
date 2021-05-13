@@ -598,8 +598,7 @@ FORCE_INLINE int _mm_cvtt_ss2si(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvttss_si64
 FORCE_INLINE int64_t _mm_cvttss_si64(__m128 a)
 {
-    return vgetq_lane_s64(
-        vmovl_s32(vget_low_s32(vcvtq_s32_f32(vreinterpretq_f32_m128(a)))), 0);
+    return (int64_t) vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
 }
 
 // Sets the 128-bit value to zero
