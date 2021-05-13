@@ -346,6 +346,7 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
 FORCE_INLINE __m128d _mm_floor_pd(__m128d);
 FORCE_INLINE __m128 _mm_floor_ps(__m128);
+FORCE_INLINE __m128 _mm_round_ps(__m128, int);
 
 /* Backwards compatibility for compilers with lack of specific type support */
 
@@ -5594,17 +5595,11 @@ FORCE_INLINE __m128 _mm_cvtsi64_ss(__m128 a, int64_t b)
 FORCE_INLINE int _mm_cvt_ss2si(__m128 a)
 {
 #if defined(__aarch64__)
-    return vgetq_lane_s32(vcvtnq_s32_f32(vreinterpretq_f32_m128(a)), 0);
+    return vgetq_lane_s32(vcvtnq_s32_f32(vrndiq_f32(vreinterpretq_f32_m128(a))),
+                          0);
 #else
-    float32_t data = vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
-    float32_t diff = data - floor(data);
-    if (diff > 0.5)
-        return (int32_t) ceil(data);
-    if (unlikely(diff == 0.5)) {
-        int32_t f = (int32_t) floor(data);
-        int32_t c = (int32_t) ceil(data);
-        return c & 1 ? f : c;
-    }
+    float32_t data = vgetq_lane_f32(
+        vreinterpretq_f32_m128(_mm_round_ps(a, _MM_FROUND_CUR_DIRECTION)), 0);
     return (int32_t) floor(data);
 #endif
 }
@@ -6529,11 +6524,10 @@ FORCE_INLINE __m64 _mm_cvt_ps2pi(__m128 a)
 {
 #if defined(__aarch64__)
     return vreinterpret_m64_s32(
-        vget_low_s32(vcvtnq_s32_f32(vreinterpretq_f32_m128(a))));
+        vget_low_s32(vcvtnq_s32_f32(vrndiq_f32(vreinterpretq_f32_m128(a)))));
 #else
-    return vreinterpret_m64_s32(
-        vcvt_s32_f32(vget_low_f32(vreinterpretq_f32_m128(
-            _mm_round_ps(a, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC)))));
+    return vreinterpret_m64_s32(vcvt_s32_f32(vget_low_f32(
+        vreinterpretq_f32_m128(_mm_round_ps(a, _MM_FROUND_CUR_DIRECTION)))));
 #endif
 }
 
