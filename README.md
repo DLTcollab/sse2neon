@@ -116,6 +116,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [libmatoya](https://github.com/matoya/libmatoya) is a cross-platform application development library, providing various features such as common cryptography tasks.
 * [minimap2](https://github.com/lh3/minimap2) is a versatile sequence alignment program that aligns DNA or mRNA sequences against a large reference database.
 * [MMseqs2](https://github.com/soedinglab/MMseqs2) (Many-against-Many sequence searching) is a software suite to search and cluster huge protein and nucleotide sequence sets.
+* [MRIcroGL](https://github.com/rordenlab/MRIcroGL) is a cross-platform tool for viewing NIfTI, DICOM, MGH, MHD, NRRD, AFNI format medical images.
 * [N2](https://github.com/oddconcepts/n2o) is an approximate nearest neighborhoods algorithm library written in C++, providing a much faster search speed than other implementations when modeling large dataset.
 * [niimath](https://github.com/rordenlab/niimath) is a general image calculator with superior performance.
 * [OBS Studio](https://github.com/obsproject/obs-studio) is software designed for capturing, compositing, encoding, recording, and streaming video content, efficiently.
