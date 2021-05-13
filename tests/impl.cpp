@@ -1289,17 +1289,25 @@ result_t test_mm_cvt_ps2pi(const SSE2NEONTestImpl &impl, uint32_t i)
     const float *_a = impl.mTestFloatPointer1;
     int32_t d[2];
 
-    for (int i = 0; i < 2; i++) {
-        int32_t f = (int32_t) floor(_a[i]);
-        int32_t c = (int32_t) ceil(_a[i]);
-        float diff = _a[i] - floor(_a[i]);
-        // Round to nearest, ties to even
-        if (diff > 0.5)
-            d[i] = c;
-        else if (diff == 0.5)
-            d[i] = c & 1 ? f : c;
-        else
-            d[i] = f;
+    for (int idx = 0; idx < 2; idx++) {
+        switch (i & 0x3) {
+        case 0:
+            _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+            d[idx] = (int32_t)(bankersRounding(_a[idx]));
+            break;
+        case 1:
+            _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+            d[idx] = (int32_t)(floorf(_a[idx]));
+            break;
+        case 2:
+            _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+            d[idx] = (int32_t)(ceilf(_a[idx]));
+            break;
+        case 3:
+            _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+            d[idx] = (int32_t)(_a[idx]);
+            break;
+        }
     }
 
     __m128 a = do_mm_load_ps(_a);
@@ -1328,16 +1336,25 @@ result_t test_mm_cvt_ss2si(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
     int32_t d0;
-    int32_t f = (int32_t) floor(_a[0]);
-    int32_t c = (int32_t) ceil(_a[0]);
-    float diff = _a[0] - floor(_a[0]);
-    // Round to nearest, ties to even
-    if (diff > 0.5)
-        d0 = c;
-    else if (diff == 0.5)
-        d0 = c & 1 ? f : c;
-    else
-        d0 = f;
+
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d0 = (int32_t)(bankersRounding(_a[0]));
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d0 = (int32_t)(floorf(_a[0]));
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d0 = (int32_t)(ceilf(_a[0]));
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d0 = (int32_t)(_a[0]);
+        break;
+    }
 
     __m128 a = do_mm_load_ps(_a);
     int32_t ret = _mm_cvt_ss2si(a);
@@ -1414,6 +1431,8 @@ result_t test_mm_cvtps_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
     float _b[4];
     int16_t trun[4];
 
+    // FIXME: The rounding mode would affect the testing result
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
     // Beyond int16_t range _mm_cvtps_pi16 function (both native and arm)
     // do not behave the same as BankersRounding.
     // Forcing the float input values to be in the int16_t range
@@ -3903,7 +3922,6 @@ result_t test_mm_cvtpi32_pd(const SSE2NEONTestImpl &impl, uint32_t i)
     return validateDouble(ret, trun[0], trun[1]);
 }
 
-// https://msdn.microsoft.com/en-us/library/xdc42k5e%28v=vs.90%29.aspx?f=255&MSPPError=-2147217396
 result_t test_mm_cvtps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
     const float *_a = impl.mTestFloatPointer1;
