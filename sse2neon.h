@@ -4698,6 +4698,21 @@ FORCE_INLINE __m128i _mm_hadds_epi16(__m128i _a, __m128i _b)
 #endif
 }
 
+// Horizontally add adjacent pairs of signed 16-bit integers in a and b using
+// saturation, and pack the signed 16-bit results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hadds_pi16
+FORCE_INLINE __m64 _mm_hadds_pi16(__m64 _a, __m64 _b)
+{
+    int16x4_t a = vreinterpret_s16_m64(_a);
+    int16x4_t b = vreinterpret_s16_m64(_b);
+#if defined(__aarch64__)
+    return vreinterpret_s64_s16(vqadd_s16(vuzp1_s16(a, b), vuzp2_s16(a, b)));
+#else
+    int16x4x2_t res = vuzp_s16(a, b);
+    return vreinterpret_s64_s16(vqadd_s16(res.val[0], res.val[1]));
+#endif
+}
+
 // Computes saturated pairwise difference of each argument as a 16-bit signed
 // integer values a and b.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsubs_epi16

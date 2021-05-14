@@ -6730,7 +6730,29 @@ result_t test_mm_hadds_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_hadds_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer1;
+
+    int16_t d16[8];
+    int32_t d32[8];
+    d32[0] = (int32_t) _a[0] + (int32_t) _a[1];
+    d32[1] = (int32_t) _a[2] + (int32_t) _a[3];
+    d32[2] = (int32_t) _b[0] + (int32_t) _b[1];
+    d32[3] = (int32_t) _b[2] + (int32_t) _b[3];
+    for (int i = 0; i < 8; i++) {
+        if (d32[i] > (int32_t) INT16_MAX)
+            d16[i] = INT16_MAX;
+        else if (d32[i] < (int32_t) INT16_MIN)
+            d16[i] = INT16_MIN;
+        else
+            d16[i] = (int16_t) d32[i];
+    }
+
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+    __m64 b = do_mm_load_m64((const int64_t *) _b);
+    __m64 c = _mm_hadds_pi16(a, b);
+
+    return validateInt16(c, d16[0], d16[1], d16[2], d16[3]);
 }
 
 result_t test_mm_hsub_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
