@@ -61,6 +61,11 @@ inline bool isNAN(float a)
     const int32_t *ia = (const int32_t *) &a;
     return (*ia) == NaN ? true : false;
 }
+inline bool isNAN(double a)
+{
+    const int64_t *ia = (const int64_t *) &a;
+    return (*ia) == NaN64 ? true : false;
+}
 template <typename T>
 result_t validate128(T a, T b)
 {

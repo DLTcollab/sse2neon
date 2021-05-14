@@ -324,6 +324,16 @@ float compord(float a, float b)
     return ret;
 }
 
+double compord(double a, double b)
+{
+    double ret;
+
+    bool isNANA = isNAN(a);
+    bool isNANB = isNAN(b);
+    ret = (!isNANA && !isNANB) ? getNAN() : 0.0f;
+    return ret;
+}
+
 int32_t comilt_ss(float a, float b)
 {
     int32_t ret;
@@ -3808,7 +3818,20 @@ result_t test_mm_cmpnlt_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cmpord_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    __m128d a = _mm_load_pd(_a);
+    __m128d b = _mm_load_pd(_b);
+
+    double result[2];
+
+    for (uint32_t i = 0; i < 2; i++) {
+        result[i] = compord(_a[i], _b[i]);
+    }
+
+    __m128d ret = _mm_cmpord_pd(a, b);
+
+    return validateDouble(ret, result[0], result[1]);
 }
 
 result_t test_mm_cmpord_sd(const SSE2NEONTestImpl &impl, uint32_t i)

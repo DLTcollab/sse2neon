@@ -286,6 +286,11 @@ result_t validateSingleDoublePair(double a, double b)
     // We do an integer (binary) compare rather than a
     // floating point compare to take nands and infinities
     // into account as well.
+
+    if (std::isnan(a) && std::isnan(b)) {
+        return TEST_SUCCESS;
+    }
+
     return (*ua) == (*ub) ? TEST_SUCCESS : TEST_FAIL;
 }
 
