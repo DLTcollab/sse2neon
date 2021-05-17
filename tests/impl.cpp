@@ -4123,7 +4123,14 @@ result_t test_mm_cvttpd_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvttpd_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+
+    __m128d a = do_mm_load_pd(_a);
+    int32_t d0 = (int32_t)(_a[0]);
+    int32_t d1 = (int32_t)(_a[1]);
+
+    __m64 ret = _mm_cvttpd_pi32(a);
+    return validateInt32(ret, d0, d1);
 }
 
 result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
