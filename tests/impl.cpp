@@ -4141,7 +4141,12 @@ result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvttsd_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+
+    __m128d a = _mm_load_sd(_a);
+    int32_t ret = _mm_cvttsd_si32(a);
+
+    return ret == (int32_t) _a[0] ? TEST_SUCCESS : TEST_FAIL;
 }
 
 result_t test_mm_cvttsd_si64(const SSE2NEONTestImpl &impl, uint32_t i)
