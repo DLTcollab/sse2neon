@@ -526,22 +526,14 @@ FORCE_INLINE __m128d _mm_cvtss_sd(__m128d a, __m128 b)
 //   dst[63:0] := Convert_FP32_To_Int64(a[31:0])
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtss_si64
-FORCE_INLINE int _mm_cvtss_si64(__m128 a)
+FORCE_INLINE int64_t _mm_cvtss_si64(__m128 a)
 {
 #if defined(__aarch64__)
-    return vgetq_lane_s64(
-        vreinterpretq_s64_s32(vcvtnq_s32_f32(vreinterpretq_f32_m128(a))), 0);
+    return (int64_t) vgetq_lane_f32(vrndiq_f32(vreinterpretq_f32_m128(a)), 0);
 #else
-    float32_t data = vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
-    float32_t diff = data - floor(data);
-    if (diff > 0.5)
-        return (int64_t) ceil(data);
-    if (unlikely(diff == 0.5)) {
-        int64_t f = (int64_t) floor(data);
-        int64_t c = (int64_t) ceil(data);
-        return c & 1 ? f : c;
-    }
-    return (int64_t) floor(data);
+    float32_t data = vgetq_lane_f32(
+        vreinterpretq_f32_m128(_mm_round_ps(a, _MM_FROUND_CUR_DIRECTION)), 0);
+    return (int64_t) data;
 #endif
 }
 
@@ -5645,7 +5637,7 @@ FORCE_INLINE int _mm_cvt_ss2si(__m128 a)
 #else
     float32_t data = vgetq_lane_f32(
         vreinterpretq_f32_m128(_mm_round_ps(a, _MM_FROUND_CUR_DIRECTION)), 0);
-    return (int32_t) floor(data);
+    return (int32_t) data;
 #endif
 }
 

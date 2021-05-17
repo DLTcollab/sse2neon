@@ -1566,16 +1566,24 @@ result_t test_mm_cvtss_si32(const SSE2NEONTestImpl &impl, uint32_t i)
     const float *_a = impl.mTestFloatPointer1;
 
     int32_t d0;
-    int32_t f = (int32_t) floor(_a[0]);
-    int32_t c = (int32_t) ceil(_a[0]);
-    float diff = _a[0] - floor(_a[0]);
-    // Round to nearest, ties to even
-    if (diff > 0.5)
-        d0 = c;
-    else if (diff == 0.5)
-        d0 = c & 1 ? f : c;
-    else
-        d0 = f;
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d0 = (int32_t)(bankersRounding(_a[0]));
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d0 = (int32_t)(floorf(_a[0]));
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d0 = (int32_t)(ceilf(_a[0]));
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d0 = (int32_t)(_a[0]);
+        break;
+    }
 
     __m128 a = do_mm_load_ps(_a);
     int32_t ret = _mm_cvtss_si32(a);
@@ -1588,16 +1596,24 @@ result_t test_mm_cvtss_si64(const SSE2NEONTestImpl &impl, uint32_t i)
     const float *_a = impl.mTestFloatPointer1;
 
     int64_t d0;
-    int64_t f = (int64_t) floor(_a[0]);
-    int64_t c = (int64_t) ceil(_a[0]);
-    float diff = _a[0] - floor(_a[0]);
-    // Round to nearest, ties to even
-    if (diff > 0.5)
-        d0 = c;
-    else if (diff == 0.5)
-        d0 = c & 1 ? f : c;
-    else
-        d0 = f;
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d0 = (int64_t)(bankersRounding(_a[0]));
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d0 = (int64_t)(floorf(_a[0]));
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d0 = (int64_t)(ceilf(_a[0]));
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d0 = (int64_t)(_a[0]);
+        break;
+    }
 
     __m128 a = do_mm_load_ps(_a);
     int64_t ret = _mm_cvtss_si64(a);
