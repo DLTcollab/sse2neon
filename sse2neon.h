@@ -5758,6 +5758,18 @@ FORCE_INLINE __m128i _mm_cvttps_epi32(__m128 a)
 }
 
 // Convert the lower double-precision (64-bit) floating-point element in a to a
+// 32-bit integer with truncation, and store the result in dst.
+//
+//   dst[63:0] := Convert_FP64_To_Int32_Truncate(a[63:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvttsd_si32
+FORCE_INLINE int32_t _mm_cvttsd_si32(__m128d a)
+{
+    double ret = *((double *) &a);
+    return (int32_t) ret;
+}
+
+// Convert the lower double-precision (64-bit) floating-point element in a to a
 // 64-bit integer with truncation, and store the result in dst.
 //
 //   dst[63:0] := Convert_FP64_To_Int64_Truncate(a[63:0])
