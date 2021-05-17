@@ -5811,6 +5811,17 @@ FORCE_INLINE __m128i _mm_cvttpd_epi32(__m128d a)
     return _mm_set_epi32(0, 0, (int32_t) a1, (int32_t) a0);
 }
 
+// Convert packed double-precision (64-bit) floating-point elements in a to
+// packed 32-bit integers with truncation, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvttpd_pi32
+FORCE_INLINE __m64 _mm_cvttpd_pi32(__m128d a)
+{
+    double a0 = ((double *) &a)[0];
+    double a1 = ((double *) &a)[1];
+    int32_t ALIGN_STRUCT(16) data[2] = {(int32_t) a0, (int32_t) a1};
+    return vreinterpret_m64_s32(vld1_s32(data));
+}
+
 // Convert packed signed 32-bit integers in a to packed double-precision
 // (64-bit) floating-point elements, and store the results in dst.
 //
