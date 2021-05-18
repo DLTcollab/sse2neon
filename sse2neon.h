@@ -346,6 +346,7 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
 FORCE_INLINE __m128d _mm_floor_pd(__m128d);
 FORCE_INLINE __m128 _mm_floor_ps(__m128);
+FORCE_INLINE __m128d _mm_round_pd(__m128d, int);
 FORCE_INLINE __m128 _mm_round_ps(__m128, int);
 
 /* Backwards compatibility for compilers with lack of specific type support */
@@ -5791,6 +5792,43 @@ FORCE_INLINE int64_t _mm_cvttsd_si64(__m128d a)
 FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 {
     return vreinterpretq_m128_f32(vcvtq_f32_s32(vreinterpretq_s32_m128i(a)));
+}
+
+// Convert packed double-precision (64-bit) floating-point elements in a to
+// packed 32-bit integers, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//      i := 32*j
+//      k := 64*j
+//      dst[i+31:i] := Convert_FP64_To_Int32(a[k+63:k])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpd_epi32
+FORCE_INLINE __m128i _mm_cvtpd_epi32(__m128d a)
+{
+    __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
+    double d0 = ((double *) &rnd)[0];
+    double d1 = ((double *) &rnd)[1];
+    return _mm_set_epi32(0, 0, (int32_t) d1, (int32_t) d0);
+}
+
+// Convert packed double-precision (64-bit) floating-point elements in a to
+// packed 32-bit integers, and store the results in dst.
+//
+//   FOR j := 0 to 1
+//      i := 32*j
+//      k := 64*j
+//      dst[i+31:i] := Convert_FP64_To_Int32(a[k+63:k])
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpd_pi32
+FORCE_INLINE __m64 _mm_cvtpd_pi32(__m128d a)
+{
+    __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
+    double d0 = ((double *) &rnd)[0];
+    double d1 = ((double *) &rnd)[1];
+    int32_t ALIGN_STRUCT(16) data[2] = {(int32_t) d0, (int32_t) d1};
+    return vreinterpret_m64_s32(vld1_s32(data));
 }
 
 // Convert packed double-precision (64-bit) floating-point elements in a to
