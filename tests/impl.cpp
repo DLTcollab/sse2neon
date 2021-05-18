@@ -3929,12 +3929,70 @@ result_t test_mm_cvtepi32_ps(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    int32_t d[2];
+
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d[0] = (int32_t)(bankersRounding(_a[0]));
+        d[1] = (int32_t)(bankersRounding(_a[1]));
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d[0] = (int32_t)(floor(_a[0]));
+        d[1] = (int32_t)(floor(_a[1]));
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d[0] = (int32_t)(ceil(_a[0]));
+        d[1] = (int32_t)(ceil(_a[1]));
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d[0] = (int32_t)(_a[0]);
+        d[1] = (int32_t)(_a[1]);
+        break;
+    }
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128i ret = _mm_cvtpd_epi32(a);
+
+    return validateInt32(ret, d[0], d[1], 0, 0);
 }
 
 result_t test_mm_cvtpd_pi32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    int32_t d[2];
+
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d[0] = (int32_t)(bankersRounding(_a[0]));
+        d[1] = (int32_t)(bankersRounding(_a[1]));
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d[0] = (int32_t)(floor(_a[0]));
+        d[1] = (int32_t)(floor(_a[1]));
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d[0] = (int32_t)(ceil(_a[0]));
+        d[1] = (int32_t)(ceil(_a[1]));
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d[0] = (int32_t)(_a[0]);
+        d[1] = (int32_t)(_a[1]);
+        break;
+    }
+
+    __m128d a = do_mm_load_pd(_a);
+    __m64 ret = _mm_cvtpd_pi32(a);
+
+    return validateInt32(ret, d[0], d[1]);
 }
 
 result_t test_mm_cvtpd_ps(const SSE2NEONTestImpl &impl, uint32_t i)
