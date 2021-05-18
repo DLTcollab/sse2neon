@@ -4023,17 +4023,67 @@ result_t test_mm_cvtsd_f64(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cvtsd_si32(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    int32_t d;
+
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d = (int32_t)(bankersRounding(_a[0]));
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d = (int32_t)(floor(_a[0]));
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d = (int32_t)(ceil(_a[0]));
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d = (int32_t)(_a[0]);
+        break;
+    }
+
+    __m128d a = do_mm_load_pd(_a);
+    int32_t ret = _mm_cvtsd_si32(a);
+
+    return ret == d ? TEST_SUCCESS : TEST_FAIL;
 }
 
 result_t test_mm_cvtsd_si64(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    int64_t d;
+
+    switch (i & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d = (int64_t)(bankersRounding(_a[0]));
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d = (int64_t)(floor(_a[0]));
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d = (int64_t)(ceil(_a[0]));
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d = (int64_t)(_a[0]);
+        break;
+    }
+
+    __m128d a = do_mm_load_pd(_a);
+    int64_t ret = _mm_cvtsd_si64(a);
+
+    return ret == d ? TEST_SUCCESS : TEST_FAIL;
 }
 
 result_t test_mm_cvtsd_si64x(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_cvtsd_si64(impl, i);
 }
 
 result_t test_mm_cvtsd_ss(const SSE2NEONTestImpl &impl, uint32_t i)

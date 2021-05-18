@@ -346,6 +346,7 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
 FORCE_INLINE __m128d _mm_floor_pd(__m128d);
 FORCE_INLINE __m128 _mm_floor_ps(__m128);
+FORCE_INLINE __m128d _mm_round_pd(__m128d, int);
 FORCE_INLINE __m128 _mm_round_ps(__m128, int);
 
 /* Backwards compatibility for compilers with lack of specific type support */
@@ -6264,6 +6265,48 @@ FORCE_INLINE double _mm_cvtsd_f64(__m128d a)
     return ((double *) &a)[0];
 #endif
 }
+
+// Convert the lower double-precision (64-bit) floating-point element in a to a
+// 32-bit integer, and store the result in dst.
+//
+//   dst[31:0] := Convert_FP64_To_Int32(a[63:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_si32
+FORCE_INLINE int32_t _mm_cvtsd_si32(__m128d a)
+{
+#if defined(__aarch64__)
+    return (int32_t) vgetq_lane_f64(vrndiq_f64(vreinterpretq_f64_m128d(a)), 0);
+#else
+    __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
+    double ret = ((double *) &rnd)[0];
+    return (int32_t) ret;
+#endif
+}
+
+// Convert the lower double-precision (64-bit) floating-point element in a to a
+// 64-bit integer, and store the result in dst.
+//
+//   dst[63:0] := Convert_FP64_To_Int64(a[63:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_si64
+FORCE_INLINE int64_t _mm_cvtsd_si64(__m128d a)
+{
+#if defined(__aarch64__)
+    return (int64_t) vgetq_lane_f64(vrndiq_f64(vreinterpretq_f64_m128d(a)), 0);
+#else
+    __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
+    double ret = ((double *) &rnd)[0];
+    return (int64_t) ret;
+#endif
+}
+
+// Convert the lower double-precision (64-bit) floating-point element in a to a
+// 64-bit integer, and store the result in dst.
+//
+//   dst[63:0] := Convert_FP64_To_Int64(a[63:0])
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_si64x
+#define _mm_cvtsd_si64x _mm_cvtsd_si64
 
 // Convert packed single-precision (32-bit) floating-point elements in a to
 // packed double-precision (64-bit) floating-point elements, and store the
