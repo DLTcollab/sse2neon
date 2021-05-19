@@ -1439,24 +1439,38 @@ result_t test_mm_cvtpi8_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_cvtps_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
-    float _b[4];
-    int16_t trun[4];
+    int16_t rnd[4];
 
-    // FIXME: The rounding mode would affect the testing result
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-    // Beyond int16_t range _mm_cvtps_pi16 function (both native and arm)
-    // do not behave the same as BankersRounding.
-    // Forcing the float input values to be in the int16_t range
-    // Dividing by 10.0f ensures (with the current data set) it,
-    // without forcing a saturation.
-    for (int j = 0; j < 4; j++) {
-        _b[j] = fabsf(_a[j]) > 32767.0f ? _a[j] / 10.0f : _a[j];
-        trun[j] = (int16_t)(bankersRounding(_b[j]));
+    for (int i = 0; i < 4; i++) {
+        if (INT16_MAX <= _a[i] && _a[i] <= INT32_MAX) {
+            rnd[i] = INT16_MAX;
+        } else if (INT16_MIN < _a[i] && _a[i] < INT16_MAX) {
+            switch (iter & 0x3) {
+            case 0:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+                rnd[i] = (int16_t) bankersRounding(_a[i]);
+                break;
+            case 1:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+                rnd[i] = (int16_t) floorf(_a[i]);
+                break;
+            case 2:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+                rnd[i] = (int16_t) ceilf(_a[i]);
+                break;
+            case 3:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+                rnd[i] = (int16_t) _a[i];
+                break;
+            }
+        } else {
+            rnd[i] = INT16_MIN;
+        }
     }
 
-    __m128 b = do_mm_load_ps(_b);
-    __m64 ret = _mm_cvtps_pi16(b);
-    return validateInt16(ret, trun[0], trun[1], trun[2], trun[3]);
+    __m128 a = do_mm_load_ps(_a);
+    __m64 ret = _mm_cvtps_pi16(a);
+    return validateInt16(ret, rnd[0], rnd[1], rnd[2], rnd[3]);
 }
 
 result_t test_mm_cvtps_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -1464,17 +1478,27 @@ result_t test_mm_cvtps_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     const float *_a = impl.mTestFloatPointer1;
     int32_t d[2];
 
-    for (int i = 0; i < 2; i++) {
-        int32_t f = (int32_t) floor(_a[i]);
-        int32_t c = (int32_t) ceil(_a[i]);
-        float diff = _a[i] - floor(_a[i]);
-        // Round to nearest, ties to even
-        if (diff > 0.5)
-            d[i] = c;
-        else if (diff == 0.5)
-            d[i] = c & 1 ? f : c;
-        else
-            d[i] = f;
+    switch (iter & 0x3) {
+    case 0:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+        d[0] = (int32_t) bankersRounding(_a[0]);
+        d[1] = (int32_t) bankersRounding(_a[1]);
+        break;
+    case 1:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        d[0] = (int32_t) floorf(_a[0]);
+        d[1] = (int32_t) floorf(_a[1]);
+        break;
+    case 2:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+        d[0] = (int32_t) ceilf(_a[0]);
+        d[1] = (int32_t) ceilf(_a[1]);
+        break;
+    case 3:
+        _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+        d[0] = (int32_t) _a[0];
+        d[1] = (int32_t) _a[1];
+        break;
     }
 
     __m128 a = do_mm_load_ps(_a);
@@ -1485,7 +1509,39 @@ result_t test_mm_cvtps_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_cvtps_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const float *_a = impl.mTestFloatPointer1;
+    int8_t rnd[4];
+
+    for (int i = 0; i < 4; i++) {
+        if (INT8_MAX <= _a[i] && _a[i] <= INT32_MAX) {
+            rnd[i] = INT8_MAX;
+        } else if (INT8_MIN < _a[i] && _a[i] < INT8_MAX) {
+            switch (iter & 0x3) {
+            case 0:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+                rnd[i] = (int8_t) bankersRounding(_a[i]);
+                break;
+            case 1:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+                rnd[i] = (int8_t) floorf(_a[i]);
+                break;
+            case 2:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
+                rnd[i] = (int8_t) ceilf(_a[i]);
+                break;
+            case 3:
+                _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
+                rnd[i] = (int8_t) _a[i];
+                break;
+            }
+        } else {
+            rnd[i] = INT8_MIN;
+        }
+    }
+
+    __m128 a = do_mm_load_ps(_a);
+    __m64 ret = _mm_cvtps_pi8(a);
+    return validateInt8(ret, rnd[0], rnd[1], rnd[2], rnd[3], 0, 0, 0, 0);
 }
 
 result_t test_mm_cvtpu16_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
