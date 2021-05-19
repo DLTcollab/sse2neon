@@ -14,19 +14,22 @@ int main(int /*argc*/, const char ** /*argv*/)
         // If the test fails, we will run it again so we can step into the
         // debugger and figure out why!
         if (ret == SSE2NEON::TEST_FAIL) {
-            printf("Test %s failed\n", SSE2NEON::instructionString[it]);
+            printf("Test %-30s failed\n", SSE2NEON::instructionString[it]);
             failedCount++;
         } else if (ret == SSE2NEON::TEST_UNIMPL) {
-            printf("Test %s skipped\n", SSE2NEON::instructionString[it]);
+            printf("Test %-30s skipped\n", SSE2NEON::instructionString[it]);
             ignoreCount++;
         } else {
-            printf("Test %s passed\n", SSE2NEON::instructionString[it]);
+            printf("Test %-30s passed\n", SSE2NEON::instructionString[it]);
             passCount++;
         }
     }
     test->release();
     printf(
-        "SSE2NEONTest Complete: Passed %d tests : Failed %d : Ignored %d. "
+        "SSE2NEONTest Complete!\n"
+        "Passed:  %d\n"
+        "Failed:  %d\n"
+        "Ignored: %d\n"
         "Coverage rate: %.2f%%\n",
         passCount, failedCount, ignoreCount,
         (float) passCount / (passCount + failedCount + ignoreCount) * 100);
