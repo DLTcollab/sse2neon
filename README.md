@@ -92,6 +92,14 @@ $ make CROSS_COMPILE=arm-linux-gnueabihf- check # ARMv7-A
 
 Check the details via [Test Suite for SSE2NEON](tests/README.md).
 
+## Add New Intrinsic
+
+The new intrinsic conversion should be added in the `sse2neon.h` file,
+and it should be placed in the correct classification with the alphabetical order.
+The classification can be referenced from [Intel Intrinsics Guide](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#).
+
+Classification: `SSE`, `SSE2`, `SSE3`, `SSSE3`, `SSE4.1`, `SSE4.2`
+
 ## Coding Convention
 Use the command `$ make indent` to follow the coding convention.
 
