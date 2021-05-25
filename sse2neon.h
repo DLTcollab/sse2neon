@@ -7494,6 +7494,22 @@ FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
                                                                            : 1;
 }
 
+// Compute the bitwise AND of 128 bits (representing integer data) in a and
+// mask, and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute
+// the bitwise NOT of a and then AND with mask, and set CF to 1 if the result is
+// zero, otherwise set CF to 0. Return 1 if both the ZF and CF values are zero,
+// otherwise return 0.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_test_mix_ones_zero
+FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i a, __m128i mask)
+{
+    uint64x2_t zf =
+        vandq_u64(vreinterpretq_u64_m128i(mask), vreinterpretq_u64_m128i(a));
+    uint64x2_t cf =
+        vbicq_u64(vreinterpretq_u64_m128i(mask), vreinterpretq_u64_m128i(a));
+    uint64x2_t result = vandq_u64(zf, cf);
+    return !(vgetq_lane_u64(result, 0) | vgetq_lane_u64(result, 1));
+}
+
 // Compute the bitwise AND of 128 bits (representing integer data) in a and b,
 // and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute the
 // bitwise NOT of a and then AND with b, and set CF to 1 if the result is zero,
