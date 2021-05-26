@@ -7036,7 +7036,20 @@ result_t test_mm_maddubs_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_mulhrs_epi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    int32_t _c[8];
+    for (int i = 0; i < 8; i++) {
+        _c[i] =
+            (((((int32_t) _a[i] * (int32_t) _b[i]) >> 14) + 1) & 0x1FFFE) >> 1;
+    }
+    __m128i c = _mm_mulhrs_epi16(a, b);
+
+    return validateInt16(c, _c[0], _c[1], _c[2], _c[3], _c[4], _c[5], _c[6],
+                         _c[7]);
 }
 
 result_t test_mm_mulhrs_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
