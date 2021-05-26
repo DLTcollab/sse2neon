@@ -3439,6 +3439,21 @@ FORCE_INLINE int _mm_comieq_sd(__m128d a, __m128d b)
 #endif
 }
 
+// Compare the lower double-precision (64-bit) floating-point element in a and b
+// for not-equal, and return the boolean result (0 or 1).
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_comineq_sd
+FORCE_INLINE int _mm_comineq_sd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return !vgetq_lane_u64(vceqq_f64(a, b), 0);
+#else
+    // FIXME we should handle NaN condition here
+    uint32x4_t a_eq_b =
+        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
+    return !vgetq_lane_u64(vreinterpretq_u64_u32(a_eq_b), 0);
+#endif
+}
+
 // Convert packed signed 32-bit integers in a to packed double-precision
 // (64-bit) floating-point elements, and store the results in dst.
 //
