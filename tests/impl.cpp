@@ -3852,7 +3852,16 @@ result_t test_mm_cmpord_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cmpord_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    __m128d a = _mm_load_pd(_a);
+    __m128d b = _mm_load_pd(_b);
+
+    double c0 = compord(_a[0], _b[0]);
+    double c1 = _a[1];
+
+    __m128d ret = _mm_cmpord_sd(a, b);
+    return validateDouble(ret, c0, c1);
 }
 
 result_t test_mm_cmpunord_pd(const SSE2NEONTestImpl &impl, uint32_t i)
