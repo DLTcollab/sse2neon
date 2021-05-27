@@ -6280,7 +6280,9 @@ result_t test_mm_ucomineq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_undefined_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    __m128d a = _mm_undefined_pd();
+    a = _mm_xor_pd(a, a);
+    return validateDouble(a, 0, 0);
 }
 
 result_t test_mm_undefined_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
