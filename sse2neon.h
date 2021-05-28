@@ -7568,6 +7568,14 @@ FORCE_INLINE int _mm_testc_si128(__m128i a, __m128i b)
 // Compute the bitwise AND of 128 bits (representing integer data) in a and b,
 // and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute the
 // bitwise NOT of a and then AND with b, and set CF to 1 if the result is zero,
+// otherwise set CF to 0. Return 1 if both the ZF and CF values are zero,
+// otherwise return 0.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_testnzc_si128
+#define _mm_testnzc_si128(a, b) _mm_test_mix_ones_zeros(a, b)
+
+// Compute the bitwise AND of 128 bits (representing integer data) in a and b,
+// and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute the
+// bitwise NOT of a and then AND with b, and set CF to 1 if the result is zero,
 // otherwise set CF to 0. Return the ZF value.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_testz_si128
 FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
