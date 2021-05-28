@@ -3829,17 +3829,17 @@ result_t test_mm_cmpnle_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cmpnle_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_cmpgt_sd(impl, i);
 }
 
 result_t test_mm_cmpnlt_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_cmpge_pd(impl, i);
 }
 
 result_t test_mm_cmpnlt_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_cmpge_sd(impl, i);
 }
 
 result_t test_mm_cmpord_pd(const SSE2NEONTestImpl &impl, uint32_t i)
