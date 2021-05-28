@@ -3920,7 +3920,16 @@ result_t test_mm_comilt_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_comineq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    int32_t _c = (_a[0] != _b[0]) ? 1 : 0;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    int32_t c = _mm_comineq_sd(a, b);
+
+    ASSERT_RETURN(c == _c);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_cvtepi32_pd(const SSE2NEONTestImpl &impl, uint32_t i)
