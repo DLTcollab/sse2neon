@@ -8589,7 +8589,7 @@ result_t test_mm_testc_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_testnzc_si128(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_test_mix_ones_zeros(impl, i);
 }
 
 result_t test_mm_testz_si128(const SSE2NEONTestImpl &impl, uint32_t i)
