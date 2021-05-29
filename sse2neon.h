@@ -3392,6 +3392,23 @@ FORCE_INLINE __m128d _mm_cmpnge_sd(__m128d a, __m128d b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnle_pd
 #define _mm_cmpnle_pd(a, b) _mm_cmpgt_pd(a, b)
 
+// Compare the lower double-precision (64-bit) floating-point elements in a and
+// b for not-less-than-or-equal, store the result in the lower element of dst,
+// and copy the upper element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnle_sd
+#define _mm_cmpnle_sd(a, b) _mm_cmpgt_sd(a, b)
+
+// Compare packed double-precision (64-bit) floating-point elements in a and b
+// for not-less-than, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnlt_pd
+#define _mm_cmpnlt_pd(a, b) _mm_cmpge_pd(a, b)
+
+// Compare the lower double-precision (64-bit) floating-point elements in a and
+// b for not-less-than, store the result in the lower element of dst, and copy
+// the upper element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnlt_sd
+#define _mm_cmpnlt_sd(a, b) _mm_cmpge_sd(a, b)
+
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // to see if neither is NaN, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpord_pd
