@@ -6979,12 +6979,13 @@ FORCE_INLINE __m128i _mm_cvtepu32_epi64(__m128i a)
         vmovl_u32(vget_low_u32(vreinterpretq_u32_m128i(a))));
 }
 
-// Converts the four unsigned 8-bit integers in the lower 16 bits to four
-// unsigned 32-bit integers.
+// Zero extend packed unsigned 8-bit integers in a to packed 16-bit integers,
+// and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtepu8_epi16
 FORCE_INLINE __m128i _mm_cvtepu8_epi16(__m128i a)
 {
-    uint8x16_t u8x16 = vreinterpretq_u8_m128i(a);    /* xxxx xxxx xxxx DCBA */
-    uint16x8_t u16x8 = vmovl_u8(vget_low_u8(u8x16)); /* 0x0x 0x0x 0D0C 0B0A */
+    uint8x16_t u8x16 = vreinterpretq_u8_m128i(a);    /* xxxx xxxx HGFE DCBA */
+    uint16x8_t u16x8 = vmovl_u8(vget_low_u8(u8x16)); /* 0H0G 0F0E 0D0C 0B0A */
     return vreinterpretq_m128i_u16(u16x8);
 }
 
