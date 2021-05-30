@@ -3463,6 +3463,61 @@ FORCE_INLINE __m128d _mm_cmpord_sd(__m128d a, __m128d b)
 #endif
 }
 
+// Compare packed double-precision (64-bit) floating-point elements in a and b
+// to see if either is NaN, and store the results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpunord_pd
+FORCE_INLINE __m128d _mm_cmpunord_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    // Two NaNs are not equal in comparison operation.
+    uint64x2_t not_nan_a =
+        vceqq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(a));
+    uint64x2_t not_nan_b =
+        vceqq_f64(vreinterpretq_f64_m128d(b), vreinterpretq_f64_m128d(b));
+    return vreinterpretq_m128d_s32(
+        vmvnq_s32(vreinterpretq_s32_u64(vandq_u64(not_nan_a, not_nan_b))));
+#else
+    uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
+    uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
+    uint64_t b0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(b));
+    uint64_t b1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(b));
+    uint64_t d[2];
+    d[0] = ((*(double *) &a0) == (*(double *) &a0) &&
+            (*(double *) &b0) == (*(double *) &b0))
+               ? UINT64_C(0)
+               : ~UINT64_C(0);
+    d[1] = ((*(double *) &a1) == (*(double *) &a1) &&
+            (*(double *) &b1) == (*(double *) &b1))
+               ? UINT64_C(0)
+               : ~UINT64_C(0);
+
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
+#endif
+}
+
+// Compare the lower double-precision (64-bit) floating-point elements in a and
+// b to see if either is NaN, store the result in the lower element of dst, and
+// copy the upper element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpunord_sd
+FORCE_INLINE __m128d _mm_cmpunord_sd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return _mm_move_sd(a, _mm_cmpunord_pd(a, b));
+#else
+    uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
+    uint64_t b0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(b));
+    uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
+    uint64_t d[2];
+    d[0] = ((*(double *) &a0) == (*(double *) &a0) &&
+            (*(double *) &b0) == (*(double *) &b0))
+               ? UINT64_C(0)
+               : ~UINT64_C(0);
+    d[1] = a1;
+
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
+#endif
+}
+
 // Compare the lower double-precision (64-bit) floating-point element in a and b
 // for equality, and return the boolean result (0 or 1).
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_comieq_sd
