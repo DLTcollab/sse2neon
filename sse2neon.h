@@ -2357,6 +2357,35 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
     return vreinterpretq_m128_f32(vdupq_n_f32(0));
 }
 
+// Shuffle 16-bit integers in a using the control in imm8, and store the results
+// in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_pi16
+#if __has_builtin(__builtin_shufflevector)
+#define _mm_shuffle_pi16(a, imm)                                           \
+    __extension__({                                                        \
+        vreinterpret_m64_s16(__builtin_shufflevector(                      \
+            vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), (imm & 0x3), \
+            ((imm >> 2) & 0x3), ((imm >> 4) & 0x3), ((imm >> 6) & 0x3)));  \
+    })
+#else
+#define _mm_shuffle_pi16(a, imm)                                               \
+    __extension__({                                                            \
+        int16x4_t ret;                                                         \
+        ret =                                                                  \
+            vmov_n_s16(vget_lane_s16(vreinterpret_s16_m64(a), (imm) & (0x3))); \
+        ret = vset_lane_s16(                                                   \
+            vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 2) & 0x3), ret,   \
+            1);                                                                \
+        ret = vset_lane_s16(                                                   \
+            vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 4) & 0x3), ret,   \
+            2);                                                                \
+        ret = vset_lane_s16(                                                   \
+            vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 6) & 0x3), ret,   \
+            3);                                                                \
+        vreinterpret_m64_s16(ret);                                             \
+    })
+#endif
+
 // Guarantees that every preceding store is globally visible before any
 // subsequent store.
 // https://msdn.microsoft.com/en-us/library/5h2w73d1%28v=vs.90%29.aspx
