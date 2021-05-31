@@ -6336,6 +6336,20 @@ FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
     return vreinterpretq_m128i_s32(vsubq_s32(ab02, ab13));
 }
 
+// Horizontally subtract adjacent pairs of 16-bit integers in a and b, and pack
+// the signed 16-bit results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_pi16
+FORCE_INLINE __m64 _mm_hsub_pi16(__m64 _a, __m64 _b)
+{
+    int32x4_t ab =
+        vcombine_s32(vreinterpret_s32_m64(_a), vreinterpret_s32_m64(_b));
+
+    int16x4_t ab_low_bits = vmovn_s32(ab);
+    int16x4_t ab_high_bits = vshrn_n_s32(ab, 16);
+
+    return vreinterpret_m64_s16(vsub_s16(ab_low_bits, ab_high_bits));
+}
+
 // Horizontally subtract adjacent pairs of 32-bit integers in a and b, and pack
 // the signed 32-bit results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_hsub_pi32
