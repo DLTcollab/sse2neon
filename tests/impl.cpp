@@ -3876,12 +3876,34 @@ result_t test_mm_cmpord_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_cmpunord_pd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    __m128d a = _mm_load_pd(_a);
+    __m128d b = _mm_load_pd(_b);
+
+    uint64_t result[2];
+    result[0] = !((_a[0] == _a[0]) && (_b[0] == _b[0])) ? UINT64_MAX : 0;
+    result[1] = !((_a[1] == _a[1]) && (_b[1] == _b[1])) ? UINT64_MAX : 0;
+
+    __m128d ret = _mm_cmpunord_pd(a, b);
+    return validateDouble(ret, ((double *) &result)[0],
+                          ((double *) &result)[1]);
 }
 
 result_t test_mm_cmpunord_sd(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    double *_a = (double *) impl.mTestFloatPointer1;
+    double *_b = (double *) impl.mTestFloatPointer2;
+    __m128d a = _mm_load_pd(_a);
+    __m128d b = _mm_load_pd(_b);
+
+    uint64_t result[2];
+    result[0] = !((_a[0] == _a[0]) && (_b[0] == _b[0])) ? UINT64_MAX : 0;
+    result[1] = ((uint64_t *) _a)[1];
+
+    __m128d ret = _mm_cmpunord_sd(a, b);
+    return validateDouble(ret, ((double *) &result)[0],
+                          ((double *) &result)[1]);
 }
 
 result_t test_mm_comieq_sd(const SSE2NEONTestImpl &impl, uint32_t i)
