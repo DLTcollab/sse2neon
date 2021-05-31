@@ -3362,19 +3362,13 @@ FORCE_INLINE __m128d _mm_cmpneq_sd(__m128d a, __m128d b)
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for not-greater-than-or-equal, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnge_pd
-FORCE_INLINE __m128d _mm_cmpnge_pd(__m128d a, __m128d b)
-{
-    return _mm_cmplt_pd(a, b);
-}
+#define _mm_cmpnge_pd(a, b) _mm_cmplt_pd(a, b)
 
 // Compare the lower double-precision (64-bit) floating-point elements in a and
 // b for not-greater-than-or-equal, store the result in the lower element of
 // dst, and copy the upper element from a to the upper element of dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnge_sd
-FORCE_INLINE __m128d _mm_cmpnge_sd(__m128d a, __m128d b)
-{
-    return _mm_cmplt_sd(a, b);
-}
+#define _mm_cmpnge_sd(a, b) _mm_cmplt_sd(a, b)
 
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for not-greater-than, and store the results in dst.
@@ -3385,7 +3379,7 @@ FORCE_INLINE __m128d _mm_cmpnge_sd(__m128d a, __m128d b)
 // b for not-greater-than, store the result in the lower element of dst, and
 // copy the upper element from a to the upper element of dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpngt_sd
-#define _mm_cmpngt_sd _mm_cmple_sd
+#define _mm_cmpngt_sd(a, b) _mm_cmple_sd(a, b)
 
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for not-less-than-or-equal, and store the results in dst.
