@@ -4606,10 +4606,7 @@ FORCE_INLINE void _mm_pause()
 FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 {
     uint16x8_t t = vpaddlq_u8(vabdq_u8((uint8x16_t) a, (uint8x16_t) b));
-    uint16_t r0 = t[0] + t[1] + t[2] + t[3];
-    uint16_t r4 = t[4] + t[5] + t[6] + t[7];
-    uint16x8_t r = vsetq_lane_u16(r0, vdupq_n_u16(0), 0);
-    return (__m128i) vsetq_lane_u16(r4, r, 4);
+    return vreinterpretq_m128i_u64(vpaddlq_u32(vpaddlq_u16(t)));
 }
 
 // Sets the 8 signed 16-bit integer values.
