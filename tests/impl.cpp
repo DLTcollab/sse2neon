@@ -241,6 +241,7 @@ static float ranf(float low, float high)
 // Enable the tests which are using the macro of another tests
 result_t test_mm_slli_si128(const SSE2NEONTestImpl &impl, uint32_t i);
 result_t test_mm_srli_si128(const SSE2NEONTestImpl &impl, uint32_t i);
+result_t test_mm_shuffle_pi16(const SSE2NEONTestImpl &impl, uint32_t i);
 
 // This function is not called from `runSingleTest`, but for other intrinsic
 // tests that might need to call `_mm_set_epi32`.
@@ -2317,7 +2318,7 @@ result_t test_m_psadbw(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_m_pshufw(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    return test_mm_shuffle_pi16(impl, i);
 }
 
 result_t test_mm_rcp_ps(const SSE2NEONTestImpl &impl, uint32_t i)
