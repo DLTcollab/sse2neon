@@ -3855,6 +3855,10 @@ FORCE_INLINE int64_t _mm_cvtsi128_si64(__m128i a)
 }
 
 // Copy the lower 64-bit integer in a to dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsi128_si64x
+#define _mm_cvtsi128_si64x(a) _mm_cvtsi128_si64(a)
+
+// Copy the lower 64-bit integer in a to dst.
 //
 //   dst[63:0] := a[63:0]
 //
