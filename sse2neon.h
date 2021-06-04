@@ -2186,6 +2186,11 @@ FORCE_INLINE void _mm_prefetch(const void *p, int i)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=m_psadbw
 #define _m_psadbw(a, b) _mm_sad_pu8(a, b)
 
+// Shuffle 16-bit integers in a using the control in imm8, and store the results
+// in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pshufw
+#define _m_pshufw(a, imm) _mm_shuffle_pi16(a, imm)
+
 // Compute the approximate reciprocal of packed single-precision (32-bit)
 // floating-point elements in a, and store the results in dst. The maximum
 // relative error for this approximation is less than 1.5*2^-12.
