@@ -10,7 +10,7 @@ if [ ${OS_TYPE} != 'Linux' ]; then
     exit
 fi
 
-GCC_REL=9.2-2019.12
+GCC_REL=10.2-2020.11
 
 set -x
 

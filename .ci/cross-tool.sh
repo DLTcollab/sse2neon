@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ARM_MIRROR=https://github.com/DLTcollab/toolchain-arm/raw/master
-GCC_REL=9.2-2019.12
+GCC_REL=10.2-2020.11
 
 MACHINE_TYPE=`uname -m`
 if [ ${MACHINE_TYPE} != 'x86_64' ]; then
