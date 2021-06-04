@@ -39,12 +39,7 @@ jobs:
             CXX: ${{ matrix.cxx_compiler }}
           install: |
             apt-get update -y
-            # Install add-apt-repository
-            apt-get install -y software-properties-common
-            # For installing g++-10
-            add-apt-repository ppa:ubuntu-toolchain-r/test -y
-            apt-get update -y
-            apt-get install -y g++-10 clang++-11 make
+            apt-get install -y "${{ matrix.cxx_compiler }}" make
           run: make check
 
   coding_convention:
