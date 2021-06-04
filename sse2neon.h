@@ -2249,10 +2249,10 @@ FORCE_INLINE __m128 _mm_rsqrt_ss(__m128 in)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_sad_pu8
 FORCE_INLINE __m64 _mm_sad_pu8(__m64 a, __m64 b)
 {
-    uint16x4_t t =
-        vpaddl_u8(vabd_u8(vreinterpret_u8_m64(a), vreinterpret_u8_m64(b)));
-    uint16_t r0 = t[0] + t[1] + t[2] + t[3];
-    return vreinterpret_m64_u16(vset_lane_u16(r0, vdup_n_u16(0), 0));
+    uint64x1_t t = vpaddl_u32(vpaddl_u16(
+        vpaddl_u8(vabd_u8(vreinterpret_u8_m64(a), vreinterpret_u8_m64(b)))));
+    return vreinterpret_m64_u16(
+        vset_lane_u16(vget_lane_u64(t, 0), vdup_n_u16(0), 0));
 }
 
 // Sets the four single-precision, floating-point values to the four inputs.
