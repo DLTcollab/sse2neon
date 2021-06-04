@@ -8776,12 +8776,6 @@ result_t test_mm_aeskeygenassist_si128(const SSE2NEONTestImpl &impl,
     return validate128(resultReference, resultIntrinsic);
 }
 
-/* FMA */
-result_t test_mm_fmadd_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
-{
-    return TEST_UNIMPL;
-}
-
 /* Others */
 result_t test_mm_clmulepi64_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
