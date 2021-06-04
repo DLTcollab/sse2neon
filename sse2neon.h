@@ -3889,6 +3889,11 @@ FORCE_INLINE __m128i _mm_cvtsi64_si128(int64_t a)
     return vreinterpretq_m128i_s64(vsetq_lane_s64(a, vdupq_n_s64(0), 0));
 }
 
+// Copy 64-bit integer a to the lower element of dst, and zero the upper
+// element.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsi64x_si128
+#define _mm_cvtsi64x_si128(a) _mm_cvtsi64_si128(a)
+
 // Convert the lower single-precision (32-bit) floating-point element in b to a
 // double-precision (64-bit) floating-point element, store the result in the
 // lower element of dst, and copy the upper element from a to the upper element
