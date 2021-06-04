@@ -2495,7 +2495,19 @@ result_t test_mm_sfence(const SSE2NEONTestImpl &impl, uint32_t i)
 
 result_t test_mm_shuffle_pi16(const SSE2NEONTestImpl &impl, uint32_t i)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int32_t imm = 73;
+
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+
+    int16_t d0 = _a[imm & 0x3];
+    int16_t d1 = _a[(imm >> 2) & 0x3];
+    int16_t d2 = _a[(imm >> 4) & 0x3];
+    int16_t d3 = _a[(imm >> 6) & 0x3];
+
+    __m64 d = _mm_shuffle_pi16(a, imm);
+
+    return validateInt16(d, d0, d1, d2, d3);
 }
 
 // Note, NEON does not have a general purpose shuffled command like SSE.
