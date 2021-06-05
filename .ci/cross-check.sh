@@ -10,6 +10,13 @@ if [ ${OS_TYPE} != 'Linux' ]; then
     exit
 fi
 
+# Clang/LLVM is natively a cross-compiler.
+# TODO: Do cross-compilation using Clang
+# https://clang.llvm.org/docs/CrossCompilation.html
+if [ $(printenv CXX | grep clang) ]; then
+    exit
+fi
+
 GCC_REL=10.2-2020.11
 
 set -x
