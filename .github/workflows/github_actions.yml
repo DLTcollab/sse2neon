@@ -3,7 +3,7 @@ name: Github Actions
 on: [push, pull_request]
 
 jobs:
-  test_x86:
+  host_x86:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v2
-      - name: test
+      - name: build artifact
         env:
           CXX: ${{ matrix.cxx_compiler }}
         run: |
@@ -19,7 +19,7 @@ jobs:
           make check
           sh .ci/cross-check.sh
 
-  test_arm:
+  host_arm:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -42,12 +42,12 @@ jobs:
             apt-get install -q -y "${{ matrix.cxx_compiler }}" make
           run: make check
 
-  coding_convention:
+  coding_style:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout code
         uses: actions/checkout@v2
-      - name: coding convention
+      - name: style check
         run: |
             sudo apt-get install -q -y clang-format-11
             sh .ci/check-format.sh
