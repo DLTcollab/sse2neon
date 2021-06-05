@@ -16,13 +16,15 @@ fi
 set -x
 
 sudo apt-get update
-sudo apt-get install -y curl xz-utils qemu-user
+sudo apt-get install -y qemu-user
 
 # Clang/LLVM is natively a cross-compiler, meaning that one set of programs
 # can compile to all targets by setting the -target option.
 if [ $(printenv CXX | grep clang) ]; then
     exit
 fi
+
+sudo apt-get install -y curl xz-utils
 
 curl -L \
     ${ARM_MIRROR}/gcc-arm-${GCC_REL}-x86_64-arm-none-linux-gnueabihf.tar.xz \
