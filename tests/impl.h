@@ -526,8 +526,6 @@
     TYPE(mm_aesenc_si128)          \
     TYPE(mm_aesenclast_si128)      \
     TYPE(mm_aeskeygenassist_si128) \
-    /* FMA */                      \
-    TYPE(mm_fmadd_ps)              \
     /* Others */                   \
     TYPE(mm_clmulepi64_si128)      \
     TYPE(mm_popcnt_u32)            \

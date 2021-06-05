@@ -359,8 +359,6 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d, int);
 FORCE_INLINE __m128 _mm_round_ps(__m128, int);
 // SSE4.2
 FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t, uint8_t);
-// FMA
-FORCE_INLINE __m128 _mm_fmadd_ps(__m128, __m128, __m128);
 
 /* Backwards compatibility for compilers with lack of specific type support */
 
@@ -6034,7 +6032,13 @@ FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
     __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
-    return _mm_fmadd_ps(b, mask, a);
+#if defined(__aarch64__) || defined(__ARM_FEATURE_FMA) /* VFPv4+ */
+    return vreinterpretq_m128_f32(vfmaq_f32(vreinterpretq_f32_m128(a),
+                                            vreinterpretq_f32_m128(mask),
+                                            vreinterpretq_f32_m128(b)));
+#else
+    return _mm_add_ps(_mm_mul_ps(b, mask), a);
+#endif
 }
 
 // Horizontally add adjacent pairs of double-precision (64-bit) floating-point
@@ -8011,24 +8015,6 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
     return vreinterpretq_m128i_u8(dest) ^ vreinterpretq_m128i_u32(r);
 }
 #endif
-
-/* FMA */
-
-// Computes the fused multiple add product of 32-bit floating point numbers.
-//
-// Return Value
-// Multiplies A and B, and adds C to the temporary result before returning it.
-// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_fmadd
-FORCE_INLINE __m128 _mm_fmadd_ps(__m128 a, __m128 b, __m128 c)
-{
-#if defined(__aarch64__)
-    return vreinterpretq_m128_f32(vfmaq_f32(vreinterpretq_f32_m128(c),
-                                            vreinterpretq_f32_m128(b),
-                                            vreinterpretq_f32_m128(a)));
-#else
-    return _mm_add_ps(_mm_mul_ps(a, b), c);
-#endif
-}
 
 /* Others */
 
