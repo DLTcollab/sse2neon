@@ -15,8 +15,8 @@ fi
 
 set -x
 
-sudo apt-get update
-sudo apt-get install -y qemu-user
+sudo apt-get update -q -y
+sudo apt-get install -q -y qemu-user
 
 # Clang/LLVM is natively a cross-compiler, meaning that one set of programs
 # can compile to all targets by setting the -target option.

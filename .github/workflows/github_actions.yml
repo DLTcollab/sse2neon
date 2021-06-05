@@ -28,7 +28,7 @@ jobs:
     steps:
       - name: checkout code
         uses: actions/checkout@v2
-      - name: test
+      - name: build artifact
         # The Github Action for non-x86 CPU
         # https://github.com/uraimo/run-on-arch-action
         uses: uraimo/run-on-arch-action@v2.0.10
@@ -38,8 +38,8 @@ jobs:
           env: |
             CXX: ${{ matrix.cxx_compiler }}
           install: |
-            apt-get update -y
-            apt-get install -y "${{ matrix.cxx_compiler }}" make
+            apt-get update -q -y
+            apt-get install -q -y "${{ matrix.cxx_compiler }}" make
           run: make check
 
   coding_convention:
@@ -49,6 +49,6 @@ jobs:
         uses: actions/checkout@v2
       - name: coding convention
         run: |
-            sudo apt-get install -y clang-format-11
+            sudo apt-get install -q -y clang-format-11
             sh .ci/check-format.sh
         shell: bash
