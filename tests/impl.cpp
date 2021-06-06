@@ -7143,7 +7143,27 @@ result_t test_mm_maddubs_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_maddubs_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+    int16_t d0 = (int16_t)(_a[0] * _b[0]);
+    int16_t d1 = (int16_t)(_a[1] * _b[1]);
+    int16_t d2 = (int16_t)(_a[2] * _b[2]);
+    int16_t d3 = (int16_t)(_a[3] * _b[3]);
+    int16_t d4 = (int16_t)(_a[4] * _b[4]);
+    int16_t d5 = (int16_t)(_a[5] * _b[5]);
+    int16_t d6 = (int16_t)(_a[6] * _b[6]);
+    int16_t d7 = (int16_t)(_a[7] * _b[7]);
+
+    int16_t e0 = saturate_16(d0 + d1);
+    int16_t e1 = saturate_16(d2 + d3);
+    int16_t e2 = saturate_16(d4 + d5);
+    int16_t e3 = saturate_16(d6 + d7);
+
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+    __m64 b = do_mm_load_m64((const int64_t *) _b);
+    __m64 c = _mm_maddubs_pi16(a, b);
+
+    return validateInt16(c, e0, e1, e2, e3);
 }
 
 result_t test_mm_mulhrs_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)

@@ -6686,6 +6686,32 @@ FORCE_INLINE __m128i _mm_maddubs_epi16(__m128i _a, __m128i _b)
 #endif
 }
 
+// Vertically multiply each unsigned 8-bit integer from a with the corresponding
+// signed 8-bit integer from b, producing intermediate signed 16-bit integers.
+// Horizontally add adjacent pairs of intermediate signed 16-bit integers, and
+// pack the saturated results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_maddubs_pi16
+FORCE_INLINE __m64 _mm_maddubs_pi16(__m64 _a, __m64 _b)
+{
+    uint16x4_t a = vreinterpret_u16_m64(_a);
+    int16x4_t b = vreinterpret_s16_m64(_b);
+
+    // Zero extend a
+    int16x4_t a_odd = vreinterpret_s16_u16(vshr_n_u16(a, 8));
+    int16x4_t a_even = vreinterpret_s16_u16(vand_u16(a, vdup_n_u16(0xff)));
+
+    // Sign extend by shifting left then shifting right.
+    int16x4_t b_even = vshr_n_s16(vshl_n_s16(b, 8), 8);
+    int16x4_t b_odd = vshr_n_s16(b, 8);
+
+    // multiply
+    int16x4_t prod1 = vmul_s16(a_even, b_even);
+    int16x4_t prod2 = vmul_s16(a_odd, b_odd);
+
+    // saturated add
+    return vreinterpret_m64_s16(vqadd_s16(prod1, prod2));
+}
+
 // Multiply packed signed 16-bit integers in a and b, producing intermediate
 // signed 32-bit integers. Shift right by 15 bits while rounding up, and store
 // the packed 16-bit integers in dst.
