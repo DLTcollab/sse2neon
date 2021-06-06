@@ -7079,7 +7079,19 @@ result_t test_mm_mulhrs_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_mulhrs_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
+    const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
+
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+    __m64 b = do_mm_load_m64((const int64_t *) _b);
+    int32_t _c[4];
+    for (int i = 0; i < 4; i++) {
+        _c[i] =
+            (((((int32_t) _a[i] * (int32_t) _b[i]) >> 14) + 1) & 0x1FFFE) >> 1;
+    }
+    __m64 c = _mm_mulhrs_pi16(a, b);
+
+    return validateInt16(c, _c[0], _c[1], _c[2], _c[3]);
 }
 
 result_t test_mm_shuffle_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
