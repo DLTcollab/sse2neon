@@ -6570,6 +6570,19 @@ FORCE_INLINE __m128i _mm_mulhrs_epi16(__m128i a, __m128i b)
     return vreinterpretq_m128i_s16(vcombine_s16(narrow_lo, narrow_hi));
 }
 
+// Multiply packed signed 16-bit integers in a and b, producing intermediate
+// signed 32-bit integers. Truncate each intermediate integer to the 18 most
+// significant bits, round by adding 1, and store bits [16:1] to dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_mulhrs_pi16
+FORCE_INLINE __m64 _mm_mulhrs_pi16(__m64 a, __m64 b)
+{
+    int32x4_t mul_extend =
+        vmull_s16((vreinterpret_s16_m64(a)), (vreinterpret_s16_m64(b)));
+
+    // Rounding narrowing shift right
+    return vreinterpret_m64_s16(vrshrn_n_s32(mul_extend, 15));
+}
+
 // Shuffle packed 8-bit integers in a according to shuffle control mask in the
 // corresponding 8-bit element of b, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_epi8
