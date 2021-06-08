@@ -4194,7 +4194,13 @@ result_t test_mm_cvtsi128_si64x(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_cvtsi32_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const int32_t b = (const int32_t) impl.mTestInts[iter];
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d c = _mm_cvtsi32_sd(a, b);
+
+    return validateDouble(c, b, _a[1]);
 }
 
 result_t test_mm_cvtsi32_si128(const SSE2NEONTestImpl &impl, uint32_t iter)

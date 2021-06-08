@@ -3856,6 +3856,22 @@ FORCE_INLINE int64_t _mm_cvtsi128_si64(__m128i a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsi128_si64x
 #define _mm_cvtsi128_si64x(a) _mm_cvtsi128_si64(a)
 
+// Convert the signed 32-bit integer b to a double-precision (64-bit)
+// floating-point element, store the result in the lower element of dst, and
+// copy the upper element from a to the upper element of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsi32_sd
+FORCE_INLINE __m128d _mm_cvtsi32_sd(__m128d a, int32_t b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(
+        vsetq_lane_f64((double) b, vreinterpretq_f64_m128d(a), 0));
+#else
+    double bf = (double) b;
+    return vreinterpretq_m128d_s64(
+        vsetq_lane_s64(*(int64_t *) &bf, vreinterpretq_s64_m128d(a), 0));
+#endif
+}
+
 // Copy the lower 64-bit integer in a to dst.
 //
 //   dst[63:0] := a[63:0]
