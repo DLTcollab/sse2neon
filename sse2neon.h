@@ -3832,6 +3832,23 @@ FORCE_INLINE int64_t _mm_cvtsd_si64(__m128d a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_si64x
 #define _mm_cvtsd_si64x _mm_cvtsd_si64
 
+// Convert the lower double-precision (64-bit) floating-point element in b to a
+// single-precision (32-bit) floating-point element, store the result in the
+// lower element of dst, and copy the upper 3 packed elements from a to the
+// upper elements of dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtsd_ss
+FORCE_INLINE __m128 _mm_cvtsd_ss(__m128 a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vsetq_lane_f32(
+        vget_lane_f32(vcvt_f32_f64(vreinterpretq_f64_m128d(b)), 0),
+        vreinterpretq_f32_m128(a), 0));
+#else
+    return vreinterpretq_m128_f32(vsetq_lane_f32((float) ((double *) &b)[0],
+                                                 vreinterpretq_f32_m128(a), 0));
+#endif
+}
+
 // Copy the lower 32-bit integer in a to dst.
 //
 //   dst[31:0] := a[31:0]
