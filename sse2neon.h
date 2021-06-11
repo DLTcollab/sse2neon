@@ -2705,6 +2705,21 @@ FORCE_INLINE __m128 _mm_sub_ss(__m128 a, __m128 b)
 #define _mm_ucomilt_ss _mm_comilt_ss
 #define _mm_ucomineq_ss _mm_comineq_ss
 
+// Return vector of type __m128i with undefined elements.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_undefined_si128
+FORCE_INLINE __m128i _mm_undefined_si128(void)
+{
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#endif
+    __m128i a;
+    return a;
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+}
+
 // Return vector of type __m128 with undefined elements.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_undefined_ps
 FORCE_INLINE __m128 _mm_undefined_ps(void)
