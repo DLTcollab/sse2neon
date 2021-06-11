@@ -5882,6 +5882,21 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
 #define _mm_ucomilt_sd _mm_comilt_sd
 #define _mm_ucomineq_sd _mm_comineq_sd
 
+// Return vector of type __m128d with undefined elements.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_undefined_pd
+FORCE_INLINE __m128d _mm_undefined_pd(void)
+{
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wuninitialized"
+#endif
+    __m128d a;
+    return a;
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+}
+
 // Interleaves the upper 4 signed or unsigned 16-bit integers in a with the
 // upper 4 signed or unsigned 16-bit integers in b.
 //
