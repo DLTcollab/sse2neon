@@ -2848,7 +2848,9 @@ result_t test_mm_ucomineq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_undefined_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    __m128 a = _mm_undefined_ps();
+    a = _mm_xor_ps(a, a);
+    return validateFloat(a, 0, 0, 0, 0);
 }
 
 result_t test_mm_unpackhi_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
