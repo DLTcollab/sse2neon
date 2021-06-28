@@ -344,12 +344,21 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 // SSE
 FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE();
 FORCE_INLINE __m128 _mm_move_ss(__m128, __m128);
+FORCE_INLINE __m128 _mm_or_ps(__m128, __m128);
+FORCE_INLINE __m128 _mm_set_ps1(float);
+FORCE_INLINE __m128 _mm_setzero_ps(void);
 // SSE2
+FORCE_INLINE __m128i _mm_and_si128(__m128i, __m128i);
+FORCE_INLINE __m128i _mm_castps_si128(__m128);
+FORCE_INLINE __m128i _mm_cmpeq_epi32(__m128i, __m128i);
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128);
 FORCE_INLINE __m128d _mm_move_sd(__m128d, __m128d);
+FORCE_INLINE __m128i _mm_or_si128(__m128i, __m128i);
 FORCE_INLINE __m128i _mm_set_epi32(int, int, int, int);
 FORCE_INLINE __m128i _mm_set_epi64x(int64_t, int64_t);
 FORCE_INLINE __m128d _mm_set_pd(double, double);
+FORCE_INLINE __m128i _mm_set1_epi32(int);
+FORCE_INLINE __m128i _mm_setzero_si128();
 // SSE4.1
 FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
@@ -1469,11 +1478,33 @@ FORCE_INLINE __m128 _mm_cvtpi8_ps(__m64 a)
 // will generate 0x7FFF, rather than 0x8000, for input values between 0x7FFF and
 // 0x7FFFFFFF.
 //
+//   FOR j := 0 to 3
+//     i := 16*j
+//     k := 32*j
+//     IF a[k+31:k] >= FP32(0x7FFF) && a[k+31:k] <= FP32(0x7FFFFFFF)
+//       dst[i+15:i] := 0x7FFF
+//     ELSE
+//       dst[i+15:i] := Convert_FP32_To_Int16(a[k+31:k])
+//     FI
+//   ENDFOR
+//
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi16
 FORCE_INLINE __m64 _mm_cvtps_pi16(__m128 a)
 {
-    return vreinterpret_m64_s16(
-        vmovn_s32(vreinterpretq_s32_m128i(_mm_cvtps_epi32(a))));
+    const __m128 i16Min = _mm_set_ps1(INT16_MIN);
+    const __m128 i16Max = _mm_set_ps1(INT16_MAX);
+    const __m128 i32Max = _mm_set_ps1(INT32_MAX);
+    const __m128i maxMask = _mm_castps_si128(
+        _mm_and_ps(_mm_cmpge_ps(a, i16Max), _mm_cmple_ps(a, i32Max)));
+    const __m128i betweenMask = _mm_castps_si128(
+        _mm_and_ps(_mm_cmpgt_ps(a, i16Min), _mm_cmplt_ps(a, i16Max)));
+    const __m128i minMask = _mm_cmpeq_epi32(_mm_or_si128(maxMask, betweenMask),
+                                            _mm_setzero_si128());
+    __m128i max = _mm_and_si128(maxMask, _mm_set1_epi32(INT16_MAX));
+    __m128i min = _mm_and_si128(minMask, _mm_set1_epi32(INT16_MIN));
+    __m128i cvt = _mm_and_si128(betweenMask, _mm_cvtps_epi32(a));
+    __m128i res32 = _mm_or_si128(_mm_or_si128(max, min), cvt);
+    return vreinterpret_m64_s16(vmovn_s32(vreinterpretq_s32_m128i(res32)));
 }
 
 // Convert packed single-precision (32-bit) floating-point elements in a to
@@ -1486,6 +1517,45 @@ FORCE_INLINE __m64 _mm_cvtps_pi16(__m128 a)
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi32
 #define _mm_cvtps_pi32(a) _mm_cvt_ps2pi(a)
+
+// Convert packed single-precision (32-bit) floating-point elements in a to
+// packed 8-bit integers, and store the results in lower 4 elements of dst.
+// Note: this intrinsic will generate 0x7F, rather than 0x80, for input values
+// between 0x7F and 0x7FFFFFFF.
+//
+//   FOR j := 0 to 3
+//     i := 8*j
+//     k := 32*j
+//     IF a[k+31:k] >= FP32(0x7F) && a[k+31:k] <= FP32(0x7FFFFFFF)
+//       dst[i+7:i] := 0x7F
+//     ELSE
+//       dst[i+7:i] := Convert_FP32_To_Int8(a[k+31:k])
+//     FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi8
+FORCE_INLINE __m64 _mm_cvtps_pi8(__m128 a)
+{
+    const __m128 i8Min = _mm_set_ps1(INT8_MIN);
+    const __m128 i8Max = _mm_set_ps1(INT8_MAX);
+    const __m128 i32Max = _mm_set_ps1(INT32_MAX);
+    const __m128i maxMask = _mm_castps_si128(
+        _mm_and_ps(_mm_cmpge_ps(a, i8Max), _mm_cmple_ps(a, i32Max)));
+    const __m128i betweenMask = _mm_castps_si128(
+        _mm_and_ps(_mm_cmpgt_ps(a, i8Min), _mm_cmplt_ps(a, i8Max)));
+    const __m128i minMask = _mm_cmpeq_epi32(_mm_or_si128(maxMask, betweenMask),
+                                            _mm_setzero_si128());
+    __m128i max = _mm_and_si128(maxMask, _mm_set1_epi32(INT8_MAX));
+    __m128i min = _mm_and_si128(minMask, _mm_set1_epi32(INT8_MIN));
+    __m128i cvt = _mm_and_si128(betweenMask, _mm_cvtps_epi32(a));
+    __m128i res32 = _mm_or_si128(_mm_or_si128(max, min), cvt);
+    int16x4_t res16 = vmovn_s32(vreinterpretq_s32_m128i(res32));
+    int8x8_t res8 = vmovn_s16(vcombine_s16(res16, res16));
+    uint bitMask[2] = {0xFFFFFFFF, 0};
+    int8x8_t mask = vreinterpret_s8_u32(vld1_u32(bitMask));
+
+    return vreinterpret_m64_s8(vorr_s8(vand_s8(mask, res8), vdup_n_s8(0)));
+}
 
 // Convert packed unsigned 16-bit integers in a to packed single-precision
 // (32-bit) floating-point elements, and store the results in dst.
