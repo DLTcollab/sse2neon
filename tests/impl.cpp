@@ -7292,7 +7292,24 @@ result_t test_mm_shuffle_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_shuffle_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+    int8_t dst[8];
+
+    for (int i = 0; i < 8; i++) {
+        if (_b[i] & 0x80) {
+            dst[i] = 0;
+        } else {
+            dst[i] = _a[_b[i] & 0x07];
+        }
+    }
+
+    __m64 a = do_mm_load_m64((const int64_t *) _a);
+    __m64 b = do_mm_load_m64((const int64_t *) _b);
+    __m64 ret = _mm_shuffle_pi8(a, b);
+
+    return validateInt8(ret, dst[0], dst[1], dst[2], dst[3], dst[4], dst[5],
+                        dst[6], dst[7]);
 }
 
 result_t test_mm_sign_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)

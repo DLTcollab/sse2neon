@@ -6854,6 +6854,28 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 #endif
 }
 
+// Shuffle packed 8-bit integers in a according to shuffle control mask in the
+// corresponding 8-bit element of b, and store the results in dst.
+//
+//   FOR j := 0 to 7
+//     i := j*8
+//     IF b[i+7] == 1
+//       dst[i+7:i] := 0
+//     ELSE
+//       index[2:0] := b[i+2:i]
+//       dst[i+7:i] := a[index*8+7:index*8]
+//     FI
+//   ENDFOR
+//
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_shuffle_pi8
+FORCE_INLINE __m64 _mm_shuffle_pi8(__m64 a, __m64 b)
+{
+    const int8x8_t controlMask =
+        vand_s8(vreinterpret_s8_m64(b), vdup_n_s8(1 << 7 | 0x07));
+    int8x8_t res = vtbl1_s8(vreinterpret_s8_m64(a), controlMask);
+    return vreinterpret_m64_s8(res);
+}
+
 // Negate packed 16-bit integers in a when the corresponding signed
 // 16-bit integer in b is negative, and store the results in dst.
 // Element in dst are zeroed out when the corresponding element
