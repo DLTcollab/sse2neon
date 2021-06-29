@@ -7259,35 +7259,24 @@ result_t test_mm_mulhrs_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_shuffle_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    const int32_t *a = impl.mTestIntPointer1;
-    const int32_t *b = impl.mTestIntPointer2;
-    const uint8_t *tbl = (const uint8_t *) a;
-    const uint8_t *idx = (const uint8_t *) b;
-    int32_t r[4];
+    const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
+    const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
+    int8_t dst[16];
 
-    r[0] = ((idx[3] & 0x80) ? 0 : tbl[idx[3] % 16]) << 24;
-    r[0] |= ((idx[2] & 0x80) ? 0 : tbl[idx[2] % 16]) << 16;
-    r[0] |= ((idx[1] & 0x80) ? 0 : tbl[idx[1] % 16]) << 8;
-    r[0] |= ((idx[0] & 0x80) ? 0 : tbl[idx[0] % 16]);
+    for (int i = 0; i < 16; i++) {
+        if (_b[i] & 0x80) {
+            dst[i] = 0;
+        } else {
+            dst[i] = _a[_b[i] & 0x0F];
+        }
+    }
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i ret = _mm_shuffle_epi8(a, b);
 
-    r[1] = ((idx[7] & 0x80) ? 0 : tbl[idx[7] % 16]) << 24;
-    r[1] |= ((idx[6] & 0x80) ? 0 : tbl[idx[6] % 16]) << 16;
-    r[1] |= ((idx[5] & 0x80) ? 0 : tbl[idx[5] % 16]) << 8;
-    r[1] |= ((idx[4] & 0x80) ? 0 : tbl[idx[4] % 16]);
-
-    r[2] = ((idx[11] & 0x80) ? 0 : tbl[idx[11] % 16]) << 24;
-    r[2] |= ((idx[10] & 0x80) ? 0 : tbl[idx[10] % 16]) << 16;
-    r[2] |= ((idx[9] & 0x80) ? 0 : tbl[idx[9] % 16]) << 8;
-    r[2] |= ((idx[8] & 0x80) ? 0 : tbl[idx[8] % 16]);
-
-    r[3] = ((idx[15] & 0x80) ? 0 : tbl[idx[15] % 16]) << 24;
-    r[3] |= ((idx[14] & 0x80) ? 0 : tbl[idx[14] % 16]) << 16;
-    r[3] |= ((idx[13] & 0x80) ? 0 : tbl[idx[13] % 16]) << 8;
-    r[3] |= ((idx[12] & 0x80) ? 0 : tbl[idx[12] % 16]);
-
-    __m128i ret = _mm_shuffle_epi8(do_mm_load_ps(a), do_mm_load_ps(b));
-
-    return validateInt32(ret, r[0], r[1], r[2], r[3]);
+    return validateInt8(ret, dst[0], dst[1], dst[2], dst[3], dst[4], dst[5],
+                        dst[6], dst[7], dst[8], dst[9], dst[10], dst[11],
+                        dst[12], dst[13], dst[14], dst[15]);
 }
 
 result_t test_mm_shuffle_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
