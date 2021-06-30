@@ -1941,15 +1941,17 @@ result_t test_mm_loadu_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_loadu_si16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-#if defined(__clang__)
+    // The GCC version before 11 does not implement intrinsic function
+    // _mm_loadu_si16. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
+    // for more information.
+#if defined(__GNUC__) && __GNUC__ <= 10
+    return TEST_UNIMPL;
+#else
     const int16_t *addr = (const int16_t *) impl.mTestIntPointer1;
 
     __m128i ret = _mm_loadu_si16((const void *) addr);
 
     return validateInt16(ret, addr[0], 0, 0, 0, 0, 0, 0, 0);
-#else
-    // The intrinsic _mm_loadu_si16() does not exist in GCC
-    return TEST_UNIMPL;
 #endif
 }
 
@@ -4624,15 +4626,17 @@ result_t test_mm_loadu_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_loadu_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-#if defined(__clang__)
+    // The GCC version before 11 does not implement intrinsic function
+    // _mm_loadu_si32. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
+    // for more information.
+#if defined(__GNUC__) && __GNUC__ <= 10
+    return TEST_UNIMPL;
+#else
     const int32_t *addr = (const int32_t *) impl.mTestIntPointer1;
 
     __m128i ret = _mm_loadu_si32((const void *) addr);
 
     return validateInt32(ret, addr[0], 0, 0, 0);
-#else
-    // The intrinsic _mm_loadu_si32() does not exist in GCC
-    return TEST_UNIMPL;
 #endif
 }
 
