@@ -7409,6 +7409,35 @@ FORCE_INLINE __m128i _mm_cvtepu8_epi64(__m128i a)
     return vreinterpretq_m128i_u64(u64x2);
 }
 
+// Conditionally multiply the packed double-precision (64-bit) floating-point
+// elements in a and b using the high 4 bits in imm8, sum the four products, and
+// conditionally store the sum in dst using the low 4 bits of imm8.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_dp_pd
+FORCE_INLINE __m128d _mm_dp_pd(__m128d a, __m128d b, const int imm)
+{
+    // Generate mask value from constant immediate bit value
+    const int64_t bit0Mask = imm & 0x01 ? UINT64_MAX : 0;
+    const int64_t bit1Mask = imm & 0x02 ? UINT64_MAX : 0;
+    const int64_t bit4Mask = imm & 0x10 ? UINT64_MAX : 0;
+    const int64_t bit5Mask = imm & 0x20 ? UINT64_MAX : 0;
+    // Conditional multiplication
+    __m128d mul = _mm_mul_pd(a, b);
+    const __m128d mulMask =
+        _mm_castsi128_pd(_mm_set_epi64x(bit5Mask, bit4Mask));
+    __m128d tmp = _mm_and_pd(mul, mulMask);
+    // Sum the products
+#if defined(__aarch64__)
+    double sum = vpaddd_f64(vreinterpretq_f64_m128d(tmp));
+#else
+    double sum = *((double *) &tmp) + *(((double *) &tmp) + 1);
+#endif
+    // Conditionally store the sum
+    const __m128d sumMask =
+        _mm_castsi128_pd(_mm_set_epi64x(bit1Mask, bit0Mask));
+    __m128d res = _mm_and_pd(_mm_set_pd1(sum), sumMask);
+    return res;
+}
+
 // Conditionally multiply the packed single-precision (32-bit) floating-point
 // elements in a and b using the high 4 bits in imm8, sum the four products,
 // and conditionally store the sum in dst using the low 4 bits of imm.

@@ -7904,7 +7904,23 @@ result_t test_mm_cvtepu8_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    // FIXME: Different immediate value should be tested
+    const int imm = 0xFF;
+    double d[2];
+    double sum = 0;
+
+    for (size_t i = 0; i < 2; i++)
+        sum += ((imm) & (1 << (i + 4))) ? _a[i] * _b[i] : 0;
+    for (size_t i = 0; i < 2; i++)
+        d[i] = (imm & (1 << i)) ? sum : 0;
+
+    __m128d a = do_mm_load_pd(_a);
+    __m128d b = do_mm_load_pd(_b);
+    __m128d ret = _mm_dp_pd(a, b, imm);
+
+    return validateDouble(ret, d[0], d[1]);
 }
 
 result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
