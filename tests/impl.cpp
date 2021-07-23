@@ -8374,7 +8374,54 @@ result_t test_mm_minpos_epu16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_mpsadbw_epu8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
+    const uint8_t imm = impl.mTestInts[iter];
+
+    uint8_t a_offset = ((imm >> 2) & 0x1) * 4;
+    uint8_t b_offset = (imm & 0x3) * 4;
+
+    uint16_t d[8] = {};
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 4; j++) {
+            d[i] += abs(_a[(a_offset + i) + j] - _b[b_offset + j]);
+        }
+    }
+
+    __m128i a = do_mm_load_ps((const int32_t *) _a);
+    __m128i b = do_mm_load_ps((const int32_t *) _b);
+    __m128i c;
+    switch (imm & 0x7) {
+    case 0:
+        c = _mm_mpsadbw_epu8(a, b, 0);
+        break;
+    case 1:
+        c = _mm_mpsadbw_epu8(a, b, 1);
+        break;
+    case 2:
+        c = _mm_mpsadbw_epu8(a, b, 2);
+        break;
+    case 3:
+        c = _mm_mpsadbw_epu8(a, b, 3);
+        break;
+    case 4:
+        c = _mm_mpsadbw_epu8(a, b, 4);
+        break;
+    case 5:
+        c = _mm_mpsadbw_epu8(a, b, 5);
+        break;
+    case 6:
+        c = _mm_mpsadbw_epu8(a, b, 6);
+        break;
+    case 7:
+        c = _mm_mpsadbw_epu8(a, b, 7);
+        break;
+
+    default:
+        return TEST_FAIL;
+    }
+
+    return validateUInt16(c, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
 }
 
 result_t test_mm_mul_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)

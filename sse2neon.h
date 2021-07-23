@@ -7749,6 +7749,90 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
     return dst;
 }
 
+// Compute the sum of absolute differences (SADs) of quadruplets of unsigned
+// 8-bit integers in a compared to those in b, and store the 16-bit results in
+// dst. Eight SADs are performed using one quadruplet from b and eight
+// quadruplets from a. One quadruplet is selected from b starting at on the
+// offset specified in imm8. Eight quadruplets are formed from sequential 8-bit
+// integers selected from a starting at the offset specified in imm8.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_mpsadbw_epu8
+FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm)
+{
+    uint8x16_t _a, _b;
+
+    switch (imm & 0x4) {
+    case 0:
+        // do nothing
+        _a = vreinterpretq_u8_m128i(a);
+        break;
+    case 4:
+        _a = vreinterpretq_u8_u32(vextq_u32(vreinterpretq_u32_m128i(a),
+                                            vreinterpretq_u32_m128i(a), 1));
+        break;
+    default:
+#if defined(__GNUC__) || defined(__clang__)
+        __builtin_unreachable();
+#endif
+        break;
+    }
+
+    switch (imm & 0x3) {
+    case 0:
+        _b = vreinterpretq_u8_u32(
+            vdupq_n_u32(vgetq_lane_u32(vreinterpretq_u32_m128i(b), 0)));
+        break;
+    case 1:
+        _b = vreinterpretq_u8_u32(
+            vdupq_n_u32(vgetq_lane_u32(vreinterpretq_u32_m128i(b), 1)));
+        break;
+    case 2:
+        _b = vreinterpretq_u8_u32(
+            vdupq_n_u32(vgetq_lane_u32(vreinterpretq_u32_m128i(b), 2)));
+        break;
+    case 3:
+        _b = vreinterpretq_u8_u32(
+            vdupq_n_u32(vgetq_lane_u32(vreinterpretq_u32_m128i(b), 3)));
+        break;
+    default:
+#if defined(__GNUC__) || defined(__clang__)
+        __builtin_unreachable();
+#endif
+        break;
+    }
+
+    int16x8_t c04, c15, c26, c37;
+    uint8x8_t low_b = vget_low_u8(_b);
+    c04 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
+    _a = vextq_u8(_a, _a, 1);
+    c15 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
+    _a = vextq_u8(_a, _a, 1);
+    c26 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
+    _a = vextq_u8(_a, _a, 1);
+    c37 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
+#if defined(__aarch64__)
+    // |0|4|2|6|
+    c04 = vpaddq_s16(c04, c26);
+    // |1|5|3|7|
+    c15 = vpaddq_s16(c15, c37);
+
+    int32x4_t trn1_c =
+        vtrn1q_s32(vreinterpretq_s32_s16(c04), vreinterpretq_s32_s16(c15));
+    int32x4_t trn2_c =
+        vtrn2q_s32(vreinterpretq_s32_s16(c04), vreinterpretq_s32_s16(c15));
+    return vreinterpretq_m128i_s16(vpaddq_s16(vreinterpretq_s16_s32(trn1_c),
+                                              vreinterpretq_s16_s32(trn2_c)));
+#else
+    int16x4_t c01, c23, c45, c67;
+    c01 = vpadd_s16(vget_low_s16(c04), vget_low_s16(c15));
+    c23 = vpadd_s16(vget_low_s16(c26), vget_low_s16(c37));
+    c45 = vpadd_s16(vget_high_s16(c04), vget_high_s16(c15));
+    c67 = vpadd_s16(vget_high_s16(c26), vget_high_s16(c37));
+
+    return vreinterpretq_m128i_s16(
+        vcombine_s16(vpadd_s16(c01, c23), vpadd_s16(c45, c67)));
+#endif
+}
+
 // Multiply the low signed 32-bit integers from each packed 64-bit element in
 // a and b, and store the signed 64-bit results in dst.
 //
