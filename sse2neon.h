@@ -1551,7 +1551,7 @@ FORCE_INLINE __m64 _mm_cvtps_pi8(__m128 a)
     __m128i res32 = _mm_or_si128(_mm_or_si128(max, min), cvt);
     int16x4_t res16 = vmovn_s32(vreinterpretq_s32_m128i(res32));
     int8x8_t res8 = vmovn_s16(vcombine_s16(res16, res16));
-    uint bitMask[2] = {0xFFFFFFFF, 0};
+    uint32_t bitMask[2] = {0xFFFFFFFF, 0};
     int8x8_t mask = vreinterpret_s8_u32(vld1_u32(bitMask));
 
     return vreinterpret_m64_s8(vorr_s8(vand_s8(mask, res8), vdup_n_s8(0)));
