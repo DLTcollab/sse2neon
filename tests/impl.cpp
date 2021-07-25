@@ -1442,7 +1442,7 @@ result_t test_mm_cvtps_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     int16_t rnd[4];
 
     for (int i = 0; i < 4; i++) {
-        if (INT16_MAX <= _a[i] && _a[i] <= INT32_MAX) {
+        if ((float) INT16_MAX <= _a[i] && _a[i] <= (float) INT32_MAX) {
             rnd[i] = INT16_MAX;
         } else if (INT16_MIN < _a[i] && _a[i] < INT16_MAX) {
             switch (iter & 0x3) {
@@ -1513,7 +1513,7 @@ result_t test_mm_cvtps_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
     int8_t rnd[4];
 
     for (int i = 0; i < 4; i++) {
-        if (INT8_MAX <= _a[i] && _a[i] <= INT32_MAX) {
+        if ((float) INT8_MAX <= _a[i] && _a[i] <= (float) INT32_MAX) {
             rnd[i] = INT8_MAX;
         } else if (INT8_MIN < _a[i] && _a[i] < INT8_MAX) {
             switch (iter & 0x3) {
