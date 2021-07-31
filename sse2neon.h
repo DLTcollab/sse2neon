@@ -1491,9 +1491,9 @@ FORCE_INLINE __m128 _mm_cvtpi8_ps(__m64 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi16
 FORCE_INLINE __m64 _mm_cvtps_pi16(__m128 a)
 {
-    const __m128 i16Min = _mm_set_ps1(INT16_MIN);
-    const __m128 i16Max = _mm_set_ps1(INT16_MAX);
-    const __m128 i32Max = _mm_set_ps1(INT32_MAX);
+    const __m128 i16Min = _mm_set_ps1((float) INT16_MIN);
+    const __m128 i16Max = _mm_set_ps1((float) INT16_MAX);
+    const __m128 i32Max = _mm_set_ps1((float) INT32_MAX);
     const __m128i maxMask = _mm_castps_si128(
         _mm_and_ps(_mm_cmpge_ps(a, i16Max), _mm_cmple_ps(a, i32Max)));
     const __m128i betweenMask = _mm_castps_si128(
@@ -1536,9 +1536,9 @@ FORCE_INLINE __m64 _mm_cvtps_pi16(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi8
 FORCE_INLINE __m64 _mm_cvtps_pi8(__m128 a)
 {
-    const __m128 i8Min = _mm_set_ps1(INT8_MIN);
-    const __m128 i8Max = _mm_set_ps1(INT8_MAX);
-    const __m128 i32Max = _mm_set_ps1(INT32_MAX);
+    const __m128 i8Min = _mm_set_ps1((float) INT8_MIN);
+    const __m128 i8Max = _mm_set_ps1((float) INT8_MAX);
+    const __m128 i32Max = _mm_set_ps1((float) INT32_MAX);
     const __m128i maxMask = _mm_castps_si128(
         _mm_and_ps(_mm_cmpge_ps(a, i8Max), _mm_cmple_ps(a, i32Max)));
     const __m128i betweenMask = _mm_castps_si128(
@@ -6871,7 +6871,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 FORCE_INLINE __m64 _mm_shuffle_pi8(__m64 a, __m64 b)
 {
     const int8x8_t controlMask =
-        vand_s8(vreinterpret_s8_m64(b), vdup_n_s8(1 << 7 | 0x07));
+        vand_s8(vreinterpret_s8_m64(b), vdup_n_s8((int8_t)(0x1 << 7 | 0x07)));
     int8x8_t res = vtbl1_s8(vreinterpret_s8_m64(a), controlMask);
     return vreinterpret_m64_s8(res);
 }
