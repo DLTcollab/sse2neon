@@ -7592,11 +7592,12 @@ FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=insert_ps
 #define _mm_insert_ps(a, b, imm8)                                              \
     __extension__({                                                            \
-        float32x4_t tmp1 = vsetq_lane_f32(vgetq_lane_f32(b, (imm >> 6) & 0x3), \
-                                          vreinterpretq_f32_m128(a), 0);       \
+        float32x4_t tmp1 =                                                     \
+            vsetq_lane_f32(vgetq_lane_f32(b, (imm8 >> 6) & 0x3),               \
+                           vreinterpretq_f32_m128(a), 0);                      \
         float32x4_t tmp2 =                                                     \
             vsetq_lane_f32(vgetq_lane_f32(tmp1, 0), vreinterpretq_f32_m128(a), \
-                           ((imm >> 4) & 0x3));                                \
+                           ((imm8 >> 4) & 0x3));                               \
         const uint32_t data[4] = {((imm8) & (1 << 0)) ? UINT32_MAX : 0,        \
                                   ((imm8) & (1 << 1)) ? UINT32_MAX : 0,        \
                                   ((imm8) & (1 << 2)) ? UINT32_MAX : 0,        \
