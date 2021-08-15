@@ -7925,8 +7925,6 @@ result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    // FIXME: The rounding mode would affect the testing result on ARM platform.
-    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
     const int imm = 0xFF;
