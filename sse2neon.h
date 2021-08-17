@@ -67,32 +67,24 @@
 #define SSE2NEON_PRECISE_SQRT (0)
 #endif
 
+/* compiler specific definitions */
 #if defined(__GNUC__) || defined(__clang__)
 #pragma push_macro("FORCE_INLINE")
 #pragma push_macro("ALIGN_STRUCT")
 #define FORCE_INLINE static inline __attribute__((always_inline))
 #define ALIGN_STRUCT(x) __attribute__((aligned(x)))
-#ifndef likely
-#define likely(x) __builtin_expect(!!(x), 1)
-#endif
-#ifndef unlikely
-#define unlikely(x) __builtin_expect(!!(x), 0)
-#endif
-#else
-#error "Macro name collisions may happen with unsupported compiler."
-#ifdef FORCE_INLINE
-#undef FORCE_INLINE
-#endif
+#define _sse2neon_likely(x) __builtin_expect(!!(x), 1)
+#define _sse2neon_unlikely(x) __builtin_expect(!!(x), 0)
+#else /* non-GNU / non-clang compilers */
+#warning "Macro name collisions may happen with unsupported compiler."
+#ifndef FORCE_INLINE
 #define FORCE_INLINE static inline
+#endif
 #ifndef ALIGN_STRUCT
 #define ALIGN_STRUCT(x) __declspec(align(x))
 #endif
-#endif
-#ifndef likely
-#define likely(x) (x)
-#endif
-#ifndef unlikely
-#define unlikely(x) (x)
+#define _sse2neon_likely(x) (x)
+#define _sse2neon_unlikely(x) (x)
 #endif
 
 #include <stdint.h>
@@ -5275,7 +5267,7 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
 FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (unlikely(c > 15))
+    if (_sse2neon_unlikely(c > 15))
         return _mm_setzero_si128();
 
     int16x8_t vc = vdupq_n_s16((int16_t) c);
@@ -5294,7 +5286,7 @@ FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (unlikely(c > 31))
+    if (_sse2neon_unlikely(c > 31))
         return _mm_setzero_si128();
 
     int32x4_t vc = vdupq_n_s32((int32_t) c);
@@ -5311,7 +5303,7 @@ FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (unlikely(c > 63))
+    if (_sse2neon_unlikely(c > 63))
         return _mm_setzero_si128();
 
     int64x2_t vc = vdupq_n_s64((int64_t) c);
@@ -5330,10 +5322,10 @@ FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count)
 #define _mm_slli_epi16(a, imm)                                   \
     __extension__({                                              \
         __m128i ret;                                             \
-        if (unlikely((imm)) <= 0) {                              \
+        if (_sse2neon_unlikely((imm)) <= 0) {                    \
             ret = a;                                             \
         }                                                        \
-        if (unlikely((imm) > 15)) {                              \
+        if (_sse2neon_unlikely((imm) > 15)) {                    \
             ret = _mm_setzero_si128();                           \
         } else {                                                 \
             ret = vreinterpretq_m128i_s16(                       \
@@ -5348,9 +5340,10 @@ FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count)
 // FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, __constrange(0,255) int imm)
 FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, int imm)
 {
-    if (unlikely(imm <= 0)) /* TODO: add constant range macro: [0, 255] */
+    if (_sse2neon_unlikely(imm <=
+                           0)) /* TODO: add constant range macro: [0, 255] */
         return a;
-    if (unlikely(imm > 31))
+    if (_sse2neon_unlikely(imm > 31))
         return _mm_setzero_si128();
     return vreinterpretq_m128i_s32(
         vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(imm)));
@@ -5360,9 +5353,10 @@ FORCE_INLINE __m128i _mm_slli_epi32(__m128i a, int imm)
 // store the results in dst.
 FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
 {
-    if (unlikely(imm <= 0)) /* TODO: add constant range macro: [0, 255] */
+    if (_sse2neon_unlikely(imm <=
+                           0)) /* TODO: add constant range macro: [0, 255] */
         return a;
-    if (unlikely(imm > 63))
+    if (_sse2neon_unlikely(imm > 63))
         return _mm_setzero_si128();
     return vreinterpretq_m128i_s64(
         vshlq_s64(vreinterpretq_s64_m128i(a), vdupq_n_s64(imm)));
@@ -5378,10 +5372,10 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
 #define _mm_slli_si128(a, imm)                                          \
     __extension__({                                                     \
         __m128i ret;                                                    \
-        if (unlikely((imm) <= 0)) {                                     \
+        if (_sse2neon_unlikely((imm) <= 0)) {                           \
             ret = a;                                                    \
         }                                                               \
-        if (unlikely((imm) > 15)) {                                     \
+        if (_sse2neon_unlikely((imm) > 15)) {                           \
             ret = _mm_setzero_si128();                                  \
         } else {                                                        \
             ret = vreinterpretq_m128i_s8(vextq_s8(                      \
@@ -5429,7 +5423,7 @@ FORCE_INLINE __m128d _mm_sqrt_sd(__m128d a, __m128d b)
 FORCE_INLINE __m128i _mm_sra_epi16(__m128i a, __m128i count)
 {
     int64_t c = (int64_t) vget_low_s64((int64x2_t) count);
-    if (unlikely(c > 15))
+    if (_sse2neon_unlikely(c > 15))
         return _mm_cmplt_epi16(a, _mm_setzero_si128());
     return vreinterpretq_m128i_s16(vshlq_s16((int16x8_t) a, vdupq_n_s16(-c)));
 }
@@ -5446,7 +5440,7 @@ FORCE_INLINE __m128i _mm_sra_epi16(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_sra_epi32(__m128i a, __m128i count)
 {
     int64_t c = (int64_t) vget_low_s64((int64x2_t) count);
-    if (unlikely(c > 31))
+    if (_sse2neon_unlikely(c > 31))
         return _mm_cmplt_epi32(a, _mm_setzero_si128());
     return vreinterpretq_m128i_s32(vshlq_s32((int32x4_t) a, vdupq_n_s32(-c)));
 }
@@ -5477,9 +5471,9 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 #define _mm_srai_epi32(a, imm)                                             \
     __extension__({                                                        \
         __m128i ret;                                                       \
-        if (unlikely((imm) == 0)) {                                        \
+        if (_sse2neon_unlikely((imm) == 0)) {                              \
             ret = a;                                                       \
-        } else if (likely(0 < (imm) && (imm) < 32)) {                      \
+        } else if (_sse2neon_likely(0 < (imm) && (imm) < 32)) {            \
             ret = vreinterpretq_m128i_s32(                                 \
                 vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(-imm))); \
         } else {                                                           \
@@ -5501,7 +5495,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (unlikely(c > 15))
+    if (_sse2neon_unlikely(c > 15))
         return _mm_setzero_si128();
 
     int16x8_t vc = vdupq_n_s16(-(int16_t) c);
@@ -5520,7 +5514,7 @@ FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (unlikely(c > 31))
+    if (_sse2neon_unlikely(c > 31))
         return _mm_setzero_si128();
 
     int32x4_t vc = vdupq_n_s32(-(int32_t) c);
@@ -5537,7 +5531,7 @@ FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (unlikely(c > 63))
+    if (_sse2neon_unlikely(c > 63))
         return _mm_setzero_si128();
 
     int64x2_t vc = vdupq_n_s64(-(int64_t) c);
@@ -5560,9 +5554,9 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 #define _mm_srli_epi16(a, imm)                                             \
     __extension__({                                                        \
         __m128i ret;                                                       \
-        if (unlikely(imm) == 0) {                                          \
+        if (_sse2neon_unlikely(imm) == 0) {                                \
             ret = a;                                                       \
-        } else if (likely(0 < (imm) && (imm) < 16)) {                      \
+        } else if (_sse2neon_likely(0 < (imm) && (imm) < 16)) {            \
             ret = vreinterpretq_m128i_u16(                                 \
                 vshlq_u16(vreinterpretq_u16_m128i(a), vdupq_n_s16(-imm))); \
         } else {                                                           \
@@ -5588,9 +5582,9 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 #define _mm_srli_epi32(a, imm)                                             \
     __extension__({                                                        \
         __m128i ret;                                                       \
-        if (unlikely((imm) == 0)) {                                        \
+        if (_sse2neon_unlikely((imm) == 0)) {                              \
             ret = a;                                                       \
-        } else if (likely(0 < (imm) && (imm) < 32)) {                      \
+        } else if (_sse2neon_likely(0 < (imm) && (imm) < 32)) {            \
             ret = vreinterpretq_m128i_u32(                                 \
                 vshlq_u32(vreinterpretq_u32_m128i(a), vdupq_n_s32(-imm))); \
         } else {                                                           \
@@ -5615,9 +5609,9 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 #define _mm_srli_epi64(a, imm)                                             \
     __extension__({                                                        \
         __m128i ret;                                                       \
-        if (unlikely((imm) == 0)) {                                        \
+        if (_sse2neon_unlikely((imm) == 0)) {                              \
             ret = a;                                                       \
-        } else if (likely(0 < (imm) && (imm) < 64)) {                      \
+        } else if (_sse2neon_likely(0 < (imm) && (imm) < 64)) {            \
             ret = vreinterpretq_m128i_u64(                                 \
                 vshlq_u64(vreinterpretq_u64_m128i(a), vdupq_n_s64(-imm))); \
         } else {                                                           \
@@ -5636,10 +5630,10 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 #define _mm_srli_si128(a, imm)                                              \
     __extension__({                                                         \
         __m128i ret;                                                        \
-        if (unlikely((imm) <= 0)) {                                         \
+        if (_sse2neon_unlikely((imm) <= 0)) {                               \
             ret = a;                                                        \
         }                                                                   \
-        if (unlikely((imm) > 15)) {                                         \
+        if (_sse2neon_unlikely((imm) > 15)) {                               \
             ret = _mm_setzero_si128();                                      \
         } else {                                                            \
             ret = vreinterpretq_m128i_s8(                                   \
@@ -6483,7 +6477,7 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 #define _mm_alignr_epi8(a, b, imm)                                            \
     __extension__({                                                           \
         __m128i ret;                                                          \
-        if (unlikely((imm) >= 32)) {                                          \
+        if (_sse2neon_unlikely((imm) >= 32)) {                                \
             ret = _mm_setzero_si128();                                        \
         } else {                                                              \
             uint8x16_t tmp_low, tmp_high;                                     \
@@ -6514,7 +6508,7 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 #define _mm_alignr_pi8(a, b, imm)                                           \
     __extension__({                                                         \
         __m64 ret;                                                          \
-        if (unlikely((imm) >= 16)) {                                        \
+        if (_sse2neon_unlikely((imm) >= 16)) {                              \
             ret = vreinterpret_m64_s8(vdup_n_s8(0));                        \
         } else {                                                            \
             uint8x8_t tmp_low, tmp_high;                                    \
