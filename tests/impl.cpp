@@ -1823,6 +1823,18 @@ result_t test_mm_free(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_UNIMPL;
 }
 
+result_t test_mm_get_flush_zero_mode(const SSE2NEONTestImpl &impl,
+                                     uint32_t iter)
+{
+    int res_flush_zero_on, res_flush_zero_off;
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+    res_flush_zero_on = _MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_ON;
+    _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF);
+    res_flush_zero_off = _MM_GET_FLUSH_ZERO_MODE() == _MM_FLUSH_ZERO_OFF;
+
+    return (res_flush_zero_on && res_flush_zero_off) ? TEST_SUCCESS : TEST_FAIL;
+}
+
 result_t test_mm_get_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     int res_toward_zero, res_to_neg_inf, res_to_pos_inf, res_nearest;
@@ -2453,6 +2465,15 @@ result_t test_mm_sad_pu8(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m64 b = do_mm_load_m64((const int64_t *) _b);
     __m64 c = _mm_sad_pu8(a, b);
     return validateUInt16(c, d, 0, 0, 0);
+}
+
+result_t test_mm_set_flush_zero_mode(const SSE2NEONTestImpl &impl,
+                                     uint32_t iter)
+{
+    // TODO:
+    // After the behavior of denormal number and flush zero mode is fully
+    // investigated, the testing would be added.
+    return TEST_UNIMPL;
 }
 
 result_t test_mm_set_ps(const SSE2NEONTestImpl &impl, uint32_t iter)

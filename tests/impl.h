@@ -72,6 +72,7 @@
     TYPE(mm_div_ss)                \
     TYPE(mm_extract_pi16)          \
     TYPE(mm_free)                  \
+    TYPE(mm_get_flush_zero_mode)   \
     TYPE(mm_get_rounding_mode)     \
     TYPE(mm_getcsr)                \
     TYPE(mm_insert_pi16)           \
@@ -123,6 +124,7 @@
     TYPE(mm_rsqrt_ps)              \
     TYPE(mm_rsqrt_ss)              \
     TYPE(mm_sad_pu8)               \
+    TYPE(mm_set_flush_zero_mode)   \
     TYPE(mm_set_ps)                \
     TYPE(mm_set_ps1)               \
     TYPE(mm_set_rounding_mode)     \
