@@ -158,6 +158,10 @@
 #define _MM_ROUND_DOWN 0x2000
 #define _MM_ROUND_UP 0x4000
 #define _MM_ROUND_TOWARD_ZERO 0x6000
+/* Flush zero mode macros. */
+#define _MM_FLUSH_ZERO_MASK 0x8000
+#define _MM_FLUSH_ZERO_ON 0x8000
+#define _MM_FLUSH_ZERO_OFF 0x0000
 
 /* indicate immediate constant argument in a given range */
 #define __constrange(a, b) const
@@ -332,6 +336,10 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #define vreinterpretq_nth_u32_m128i(x, n) (((SIMDVec *) &x)->m128_u32[n])
 #define vreinterpretq_nth_u8_m128i(x, n) (((SIMDVec *) &x)->m128_u8[n])
 
+/* SSE macros */
+#define _MM_GET_FLUSH_ZERO_MODE _sse2neon_mm_get_flush_zero_mode
+#define _MM_SET_FLUSH_ZERO_MODE _sse2neon_mm_set_flush_zero_mode
+
 // Function declaration
 // SSE
 FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE();
@@ -480,7 +488,8 @@ typedef struct {
     uint8_t res1 : 6;
     uint8_t bit22 : 1;
     uint8_t bit23 : 1;
-    uint8_t res2;
+    uint8_t bit24 : 1;
+    uint8_t res2 : 7;
 #if defined(__aarch64__)
     uint32_t res3;
 #endif
@@ -1744,6 +1753,30 @@ FORCE_INLINE void _mm_free(void *addr)
     free(addr);
 }
 
+// Macro: Get the flush zero bits from the MXCSR control and status register.
+// The flush zero may contain any of the following flags: _MM_FLUSH_ZERO_ON or
+// _MM_FLUSH_ZERO_OFF
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_MM_GET_FLUSH_ZERO_MODE
+FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode()
+{
+    union {
+        fpcr_bitfield field;
+#if defined(__aarch64__)
+        uint64_t value;
+#else
+        uint32_t value;
+#endif
+    } r;
+
+#if defined(__aarch64__)
+    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+#else
+    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+#endif
+
+    return r.field.bit24 ? _MM_FLUSH_ZERO_ON : _MM_FLUSH_ZERO_OFF;
+}
+
 // Macro: Get the rounding mode bits from the MXCSR control and status register.
 // The rounding mode may contain any of the following flags: _MM_ROUND_NEAREST,
 // _MM_ROUND_DOWN, _MM_ROUND_UP, _MM_ROUND_TOWARD_ZERO
@@ -2318,6 +2351,36 @@ FORCE_INLINE __m64 _mm_sad_pu8(__m64 a, __m64 b)
         vpaddl_u8(vabd_u8(vreinterpret_u8_m64(a), vreinterpret_u8_m64(b)))));
     return vreinterpret_m64_u16(
         vset_lane_u16(vget_lane_u64(t, 0), vdup_n_u16(0), 0));
+}
+
+// Macro: Set the flush zero bits of the MXCSR control and status register to
+// the value in unsigned 32-bit integer a. The flush zero may contain any of the
+// following flags: _MM_FLUSH_ZERO_ON or _MM_FLUSH_ZERO_OFF
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_MM_SET_FLUSH_ZERO_MODE
+FORCE_INLINE void _sse2neon_mm_set_flush_zero_mode(unsigned int flag)
+{
+    union {
+        fpcr_bitfield field;
+#if defined(__aarch64__)
+        uint64_t value;
+#else
+        uint32_t value;
+#endif
+    } r;
+
+#if defined(__aarch64__)
+    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+#else
+    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+#endif
+
+    r.field.bit24 = (flag & _MM_FLUSH_ZERO_MASK) == _MM_FLUSH_ZERO_ON;
+
+#if defined(__aarch64__)
+    asm volatile("msr FPCR, %0" ::"r"(r)); /* write */
+#else
+    asm volatile("vmsr FPSCR, %0" ::"r"(r));        /* write */
+#endif
 }
 
 // Sets the four single-precision, floating-point values to the four inputs.
