@@ -162,6 +162,10 @@
 #define _MM_FLUSH_ZERO_MASK 0x8000
 #define _MM_FLUSH_ZERO_ON 0x8000
 #define _MM_FLUSH_ZERO_OFF 0x0000
+/* Denormals are zeros mode macros. */
+#define _MM_DENORMALS_ZERO_MASK 0x0040
+#define _MM_DENORMALS_ZERO_ON 0x0040
+#define _MM_DENORMALS_ZERO_OFF 0x0000
 
 /* indicate immediate constant argument in a given range */
 #define __constrange(a, b) const
@@ -339,6 +343,8 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 /* SSE macros */
 #define _MM_GET_FLUSH_ZERO_MODE _sse2neon_mm_get_flush_zero_mode
 #define _MM_SET_FLUSH_ZERO_MODE _sse2neon_mm_set_flush_zero_mode
+#define _MM_GET_DENORMALS_ZERO_MODE _sse2neon_mm_get_denormals_zero_mode
+#define _MM_SET_DENORMALS_ZERO_MODE _sse2neon_mm_set_denormals_zero_mode
 
 // Function declaration
 // SSE
@@ -2359,6 +2365,8 @@ FORCE_INLINE __m64 _mm_sad_pu8(__m64 a, __m64 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_MM_SET_FLUSH_ZERO_MODE
 FORCE_INLINE void _sse2neon_mm_set_flush_zero_mode(unsigned int flag)
 {
+    // AArch32 Advanced SIMD arithmetic always uses the Flush-to-zero setting,
+    // regardless of the value of the FZ bit.
     union {
         fpcr_bitfield field;
 #if defined(__aarch64__)
@@ -8505,6 +8513,26 @@ FORCE_INLINE __m128i _mm_clmulepi64_si128(__m128i _a, __m128i _b, const int imm)
     }
 }
 
+FORCE_INLINE unsigned int _sse2neon_mm_get_denormals_zero_mode()
+{
+    union {
+        fpcr_bitfield field;
+#if defined(__aarch64__)
+        uint64_t value;
+#else
+        uint32_t value;
+#endif
+    } r;
+
+#if defined(__aarch64__)
+    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+#else
+    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+#endif
+
+    return r.field.bit24 ? _MM_DENORMALS_ZERO_ON : _MM_DENORMALS_ZERO_OFF;
+}
+
 // Count the number of bits set to 1 in unsigned 32-bit integer a, and
 // return that count in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_popcnt_u32
@@ -8557,6 +8585,34 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
     count64x1_val = vpaddl_u32(count32x2_val);
     vst1_u64(&count, count64x1_val);
     return count;
+#endif
+}
+
+FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
+{
+    // AArch32 Advanced SIMD arithmetic always uses the Flush-to-zero setting,
+    // regardless of the value of the FZ bit.
+    union {
+        fpcr_bitfield field;
+#if defined(__aarch64__)
+        uint64_t value;
+#else
+        uint32_t value;
+#endif
+    } r;
+
+#if defined(__aarch64__)
+    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+#else
+    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+#endif
+
+    r.field.bit24 = (flag & _MM_DENORMALS_ZERO_MASK) == _MM_DENORMALS_ZERO_ON;
+
+#if defined(__aarch64__)
+    asm volatile("msr FPCR, %0" ::"r"(r)); /* write */
+#else
+    asm volatile("vmsr FPSCR, %0" ::"r"(r));        /* write */
 #endif
 }
 

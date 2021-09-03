@@ -9066,6 +9066,23 @@ result_t test_mm_clmulepi64_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_SUCCESS;
 }
 
+result_t test_mm_get_denormals_zero_mode(const SSE2NEONTestImpl &impl,
+                                         uint32_t iter)
+{
+    int res_denormals_zero_on, res_denormals_zero_off;
+
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    res_denormals_zero_on =
+        _MM_GET_DENORMALS_ZERO_MODE() == _MM_DENORMALS_ZERO_ON;
+
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
+    res_denormals_zero_off =
+        _MM_GET_DENORMALS_ZERO_MODE() == _MM_DENORMALS_ZERO_OFF;
+
+    return (res_denormals_zero_on && res_denormals_zero_off) ? TEST_SUCCESS
+                                                             : TEST_FAIL;
+}
+
 result_t test_mm_popcnt_u32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const uint64_t *a = (const uint64_t *) impl.mTestIntPointer1;
@@ -9077,6 +9094,37 @@ result_t test_mm_popcnt_u64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const uint64_t *a = (const uint64_t *) impl.mTestIntPointer1;
     ASSERT_RETURN(__builtin_popcountll(a[0]) == _mm_popcnt_u64(a[0]));
+    return TEST_SUCCESS;
+}
+
+result_t test_mm_set_denormals_zero_mode(const SSE2NEONTestImpl &impl,
+                                         uint32_t iter)
+{
+    result_t res_set_denormals_zero_on, res_set_denormals_zero_off;
+    float factor = 2;
+    float denormal = FLT_MIN / factor;
+    float denormals[4] = {denormal, denormal, denormal, denormal};
+    float factors[4] = {factor, factor, factor, factor};
+    __m128 ret;
+
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    ret = _mm_mul_ps(load_m128(denormals), load_m128(factors));
+    res_set_denormals_zero_on = validateFloat(ret, 0, 0, 0, 0);
+
+    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
+    ret = _mm_mul_ps(load_m128(denormals), load_m128(factors));
+#if defined(__arm__)
+    // AArch32 Advanced SIMD arithmetic always uses the Flush-to-zero setting,
+    // regardless of the value of the FZ bit.
+    res_set_denormals_zero_off = validateFloat(ret, 0, 0, 0, 0);
+#else
+    res_set_denormals_zero_off =
+        validateFloat(ret, FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN);
+#endif
+
+    if (res_set_denormals_zero_on == TEST_FAIL ||
+        res_set_denormals_zero_off == TEST_FAIL)
+        return TEST_FAIL;
     return TEST_SUCCESS;
 }
 
