@@ -297,7 +297,7 @@ typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 #endif
 
 // A struct is defined in this header file called 'SIMDVec' which can be used
-// by applications which attempt to access the contents of an _m128 struct
+// by applications which attempt to access the contents of an __m128 struct
 // directly.  It is important to note that accessing the __m128 struct directly
 // is bad coding practice by Microsoft: @see:
 // https://docs.microsoft.com/en-us/cpp/cpp/m128
