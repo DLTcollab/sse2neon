@@ -6879,8 +6879,7 @@ result_t test_mm_alignr_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 #else
     const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
     const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
-    // FIXME: The different immediate value should be tested in the future
-    const int shift = 18;
+    unsigned int shift = (iter % 5) << 3;
     uint8_t d[32];
 
     if (shift >= 32) {
@@ -6899,7 +6898,24 @@ result_t test_mm_alignr_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     __m128i a = load_m128i(_a);
     __m128i b = load_m128i(_b);
-    __m128i ret = _mm_alignr_epi8(a, b, shift);
+    __m128i ret;
+    switch (iter % 5) {
+    case 0:
+        ret = _mm_alignr_epi8(a, b, 0);
+        break;
+    case 1:
+        ret = _mm_alignr_epi8(a, b, 8);
+        break;
+    case 2:
+        ret = _mm_alignr_epi8(a, b, 16);
+        break;
+    case 3:
+        ret = _mm_alignr_epi8(a, b, 24);
+        break;
+    case 4:
+        ret = _mm_alignr_epi8(a, b, 32);
+        break;
+    }
 
     return validateUInt8(ret, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7],
                          d[8], d[9], d[10], d[11], d[12], d[13], d[14], d[15]);

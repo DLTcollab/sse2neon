@@ -6545,29 +6545,23 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 //   dst[127:0] := tmp[127:0]
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_alignr_epi8
-#define _mm_alignr_epi8(a, b, imm)                                            \
-    __extension__({                                                           \
-        __m128i ret;                                                          \
-        if (_sse2neon_unlikely((imm) >= 32)) {                                \
-            ret = _mm_setzero_si128();                                        \
-        } else {                                                              \
-            uint8x16_t tmp_low, tmp_high;                                     \
-            if (imm >= 16) {                                                  \
-                const int idx = imm - 16;                                     \
-                tmp_low = vreinterpretq_u8_m128i(a);                          \
-                tmp_high = vdupq_n_u8(0);                                     \
-                ret =                                                         \
-                    vreinterpretq_m128i_u8(vextq_u8(tmp_low, tmp_high, idx)); \
-            } else {                                                          \
-                const int idx = imm;                                          \
-                tmp_low = vreinterpretq_u8_m128i(b);                          \
-                tmp_high = vreinterpretq_u8_m128i(a);                         \
-                ret =                                                         \
-                    vreinterpretq_m128i_u8(vextq_u8(tmp_low, tmp_high, idx)); \
-            }                                                                 \
-        }                                                                     \
-        ret;                                                                  \
-    })
+FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
+{
+    if (_sse2neon_unlikely((unsigned int) imm >= 32))
+        return _mm_setzero_si128();
+    int idx;
+    uint8x16_t tmp[2];
+    if (imm >= 16) {
+        idx = imm - 16;
+        tmp[0] = vreinterpretq_u8_m128i(a);
+        tmp[1] = vdupq_n_u8(0);
+    } else {
+        idx = imm;
+        tmp[0] = vreinterpretq_u8_m128i(b);
+        tmp[1] = vreinterpretq_u8_m128i(a);
+    }
+    return vreinterpretq_m128i_u8(vld1q_u8(((uint8_t const *) tmp) + idx));
+}
 
 // Concatenate 8-byte blocks in a and b into a 16-byte temporary result, shift
 // the result right by imm8 bytes, and store the low 8 bytes in dst.
