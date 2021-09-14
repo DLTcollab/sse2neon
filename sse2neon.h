@@ -1249,16 +1249,9 @@ FORCE_INLINE __m128 _mm_cmpunord_ss(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/93yx2h2b(v=vs.100).aspx
 FORCE_INLINE int _mm_comieq_ss(__m128 a, __m128 b)
 {
-    // return vgetq_lane_u32(vceqq_f32(vreinterpretq_f32_m128(a),
-    // vreinterpretq_f32_m128(b)), 0);
-    uint32x4_t a_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
-    uint32x4_t b_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_eq_b =
         vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_eq_b), 0) & 0x1;
+    return vgetq_lane_u32(a_eq_b, 0) & 0x1;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -1266,16 +1259,9 @@ FORCE_INLINE int _mm_comieq_ss(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/8t80des6(v=vs.100).aspx
 FORCE_INLINE int _mm_comige_ss(__m128 a, __m128 b)
 {
-    // return vgetq_lane_u32(vcgeq_f32(vreinterpretq_f32_m128(a),
-    // vreinterpretq_f32_m128(b)), 0);
-    uint32x4_t a_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
-    uint32x4_t b_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_ge_b =
         vcgeq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_ge_b), 0) & 0x1;
+    return vgetq_lane_u32(a_ge_b, 0) & 0x1;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -1283,16 +1269,9 @@ FORCE_INLINE int _mm_comige_ss(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/b0738e0t(v=vs.100).aspx
 FORCE_INLINE int _mm_comigt_ss(__m128 a, __m128 b)
 {
-    // return vgetq_lane_u32(vcgtq_f32(vreinterpretq_f32_m128(a),
-    // vreinterpretq_f32_m128(b)), 0);
-    uint32x4_t a_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
-    uint32x4_t b_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_gt_b =
         vcgtq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_gt_b), 0) & 0x1;
+    return vgetq_lane_u32(a_gt_b, 0) & 0x1;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -1300,16 +1279,9 @@ FORCE_INLINE int _mm_comigt_ss(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/1w4t7c57(v=vs.90).aspx
 FORCE_INLINE int _mm_comile_ss(__m128 a, __m128 b)
 {
-    // return vgetq_lane_u32(vcleq_f32(vreinterpretq_f32_m128(a),
-    // vreinterpretq_f32_m128(b)), 0);
-    uint32x4_t a_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
-    uint32x4_t b_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_le_b =
         vcleq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_le_b), 0) & 0x1;
+    return vgetq_lane_u32(a_le_b, 0) & 0x1;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -1319,14 +1291,9 @@ FORCE_INLINE int _mm_comile_ss(__m128 a, __m128 b)
 // NAN the docs say you will get a one, but in fact, it will return a zero!!
 FORCE_INLINE int _mm_comilt_ss(__m128 a, __m128 b)
 {
-    uint32x4_t a_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
-    uint32x4_t b_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
     uint32x4_t a_lt_b =
         vcltq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b));
-    return vgetq_lane_u32(vandq_u32(a_and_b_not_nan, a_lt_b), 0) & 0x1;
+    return vgetq_lane_u32(a_lt_b, 0) & 0x1;
 }
 
 // Compares the lower single-precision floating point scalar values of a and b
@@ -1334,16 +1301,7 @@ FORCE_INLINE int _mm_comilt_ss(__m128 a, __m128 b)
 // https://msdn.microsoft.com/en-us/library/bafh5e0a(v=vs.90).aspx
 FORCE_INLINE int _mm_comineq_ss(__m128 a, __m128 b)
 {
-    // return !vgetq_lane_u32(vceqq_f32(vreinterpretq_f32_m128(a),
-    // vreinterpretq_f32_m128(b)), 0);
-    uint32x4_t a_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a));
-    uint32x4_t b_not_nan =
-        vceqq_f32(vreinterpretq_f32_m128(b), vreinterpretq_f32_m128(b));
-    uint32x4_t a_or_b_nan = vmvnq_u32(vandq_u32(a_not_nan, b_not_nan));
-    uint32x4_t a_neq_b = vmvnq_u32(
-        vceqq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
-    return vgetq_lane_u32(vorrq_u32(a_or_b_nan, a_neq_b), 0) & 0x1;
+    return !_mm_comieq_ss(a, b);
 }
 
 // Convert packed signed 32-bit integers in b to packed single-precision
@@ -3769,7 +3727,7 @@ FORCE_INLINE int _mm_comieq_sd(__m128d a, __m128d b)
         vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
     uint64x2_t and_results = vandq_u64(vreinterpretq_u64_u32(a_and_b_not_nan),
                                        vreinterpretq_u64_u32(a_eq_b));
-    return !!vgetq_lane_u64(and_results, 0);
+    return vgetq_lane_u64(and_results, 0) & 0x1;
 #endif
 }
 
@@ -3778,14 +3736,7 @@ FORCE_INLINE int _mm_comieq_sd(__m128d a, __m128d b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_comineq_sd
 FORCE_INLINE int _mm_comineq_sd(__m128d a, __m128d b)
 {
-#if defined(__aarch64__)
-    return !vgetq_lane_u64(vceqq_f64(a, b), 0);
-#else
-    // FIXME we should handle NaN condition here
-    uint32x4_t a_eq_b =
-        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
-    return !vgetq_lane_u64(vreinterpretq_u64_u32(a_eq_b), 0);
-#endif
+    return !_mm_comieq_sd(a, b);
 }
 
 // Convert packed signed 32-bit integers in a to packed double-precision
