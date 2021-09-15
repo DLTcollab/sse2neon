@@ -72,13 +72,30 @@ public:
             if (test == it_mm_cmpord_ps || test == it_mm_comilt_ss ||
                 test == it_mm_comile_ss || test == it_mm_comige_ss ||
                 test == it_mm_comieq_ss || test == it_mm_comineq_ss ||
-                test == it_mm_comigt_ss) {  // if testing for NAN's make sure we
-                                            // have some nans
-                // One out of four times
-                // Make sure a couple of values have NANs for testing purposes
+                test == it_mm_comigt_ss) {
+                // Make sure the NaN values are included in the testing
+                // one out of four times.
                 if ((rand() & 3) == 0) {
                     uint32_t r1 = rand() & 3;
                     uint32_t r2 = rand() & 3;
+                    mTestFloatPointer1[r1] = getNAN();
+                    mTestFloatPointer2[r2] = getNAN();
+                }
+            }
+
+            if (test == it_mm_cmpord_pd || test == it_mm_cmpord_sd ||
+                test == it_mm_cmpunord_pd || test == it_mm_cmpunord_sd ||
+                test == it_mm_comieq_sd || test == it_mm_ucomieq_sd ||
+                test == it_mm_comige_sd || test == it_mm_ucomige_sd ||
+                test == it_mm_comigt_sd || test == it_mm_ucomigt_sd ||
+                test == it_mm_comile_sd || test == it_mm_ucomile_sd ||
+                test == it_mm_comilt_sd || test == it_mm_ucomilt_sd ||
+                test == it_mm_comineq_sd || test == it_mm_ucomineq_sd) {
+                // Make sure the NaN values are included in the testing
+                // one out of four times.
+                if ((rand() & 3) == 0) {
+                    uint32_t r1 = ((rand() & 1) << 1) + 1;
+                    uint32_t r2 = ((rand() & 1) << 1) + 1;
                     mTestFloatPointer1[r1] = getNAN();
                     mTestFloatPointer2[r2] = getNAN();
                 }
@@ -1181,20 +1198,24 @@ result_t test_mm_cmpunord_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_comieq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comieq_ss correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
 
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
 
-    if (isnan(_a[0]) || isnan(_b[0]))
-        // Test disabled: GCC and Clang on x86_64 return different values.
-        return TEST_SUCCESS;
-
     int32_t result = comieq_ss(_a[0], _b[0]);
     int32_t ret = _mm_comieq_ss(a, b);
 
     return result == ret ? TEST_SUCCESS : TEST_FAIL;
+#endif
 }
 
 result_t test_mm_comige_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -1225,54 +1246,66 @@ result_t test_mm_comigt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_comile_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comile_ss correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
-
-    if (isnan(_a[0]) || isnan(_b[0]))
-        // Test disabled: GCC and Clang on x86_64 return different values.
-        return TEST_SUCCESS;
 
     int32_t result = comile_ss(_a[0], _b[0]);
     int32_t ret = _mm_comile_ss(a, b);
 
     return result == ret ? TEST_SUCCESS : TEST_FAIL;
+#endif
 }
 
 result_t test_mm_comilt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comilt_ss correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
-
-    if (isnan(_a[0]) || isnan(_b[0]))
-        // Test disabled: GCC and Clang on x86_64 return different values.
-        return TEST_SUCCESS;
 
     int32_t result = comilt_ss(_a[0], _b[0]);
 
     int32_t ret = _mm_comilt_ss(a, b);
 
     return result == ret ? TEST_SUCCESS : TEST_FAIL;
+#endif
 }
 
 result_t test_mm_comineq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comineq_ss correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
 
-    if (isnan(_a[0]) || isnan(_b[0]))
-        // Test disabled: GCC and Clang on x86_64 return different values.
-        return TEST_SUCCESS;
-
     int32_t result = comineq_ss(_a[0], _b[0]);
     int32_t ret = _mm_comineq_ss(a, b);
 
     return result == ret ? TEST_SUCCESS : TEST_FAIL;
+#endif
 }
 
 result_t test_mm_cvt_pi2ps(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -3950,6 +3983,13 @@ result_t test_mm_cmpunord_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_comieq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comieq_sd correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
     int32_t _c = (_a[0] == _b[0]) ? 1 : 0;
@@ -3960,6 +4000,7 @@ result_t test_mm_comieq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     ASSERT_RETURN(c == _c);
     return TEST_SUCCESS;
+#endif
 }
 
 result_t test_mm_comige_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -3992,6 +4033,13 @@ result_t test_mm_comigt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_comile_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comile_sd correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
     int32_t _c = (_a[0] <= _b[0]) ? 1 : 0;
@@ -4002,10 +4050,18 @@ result_t test_mm_comile_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     ASSERT_RETURN(c == _c);
     return TEST_SUCCESS;
+#endif
 }
 
 result_t test_mm_comilt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comilt_sd correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
     int32_t _c = (_a[0] < _b[0]) ? 1 : 0;
@@ -4016,10 +4072,18 @@ result_t test_mm_comilt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     ASSERT_RETURN(c == _c);
     return TEST_SUCCESS;
+#endif
 }
 
 result_t test_mm_comineq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // FIXME:
+    // The GCC does not implement _mm_comineq_sd correctly.
+    // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
+    // information.
+#if defined(__GNUC__) && !defined(__clang__)
+    return TEST_UNIMPL;
+#else
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
     int32_t _c = (_a[0] != _b[0]) ? 1 : 0;
@@ -4030,6 +4094,7 @@ result_t test_mm_comineq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     ASSERT_RETURN(c == _c);
     return TEST_SUCCESS;
+#endif
 }
 
 result_t test_mm_cvtepi32_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
