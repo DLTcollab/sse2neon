@@ -316,8 +316,8 @@ float compord(float a, float b)
 {
     float ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     ret = (!isNANA && !isNANB) ? getNAN() : 0.0f;
     return ret;
 }
@@ -326,8 +326,8 @@ double compord(double a, double b)
 {
     double ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     ret = (!isNANA && !isNANB) ? getNAN() : 0.0f;
     return ret;
 }
@@ -336,8 +336,8 @@ int32_t comilt_ss(float a, float b)
 {
     int32_t ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     if (!isNANA && !isNANB) {
         ret = a < b ? 1 : 0;
     } else {
@@ -352,8 +352,8 @@ int32_t comigt_ss(float a, float b)
 {
     int32_t ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     if (!isNANA && !isNANB) {
         ret = a > b ? 1 : 0;
     } else {
@@ -368,8 +368,8 @@ int32_t comile_ss(float a, float b)
 {
     int32_t ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     if (!isNANA && !isNANB) {
         ret = a <= b ? 1 : 0;
     } else {
@@ -384,8 +384,8 @@ int32_t comige_ss(float a, float b)
 {
     int32_t ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     if (!isNANA && !isNANB) {
         ret = a >= b ? 1 : 0;
     } else {
@@ -400,8 +400,8 @@ int32_t comieq_ss(float a, float b)
 {
     int32_t ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     if (!isNANA && !isNANB) {
         ret = a == b ? 1 : 0;
     } else {
@@ -416,8 +416,8 @@ int32_t comineq_ss(float a, float b)
 {
     int32_t ret;
 
-    bool isNANA = isNAN(a);
-    bool isNANB = isNAN(b);
+    bool isNANA = isnan(a);
+    bool isNANB = isnan(b);
     if (!isNANA && !isNANB) {
         ret = a != b ? 1 : 0;
     } else {
@@ -1153,7 +1153,7 @@ result_t test_mm_cmpunord_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     float result[4];
 
     for (uint32_t i = 0; i < 4; i++) {
-        result[i] = (isNAN(_a[i]) || isNAN(_b[i])) ? getNAN() : 0.0f;
+        result[i] = (isnan(_a[i]) || isnan(_b[i])) ? getNAN() : 0.0f;
     }
 
     __m128 ret = _mm_cmpunord_ps(a, b);
@@ -1169,7 +1169,7 @@ result_t test_mm_cmpunord_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 b = load_m128(_b);
 
     float result[4];
-    result[0] = (isNAN(_a[0]) || isNAN(_b[0])) ? getNAN() : 0.0f;
+    result[0] = (isnan(_a[0]) || isnan(_b[0])) ? getNAN() : 0.0f;
     result[1] = _a[1];
     result[2] = _a[2];
     result[3] = _a[3];
@@ -1187,7 +1187,7 @@ result_t test_mm_comieq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
 
-    if (isNAN(_a[0]) || isNAN(_b[0]))
+    if (isnan(_a[0]) || isnan(_b[0]))
         // Test disabled: GCC and Clang on x86_64 return different values.
         return TEST_SUCCESS;
 
@@ -1230,7 +1230,7 @@ result_t test_mm_comile_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
 
-    if (isNAN(_a[0]) || isNAN(_b[0]))
+    if (isnan(_a[0]) || isnan(_b[0]))
         // Test disabled: GCC and Clang on x86_64 return different values.
         return TEST_SUCCESS;
 
@@ -1247,7 +1247,7 @@ result_t test_mm_comilt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
 
-    if (isNAN(_a[0]) || isNAN(_b[0]))
+    if (isnan(_a[0]) || isnan(_b[0]))
         // Test disabled: GCC and Clang on x86_64 return different values.
         return TEST_SUCCESS;
 
@@ -1265,7 +1265,7 @@ result_t test_mm_comineq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
 
-    if (isNAN(_a[0]) || isNAN(_b[0]))
+    if (isnan(_a[0]) || isnan(_b[0]))
         // Test disabled: GCC and Clang on x86_64 return different values.
         return TEST_SUCCESS;
 
