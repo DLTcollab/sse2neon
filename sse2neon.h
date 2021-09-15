@@ -52,7 +52,7 @@
 
 /* Enable precise implementation of math operations
  * This would slow down the computation a bit, but gives consistent result with
- * x86 SSE2. (e.g. would solve a hole or NaN pixel in the rendering result)
+ * x86 SSE. (e.g. would solve a hole or NaN pixel in the rendering result)
  */
 /* _mm_min_ps and _mm_max_ps */
 #ifndef SSE2NEON_PRECISE_MINMAX
@@ -65,6 +65,10 @@
 /* _mm_sqrt_ps and _mm_rsqrt_ps */
 #ifndef SSE2NEON_PRECISE_SQRT
 #define SSE2NEON_PRECISE_SQRT (0)
+#endif
+/* _mm_dp_pd */
+#ifndef SSE2NEON_PRECISE_DP
+#define SSE2NEON_PRECISE_DP (0)
 #endif
 
 /* compiler specific definitions */
@@ -7472,13 +7476,30 @@ FORCE_INLINE __m128d _mm_dp_pd(__m128d a, __m128d b, const int imm)
     // Generate mask value from constant immediate bit value
     const int64_t bit0Mask = imm & 0x01 ? UINT64_MAX : 0;
     const int64_t bit1Mask = imm & 0x02 ? UINT64_MAX : 0;
+#if !SSE2NEON_PRECISE_DP
     const int64_t bit4Mask = imm & 0x10 ? UINT64_MAX : 0;
     const int64_t bit5Mask = imm & 0x20 ? UINT64_MAX : 0;
+#endif
     // Conditional multiplication
+#if !SSE2NEON_PRECISE_DP
     __m128d mul = _mm_mul_pd(a, b);
     const __m128d mulMask =
         _mm_castsi128_pd(_mm_set_epi64x(bit5Mask, bit4Mask));
     __m128d tmp = _mm_and_pd(mul, mulMask);
+#else
+#if defined(__aarch64__)
+    double d0 = (imm & 0x10) ? vgetq_lane_f64(vreinterpretq_f64_m128d(a), 0) *
+                                   vgetq_lane_f64(vreinterpretq_f64_m128d(b), 0)
+                             : 0;
+    double d1 = (imm & 0x20) ? vgetq_lane_f64(vreinterpretq_f64_m128d(a), 1) *
+                                   vgetq_lane_f64(vreinterpretq_f64_m128d(b), 1)
+                             : 0;
+#else
+    double d0 = (imm & 0x10) ? ((double *) &a)[0] * ((double *) &b)[0] : 0;
+    double d1 = (imm & 0x20) ? ((double *) &a)[1] * ((double *) &b)[1] : 0;
+#endif
+    __m128d tmp = _mm_set_pd(d1, d0);
+#endif
     // Sum the products
 #if defined(__aarch64__)
     double sum = vpaddd_f64(vreinterpretq_f64_m128d(tmp));
