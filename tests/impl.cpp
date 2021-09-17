@@ -69,10 +69,24 @@ public:
                 mTestFloatPointer1[3] = mTestFloatPointer2[3];
             }
 
-            if (test == it_mm_cmpord_ps || test == it_mm_comilt_ss ||
-                test == it_mm_comile_ss || test == it_mm_comige_ss ||
-                test == it_mm_comieq_ss || test == it_mm_comineq_ss ||
-                test == it_mm_comigt_ss) {
+            if (test == it_mm_cmpord_ps || test == it_mm_cmpord_ss ||
+                test == it_mm_cmpunord_ps || test == it_mm_cmpunord_ss ||
+                test == it_mm_cmpeq_ps || test == it_mm_cmpeq_ss ||
+                test == it_mm_cmpge_ps || test == it_mm_cmpge_ss ||
+                test == it_mm_cmpgt_ps || test == it_mm_cmpgt_ss ||
+                test == it_mm_cmple_ps || test == it_mm_cmple_ss ||
+                test == it_mm_cmplt_ps || test == it_mm_cmplt_ss ||
+                test == it_mm_cmpneq_ps || test == it_mm_cmpneq_ss ||
+                test == it_mm_cmpnge_ps || test == it_mm_cmpnge_ss ||
+                test == it_mm_cmpngt_ps || test == it_mm_cmpngt_ss ||
+                test == it_mm_cmpnle_ps || test == it_mm_cmpnle_ss ||
+                test == it_mm_cmpnlt_ps || test == it_mm_cmpnlt_ss ||
+                test == it_mm_comieq_ss || test == it_mm_ucomieq_ss ||
+                test == it_mm_comige_ss || test == it_mm_ucomige_ss ||
+                test == it_mm_comigt_ss || test == it_mm_ucomigt_ss ||
+                test == it_mm_comile_ss || test == it_mm_ucomile_ss ||
+                test == it_mm_comilt_ss || test == it_mm_ucomilt_ss ||
+                test == it_mm_comineq_ss || test == it_mm_ucomineq_ss) {
                 // Make sure the NaN values are included in the testing
                 // one out of four times.
                 if ((rand() & 3) == 0) {
@@ -85,6 +99,16 @@ public:
 
             if (test == it_mm_cmpord_pd || test == it_mm_cmpord_sd ||
                 test == it_mm_cmpunord_pd || test == it_mm_cmpunord_sd ||
+                test == it_mm_cmpeq_pd || test == it_mm_cmpeq_sd ||
+                test == it_mm_cmpge_pd || test == it_mm_cmpge_sd ||
+                test == it_mm_cmpgt_pd || test == it_mm_cmpgt_sd ||
+                test == it_mm_cmple_pd || test == it_mm_cmple_sd ||
+                test == it_mm_cmplt_pd || test == it_mm_cmplt_sd ||
+                test == it_mm_cmpneq_pd || test == it_mm_cmpneq_sd ||
+                test == it_mm_cmpnge_pd || test == it_mm_cmpnge_sd ||
+                test == it_mm_cmpngt_pd || test == it_mm_cmpngt_sd ||
+                test == it_mm_cmpnle_pd || test == it_mm_cmpnle_sd ||
+                test == it_mm_cmpnlt_pd || test == it_mm_cmpnlt_sd ||
                 test == it_mm_comieq_sd || test == it_mm_ucomieq_sd ||
                 test == it_mm_comige_sd || test == it_mm_ucomige_sd ||
                 test == it_mm_comigt_sd || test == it_mm_ucomigt_sd ||
@@ -94,10 +118,14 @@ public:
                 // Make sure the NaN values are included in the testing
                 // one out of four times.
                 if ((rand() & 3) == 0) {
+                    // FIXME:
+                    // The argument "0xFFFFFFFFFFFF" is a tricky workaround to
+                    // set the NaN value for doubles. The code is not intuitive
+                    // and should be fixed in the future.
                     uint32_t r1 = ((rand() & 1) << 1) + 1;
                     uint32_t r2 = ((rand() & 1) << 1) + 1;
-                    mTestFloatPointer1[r1] = nanf("");
-                    mTestFloatPointer2[r2] = nanf("");
+                    mTestFloatPointer1[r1] = nanf("0xFFFFFFFFFFFF");
+                    mTestFloatPointer2[r2] = nanf("0xFFFFFFFFFFFF");
                 }
             }
 
@@ -3870,42 +3898,114 @@ result_t test_mm_cmpneq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_cmpnge_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmplt_pd(impl, iter);
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = !(_a[1] >= _b[1]) ? ~UINT64_C(0) : 0;
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpnge_pd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpnge_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmplt_sd(impl, iter);
+    double *_a = (double *) impl.mTestFloatPointer1;
+    double *_b = (double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = ((uint64_t *) _a)[1];
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpnge_sd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpngt_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmple_pd(impl, iter);
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = !(_a[1] > _b[1]) ? ~UINT64_C(0) : 0;
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpngt_pd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpngt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmple_sd(impl, iter);
+    double *_a = (double *) impl.mTestFloatPointer1;
+    double *_b = (double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = ((uint64_t *) _a)[1];
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpngt_sd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpnle_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmpgt_pd(impl, iter);
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = !(_a[1] <= _b[1]) ? ~UINT64_C(0) : 0;
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpnle_pd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpnle_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmpgt_sd(impl, iter);
+    double *_a = (double *) impl.mTestFloatPointer1;
+    double *_b = (double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = ((uint64_t *) _a)[1];
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpnle_sd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpnlt_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmpge_pd(impl, iter);
+    const double *_a = (const double *) impl.mTestFloatPointer1;
+    const double *_b = (const double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] < _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = !(_a[1] < _b[1]) ? ~UINT64_C(0) : 0;
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpnlt_pd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpnlt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_cmpge_sd(impl, iter);
+    double *_a = (double *) impl.mTestFloatPointer1;
+    double *_b = (double *) impl.mTestFloatPointer2;
+    uint64_t d0 = !(_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    uint64_t d1 = ((uint64_t *) _a)[1];
+
+    __m128d a = load_m128d(_a);
+    __m128d b = load_m128d(_b);
+    __m128d c = _mm_cmpnlt_sd(a, b);
+
+    return validateDouble(c, *(double *) &d0, *(double *) &d1);
 }
 
 result_t test_mm_cmpord_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
