@@ -78,8 +78,8 @@ public:
                 if ((rand() & 3) == 0) {
                     uint32_t r1 = rand() & 3;
                     uint32_t r2 = rand() & 3;
-                    mTestFloatPointer1[r1] = getNAN();
-                    mTestFloatPointer2[r2] = getNAN();
+                    mTestFloatPointer1[r1] = nanf("");
+                    mTestFloatPointer2[r2] = nanf("");
                 }
             }
 
@@ -96,8 +96,8 @@ public:
                 if ((rand() & 3) == 0) {
                     uint32_t r1 = ((rand() & 1) << 1) + 1;
                     uint32_t r2 = ((rand() & 1) << 1) + 1;
-                    mTestFloatPointer1[r1] = getNAN();
-                    mTestFloatPointer2[r2] = getNAN();
+                    mTestFloatPointer1[r1] = nanf("");
+                    mTestFloatPointer2[r2] = nanf("");
                 }
             }
 
@@ -153,16 +153,7 @@ public:
                     }
                 }
             }
-#if 0
-            {
-                mTestFloatPointer1[0] = getNAN();
-                mTestFloatPointer2[0] = getNAN();
-                result_t ok = test_mm_comilt_ss(mTestFloatPointer1, mTestFloatPointer1);
-                if (ok == TEST_FAIL) {
-                    printf("Debug me");
-                }
-            }
-#endif
+
             ret = runSingleTest(test, i);
             if (ret == TEST_FAIL)  // the test failed...
             {
