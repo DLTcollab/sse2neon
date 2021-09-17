@@ -50,12 +50,6 @@ extern int64_t NaN64;
 #define ALL_BIT_1_32 (*(float *) &NaN)
 #define ALL_BIT_1_64 (*(double *) &NaN64)
 
-inline float getNAN(void)
-{
-    const float *fn = (const float *) &NaN;
-    return *fn;
-}
-
 template <typename T>
 result_t validate128(T a, T b)
 {
