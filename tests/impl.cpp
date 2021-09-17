@@ -335,7 +335,7 @@ float compord(float a, float b)
 
     bool isNANA = isnan(a);
     bool isNANB = isnan(b);
-    ret = (!isNANA && !isNANB) ? getNAN() : 0.0f;
+    ret = (!isNANA && !isNANB) ? ALL_BIT_1_32 : 0.0f;
     return ret;
 }
 
@@ -345,7 +345,7 @@ double compord(double a, double b)
 
     bool isNANA = isnan(a);
     bool isNANB = isnan(b);
-    ret = (!isNANA && !isNANB) ? getNAN() : 0.0f;
+    ret = (!isNANA && !isNANB) ? ALL_BIT_1_64 : 0.0f;
     return ret;
 }
 
@@ -1170,7 +1170,7 @@ result_t test_mm_cmpunord_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     float result[4];
 
     for (uint32_t i = 0; i < 4; i++) {
-        result[i] = (isnan(_a[i]) || isnan(_b[i])) ? getNAN() : 0.0f;
+        result[i] = (isnan(_a[i]) || isnan(_b[i])) ? ALL_BIT_1_32 : 0.0f;
     }
 
     __m128 ret = _mm_cmpunord_ps(a, b);
@@ -1186,7 +1186,7 @@ result_t test_mm_cmpunord_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 b = load_m128(_b);
 
     float result[4];
-    result[0] = (isnan(_a[0]) || isnan(_b[0])) ? getNAN() : 0.0f;
+    result[0] = (isnan(_a[0]) || isnan(_b[0])) ? ALL_BIT_1_32 : 0.0f;
     result[1] = _a[1];
     result[2] = _a[2];
     result[3] = _a[3];
