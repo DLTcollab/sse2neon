@@ -1152,56 +1152,60 @@ FORCE_INLINE __m128 _mm_cmpneq_ss(__m128 a, __m128 b)
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/wsexys62(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpnge_ps(__m128 a, __m128 b)
 {
-    return _mm_cmplt_ps(a, b);
+    return vreinterpretq_m128_u32(vmvnq_u32(
+        vcgeq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))));
 }
 
 // Compares for not greater than or equal.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/fk2y80s8(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpnge_ss(__m128 a, __m128 b)
 {
-    return _mm_cmplt_ss(a, b);
+    return _mm_move_ss(a, _mm_cmpnge_ps(a, b));
 }
 
 // Compares for not greater than.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/d0xh7w0s(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpngt_ps(__m128 a, __m128 b)
 {
-    return _mm_cmple_ps(a, b);
+    return vreinterpretq_m128_u32(vmvnq_u32(
+        vcgtq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))));
 }
 
 // Compares for not greater than.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/z7x9ydwh(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpngt_ss(__m128 a, __m128 b)
 {
-    return _mm_cmple_ss(a, b);
+    return _mm_move_ss(a, _mm_cmpngt_ps(a, b));
 }
 
 // Compares for not less than or equal.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/6a330kxw(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpnle_ps(__m128 a, __m128 b)
 {
-    return _mm_cmpgt_ps(a, b);
+    return vreinterpretq_m128_u32(vmvnq_u32(
+        vcleq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))));
 }
 
 // Compares for not less than or equal.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/z7x9ydwh(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpnle_ss(__m128 a, __m128 b)
 {
-    return _mm_cmpgt_ss(a, b);
+    return _mm_move_ss(a, _mm_cmpnle_ps(a, b));
 }
 
 // Compares for not less than.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/4686bbdw(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpnlt_ps(__m128 a, __m128 b)
 {
-    return _mm_cmpge_ps(a, b);
+    return vreinterpretq_m128_u32(vmvnq_u32(
+        vcltq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b))));
 }
 
 // Compares for not less than.
 // https://docs.microsoft.com/en-us/previous-versions/visualstudio/visual-studio-2010/56b9z2wf(v=vs.100)
 FORCE_INLINE __m128 _mm_cmpnlt_ss(__m128 a, __m128 b)
 {
-    return _mm_cmpge_ss(a, b);
+    return _mm_move_ss(a, _mm_cmpnlt_ps(a, b));
 }
 
 // Compares the four 32-bit floats in a and b to check if any values are NaN.
@@ -3504,46 +3508,134 @@ FORCE_INLINE __m128d _mm_cmpneq_sd(__m128d a, __m128d b)
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for not-greater-than-or-equal, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnge_pd
-#define _mm_cmpnge_pd(a, b) _mm_cmplt_pd(a, b)
+FORCE_INLINE __m128d _mm_cmpnge_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_u64(veorq_u64(
+        vcgeq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)),
+        vdupq_n_u64(UINT64_MAX)));
+#else
+    uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
+    uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
+    uint64_t b0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(b));
+    uint64_t b1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(b));
+    uint64_t d[2];
+    d[0] =
+        !((*(double *) &a0) >= (*(double *) &b0)) ? ~UINT64_C(0) : UINT64_C(0);
+    d[1] =
+        !((*(double *) &a1) >= (*(double *) &b1)) ? ~UINT64_C(0) : UINT64_C(0);
+
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
+#endif
+}
 
 // Compare the lower double-precision (64-bit) floating-point elements in a and
 // b for not-greater-than-or-equal, store the result in the lower element of
 // dst, and copy the upper element from a to the upper element of dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnge_sd
-#define _mm_cmpnge_sd(a, b) _mm_cmplt_sd(a, b)
+FORCE_INLINE __m128d _mm_cmpnge_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_cmpnge_pd(a, b));
+}
 
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for not-greater-than, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_cmpngt_pd
-#define _mm_cmpngt_pd(a, b) _mm_cmple_pd(a, b)
+FORCE_INLINE __m128d _mm_cmpngt_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_u64(veorq_u64(
+        vcgtq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)),
+        vdupq_n_u64(UINT64_MAX)));
+#else
+    uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
+    uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
+    uint64_t b0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(b));
+    uint64_t b1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(b));
+    uint64_t d[2];
+    d[0] =
+        !((*(double *) &a0) > (*(double *) &b0)) ? ~UINT64_C(0) : UINT64_C(0);
+    d[1] =
+        !((*(double *) &a1) > (*(double *) &b1)) ? ~UINT64_C(0) : UINT64_C(0);
+
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
+#endif
+}
 
 // Compare the lower double-precision (64-bit) floating-point elements in a and
 // b for not-greater-than, store the result in the lower element of dst, and
 // copy the upper element from a to the upper element of dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpngt_sd
-#define _mm_cmpngt_sd(a, b) _mm_cmple_sd(a, b)
+FORCE_INLINE __m128d _mm_cmpngt_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_cmpngt_pd(a, b));
+}
 
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for not-less-than-or-equal, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnle_pd
-#define _mm_cmpnle_pd(a, b) _mm_cmpgt_pd(a, b)
+FORCE_INLINE __m128d _mm_cmpnle_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_u64(veorq_u64(
+        vcleq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)),
+        vdupq_n_u64(UINT64_MAX)));
+#else
+    uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
+    uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
+    uint64_t b0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(b));
+    uint64_t b1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(b));
+    uint64_t d[2];
+    d[0] =
+        !((*(double *) &a0) <= (*(double *) &b0)) ? ~UINT64_C(0) : UINT64_C(0);
+    d[1] =
+        !((*(double *) &a1) <= (*(double *) &b1)) ? ~UINT64_C(0) : UINT64_C(0);
+
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
+#endif
+}
 
 // Compare the lower double-precision (64-bit) floating-point elements in a and
 // b for not-less-than-or-equal, store the result in the lower element of dst,
 // and copy the upper element from a to the upper element of dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnle_sd
-#define _mm_cmpnle_sd(a, b) _mm_cmpgt_sd(a, b)
+FORCE_INLINE __m128d _mm_cmpnle_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_cmpnle_pd(a, b));
+}
 
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // for not-less-than, and store the results in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnlt_pd
-#define _mm_cmpnlt_pd(a, b) _mm_cmpge_pd(a, b)
+FORCE_INLINE __m128d _mm_cmpnlt_pd(__m128d a, __m128d b)
+{
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_u64(veorq_u64(
+        vcltq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)),
+        vdupq_n_u64(UINT64_MAX)));
+#else
+    uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
+    uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
+    uint64_t b0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(b));
+    uint64_t b1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(b));
+    uint64_t d[2];
+    d[0] =
+        !((*(double *) &a0) < (*(double *) &b0)) ? ~UINT64_C(0) : UINT64_C(0);
+    d[1] =
+        !((*(double *) &a1) < (*(double *) &b1)) ? ~UINT64_C(0) : UINT64_C(0);
+
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
+#endif
+}
 
 // Compare the lower double-precision (64-bit) floating-point elements in a and
 // b for not-less-than, store the result in the lower element of dst, and copy
 // the upper element from a to the upper element of dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cmpnlt_sd
-#define _mm_cmpnlt_sd(a, b) _mm_cmpge_sd(a, b)
+FORCE_INLINE __m128d _mm_cmpnlt_sd(__m128d a, __m128d b)
+{
+    return _mm_move_sd(a, _mm_cmpnlt_pd(a, b));
+}
 
 // Compare packed double-precision (64-bit) floating-point elements in a and b
 // to see if neither is NaN, and store the results in dst.
