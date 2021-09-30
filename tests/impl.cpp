@@ -348,24 +348,24 @@ result_t do_mm_store_ps(int32_t *p, int32_t x, int32_t y, int32_t z, int32_t w)
     return TEST_SUCCESS;
 }
 
-float compord(float a, float b)
+float cmp_noNaN(float a, float b)
 {
-    float ret;
-
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    ret = (!isNANA && !isNANB) ? ALL_BIT_1_32 : 0.0f;
-    return ret;
+    return (!isnan(a) && !isnan(b)) ? ALL_BIT_1_32 : 0.0f;
 }
 
-double compord(double a, double b)
+double cmp_noNaN(double a, double b)
 {
-    double ret;
+    return (!isnan(a) && !isnan(b)) ? ALL_BIT_1_64 : 0.0f;
+}
 
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    ret = (!isNANA && !isNANB) ? ALL_BIT_1_64 : 0.0f;
-    return ret;
+float cmp_hasNaN(float a, float b)
+{
+    return (isnan(a) || isnan(b)) ? ALL_BIT_1_32 : 0.0f;
+}
+
+double cmp_hasNaN(double a, double b)
+{
+    return (isnan(a) || isnan(b)) ? ALL_BIT_1_64 : 0.0f;
 }
 
 int32_t comilt_ss(float a, float b)
@@ -1153,7 +1153,7 @@ result_t test_mm_cmpord_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     float result[4];
 
     for (uint32_t i = 0; i < 4; i++) {
-        result[i] = compord(_a[i], _b[i]);
+        result[i] = cmp_noNaN(_a[i], _b[i]);
     }
 
     __m128 ret = _mm_cmpord_ps(a, b);
@@ -1169,7 +1169,7 @@ result_t test_mm_cmpord_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 b = load_m128(_b);
 
     float result[4];
-    result[0] = compord(_a[0], _b[0]);
+    result[0] = cmp_noNaN(_a[0], _b[0]);
     result[1] = _a[1];
     result[2] = _a[2];
     result[3] = _a[3];
@@ -1189,7 +1189,7 @@ result_t test_mm_cmpunord_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     float result[4];
 
     for (uint32_t i = 0; i < 4; i++) {
-        result[i] = (isnan(_a[i]) || isnan(_b[i])) ? ALL_BIT_1_32 : 0.0f;
+        result[i] = cmp_hasNaN(_a[i], _b[i]);
     }
 
     __m128 ret = _mm_cmpunord_ps(a, b);
@@ -1205,7 +1205,7 @@ result_t test_mm_cmpunord_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 b = load_m128(_b);
 
     float result[4];
-    result[0] = (isnan(_a[0]) || isnan(_b[0])) ? ALL_BIT_1_32 : 0.0f;
+    result[0] = cmp_hasNaN(_a[0], _b[0]);
     result[1] = _a[1];
     result[2] = _a[2];
     result[3] = _a[3];
@@ -4018,7 +4018,7 @@ result_t test_mm_cmpord_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     double result[2];
 
     for (uint32_t i = 0; i < 2; i++) {
-        result[i] = compord(_a[i], _b[i]);
+        result[i] = cmp_noNaN(_a[i], _b[i]);
     }
 
     __m128d ret = _mm_cmpord_pd(a, b);
@@ -4033,7 +4033,7 @@ result_t test_mm_cmpord_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d a = _mm_load_pd(_a);
     __m128d b = _mm_load_pd(_b);
 
-    double c0 = compord(_a[0], _b[0]);
+    double c0 = cmp_noNaN(_a[0], _b[0]);
     double c1 = _a[1];
 
     __m128d ret = _mm_cmpord_sd(a, b);
@@ -4047,13 +4047,12 @@ result_t test_mm_cmpunord_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d a = _mm_load_pd(_a);
     __m128d b = _mm_load_pd(_b);
 
-    uint64_t result[2];
-    result[0] = !((_a[0] == _a[0]) && (_b[0] == _b[0])) ? UINT64_MAX : 0;
-    result[1] = !((_a[1] == _a[1]) && (_b[1] == _b[1])) ? UINT64_MAX : 0;
+    double result[2];
+    result[0] = cmp_hasNaN(_a[0], _b[0]);
+    result[1] = cmp_hasNaN(_a[1], _b[1]);
 
     __m128d ret = _mm_cmpunord_pd(a, b);
-    return validateDouble(ret, ((double *) &result)[0],
-                          ((double *) &result)[1]);
+    return validateDouble(ret, result[0], result[1]);
 }
 
 result_t test_mm_cmpunord_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -4063,13 +4062,12 @@ result_t test_mm_cmpunord_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d a = _mm_load_pd(_a);
     __m128d b = _mm_load_pd(_b);
 
-    uint64_t result[2];
-    result[0] = !((_a[0] == _a[0]) && (_b[0] == _b[0])) ? UINT64_MAX : 0;
-    result[1] = ((uint64_t *) _a)[1];
+    double result[2];
+    result[0] = cmp_hasNaN(_a[0], _b[0]);
+    result[1] = _a[1];
 
     __m128d ret = _mm_cmpunord_sd(a, b);
-    return validateDouble(ret, ((double *) &result)[0],
-                          ((double *) &result)[1]);
+    return validateDouble(ret, result[0], result[1]);
 }
 
 result_t test_mm_comieq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
