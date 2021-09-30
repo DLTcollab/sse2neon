@@ -54,7 +54,7 @@
  * This would slow down the computation a bit, but gives consistent result with
  * x86 SSE. (e.g. would solve a hole or NaN pixel in the rendering result)
  */
-/* _mm_min_ps and _mm_max_ps */
+/* _mm_min|max_ps|ss|pd|sd */
 #ifndef SSE2NEON_PRECISE_MINMAX
 #define SSE2NEON_PRECISE_MINMAX (0)
 #endif
@@ -1960,7 +1960,7 @@ FORCE_INLINE __m128 _mm_max_ps(__m128 a, __m128 b)
 #if SSE2NEON_PRECISE_MINMAX
     float32x4_t _a = vreinterpretq_f32_m128(a);
     float32x4_t _b = vreinterpretq_f32_m128(b);
-    return vbslq_f32(vcltq_f32(_b, _a), _a, _b);
+    return vreinterpretq_m128_f32(vbslq_f32(vcgtq_f32(_a, _b), _a, _b));
 #else
     return vreinterpretq_m128_f32(
         vmaxq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
@@ -2015,7 +2015,7 @@ FORCE_INLINE __m128 _mm_min_ps(__m128 a, __m128 b)
 #if SSE2NEON_PRECISE_MINMAX
     float32x4_t _a = vreinterpretq_f32_m128(a);
     float32x4_t _b = vreinterpretq_f32_m128(b);
-    return vbslq_f32(vcltq_f32(_a, _b), _a, _b);
+    return vreinterpretq_m128_f32(vbslq_f32(vcltq_f32(_a, _b), _a, _b));
 #else
     return vreinterpretq_m128_f32(
         vminq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
@@ -4570,8 +4570,14 @@ FORCE_INLINE __m128i _mm_max_epu8(__m128i a, __m128i b)
 FORCE_INLINE __m128d _mm_max_pd(__m128d a, __m128d b)
 {
 #if defined(__aarch64__)
+#if SSE2NEON_PRECISE_MINMAX
+    float64x2_t _a = vreinterpretq_f64_m128d(a);
+    float64x2_t _b = vreinterpretq_f64_m128d(b);
+    return vreinterpretq_m128d_f64(vbslq_f64(vcgtq_f64(_a, _b), _a, _b));
+#else
     return vreinterpretq_m128d_f64(
         vmaxq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#endif
 #else
     uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
     uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
@@ -4596,8 +4602,8 @@ FORCE_INLINE __m128d _mm_max_sd(__m128d a, __m128d b)
 #else
     double *da = (double *) &a;
     double *db = (double *) &b;
-    double c[2] = {fmax(da[0], db[0]), da[1]};
-    return vld1q_f32((float32_t *) c);
+    double c[2] = {da[0] > db[0] ? da[0] : db[0], da[1]};
+    return vreinterpretq_m128d_f32(vld1q_f32((float32_t *) c));
 #endif
 }
 
@@ -4625,8 +4631,14 @@ FORCE_INLINE __m128i _mm_min_epu8(__m128i a, __m128i b)
 FORCE_INLINE __m128d _mm_min_pd(__m128d a, __m128d b)
 {
 #if defined(__aarch64__)
+#if SSE2NEON_PRECISE_MINMAX
+    float64x2_t _a = vreinterpretq_f64_m128d(a);
+    float64x2_t _b = vreinterpretq_f64_m128d(b);
+    return vreinterpretq_m128d_f64(vbslq_f64(vcltq_f64(_a, _b), _a, _b));
+#else
     return vreinterpretq_m128d_f64(
         vminq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
+#endif
 #else
     uint64_t a0 = (uint64_t) vget_low_u64(vreinterpretq_u64_m128d(a));
     uint64_t a1 = (uint64_t) vget_high_u64(vreinterpretq_u64_m128d(a));
@@ -4650,8 +4662,8 @@ FORCE_INLINE __m128d _mm_min_sd(__m128d a, __m128d b)
 #else
     double *da = (double *) &a;
     double *db = (double *) &b;
-    double c[2] = {fmin(da[0], db[0]), da[1]};
-    return vld1q_f32((float32_t *) c);
+    double c[2] = {da[0] < db[0] ? da[0] : db[0], da[1]};
+    return vreinterpretq_m128d_f32(vld1q_f32((float32_t *) c));
 #endif
 }
 
