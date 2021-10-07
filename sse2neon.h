@@ -158,6 +158,22 @@
 #define _MM_FROUND_TO_ZERO 0x03
 #define _MM_FROUND_CUR_DIRECTION 0x04
 #define _MM_FROUND_NO_EXC 0x08
+
+#define _MM_FROUND_RAISE_EXC            0x00
+
+#define _MM_FROUND_NINT         \
+  (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_RAISE_EXC)
+#define _MM_FROUND_FLOOR        \
+  (_MM_FROUND_TO_NEG_INF | _MM_FROUND_RAISE_EXC)
+#define _MM_FROUND_CEIL         \
+  (_MM_FROUND_TO_POS_INF | _MM_FROUND_RAISE_EXC)
+#define _MM_FROUND_TRUNC        \
+  (_MM_FROUND_TO_ZERO | _MM_FROUND_RAISE_EXC)
+#define _MM_FROUND_RINT         \
+  (_MM_FROUND_CUR_DIRECTION | _MM_FROUND_RAISE_EXC)
+#define _MM_FROUND_NEARBYINT    \
+  (_MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC)
+
 #define _MM_ROUND_NEAREST 0x0000
 #define _MM_ROUND_DOWN 0x2000
 #define _MM_ROUND_UP 0x4000
@@ -2441,6 +2457,12 @@ FORCE_INLINE __m128 _mm_set1_ps(float _w)
 FORCE_INLINE void _mm_setcsr(unsigned int a)
 {
     _MM_SET_ROUNDING_MODE(a);
+}
+
+//_mm_getcsr arm only supports changing the rounding mode, and not the other exceptions
+FORCE_INLINE unsigned int _mm_getcsr()
+{
+    return _MM_GET_ROUNDING_MODE();
 }
 
 // Sets the four single-precision, floating-point values to the four inputs in
@@ -8688,6 +8710,11 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
     vst1_u64(&count, count64x1_val);
     return count;
 #endif
+}
+
+//_mm_empty is a no-opt on arm
+FORCE_INLINE void _mm_empty (void)
+{
 }
 
 FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
