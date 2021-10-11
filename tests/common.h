@@ -32,6 +32,12 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #if defined(__GNUC__) || defined(__clang__)
 #pragma pop_macro("ALIGN_STRUCT")
 #endif
+
+/* Tunable testing configuration for precise testing */
+/* _mm_min|max_ps|ss|pd|sd */
+#ifndef SSE2NEON_PRECISE_MINMAX
+#define SSE2NEON_PRECISE_MINMAX (0)
+#endif
 #endif
 
 #define ASSERT_RETURN(x) \

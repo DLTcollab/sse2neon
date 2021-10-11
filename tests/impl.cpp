@@ -129,6 +129,36 @@ public:
                 }
             }
 
+#if SSE2NEON_PRECISE_MINMAX
+            if (test == it_mm_max_ps || test == it_mm_max_ss ||
+                test == it_mm_min_ps || test == it_mm_min_ss) {
+                // Make sure the NaN values are included in the testing
+                // one out of four times.
+                if ((rand() & 3) == 0) {
+                    uint32_t r1 = rand() & 3;
+                    uint32_t r2 = rand() & 3;
+                    mTestFloatPointer1[r1] = nanf("");
+                    mTestFloatPointer2[r2] = nanf("");
+                }
+            }
+
+            if (test == it_mm_max_pd || test == it_mm_max_sd ||
+                test == it_mm_min_pd || test == it_mm_min_sd) {
+                // Make sure the NaN values are included in the testing
+                // one out of four times.
+                if ((rand() & 3) == 0) {
+                    // FIXME:
+                    // The argument "0xFFFFFFFFFFFF" is a tricky workaround to
+                    // set the NaN value for doubles. The code is not intuitive
+                    // and should be fixed in the future.
+                    uint32_t r1 = ((rand() & 1) << 1) + 1;
+                    uint32_t r2 = ((rand() & 1) << 1) + 1;
+                    mTestFloatPointer1[r1] = nanf("0xFFFFFFFFFFFF");
+                    mTestFloatPointer2[r2] = nanf("0xFFFFFFFFFFFF");
+                }
+            }
+#endif
+
             // one out of every random 64 times or so, mix up the test floats to
             // contain some integer values
             if ((rand() & 63) == 0) {
@@ -4938,7 +4968,7 @@ result_t test_mm_max_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    double d0 = fmax(_a[0], _b[0]);
+    double d0 = _a[0] > _b[0] ? _a[0] : _b[0];
     double d1 = _a[1];
 
     __m128d a = load_m128d(_a);
@@ -5020,8 +5050,8 @@ result_t test_mm_min_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    double f0 = fmin(_a[0], _b[0]);
-    double f1 = fmin(_a[1], _b[1]);
+    double f0 = _a[0] < _b[0] ? _a[0] : _b[0];
+    double f1 = _a[1] < _b[1] ? _a[1] : _b[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
@@ -5034,7 +5064,7 @@ result_t test_mm_min_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    double d0 = fmin(_a[0], _b[0]);
+    double d0 = _a[0] < _b[0] ? _a[0] : _b[0];
     double d1 = _a[1];
 
     __m128d a = load_m128d(_a);
