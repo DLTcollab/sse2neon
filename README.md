@@ -95,6 +95,7 @@ Check the details via [Test Suite for SSE2NEON](tests/README.md).
 
 ## Adoptions
 Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
+* [Aaru Data Preservation Suite](https://www.aaru.app/) is a fully-featured software package to preserve all storage media from the very old to the cutting edge, as well as to give detailed information about any supported image file (whether from Aaru or not) and to extract the files from those images.
 * [aether-game-utils](https://github.com/johnhues/aether-game-utils) is a collection of cross platform utilities for quickly creating small game prototypes in C++.
 * [Apache Doris](https://doris.apache.org/) is a Massively Parallel Processing (MPP) based interactive SQL data warehousing for reporting and analysis.
 * [Apache Impala](https://impala.apache.org/) is a lightning-fast, distributed SQL queries for petabytes of data stored in Apache Hadoop clusters.
