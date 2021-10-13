@@ -2048,11 +2048,18 @@ result_t test_mm_loadu_si16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_loadu_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // Versions of GCC prior to 9 do not implement intrinsic function
+    // _mm_loadu_si64. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78782
+    // for more information.
+#if defined(__GNUC__) && __GNUC__ < 9
+    return TEST_UNIMPL;
+#else
     const int64_t *addr = (const int64_t *) impl.mTestIntPointer1;
 
     __m128i ret = _mm_loadu_si64((const void *) addr);
 
     return validateInt64(ret, addr[0], 0);
+#endif
 }
 
 result_t test_mm_malloc(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2905,6 +2912,12 @@ result_t test_mm_storeu_si16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_storeu_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // Versions of GCC prior to 9 do not implement intrinsic function
+    // _mm_storeu_si64. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87558
+    // for more information.
+#if defined(__GNUC__) && __GNUC__ < 9
+    return TEST_UNIMPL;
+#else
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     __m128i b;
     __m128i a = load_m128i(_a);
@@ -2912,6 +2925,7 @@ result_t test_mm_storeu_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     int64_t *_b = (int64_t *) &b;
     int64_t *_c = (int64_t *) &a;
     return validateInt64(b, _c[0], _b[1]);
+#endif
 }
 
 result_t test_mm_stream_pi(const SSE2NEONTestImpl &impl, uint32_t iter)
