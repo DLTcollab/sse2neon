@@ -145,6 +145,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [CatBoost's sse2neon](https://github.com/catboost/catboost/blob/master/library/cpp/sse/sse2neon.h)
 * [ARM\_NEON\_2\_x86\_SSE](https://github.com/intel/ARM_NEON_2_x86_SSE)
 * [AvxToNeon](https://github.com/kunpengcompute/AvxToNeon)
+* [sse2rvv](https://github.com/FeddrickAquino/sse2rvv): C header file that converts Intel SSE intrinsics to RISC-V Vector intrinsic.
 * [POWER/PowerPC support for GCC](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000) contains a series of headers simplifying porting x86_64 code that
    makes explicit use of Intel intrinsics to powerpc64le (pure little-endian mode that has been introduced with the [POWER8](https://en.wikipedia.org/wiki/POWER8)).
     - implementation: [xmmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/xmmintrin.h), [emmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/emmintrin.h), [pmmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/pmmintrin.h), [tmmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/tmmintrin.h), [smmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/smmintrin.h)
@@ -158,7 +159,6 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Porting Takua Renderer to 64-bit ARM- Part 1](https://blog.yiningkarlli.com/2021/05/porting-takua-to-arm-pt1.html)
 * [Porting Takua Renderer to 64-bit ARM- Part 2](https://blog.yiningkarlli.com/2021/07/porting-takua-to-arm-pt2.html)
 * [Comparing SIMD on x86-64 and arm64](https://blog.yiningkarlli.com/2021/09/neon-vs-sse.html)
-* [sse2rvv](https://github.com/FeddrickAquino/sse2rvv): C header file that converts Intel SSE intrinsics to RISC-V Vector intrinsic
 
 ## Licensing
 
