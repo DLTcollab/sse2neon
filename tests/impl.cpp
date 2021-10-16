@@ -1935,7 +1935,22 @@ result_t test_mm_get_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_getcsr(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    // store original csr value for post test restoring
+    unsigned int originalCsr = _mm_getcsr();
+
+    unsigned int roundings[] = {_MM_ROUND_TOWARD_ZERO, _MM_ROUND_DOWN,
+                                _MM_ROUND_UP, _MM_ROUND_NEAREST};
+    for (int i = 0; i < sizeof(roundings) / sizeof(unsigned int); i++) {
+        _mm_setcsr(_mm_getcsr() | roundings[i]);
+        if ((_mm_getcsr() & roundings[i]) != roundings[i]) {
+            return TEST_FAIL;
+        }
+    }
+
+    // restore original csr value for remaining tests
+    _mm_setcsr(originalCsr);
+
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_insert_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
