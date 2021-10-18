@@ -6478,9 +6478,10 @@ FORCE_INLINE __m128 _mm_hadd_ps(__m128 a, __m128 b)
 FORCE_INLINE __m128d _mm_hsub_pd(__m128d _a, __m128d _b)
 {
 #if defined(__aarch64__)
-    return vreinterpretq_m128d_f64(vsubq_f64(
-        vuzp1q_f64(vreinterpretq_f64_m128d(_a), vreinterpretq_f64_m128d(_b)),
-        vuzp2q_f64(vreinterpretq_f64_m128d(_a), vreinterpretq_f64_m128d(_b))));
+    float64x2_t a = vreinterpretq_f64_m128d(_a);
+    float64x2_t b = vreinterpretq_f64_m128d(_b);
+    return vreinterpretq_m128d_f64(
+        vsubq_f64(vuzp1q_f64(a, b), vuzp2q_f64(a, b)));
 #else
     double *da = (double *) &_a;
     double *db = (double *) &_b;
@@ -6494,13 +6495,13 @@ FORCE_INLINE __m128d _mm_hsub_pd(__m128d _a, __m128d _b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_ps
 FORCE_INLINE __m128 _mm_hsub_ps(__m128 _a, __m128 _b)
 {
+    float32x4_t a = vreinterpretq_f32_m128(_a);
+    float32x4_t b = vreinterpretq_f32_m128(_b);
 #if defined(__aarch64__)
-    return vreinterpretq_m128_f32(vsubq_f32(
-        vuzp1q_f32(vreinterpretq_f32_m128(_a), vreinterpretq_f32_m128(_b)),
-        vuzp2q_f32(vreinterpretq_f32_m128(_a), vreinterpretq_f32_m128(_b))));
+    return vreinterpretq_m128_f32(
+        vsubq_f32(vuzp1q_f32(a, b), vuzp2q_f32(a, b)));
 #else
-    float32x4x2_t c =
-        vuzpq_f32(vreinterpretq_f32_m128(_a), vreinterpretq_f32_m128(_b));
+    float32x4x2_t c = vuzpq_f32(a, b);
     return vreinterpretq_m128_f32(vsubq_f32(c.val[0], c.val[1]));
 #endif
 }
@@ -6790,34 +6791,36 @@ FORCE_INLINE __m64 _mm_hadds_pi16(__m64 _a, __m64 _b)
 #endif
 }
 
-// Computes pairwise difference of each argument as a 16-bit signed or unsigned
-// integer values a and b.
+// Horizontally subtract adjacent pairs of 16-bit integers in a and b, and pack
+// the signed 16-bit results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_epi16
 FORCE_INLINE __m128i _mm_hsub_epi16(__m128i _a, __m128i _b)
+{
+    int16x8_t a = vreinterpretq_s16_m128i(_a);
+    int16x8_t b = vreinterpretq_s16_m128i(_b);
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s16(
+        vsubq_s16(vuzp1q_s16(a, b), vuzp2q_s16(a, b)));
+#else
+    int16x8x2_t c = vuzpq_s16(a, b);
+    return vreinterpretq_m128i_s16(vsubq_s16(c.val[0], c.val[1]));
+#endif
+}
+
+// Horizontally subtract adjacent pairs of 32-bit integers in a and b, and pack
+// the signed 32-bit results in dst.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_epi32
+FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
 {
     int32x4_t a = vreinterpretq_s32_m128i(_a);
     int32x4_t b = vreinterpretq_s32_m128i(_b);
-    // Interleave using vshrn/vmovn
-    // [a0|a2|a4|a6|b0|b2|b4|b6]
-    // [a1|a3|a5|a7|b1|b3|b5|b7]
-    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
-    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
-    // Subtract
-    return vreinterpretq_m128i_s16(vsubq_s16(ab0246, ab1357));
-}
-
-// Computes pairwise difference of each argument as a 32-bit signed or unsigned
-// integer values a and b.
-FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
-{
-    int64x2_t a = vreinterpretq_s64_m128i(_a);
-    int64x2_t b = vreinterpretq_s64_m128i(_b);
-    // Interleave using vshrn/vmovn
-    // [a0|a2|b0|b2]
-    // [a1|a2|b1|b3]
-    int32x4_t ab02 = vcombine_s32(vmovn_s64(a), vmovn_s64(b));
-    int32x4_t ab13 = vcombine_s32(vshrn_n_s64(a, 32), vshrn_n_s64(b, 32));
-    // Subtract
-    return vreinterpretq_m128i_s32(vsubq_s32(ab02, ab13));
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s32(
+        vsubq_s32(vuzp1q_s32(a, b), vuzp2q_s32(a, b)));
+#else
+    int32x4x2_t c = vuzpq_s32(a, b);
+    return vreinterpretq_m128i_s32(vsubq_s32(c.val[0], c.val[1]));
+#endif
 }
 
 // Horizontally subtract adjacent pairs of 16-bit integers in a and b, and pack
@@ -6825,13 +6828,14 @@ FORCE_INLINE __m128i _mm_hsub_epi32(__m128i _a, __m128i _b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsub_pi16
 FORCE_INLINE __m64 _mm_hsub_pi16(__m64 _a, __m64 _b)
 {
-    int32x4_t ab =
-        vcombine_s32(vreinterpret_s32_m64(_a), vreinterpret_s32_m64(_b));
-
-    int16x4_t ab_low_bits = vmovn_s32(ab);
-    int16x4_t ab_high_bits = vshrn_n_s32(ab, 16);
-
-    return vreinterpret_m64_s16(vsub_s16(ab_low_bits, ab_high_bits));
+    int16x4_t a = vreinterpret_s16_m64(_a);
+    int16x4_t b = vreinterpret_s16_m64(_b);
+#if defined(__aarch64__)
+    return vreinterpret_m64_s16(vsub_s16(vuzp1_s16(a, b), vuzp2_s16(a, b)));
+#else
+    int16x4x2_t c = vuzp_s16(a, b);
+    return vreinterpret_m64_s16(vsub_s16(c.val[0], c.val[1]));
+#endif
 }
 
 // Horizontally subtract adjacent pairs of 32-bit integers in a and b, and pack
@@ -6839,14 +6843,13 @@ FORCE_INLINE __m64 _mm_hsub_pi16(__m64 _a, __m64 _b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=mm_hsub_pi32
 FORCE_INLINE __m64 _mm_hsub_pi32(__m64 _a, __m64 _b)
 {
-#if defined(__aarch64__)
     int32x2_t a = vreinterpret_s32_m64(_a);
     int32x2_t b = vreinterpret_s32_m64(_b);
-    return vreinterpret_m64_s32(vsub_s32(vtrn1_s32(a, b), vtrn2_s32(a, b)));
+#if defined(__aarch64__)
+    return vreinterpret_m64_s32(vsub_s32(vuzp1_s32(a, b), vuzp2_s32(a, b)));
 #else
-    int32x2x2_t trn_ab =
-        vtrn_s32(vreinterpret_s32_m64(_a), vreinterpret_s32_m64(_b));
-    return vreinterpret_m64_s32(vsub_s32(trn_ab.val[0], trn_ab.val[1]));
+    int32x2x2_t c = vuzp_s32(a, b);
+    return vreinterpret_m64_s32(vsub_s32(c.val[0], c.val[1]));
 #endif
 }
 
@@ -6855,21 +6858,14 @@ FORCE_INLINE __m64 _mm_hsub_pi32(__m64 _a, __m64 _b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_hsubs_epi16
 FORCE_INLINE __m128i _mm_hsubs_epi16(__m128i _a, __m128i _b)
 {
-#if defined(__aarch64__)
     int16x8_t a = vreinterpretq_s16_m128i(_a);
     int16x8_t b = vreinterpretq_s16_m128i(_b);
-    return vreinterpretq_s64_s16(
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s16(
         vqsubq_s16(vuzp1q_s16(a, b), vuzp2q_s16(a, b)));
 #else
-    int32x4_t a = vreinterpretq_s32_m128i(_a);
-    int32x4_t b = vreinterpretq_s32_m128i(_b);
-    // Interleave using vshrn/vmovn
-    // [a0|a2|a4|a6|b0|b2|b4|b6]
-    // [a1|a3|a5|a7|b1|b3|b5|b7]
-    int16x8_t ab0246 = vcombine_s16(vmovn_s32(a), vmovn_s32(b));
-    int16x8_t ab1357 = vcombine_s16(vshrn_n_s32(a, 16), vshrn_n_s32(b, 16));
-    // Saturated subtract
-    return vreinterpretq_m128i_s16(vqsubq_s16(ab0246, ab1357));
+    int16x8x2_t c = vuzpq_s16(a, b);
+    return vreinterpretq_m128i_s16(vqsubq_s16(c.val[0], c.val[1]));
 #endif
 }
 
@@ -6881,10 +6877,10 @@ FORCE_INLINE __m64 _mm_hsubs_pi16(__m64 _a, __m64 _b)
     int16x4_t a = vreinterpret_s16_m64(_a);
     int16x4_t b = vreinterpret_s16_m64(_b);
 #if defined(__aarch64__)
-    return vreinterpret_s64_s16(vqsub_s16(vuzp1_s16(a, b), vuzp2_s16(a, b)));
+    return vreinterpret_m64_s16(vqsub_s16(vuzp1_s16(a, b), vuzp2_s16(a, b)));
 #else
-    int16x4x2_t res = vuzp_s16(a, b);
-    return vreinterpret_s64_s16(vqsub_s16(res.val[0], res.val[1]));
+    int16x4x2_t c = vuzp_s16(a, b);
+    return vreinterpret_m64_s16(vqsub_s16(c.val[0], c.val[1]));
 #endif
 }
 
