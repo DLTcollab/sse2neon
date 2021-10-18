@@ -966,6 +966,11 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
         vreinterpretq_m128i_s16(ret);                                          \
     })
 
+/* MMX */
+
+//_mm_empty is a no-op on arm
+FORCE_INLINE void _mm_empty(void) {}
+
 /* SSE */
 
 // Adds the four single-precision, floating-point values of a and b.

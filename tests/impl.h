@@ -8,6 +8,8 @@
         ret = test_##c(*this, i); \
         break;
 #define INTRIN_FOREACH(TYPE)         \
+    /* MMX */                        \
+    TYPE(mm_empty)                   \
     /* SSE */                        \
     TYPE(mm_add_ps)                  \
     TYPE(mm_add_ss)                  \
