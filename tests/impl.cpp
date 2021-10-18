@@ -1940,7 +1940,7 @@ result_t test_mm_getcsr(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     unsigned int roundings[] = {_MM_ROUND_TOWARD_ZERO, _MM_ROUND_DOWN,
                                 _MM_ROUND_UP, _MM_ROUND_NEAREST};
-    for (int i = 0; i < sizeof(roundings) / sizeof(unsigned int); i++) {
+    for (size_t i = 0; i < sizeof(roundings) / sizeof(roundings[0]); i++) {
         _mm_setcsr(_mm_getcsr() | roundings[i]);
         if ((_mm_getcsr() & roundings[i]) != roundings[i]) {
             return TEST_FAIL;
