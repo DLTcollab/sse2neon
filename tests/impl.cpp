@@ -707,6 +707,12 @@ static std::pair<uint64_t, uint64_t> clmul_64(uint64_t x, uint64_t y)
     return std::make_pair(xy0, xy1);
 }
 
+/* MMX */
+result_t test_mm_empty(const SSE2NEONTestImpl &impl, uint32_t iter)
+{
+    return TEST_SUCCESS;
+}
+
 /* SSE */
 result_t test_mm_add_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
