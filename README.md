@@ -159,6 +159,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Porting Takua Renderer to 64-bit ARM- Part 1](https://blog.yiningkarlli.com/2021/05/porting-takua-to-arm-pt1.html)
 * [Porting Takua Renderer to 64-bit ARM- Part 2](https://blog.yiningkarlli.com/2021/07/porting-takua-to-arm-pt2.html)
 * [Comparing SIMD on x86-64 and arm64](https://blog.yiningkarlli.com/2021/09/neon-vs-sse.html)
+- [Getting started with AWS Graviton](https://github.com/aws/aws-graviton-getting-started)
 
 ## Licensing
 
