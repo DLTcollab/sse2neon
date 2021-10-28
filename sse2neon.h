@@ -5754,16 +5754,16 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 //   ENDFOR
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_epi16
-#define _mm_srli_epi16(a, imm)                                             \
-    __extension__({                                                        \
-        __m128i ret;                                                       \
-        if (_sse2neon_unlikely(imm & ~15)) {                               \
-            ret = _mm_setzero_si128();                                     \
-        } else {                                                           \
-            ret = vreinterpretq_m128i_u16(                                 \
-                vshlq_u16(vreinterpretq_u16_m128i(a), vdupq_n_s16(-imm))); \
-        }                                                                  \
-        ret;                                                               \
+#define _mm_srli_epi16(a, imm)                                               \
+    __extension__({                                                          \
+        __m128i ret;                                                         \
+        if (_sse2neon_unlikely((imm) & ~15)) {                               \
+            ret = _mm_setzero_si128();                                       \
+        } else {                                                             \
+            ret = vreinterpretq_m128i_u16(                                   \
+                vshlq_u16(vreinterpretq_u16_m128i(a), vdupq_n_s16(-(imm)))); \
+        }                                                                    \
+        ret;                                                                 \
     })
 
 // Shift packed 32-bit integers in a right by imm8 while shifting in zeros, and
@@ -5780,16 +5780,16 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_epi32
 // FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_srli_epi32(a, imm)                                             \
-    __extension__({                                                        \
-        __m128i ret;                                                       \
-        if (_sse2neon_unlikely(imm & ~31)) {                               \
-            ret = _mm_setzero_si128();                                     \
-        } else {                                                           \
-            ret = vreinterpretq_m128i_u32(                                 \
-                vshlq_u32(vreinterpretq_u32_m128i(a), vdupq_n_s32(-imm))); \
-        }                                                                  \
-        ret;                                                               \
+#define _mm_srli_epi32(a, imm)                                               \
+    __extension__({                                                          \
+        __m128i ret;                                                         \
+        if (_sse2neon_unlikely((imm) & ~31)) {                               \
+            ret = _mm_setzero_si128();                                       \
+        } else {                                                             \
+            ret = vreinterpretq_m128i_u32(                                   \
+                vshlq_u32(vreinterpretq_u32_m128i(a), vdupq_n_s32(-(imm)))); \
+        }                                                                    \
+        ret;                                                                 \
     })
 
 // Shift packed 64-bit integers in a right by imm8 while shifting in zeros, and
@@ -5805,16 +5805,16 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 //   ENDFOR
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_epi64
-#define _mm_srli_epi64(a, imm)                                             \
-    __extension__({                                                        \
-        __m128i ret;                                                       \
-        if (_sse2neon_unlikely(imm & ~63)) {                               \
-            ret = _mm_setzero_si128();                                     \
-        } else {                                                           \
-            ret = vreinterpretq_m128i_u64(                                 \
-                vshlq_u64(vreinterpretq_u64_m128i(a), vdupq_n_s64(-imm))); \
-        }                                                                  \
-        ret;                                                               \
+#define _mm_srli_epi64(a, imm)                                               \
+    __extension__({                                                          \
+        __m128i ret;                                                         \
+        if (_sse2neon_unlikely((imm) & ~63)) {                               \
+            ret = _mm_setzero_si128();                                       \
+        } else {                                                             \
+            ret = vreinterpretq_m128i_u64(                                   \
+                vshlq_u64(vreinterpretq_u64_m128i(a), vdupq_n_s64(-(imm)))); \
+        }                                                                    \
+        ret;                                                                 \
     })
 
 // Shift a right by imm8 bytes while shifting in zeros, and store the results in
@@ -6700,13 +6700,13 @@ FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
             ret = vreinterpret_m64_s8(vdup_n_s8(0));                        \
         } else {                                                            \
             uint8x8_t tmp_low, tmp_high;                                    \
-            if (imm >= 8) {                                                 \
-                const int idx = imm - 8;                                    \
+            if ((imm) >= 8) {                                               \
+                const int idx = (imm) -8;                                   \
                 tmp_low = vreinterpret_u8_m64(a);                           \
                 tmp_high = vdup_n_u8(0);                                    \
                 ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
             } else {                                                        \
-                const int idx = imm;                                        \
+                const int idx = (imm);                                      \
                 tmp_low = vreinterpret_u8_m64(b);                           \
                 tmp_high = vreinterpret_u8_m64(a);                          \
                 ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
