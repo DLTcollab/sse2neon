@@ -6700,13 +6700,13 @@ FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
             ret = vreinterpret_m64_s8(vdup_n_s8(0));                        \
         } else {                                                            \
             uint8x8_t tmp_low, tmp_high;                                    \
-            if ((imm) >= 8) {                                                 \
-                const int idx = (imm) - 8;                                    \
+            if ((imm) >= 8) {                                               \
+                const int idx = (imm) -8;                                   \
                 tmp_low = vreinterpret_u8_m64(a);                           \
                 tmp_high = vdup_n_u8(0);                                    \
                 ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
             } else {                                                        \
-                const int idx = (imm);                                        \
+                const int idx = (imm);                                      \
                 tmp_low = vreinterpret_u8_m64(b);                           \
                 tmp_high = vreinterpret_u8_m64(a);                          \
                 ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
