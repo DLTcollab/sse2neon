@@ -10,6 +10,16 @@
 #include <wmmintrin.h>
 #include <xmmintrin.h>
 
+// __int64 is defined in the Intrinsics Guide which maps to different datatype
+// in different data model
+#if !(defined(_WIN32) || defined(_WIN64) || defined(__int64))
+#if (defined(__x86_64__) || defined(__i386__))
+#define __int64 long long
+#else
+#define __int64 int64_t
+#endif
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
 #pragma push_macro("ALIGN_STRUCT")
 #define ALIGN_STRUCT(x) __attribute__((aligned(x)))

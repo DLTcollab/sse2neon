@@ -199,6 +199,16 @@ typedef float32x4_t __m128d;
 #endif
 typedef int64x2_t __m128i; /* 128-bit vector containing integers */
 
+// __int64 is defined in the Intrinsics Guide which maps to different datatype
+// in different data model
+#if !(defined(_WIN32) || defined(_WIN64) || defined(__int64))
+#if (defined(__x86_64__) || defined(__i386__))
+#define __int64 long long
+#else
+#define __int64 int64_t
+#endif
+#endif
+
 /* type-safe casting between types */
 
 #define vreinterpretq_m128_f16(x) vreinterpretq_f32_f16(x)
@@ -6002,6 +6012,15 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 FORCE_INLINE void _mm_stream_si32(int *p, int a)
 {
     vst1q_lane_s32((int32_t *) p, vdupq_n_s32(a), 0);
+}
+
+// Store 64-bit integer a into memory using a non-temporal hint to minimize
+// cache pollution. If the cache line containing address mem_addr is already in
+// the cache, the cache will be updated.
+// https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_stream_si64
+FORCE_INLINE void _mm_stream_si64(__int64 *p, __int64 a)
+{
+    vst1_s64((int64_t *) p, vdup_n_s64((int64_t) a));
 }
 
 // Subtract packed 16-bit integers in b from packed 16-bit integers in a, and
