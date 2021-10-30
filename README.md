@@ -116,6 +116,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [emp-tool](https://github.com/emp-toolkit/emp-tool) aims to provide a benchmark for secure computation and allowing other researchers to experiment and extend.
 * [FoundationDB](https://www.foundationdb.org) is a distributed database designed to handle large volumes of structured data across clusters of commodity servers.
 * [iqtree_arm_neon](https://github.com/joshlvmh/iqtree_arm_neon) is the Arm NEON port of [IQ-TREE](http://www.iqtree.org/), fast and effective stochastic algorithm to infer phylogenetic trees by maximum likelihood.
+* [IResearch](https://github.com/iresearch-toolkit/iresearch) is a cross-platform, high-performance document oriented search engine library written entirely in C++ with the focus on a pluggability of different ranking/similarity models.
 * [kram](https://github.com/alecazam/kram) is a wrapper to several popular encoders to and from PNG/[KTX](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) files with [LDR/HDR and BC/ASTC/ETC2](https://developer.arm.com/solutions/graphics-and-gaming/developer-guides/learn-the-basics/adaptive-scalable-texture-compression/single-page).
 * [libscapi](https://github.com/cryptobiu/libscapi) stands for the "Secure Computation API", providing  reliable, efficient, and highly flexible cryptographic infrastructure.
 * [libmatoya](https://github.com/matoya/libmatoya) is a cross-platform application development library, providing various features such as common cryptography tasks.
