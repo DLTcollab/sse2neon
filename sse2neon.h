@@ -131,7 +131,7 @@
  */
 #ifndef __has_builtin /* GCC prior to 10 or non-clang compilers */
 /* Compatibility with gcc <= 9 */
-#if __GNUC__ <= 9
+#if defined(__GNUC__) && (__GNUC__ <= 9)
 #define __has_builtin(x) HAS##x
 #define HAS__builtin_popcount 1
 #define HAS__builtin_popcountll 1
@@ -1546,7 +1546,7 @@ FORCE_INLINE __m64 _mm_cvtps_pi8(__m128 a)
     __m128i res32 = _mm_or_si128(_mm_or_si128(max, min), cvt);
     int16x4_t res16 = vmovn_s32(vreinterpretq_s32_m128i(res32));
     int8x8_t res8 = vmovn_s16(vcombine_s16(res16, res16));
-    uint32_t bitMask[2] = {0xFFFFFFFF, 0};
+    static const uint32_t bitMask[2] = {0xFFFFFFFF, 0};
     int8x8_t mask = vreinterpret_s8_u32(vld1_u32(bitMask));
 
     return vreinterpret_m64_s8(vorr_s8(vand_s8(mask, res8), vdup_n_s8(0)));
@@ -6436,7 +6436,7 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_addsub_pd
 FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
 {
-    __m128d mask = _mm_set_pd(1.0f, -1.0f);
+    static const __m128d mask = _mm_set_pd(1.0f, -1.0f);
 #if defined(__aarch64__)
     return vreinterpretq_m128d_f64(vfmaq_f64(vreinterpretq_f64_m128d(a),
                                              vreinterpretq_f64_m128d(b),
@@ -6452,7 +6452,7 @@ FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
-    __m128 mask = {-1.0f, 1.0f, -1.0f, 1.0f};
+    static const __m128 mask = _mm_setr_ps(-1.0f, 1.0f, -1.0f, 1.0f);
 #if defined(__aarch64__) || defined(__ARM_FEATURE_FMA) /* VFPv4+ */
     return vreinterpretq_m128_f32(vfmaq_f32(vreinterpretq_f32_m128(a),
                                             vreinterpretq_f32_m128(mask),
@@ -6553,7 +6553,7 @@ FORCE_INLINE __m128 _mm_hsub_ps(__m128 _a, __m128 _b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movedup_pd
 FORCE_INLINE __m128d _mm_movedup_pd(__m128d a)
 {
-#if (__aarch64__)
+#if defined(__aarch64__)
     return vreinterpretq_m128d_f64(
         vdupq_laneq_f64(vreinterpretq_f64_m128d(a), 0));
 #else
