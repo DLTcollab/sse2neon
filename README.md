@@ -110,6 +110,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [CARTA](https://github.com/CARTAvis/carta-backend) is a new visualization tool designed for viewing radio astronomy images in CASA, FITS, MIRIAD, and HDF5 formats (using the IDIA custom schema for HDF5).
 * [Catcoon](https://github.com/i-evi/catcoon) is a [feedforward neural network](https://en.wikipedia.org/wiki/Feedforward_neural_network) implementation in C.
 * [compute-runtime](https://github.com/intel/compute-runtime), the Intel Graphics Compute Runtime for oneAPI Level Zero and OpenCL Driver, provides compute API support (Level Zero, OpenCL) for Intel graphics hardware architectures (HD Graphics, Xe).
+* [Cog](https://github.com/losnoco/Cog) is a free and open source audio player for macOS.
 * [dab-cmdline](https://github.com/JvanKatwijk/dab-cmdline) provides entries for the functionality to handle Digital audio broadcasting (DAB)/DAB+ through some simple calls.
 * [DISTRHO](https://distrho.sourceforge.io/) is an open-source project for Cross-Platform Audio Plugins.
 * [EDGE](https://github.com/3dfxdev/EDGE) is an advanced OpenGL source port spawned from the DOOM engine, with focus on easy development and expansion for modders and end-users.
