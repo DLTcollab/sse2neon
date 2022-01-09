@@ -1763,9 +1763,9 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode()
     } r;
 
 #if defined(__aarch64__)
-    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("mrs %0, FPCR" : "=r"(r.value)); /* read */
 #else
-    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
     return r.field.bit24 ? _MM_FLUSH_ZERO_ON : _MM_FLUSH_ZERO_OFF;
@@ -1787,9 +1787,9 @@ FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE()
     } r;
 
 #if defined(__aarch64__)
-    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("mrs %0, FPCR" : "=r"(r.value)); /* read */
 #else
-    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
     if (r.field.bit22) {
@@ -2365,17 +2365,17 @@ FORCE_INLINE void _sse2neon_mm_set_flush_zero_mode(unsigned int flag)
     } r;
 
 #if defined(__aarch64__)
-    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("mrs %0, FPCR" : "=r"(r.value)); /* read */
 #else
-    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
     r.field.bit24 = (flag & _MM_FLUSH_ZERO_MASK) == _MM_FLUSH_ZERO_ON;
 
 #if defined(__aarch64__)
-    asm volatile("msr FPCR, %0" ::"r"(r)); /* write */
+    __asm__ __volatile__("msr FPCR, %0" ::"r"(r)); /* write */
 #else
-    asm volatile("vmsr FPSCR, %0" ::"r"(r));        /* write */
+    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r));        /* write */
 #endif
 }
 
@@ -2411,9 +2411,9 @@ FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
     } r;
 
 #if defined(__aarch64__)
-    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("mrs %0, FPCR" : "=r"(r.value)); /* read */
 #else
-    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
     switch (rounding) {
@@ -2435,9 +2435,9 @@ FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
     }
 
 #if defined(__aarch64__)
-    asm volatile("msr FPCR, %0" ::"r"(r)); /* write */
+    __asm__ __volatile__("msr FPCR, %0" ::"r"(r)); /* write */
 #else
-    asm volatile("vmsr FPSCR, %0" ::"r"(r));        /* write */
+    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r));        /* write */
 #endif
 }
 
@@ -8673,9 +8673,9 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_denormals_zero_mode()
     } r;
 
 #if defined(__aarch64__)
-    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("mrs %0, FPCR" : "=r"(r.value)); /* read */
 #else
-    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
     return r.field.bit24 ? _MM_DENORMALS_ZERO_ON : _MM_DENORMALS_ZERO_OFF;
@@ -8750,17 +8750,17 @@ FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
     } r;
 
 #if defined(__aarch64__)
-    asm volatile("mrs %0, FPCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("mrs %0, FPCR" : "=r"(r.value)); /* read */
 #else
-    asm volatile("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
+    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
     r.field.bit24 = (flag & _MM_DENORMALS_ZERO_MASK) == _MM_DENORMALS_ZERO_ON;
 
 #if defined(__aarch64__)
-    asm volatile("msr FPCR, %0" ::"r"(r)); /* write */
+    __asm__ __volatile__("msr FPCR, %0" ::"r"(r)); /* write */
 #else
-    asm volatile("vmsr FPSCR, %0" ::"r"(r));        /* write */
+    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r));        /* write */
 #endif
 }
 
