@@ -127,6 +127,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [MMseqs2](https://github.com/soedinglab/MMseqs2) (Many-against-Many sequence searching) is a software suite to search and cluster huge protein and nucleotide sequence sets.
 * [MRIcroGL](https://github.com/rordenlab/MRIcroGL) is a cross-platform tool for viewing NIfTI, DICOM, MGH, MHD, NRRD, AFNI format medical images.
 * [N2](https://github.com/oddconcepts/n2o) is an approximate nearest neighborhoods algorithm library written in C++, providing a much faster search speed than other implementations when modeling large dataset.
+* [nanors](https://github.com/sleepybishop/nanors) is a tiny, performant implementation of [Reed-Solomon codes](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction), capable of reaching multi-gigabit speeds on a single core.
 * [niimath](https://github.com/rordenlab/niimath) is a general image calculator with superior performance.
 * [NVIDIA GameWorks](https://developer.nvidia.com/gameworks-source-github) has been already used in a lot of games. These repositories are public on GitHub.
 * [ofxNDI](https://github.com/leadedge/ofxNDI) is an [openFrameworks](https://openframeworks.cc/) addon to allow sending and receiving images over a network using the [NewTek](https://en.wikipedia.org/wiki/NewTek) Network Device Protocol.
