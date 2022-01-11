@@ -56,7 +56,7 @@ check: tests/main
 	$(EXEC_WRAPPER) $^
 
 indent:
-	@echo "Formating files with clang-format.."
+	@echo "Formatting files with clang-format.."
 	@if ! hash clang-format-11; then echo "clang-format-11 is required to indent"; fi
 	clang-format-11 -i sse2neon.h tests/*.cpp tests/*.h
 
