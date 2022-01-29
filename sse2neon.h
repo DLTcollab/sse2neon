@@ -91,6 +91,13 @@
 #define _sse2neon_unlikely(x) (x)
 #endif
 
+/* C language does not allow initializing a variable with a function call. */
+#ifdef __cplusplus
+#define _sse2neon_const static const
+#else
+#define _sse2neon_const const
+#endif
+
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -6436,7 +6443,7 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_addsub_pd
 FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
 {
-    static const __m128d mask = _mm_set_pd(1.0f, -1.0f);
+    _sse2neon_const __m128d mask = _mm_set_pd(1.0f, -1.0f);
 #if defined(__aarch64__)
     return vreinterpretq_m128d_f64(vfmaq_f64(vreinterpretq_f64_m128d(a),
                                              vreinterpretq_f64_m128d(b),
@@ -6452,7 +6459,7 @@ FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=addsub_ps
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
-    static const __m128 mask = _mm_setr_ps(-1.0f, 1.0f, -1.0f, 1.0f);
+    _sse2neon_const __m128 mask = _mm_setr_ps(-1.0f, 1.0f, -1.0f, 1.0f);
 #if defined(__aarch64__) || defined(__ARM_FEATURE_FMA) /* VFPv4+ */
     return vreinterpretq_m128_f32(vfmaq_f32(vreinterpretq_f32_m128(a),
                                             vreinterpretq_f32_m128(mask),
