@@ -336,19 +336,19 @@ result_t validateFloatError(__m128 a,
     float df2 = fabsf((t[2] - f2) / f2);
     float df3 = fabsf((t[3] - f3) / f3);
 
-    if (std::isnan(t[0]) && std::isnan(f0)) {
+    if ((std::isnan(t[0]) && std::isnan(f0)) || (t[0] == 0 && f0 == 0)) {
         df0 = 0;
     }
 
-    if (std::isnan(t[1]) && std::isnan(f1)) {
+    if ((std::isnan(t[1]) && std::isnan(f1)) || (t[1] == 0 && f1 == 0)) {
         df1 = 0;
     }
 
-    if (std::isnan(t[2]) && std::isnan(f2)) {
+    if ((std::isnan(t[2]) && std::isnan(f2)) || (t[2] == 0 && f2 == 0)) {
         df2 = 0;
     }
 
-    if (std::isnan(t[3]) && std::isnan(f3)) {
+    if ((std::isnan(t[3]) && std::isnan(f3)) || (t[3] == 0 && f3 == 0)) {
         df3 = 0;
     }
 
