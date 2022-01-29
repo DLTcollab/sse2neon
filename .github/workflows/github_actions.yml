@@ -49,6 +49,6 @@ jobs:
         uses: actions/checkout@v2.4.0
       - name: style check
         run: |
-            sudo apt-get install -q -y clang-format-11
+            sudo apt-get install -q -y clang-format-12
             sh .ci/check-format.sh
         shell: bash

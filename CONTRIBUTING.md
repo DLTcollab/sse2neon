@@ -16,6 +16,6 @@ Classification: `SSE`, `SSE2`, `SSE3`, `SSSE3`, `SSE4.1`, `SSE4.2`
 
 ## Coding Convention
 
-Software requirement: `clang-format-11`
+Software requirement: `clang-format-12`
 
 Use the command `$ make indent` to enforce a consistent coding style.
