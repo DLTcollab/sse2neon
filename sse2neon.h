@@ -5926,9 +5926,7 @@ FORCE_INLINE void _mm_storeh_pd(double *mem_addr, __m128d a)
 // https://msdn.microsoft.com/en-us/library/hhwf428f%28v=vs.90%29.aspx
 FORCE_INLINE void _mm_storel_epi64(__m128i *a, __m128i b)
 {
-    uint64x1_t hi = vget_high_u64(vreinterpretq_u64_m128i(*a));
-    uint64x1_t lo = vget_low_u64(vreinterpretq_u64_m128i(b));
-    *a = vreinterpretq_m128i_u64(vcombine_u64(lo, hi));
+    vst1_u64((uint64_t *) a, vget_low_u64(vreinterpretq_u64_m128i(b)));
 }
 
 // Store the lower double-precision (64-bit) floating-point element from a into
