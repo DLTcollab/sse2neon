@@ -53,9 +53,13 @@ but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instru
 ```
 
 - Explicitly specify platform-specific options to gcc/clang compilers.
-  * On ARMv8-A targets, you should specify the following compiler option: (Remove `crypto` and/or `crc` if your architecture does not support cryptographic and/or CRC32 extensions)
+  * On ARMv8-A 64-bit targets, you should specify the following compiler option: (Remove `crypto` and/or `crc` if your architecture does not support cryptographic and/or CRC32 extensions)
   ```shell
   -march=armv8-a+fp+simd+crypto+crc
+  ```
+  * On ARMv8-A 32-bit targets, you should specify the following compiler option:
+  ```shell
+  -mfpu=neon-fp-armv8
   ```
   * On ARMv7-A targets, you need to append the following compiler option:
   ```shell

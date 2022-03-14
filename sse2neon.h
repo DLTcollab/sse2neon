@@ -121,6 +121,12 @@
 #pragma GCC push_options
 #pragma GCC target("+simd")
 #endif
+#elif __ARM_ARCH == 8
+#if !defined(__ARM_NEON) || !defined(__ARM_NEON__)
+#error \
+    "You must enable NEON instructions (e.g. -mfpu=neon-fp-armv8) to use SSE2NEON."
+#endif
+#pragma GCC push_options
 #else
 #error "Unsupported target. Must be either ARMv7-A+NEON or ARMv8-A."
 #endif
