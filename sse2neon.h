@@ -126,13 +126,20 @@
 #error \
     "You must enable NEON instructions (e.g. -mfpu=neon-fp-armv8) to use SSE2NEON."
 #endif
+#if !defined(__clang__)
 #pragma GCC push_options
+#endif
 #else
 #error "Unsupported target. Must be either ARMv7-A+NEON or ARMv8-A."
 #endif
 #endif
 
 #include <arm_neon.h>
+#if !defined(__aarch64__) && (__ARM_ARCH == 8)
+#if defined __has_include && __has_include(<arm_acle.h>)
+#include <arm_acle.h>
+#endif
+#endif
 
 /* Rounding functions require either Aarch64 instructions or libm failback */
 #if !defined(__aarch64__)
@@ -680,7 +687,8 @@ FORCE_INLINE void _sse2neon_kadd_f32(float *sum, float *c, float y)
     *sum = t;
 }
 
-#if defined(__ARM_FEATURE_CRYPTO)
+#if defined(__ARM_FEATURE_CRYPTO) && \
+    (defined(__aarch64__) || __has_builtin(__builtin_arm_crypto_vmullp64))
 // Wraps vmull_p64
 FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 {
@@ -1376,7 +1384,7 @@ FORCE_INLINE __m128 _mm_cvt_pi2ps(__m128 a, __m64 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvt_ps2pi
 FORCE_INLINE __m64 _mm_cvt_ps2pi(__m128 a)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vreinterpret_m64_s32(
         vget_low_s32(vcvtnq_s32_f32(vrndiq_f32(vreinterpretq_f32_m128(a)))));
 #else
@@ -1404,7 +1412,7 @@ FORCE_INLINE __m128 _mm_cvt_si2ss(__m128 a, int b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvt_ss2si
 FORCE_INLINE int _mm_cvt_ss2si(__m128 a)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vgetq_lane_s32(vcvtnq_s32_f32(vrndiq_f32(vreinterpretq_f32_m128(a))),
                           0);
 #else
@@ -1648,7 +1656,7 @@ FORCE_INLINE float _mm_cvtss_f32(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtss_si64
 FORCE_INLINE int64_t _mm_cvtss_si64(__m128 a)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return (int64_t) vgetq_lane_f32(vrndiq_f32(vreinterpretq_f32_m128(a)), 0);
 #else
     float32_t data = vgetq_lane_f32(
@@ -4003,7 +4011,7 @@ FORCE_INLINE __m128d _mm_cvtpi32_pd(__m64 a)
 // does not support! It is supported on ARMv8-A however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     switch (_MM_GET_ROUNDING_MODE()) {
     case _MM_ROUND_NEAREST:
         return vreinterpretq_m128i_s32(vcvtnq_s32_f32(a));
@@ -7453,7 +7461,7 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_ceil_ps
 FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vreinterpretq_m128_f32(vrndpq_f32(vreinterpretq_f32_m128(a)));
 #else
     float *f = (float *) &a;
@@ -7748,7 +7756,7 @@ FORCE_INLINE __m128d _mm_floor_pd(__m128d a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_floor_ps
 FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vreinterpretq_m128_f32(vrndmq_f32(vreinterpretq_f32_m128(a)));
 #else
     float *f = (float *) &a;
@@ -8172,7 +8180,7 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 // software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_ps
 FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 {
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     switch (rounding) {
     case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndnq_f32(vreinterpretq_f32_m128(a)));
@@ -8364,6 +8372,8 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
     __asm__ __volatile__("crc32ch %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
+#elif (__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)
+    crc = __crc32ch(crc, v);
 #else
     crc = _mm_crc32_u8(crc, v & 0xff);
     crc = _mm_crc32_u8(crc, (v >> 8) & 0xff);
@@ -8380,6 +8390,8 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
     __asm__ __volatile__("crc32cw %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
+#elif (__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)
+    crc = __crc32cw(crc, v);
 #else
     crc = _mm_crc32_u16(crc, v & 0xffff);
     crc = _mm_crc32_u16(crc, (v >> 16) & 0xffff);
@@ -8412,6 +8424,8 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
     __asm__ __volatile__("crc32cb %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
+#elif (__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)
+    crc = __crc32cb(crc, v);
 #else
     crc ^= v;
     for (int bit = 0; bit < 8; bit++) {
