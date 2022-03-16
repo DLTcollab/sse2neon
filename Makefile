@@ -57,7 +57,7 @@ check: tests/main
 
 indent:
 	@echo "Formatting files with clang-format.."
-	@if ! hash clang-format-12; then echo "clang-format-11 is required to indent"; fi
+	@if ! hash clang-format-12; then echo "clang-format-12 is required to indent"; fi
 	clang-format-12 -i sse2neon.h tests/*.cpp tests/*.h
 
 .PHONY: clean check format
