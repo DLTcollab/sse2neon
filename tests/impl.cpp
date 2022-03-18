@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <float.h>
 #include <math.h>
+#include <stdalign.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -2963,7 +2964,7 @@ result_t test_mm_stream_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
     __m128 a = load_m128(_a);
-    float p[4];
+    alignas(16) float p[4];
 
     _mm_stream_ps(p, a);
     ASSERT_RETURN(p[0] == _a[0]);
@@ -6197,7 +6198,7 @@ result_t test_mm_store_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_store_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
-    int32_t p[4];
+    alignas(16) int32_t p[4];
 
     __m128i a = load_m128i(_a);
     _mm_store_si128((__m128i *) p, a);
@@ -6312,7 +6313,7 @@ result_t test_mm_stream_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_stream_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
-    int32_t p[4];
+    alignas(16) int32_t p[4];
 
     __m128i a = load_m128i(_a);
     _mm_stream_si128((__m128i *) p, a);
