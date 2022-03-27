@@ -126,6 +126,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [iqtree2](https://github.com/iqtree/iqtree2) is an efficient and versatile stochastic implementation to infer phylogenetic trees by maximum likelihood.
 * [IResearch](https://github.com/iresearch-toolkit/iresearch) is a cross-platform, high-performance document oriented search engine library written entirely in C++ with the focus on a pluggability of different ranking/similarity models.
 * [kram](https://github.com/alecazam/kram) is a wrapper to several popular encoders to and from PNG/[KTX](https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/) files with [LDR/HDR and BC/ASTC/ETC2](https://developer.arm.com/solutions/graphics-and-gaming/developer-guides/learn-the-basics/adaptive-scalable-texture-compression/single-page).
+* [libCML](https://github.com/belosthomas/libCML) is a SLAM library and scientific tool, which include a novel fast thread-safe graph map implementation.
 * [libscapi](https://github.com/cryptobiu/libscapi) stands for the "Secure Computation API", providing  reliable, efficient, and highly flexible cryptographic infrastructure.
 * [libmatoya](https://github.com/matoya/libmatoya) is a cross-platform application development library, providing various features such as common cryptography tasks.
 * [Loosejaw](https://github.com/TheHolyDiver/Loosejaw) provides deep hybrid CPU/GPU digital signal processing.
