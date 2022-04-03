@@ -121,6 +121,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [EDGE](https://github.com/3dfxdev/EDGE) is an advanced OpenGL source port spawned from the DOOM engine, with focus on easy development and expansion for modders and end-users.
 * [Embree](https://github.com/embree/embree) is a collection of high-performance ray tracing kernels. Its target users are graphics application engineers who want to improve the performance of their photo-realistic rendering application by leveraging Embree's performance-optimized ray tracing kernels.
 * [emp-tool](https://github.com/emp-toolkit/emp-tool) aims to provide a benchmark for secure computation and allowing other researchers to experiment and extend.
+* [Exudyn](https://github.com/jgerstmayr/EXUDYN) is a C++ based Python library for efficient simulation of flexible multibody dynamics systems.
 * [FoundationDB](https://www.foundationdb.org) is a distributed database designed to handle large volumes of structured data across clusters of commodity servers.
 * [gmmlib](https://github.com/intel/gmmlib) is the Intel Graphics Memory Management Library that provides device specific and buffer management for the Intel Graphics Compute Runtime for OpenCL and the Intel Media Driver for VAAPI.
 * [iqtree2](https://github.com/iqtree/iqtree2) is an efficient and versatile stochastic implementation to infer phylogenetic trees by maximum likelihood.
