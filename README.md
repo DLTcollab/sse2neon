@@ -153,6 +153,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [SMhasher](https://github.com/rurban/smhasher) provides comprehensive Hash function quality and speed tests.
 * [Spack](https://github.com/spack/spack) is a multi-platform package manager that builds and installs multiple versions and configurations of software.
 * [srsLTE](https://github.com/srsLTE/srsLTE) is an open source SDR LTE software suite.
+* [SSW](https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library) is a fast implementation of the [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm), which uses the SIMD instructions to parallelize the algorithm at the instruction level.
 * [Surge](https://github.com/surge-synthesizer/surge) is an open source digital synthesizer.
 * [XMRig](https://github.com/xmrig/xmrig) is an open source CPU miner for [Monero](https://web.getmonero.org/) cryptocurrency.
 
