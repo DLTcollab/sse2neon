@@ -17,7 +17,7 @@ if [ $(printenv CXX | grep clang) ]; then
     exit
 fi
 
-GCC_REL=10.3-2021.07
+GCC_REL=11.2-2022.02
 
 set -x
 
