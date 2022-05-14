@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ARM_MIRROR=https://github.com/DLTcollab/toolchain-arm/raw/master
+ARM_MIRROR=https://github.com/DLTcollab/toolchain-arm/raw/main
 GCC_REL=11.2-2022.02
 
 MACHINE_TYPE=`uname -m`
