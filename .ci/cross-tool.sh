@@ -1,21 +1,9 @@
 #!/usr/bin/env bash
 
-ARM_MIRROR=https://github.com/DLTcollab/toolchain-arm/raw/main
-GCC_REL=11.2-2022.02
+. .ci/common.sh
 
-MACHINE_TYPE=`uname -m`
-if [ ${MACHINE_TYPE} != 'x86_64' ]; then
-    exit
-fi
+check_platform
 
-OS_TYPE=`uname -s`
-if [ ${OS_TYPE} != 'Linux' ]; then
-    exit
-fi
-
-set -x
-
-sudo apt-get update -q -y
 sudo apt-get install -q -y qemu-user
 
 # Clang/LLVM is natively a cross-compiler, meaning that one set of programs
@@ -23,6 +11,8 @@ sudo apt-get install -q -y qemu-user
 if [ $(printenv CXX | grep clang) ]; then
     exit
 fi
+
+set -x
 
 sudo apt-get install -y curl xz-utils
 
