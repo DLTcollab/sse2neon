@@ -10,6 +10,8 @@
 #include <utility>
 #include "binding.h"
 
+#include <inttypes.h>
+
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
 
@@ -9391,6 +9393,15 @@ result_t test_mm_set_denormals_zero_mode(const SSE2NEONTestImpl &impl,
         res_set_denormals_zero_off == TEST_FAIL)
         return TEST_FAIL;
     return TEST_SUCCESS;
+}
+
+result_t test_rdtsc(const SSE2NEONTestImpl &impl, uint32_t iter)
+{
+    uint64_t start = _rdtsc();
+    for (int i = 0; i < 100000; i++)
+        asm volatile("" ::: "memory");
+    uint64_t end = _rdtsc();
+    return end > start ? TEST_SUCCESS : TEST_FAIL;
 }
 
 SSE2NEONTestImpl::SSE2NEONTestImpl(void)

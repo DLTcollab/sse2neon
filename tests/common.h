@@ -8,6 +8,7 @@
 #include <smmintrin.h>
 #include <tmmintrin.h>
 #include <wmmintrin.h>
+#include <x86intrin.h>
 #include <xmmintrin.h>
 
 // __int64 is defined in the Intrinsics Guide which maps to different datatype
