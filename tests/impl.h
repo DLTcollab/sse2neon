@@ -536,6 +536,7 @@
     TYPE(mm_popcnt_u32)              \
     TYPE(mm_popcnt_u64)              \
     TYPE(mm_set_denormals_zero_mode) \
+    TYPE(rdtsc)                      \
     TYPE(last) /* This indicates the end of macros */
 
 namespace SSE2NEON
