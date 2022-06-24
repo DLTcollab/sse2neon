@@ -4,6 +4,7 @@
 
 check_platform
 
+sudo apt-get update -q -y
 sudo apt-get install -q -y qemu-user
 
 # Clang/LLVM is natively a cross-compiler, meaning that one set of programs
