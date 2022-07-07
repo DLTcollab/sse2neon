@@ -8007,10 +8007,17 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 {
     __m128i dst;
     uint16_t min, idx = 0;
-    // Find the minimum value
 #if defined(__aarch64__)
+    // Find the minimum value
     min = vminvq_u16(vreinterpretq_u16_m128i(a));
+
+    // Get the index of the minimum value
+    static const uint16_t idxv[] = {0, 1, 2, 3, 4, 5, 6, 7};
+    uint16x8_t minv = vdupq_n_u16(min);
+    uint16x8_t cmeq = vceqq_u16(minv, vreinterpretq_u16_m128i(a));
+    idx = vminvq_u16(vornq_u16(vld1q_u16(idxv), cmeq));
 #else
+    // Find the minimum value
     __m64 tmp;
     tmp = vreinterpret_m64_u16(
         vmin_u16(vget_low_u16(vreinterpretq_u16_m128i(a)),
@@ -8020,7 +8027,6 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
     tmp = vreinterpret_m64_u16(
         vpmin_u16(vreinterpret_u16_m64(tmp), vreinterpret_u16_m64(tmp)));
     min = vget_lane_u16(vreinterpret_u16_m64(tmp), 0);
-#endif
     // Get the index of the minimum value
     int i;
     for (i = 0; i < 8; i++) {
@@ -8030,6 +8036,7 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
         }
         a = _mm_srli_si128(a, 2);
     }
+#endif
     // Generate result
     dst = _mm_setzero_si128();
     dst = vreinterpretq_m128i_u16(
