@@ -5704,7 +5704,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
             ret = a;                                                       \
         } else if (_sse2neon_likely(0 < (imm) && (imm) < 32)) {            \
             ret = vreinterpretq_m128i_s32(                                 \
-                vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(-imm))); \
+                vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(-(imm)))); \
         } else {                                                           \
             ret = vreinterpretq_m128i_s32(                                 \
                 vshrq_n_s32(vreinterpretq_s32_m128i(a), 31));              \
