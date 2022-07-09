@@ -5697,19 +5697,19 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srai_epi32
 // FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, __constrange(0,255) int imm)
-#define _mm_srai_epi32(a, imm)                                             \
-    __extension__({                                                        \
-        __m128i ret;                                                       \
-        if (_sse2neon_unlikely((imm) == 0)) {                              \
-            ret = a;                                                       \
-        } else if (_sse2neon_likely(0 < (imm) && (imm) < 32)) {            \
-            ret = vreinterpretq_m128i_s32(                                 \
+#define _mm_srai_epi32(a, imm)                                               \
+    __extension__({                                                          \
+        __m128i ret;                                                         \
+        if (_sse2neon_unlikely((imm) == 0)) {                                \
+            ret = a;                                                         \
+        } else if (_sse2neon_likely(0 < (imm) && (imm) < 32)) {              \
+            ret = vreinterpretq_m128i_s32(                                   \
                 vshlq_s32(vreinterpretq_s32_m128i(a), vdupq_n_s32(-(imm)))); \
-        } else {                                                           \
-            ret = vreinterpretq_m128i_s32(                                 \
-                vshrq_n_s32(vreinterpretq_s32_m128i(a), 31));              \
-        }                                                                  \
-        ret;                                                               \
+        } else {                                                             \
+            ret = vreinterpretq_m128i_s32(                                   \
+                vshrq_n_s32(vreinterpretq_s32_m128i(a), 31));                \
+        }                                                                    \
+        ret;                                                                 \
     })
 
 // Shift packed 16-bit integers in a right by count while shifting in zeros, and
