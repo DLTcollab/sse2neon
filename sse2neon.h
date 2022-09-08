@@ -2491,8 +2491,7 @@ FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_ss
 FORCE_INLINE __m128 _mm_set_ss(float a)
 {
-    float ALIGN_STRUCT(16) data[4] = {a, 0, 0, 0};
-    return vreinterpretq_m128_f32(vld1q_f32(data));
+    return vreinterpretq_m128_f32(vsetq_lane_f32(a, vdupq_n_f32(0), 0));
 }
 
 // Sets the four single-precision, floating-point values to w.
