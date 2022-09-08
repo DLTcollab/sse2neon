@@ -5600,14 +5600,18 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
 //   dst[127:0] := a[127:0] << (tmp*8)
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_slli_si128
-FORCE_INLINE __m128i _mm_slli_si128(__m128i a, int imm)
-{
-    if (_sse2neon_unlikely(imm & ~15))
-        return _mm_setzero_si128();
-    uint8x16_t tmp[2] = {vdupq_n_u8(0), vreinterpretq_u8_m128i(a)};
-    return vreinterpretq_m128i_u8(
-        vld1q_u8(((uint8_t const *) tmp) + (16 - imm)));
-}
+#define _mm_slli_si128(a, imm)                                         \
+    __extension__({                                                    \
+        int8x16_t ret;                                                 \
+        if (_sse2neon_unlikely(imm == 0))                              \
+            ret = vreinterpretq_s8_m128i(a);                           \
+        else if (_sse2neon_unlikely((imm) & ~15))                      \
+            ret = vdupq_n_s8(0);                                       \
+        else                                                           \
+            ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(a),   \
+                           ((imm <= 0 || imm > 15) ? 0 : (16 - imm))); \
+        vreinterpretq_m128i_s8(ret);                                   \
+    })
 
 // Compute the square root of packed double-precision (64-bit) floating-point
 // elements in a, and store the results in dst.
@@ -5881,13 +5885,16 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 //   dst[127:0] := a[127:0] >> (tmp*8)
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_si128
-FORCE_INLINE __m128i _mm_srli_si128(__m128i a, int imm)
-{
-    if (_sse2neon_unlikely(imm & ~15))
-        return _mm_setzero_si128();
-    uint8x16_t tmp[2] = {vreinterpretq_u8_m128i(a), vdupq_n_u8(0)};
-    return vreinterpretq_m128i_u8(vld1q_u8(((uint8_t const *) tmp) + imm));
-}
+#define _mm_srli_si128(a, imm)                                       \
+    __extension__({                                                  \
+        int8x16_t ret;                                               \
+        if (_sse2neon_unlikely((imm) & ~15))                         \
+            ret = vdupq_n_s8(0);                                     \
+        else                                                         \
+            ret = vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0), \
+                           (imm > 15 ? 0 : imm));                    \
+        vreinterpretq_m128i_s8(ret);                                 \
+    })
 
 // Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
 // elements) from a into memory. mem_addr must be aligned on a 16-byte boundary
