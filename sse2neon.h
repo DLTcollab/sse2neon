@@ -4605,6 +4605,12 @@ FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
 {
     int32x4_t low = vmull_s16(vget_low_s16(vreinterpretq_s16_m128i(a)),
                               vget_low_s16(vreinterpretq_s16_m128i(b)));
+#if defined(__aarch64__)
+    int32x4_t high =
+        vmull_high_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b));
+
+    return vreinterpretq_m128i_s32(vpaddq_s32(low, high));
+#else
     int32x4_t high = vmull_s16(vget_high_s16(vreinterpretq_s16_m128i(a)),
                                vget_high_s16(vreinterpretq_s16_m128i(b)));
 
@@ -4612,6 +4618,7 @@ FORCE_INLINE __m128i _mm_madd_epi16(__m128i a, __m128i b)
     int32x2_t high_sum = vpadd_s32(vget_low_s32(high), vget_high_s32(high));
 
     return vreinterpretq_m128i_s32(vcombine_s32(low_sum, high_sum));
+#endif
 }
 
 // Conditionally store 8-bit integer elements from a into memory using mask
