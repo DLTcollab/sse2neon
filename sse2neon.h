@@ -6637,7 +6637,10 @@ FORCE_INLINE __m128d _mm_movedup_pd(__m128d a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_movehdup_ps
 FORCE_INLINE __m128 _mm_movehdup_ps(__m128 a)
 {
-#ifdef _sse2neon_shuffle
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(
+        vtrn2q_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a)));
+#elif defined(_sse2neon_shuffle)
     return vreinterpretq_m128_f32(vshuffleq_s32(
         vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a), 1, 1, 3, 3));
 #else
@@ -6653,7 +6656,10 @@ FORCE_INLINE __m128 _mm_movehdup_ps(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_moveldup_ps
 FORCE_INLINE __m128 _mm_moveldup_ps(__m128 a)
 {
-#ifdef _sse2neon_shuffle
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(
+        vtrn1q_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a)));
+#elif defined(_sse2neon_shuffle)
     return vreinterpretq_m128_f32(vshuffleq_s32(
         vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(a), 0, 0, 2, 2));
 #else
