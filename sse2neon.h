@@ -5194,7 +5194,11 @@ FORCE_INLINE __m128d _mm_set_pd(double e1, double e0)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_set_sd
 FORCE_INLINE __m128d _mm_set_sd(double a)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128d_f64(vsetq_lane_f64(a, vdupq_n_f64(0), 0));
+#else
     return _mm_set_pd(0, a);
+#endif
 }
 
 // Sets the 8 signed 16-bit integer values to w.
