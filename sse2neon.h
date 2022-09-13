@@ -6822,9 +6822,13 @@ FORCE_INLINE __m128i _mm_hadd_epi32(__m128i _a, __m128i _b)
 {
     int32x4_t a = vreinterpretq_s32_m128i(_a);
     int32x4_t b = vreinterpretq_s32_m128i(_b);
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s32(vpaddq_s32(a, b));
+#else
     return vreinterpretq_m128i_s32(
         vcombine_s32(vpadd_s32(vget_low_s32(a), vget_high_s32(a)),
                      vpadd_s32(vget_low_s32(b), vget_high_s32(b))));
+#endif
 }
 
 // Horizontally add adjacent pairs of 16-bit integers in a and b, and pack the
