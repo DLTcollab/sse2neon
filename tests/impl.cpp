@@ -4318,6 +4318,17 @@ result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
         break;
     }
 
+#if defined(__ARM_FEATURE_FRINT) && !defined(__clang__)
+    /* Floats that cannot fit into 32-bits should instead return
+     * indefinite integer value (INT32_MIN). This behaviour is
+     * currently only emulated when using the round-to-integral
+     * instructions. */
+    for (int i = 0; i < 2; i++) {
+        if (_a[i] > (float) INT32_MAX || _a[i] < (float) INT32_MIN)
+            d[i] = INT32_MIN;
+    }
+#endif
+
     __m128d a = load_m128d(_a);
     __m128i ret = _mm_cvtpd_epi32(a);
 

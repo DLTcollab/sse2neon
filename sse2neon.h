@@ -3921,10 +3921,18 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpd_epi32
 FORCE_INLINE __m128i _mm_cvtpd_epi32(__m128d a)
 {
+// vrnd32xq_f64 not supported on clang
+#if defined(__ARM_FEATURE_FRINT) && !defined(__clang__)
+    float64x2_t rounded = vrnd32xq_f64(vreinterpretq_f64_m128d(a));
+    int64x2_t integers = vcvtq_s64_f64(rounded);
+    return vreinterpretq_m128i_s32(
+        vcombine_s32(vmovn_s64(integers), vdup_n_s32(0)));
+#else
     __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
     double d0 = ((double *) &rnd)[0];
     double d1 = ((double *) &rnd)[1];
     return _mm_set_epi32(0, 0, (int32_t) d1, (int32_t) d0);
+#endif
 }
 
 // Convert packed double-precision (64-bit) floating-point elements in a to
@@ -4005,7 +4013,9 @@ FORCE_INLINE __m128d _mm_cvtpi32_pd(__m64 a)
 // does not support! It is supported on ARMv8-A however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
-#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if defined(__ARM_FEATURE_FRINT)
+    return vreinterpretq_m128i_s32(vcvtq_s32_f32(vrnd32xq_f32(a)));
+#elif defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     switch (_MM_GET_ROUNDING_MODE()) {
     case _MM_ROUND_NEAREST:
         return vreinterpretq_m128i_s32(vcvtnq_s32_f32(a));
