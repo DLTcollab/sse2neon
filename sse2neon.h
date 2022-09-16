@@ -8092,13 +8092,13 @@ FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm)
 
     int16x8_t c04, c15, c26, c37;
     uint8x8_t low_b = vget_low_u8(_b);
-    c04 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
-    _a = vextq_u8(_a, _a, 1);
-    c15 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
-    _a = vextq_u8(_a, _a, 1);
-    c26 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
-    _a = vextq_u8(_a, _a, 1);
-    c37 = vabsq_s16(vreinterpretq_s16_u16(vsubl_u8(vget_low_u8(_a), low_b)));
+    c04 = vreinterpretq_s16_u16(vabdl_u8(vget_low_u8(_a), low_b));
+    uint8x16_t _a_1 = vextq_u8(_a, _a, 1);
+    c15 = vreinterpretq_s16_u16(vabdl_u8(vget_low_u8(_a_1), low_b));
+    uint8x16_t _a_2 = vextq_u8(_a, _a, 2);
+    c26 = vreinterpretq_s16_u16(vabdl_u8(vget_low_u8(_a_2), low_b));
+    uint8x16_t _a_3 = vextq_u8(_a, _a, 3);
+    c37 = vreinterpretq_s16_u16(vabdl_u8(vget_low_u8(_a_3), low_b));
 #if defined(__aarch64__)
     // |0|4|2|6|
     c04 = vpaddq_s16(c04, c26);
