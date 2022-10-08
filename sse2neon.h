@@ -9367,18 +9367,18 @@ FORCE_INLINE uint64_t _rdtsc(void)
      * bits wide and it is attributed with the flag 'cap_user_time_short'
      * is true.
      */
-    asm volatile("mrs %0, cntvct_el0" : "=r"(val));
+    __asm__ __volatile__("mrs %0, cntvct_el0" : "=r"(val));
 
     return val;
 #else
     uint32_t pmccntr, pmuseren, pmcntenset;
     // Read the user mode Performance Monitoring Unit (PMU)
     // User Enable Register (PMUSERENR) access permissions.
-    asm volatile("mrc p15, 0, %0, c9, c14, 0" : "=r"(pmuseren));
+    __asm__ __volatile__("mrc p15, 0, %0, c9, c14, 0" : "=r"(pmuseren));
     if (pmuseren & 1) {  // Allows reading PMUSERENR for user mode code.
-        asm volatile("mrc p15, 0, %0, c9, c12, 1" : "=r"(pmcntenset));
+        __asm__ __volatile__("mrc p15, 0, %0, c9, c12, 1" : "=r"(pmcntenset));
         if (pmcntenset & 0x80000000UL) {  // Is it counting?
-            asm volatile("mrc p15, 0, %0, c9, c13, 0" : "=r"(pmccntr));
+            __asm__ __volatile__("mrc p15, 0, %0, c9, c13, 0" : "=r"(pmccntr));
             // The counter is set up to count every 64th cycle
             return (uint64_t) (pmccntr) << 6;
         }
