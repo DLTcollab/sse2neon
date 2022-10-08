@@ -9887,7 +9887,7 @@ result_t test_rdtsc(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     uint64_t start = _rdtsc();
     for (int i = 0; i < 100000; i++)
-        asm volatile("" ::: "memory");
+        __asm__ __volatile__("" ::: "memory");
     uint64_t end = _rdtsc();
     return end > start ? TEST_SUCCESS : TEST_FAIL;
 }
