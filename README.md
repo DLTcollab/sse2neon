@@ -154,6 +154,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Olive](https://github.com/olive-editor/olive) is a free non-linear video editor for Windows, macOS, and Linux.
 * [OpenXRay](https://github.com/OpenXRay/xray-16) is an improved version of the X-Ray engine, used in world famous S.T.A.L.K.E.R. game series by GSC Game World.
 * [parallel-n64](https://github.com/libretro/parallel-n64) is an optimized/rewritten Nintendo 64 emulator made specifically for [Libretro](https://www.libretro.com/).
+* [Pathfinder C++](https://github.com/floppyhammer/pathfinder-cpp) is a fast, practical, GPU-based rasterizer for fonts and vector graphics using Vulkan and C++.
 * [PFFFT](https://github.com/marton78/pffft) does 1D Fast Fourier Transforms, of single precision real and complex vectors.
 * [pixaccess](https://github.com/oliverue/pixaccess) provides the abstractions for integer and float bitmaps, pixels, and aliased (nearest neighbor) and anti-aliased (bi-linearly interpolated) pixel access.
 * [PlutoSDR Firmware](https://github.com/seanstone/plutosdr-fw) is the customized firmware for the [PlutoSDR](https://wiki.analog.com/university/tools/pluto) that can be used to introduce fundamentals of Software Defined Radio (SDR) or Radio Frequency (RF) or Communications as advanced topics in electrical engineering in a self or instructor lead setting.
