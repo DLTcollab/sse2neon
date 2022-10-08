@@ -171,6 +171,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Surge](https://github.com/surge-synthesizer/surge) is an open source digital synthesizer.
 * [Typesense](https://github.com/typesense/typesense) is a fast, typo-tolerant search engine for building delightful search experiences.
 * [VelocyPack](https://github.com/arangodb/velocypack) is a fast and compact format for serialization and storage.
+* [VOLK](https://github.com/gnuradio/volk), Vector-Optimized Library of Kernel, is a sub-project of [GNU Radio](https://www.gnuradio.org/).
 * [XEVE](https://github.com/mpeg5/xeve) (eXtra-fast Essential Video Encoder) is an open sourced and fast MPEG-5 EVC encoder.
 * [XMRig](https://github.com/xmrig/xmrig) is an open source CPU miner for [Monero](https://web.getmonero.org/) cryptocurrency.
 
