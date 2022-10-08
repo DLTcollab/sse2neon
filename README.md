@@ -121,6 +121,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Cog](https://github.com/losnoco/Cog) is a free and open source audio player for macOS.
 * [dab-cmdline](https://github.com/JvanKatwijk/dab-cmdline) provides entries for the functionality to handle Digital audio broadcasting (DAB)/DAB+ through some simple calls.
 * [DISTRHO](https://distrho.sourceforge.io/) is an open-source project for Cross-Platform Audio Plugins.
+* [Dragonfly](https://github.com/dragonflydb/dragonfly) is a modern in-memory datastore, fully compatible with Redis and Memcached APIs.
 * [EDGE](https://github.com/3dfxdev/EDGE) is an advanced OpenGL source port spawned from the DOOM engine, with focus on easy development and expansion for modders and end-users.
 * [Embree](https://github.com/embree/embree) is a collection of high-performance ray tracing kernels. Its target users are graphics application engineers who want to improve the performance of their photo-realistic rendering application by leveraging Embree's performance-optimized ray tracing kernels.
 * [emp-tool](https://github.com/emp-toolkit/emp-tool) aims to provide a benchmark for secure computation and allowing other researchers to experiment and extend.
