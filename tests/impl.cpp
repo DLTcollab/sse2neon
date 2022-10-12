@@ -9377,9 +9377,7 @@ static test_mm_cmpestri_sword_data_t
 #define IS_CMPESTRI 1
 
 #define ENUM_MM_CMPESTRI_TEST_CASES(type, type_lower, data_type)            \
-    typedef enum {                                                          \
-        MM_CMPESTRI_##type##_TEST_CASES(DEF_ENUM_MM_CMPESTRX_VARIANT)       \
-    } type##_test_cases;                                                    \
+    enum { MM_CMPESTRI_##type##_TEST_CASES(DEF_ENUM_MM_CMPESTRX_VARIANT) }; \
     MM_CMPESTRI_##type##_TEST_CASES(EVAL_MM_CMPESTRX_TEST_CASE, type_lower, \
                                     data_type, cmpestri, IS_CMPESTRI)
 
@@ -9632,9 +9630,7 @@ static test_mm_cmpestrm_sword_data_t
 #define IS_CMPESTRM 0
 
 #define ENUM_MM_CMPESTRM_TEST_CASES(type, type_lower, data_type)            \
-    typedef enum {                                                          \
-        MM_CMPESTRM_##type##_TEST_CASES(DEF_ENUM_MM_CMPESTRX_VARIANT)       \
-    } type##_test_cases;                                                    \
+    enum { MM_CMPESTRM_##type##_TEST_CASES(DEF_ENUM_MM_CMPESTRX_VARIANT) }; \
     MM_CMPESTRM_##type##_TEST_CASES(EVAL_MM_CMPESTRX_TEST_CASE, type_lower, \
                                     data_type, cmpestrm, IS_CMPESTRM)
 
