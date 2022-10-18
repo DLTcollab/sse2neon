@@ -8834,7 +8834,7 @@ enum {
 };
 typedef int (*cmpestr_func_t)(__m128i a, int la, __m128i b, int lb);
 static cmpestr_func_t _sse2neon_cmpfunc_table[] = {
-#define _(name, func_suffix) [name] = _sse2neon_##func_suffix,
+#define _(name, func_suffix) _sse2neon_##func_suffix,
     SSE2NEON_CMPESTR_LIST
 #undef _
 };
