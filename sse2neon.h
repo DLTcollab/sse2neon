@@ -172,6 +172,8 @@
 #define __has_builtin(x) HAS##x
 #define HAS__builtin_popcount 1
 #define HAS__builtin_popcountll 1
+#define HAS__builtin_shufflevector 0
+#define HAS__builtin_nontemporal_store 0
 #else
 #define __has_builtin(x) 0
 #endif
