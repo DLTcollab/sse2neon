@@ -20,14 +20,13 @@
  */
 
 /* catenate */
-#define SSE2NEON_TEST_IMPL_PRIMITIVE_CAT(a, ...) a##__VA_ARGS__
+#define PRIMITIVE_CAT(a, ...) a##__VA_ARGS__
 
-#define SSE2NEON_TEST_IMPL_IIF(c) \
-    SSE2NEON_TEST_IMPL_PRIMITIVE_CAT(SSE2NEON_TEST_IMPL_IIF_, c)
+#define IIF(c) PRIMITIVE_CAT(IIF_, c)
 /* run the 2nd parameter */
-#define SSE2NEON_TEST_IMPL_IIF_0(t, ...) __VA_ARGS__
+#define IIF_0(t, ...) __VA_ARGS__
 /* run the 1st parameter */
-#define SSE2NEON_TEST_IMPL_IIF_1(t, ...) t
+#define IIF_1(t, ...) t
 
 // This program a set of unit tests to ensure that each SSE call provide the
 // output we expect.  If this fires an assert, then something didn't match up.
@@ -9383,25 +9382,24 @@ static test_mm_cmpestri_sword_data_t
 
 #define DEF_ENUM_MM_CMPESTRX_VARIANT(c, ...) c,
 
-#define EVAL_MM_CMPESTRX_TEST_CASE(c, type, data_type, im, IM)                 \
-    do {                                                                       \
-        data_type *a = test_mm_##im##_##type##_data[c].a,                      \
-                  *b = test_mm_##im##_##type##_data[c].b;                      \
-        int la = test_mm_##im##_##type##_data[c].la,                           \
-            lb = test_mm_##im##_##type##_data[c].lb;                           \
-        const int imm8 = IMM_##c;                                              \
-        SSE2NEON_TEST_IMPL_IIF(IM)                                             \
-        (int expect = test_mm_##im##_##type##_data[c].expect,                  \
-         data_type *expect = test_mm_##im##_##type##_data[c].expect);          \
-        __m128i ma, mb;                                                        \
-        memcpy(&ma, a, sizeof(ma));                                            \
-        memcpy(&mb, b, sizeof(mb));                                            \
-        SSE2NEON_TEST_IMPL_IIF(IM)                                             \
-        (int res = _mm_cmpestri(ma, la, mb, lb, imm8),                         \
-         __m128i res = _mm_cmpestrm(ma, la, mb, lb, imm8));                    \
-        if (SSE2NEON_TEST_IMPL_IIF(IM)(res != expect,                          \
-                                       memcmp(expect, &res, sizeof(__m128i)))) \
-            return TEST_FAIL;                                                  \
+#define EVAL_MM_CMPESTRX_TEST_CASE(c, type, data_type, im, IM)             \
+    do {                                                                   \
+        data_type *a = test_mm_##im##_##type##_data[c].a,                  \
+                  *b = test_mm_##im##_##type##_data[c].b;                  \
+        int la = test_mm_##im##_##type##_data[c].la,                       \
+            lb = test_mm_##im##_##type##_data[c].lb;                       \
+        const int imm8 = IMM_##c;                                          \
+        IIF(IM)                                                            \
+        (int expect = test_mm_##im##_##type##_data[c].expect,              \
+         data_type *expect = test_mm_##im##_##type##_data[c].expect);      \
+        __m128i ma, mb;                                                    \
+        memcpy(&ma, a, sizeof(ma));                                        \
+        memcpy(&mb, b, sizeof(mb));                                        \
+        IIF(IM)                                                            \
+        (int res = _mm_cmpestri(ma, la, mb, lb, imm8),                     \
+         __m128i res = _mm_cmpestrm(ma, la, mb, lb, imm8));                \
+        if (IIF(IM)(res != expect, memcmp(expect, &res, sizeof(__m128i)))) \
+            return TEST_FAIL;                                              \
     } while (0);
 
 result_t test_mm_cmpestri(const SSE2NEONTestImpl &impl, uint32_t iter)
