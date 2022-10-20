@@ -5600,14 +5600,18 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
 //   dst[127:0] := a[127:0] << (tmp*8)
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_slli_si128
-FORCE_INLINE __m128i _mm_slli_si128(__m128i a, int imm)
-{
-    if (_sse2neon_unlikely(imm & ~15))
-        return _mm_setzero_si128();
-    uint8x16_t tmp[2] = {vdupq_n_u8(0), vreinterpretq_u8_m128i(a)};
-    return vreinterpretq_m128i_u8(
-        vld1q_u8(((uint8_t const *) tmp) + (16 - imm)));
-}
+#define _mm_slli_si128(a, imm)                                         \
+    __extension__({                                                    \
+        int8x16_t ret;                                                 \
+        if (_sse2neon_unlikely(imm == 0))                              \
+            ret = vreinterpretq_s8_m128i(a);                           \
+        else if (_sse2neon_unlikely((imm) & ~15))                      \
+            ret = vdupq_n_s8(0);                                       \
+        else                                                           \
+            ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(a),   \
+                           ((imm <= 0 || imm > 15) ? 0 : (16 - imm))); \
+        vreinterpretq_m128i_s8(ret);                                   \
+    })
 
 // Compute the square root of packed double-precision (64-bit) floating-point
 // elements in a, and store the results in dst.
@@ -5881,13 +5885,16 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 //   dst[127:0] := a[127:0] >> (tmp*8)
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_srli_si128
-FORCE_INLINE __m128i _mm_srli_si128(__m128i a, int imm)
-{
-    if (_sse2neon_unlikely(imm & ~15))
-        return _mm_setzero_si128();
-    uint8x16_t tmp[2] = {vreinterpretq_u8_m128i(a), vdupq_n_u8(0)};
-    return vreinterpretq_m128i_u8(vld1q_u8(((uint8_t const *) tmp) + imm));
-}
+#define _mm_srli_si128(a, imm)                                       \
+    __extension__({                                                  \
+        int8x16_t ret;                                               \
+        if (_sse2neon_unlikely((imm) & ~15))                         \
+            ret = vdupq_n_s8(0);                                     \
+        else                                                         \
+            ret = vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0), \
+                           (imm > 15 ? 0 : imm));                    \
+        vreinterpretq_m128i_s8(ret);                                 \
+    })
 
 // Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
 // elements) from a into memory. mem_addr must be aligned on a 16-byte boundary
@@ -6729,23 +6736,20 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 //   dst[127:0] := tmp[127:0]
 //
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_alignr_epi8
-FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
-{
-    if (_sse2neon_unlikely(imm & ~31))
-        return _mm_setzero_si128();
-    int idx;
-    uint8x16_t tmp[2];
-    if (imm >= 16) {
-        idx = imm - 16;
-        tmp[0] = vreinterpretq_u8_m128i(a);
-        tmp[1] = vdupq_n_u8(0);
-    } else {
-        idx = imm;
-        tmp[0] = vreinterpretq_u8_m128i(b);
-        tmp[1] = vreinterpretq_u8_m128i(a);
-    }
-    return vreinterpretq_m128i_u8(vld1q_u8(((uint8_t const *) tmp) + idx));
-}
+#define _mm_alignr_epi8(a, b, imm)                                            \
+    __extension__({                                                           \
+        uint8x16_t _a = vreinterpretq_u8_m128i(a);                            \
+        uint8x16_t _b = vreinterpretq_u8_m128i(b);                            \
+        __m128i ret;                                                          \
+        if (_sse2neon_unlikely((imm) & ~31))                                  \
+            ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));                      \
+        else if (imm >= 16)                                                   \
+            ret = _mm_srli_si128(a, imm >= 16 ? imm - 16 : 0);                \
+        else                                                                  \
+            ret =                                                             \
+                vreinterpretq_m128i_u8(vextq_u8(_b, _a, imm < 16 ? imm : 0)); \
+        ret;                                                                  \
+    })
 
 // Concatenate 8-byte blocks in a and b into a 16-byte temporary result, shift
 // the result right by imm8 bytes, and store the low 8 bytes in dst.
