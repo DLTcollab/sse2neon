@@ -105,6 +105,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Apache Doris](https://doris.apache.org/) is a Massively Parallel Processing (MPP) based interactive SQL data warehousing for reporting and analysis.
 * [Apache Impala](https://impala.apache.org/) is a lightning-fast, distributed SQL queries for petabytes of data stored in Apache Hadoop clusters.
 * [Apache Kudu](https://kudu.apache.org/) completes Hadoop's storage layer to enable fast analytics on fast data.
+* [ares](https://github.com/ares-emulator/ares) is a cross-platform, open source, multi-system emulator, focusing on accuracy and preservation.
 * [ART](https://github.com/dinosaure/art) is an implementation in OCaml of [Adaptive Radix Tree](https://db.in.tum.de/~leis/papers/ART.pdf) (ART).
 * [Async](https://github.com/romange/async) is a set of c++ primitives that allows efficient and rapid development in C++17 on GNU/Linux systems.
 * [avec](https://github.com/unevens/avec) is a little library for using SIMD instructions on both x86 and Arm.
