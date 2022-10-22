@@ -1526,20 +1526,8 @@ FORCE_INLINE __m128 _mm_cvtpi8_ps(__m64 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi16
 FORCE_INLINE __m64 _mm_cvtps_pi16(__m128 a)
 {
-    const __m128 i16Min = _mm_set_ps1((float) INT16_MIN);
-    const __m128 i16Max = _mm_set_ps1((float) INT16_MAX);
-    const __m128 i32Max = _mm_set_ps1((float) INT32_MAX);
-    const __m128i maxMask = _mm_castps_si128(
-        _mm_and_ps(_mm_cmpge_ps(a, i16Max), _mm_cmple_ps(a, i32Max)));
-    const __m128i betweenMask = _mm_castps_si128(
-        _mm_and_ps(_mm_cmpgt_ps(a, i16Min), _mm_cmplt_ps(a, i16Max)));
-    const __m128i minMask = _mm_cmpeq_epi32(_mm_or_si128(maxMask, betweenMask),
-                                            _mm_setzero_si128());
-    __m128i max = _mm_and_si128(maxMask, _mm_set1_epi32(INT16_MAX));
-    __m128i min = _mm_and_si128(minMask, _mm_set1_epi32(INT16_MIN));
-    __m128i cvt = _mm_and_si128(betweenMask, _mm_cvtps_epi32(a));
-    __m128i res32 = _mm_or_si128(_mm_or_si128(max, min), cvt);
-    return vreinterpret_m64_s16(vmovn_s32(vreinterpretq_s32_m128i(res32)));
+    return vreinterpret_m64_s16(
+        vqmovn_s32(vreinterpretq_s32_m128i(_mm_cvtps_epi32(a))));
 }
 
 // Convert packed single-precision (32-bit) floating-point elements in a to
@@ -1571,25 +1559,8 @@ FORCE_INLINE __m64 _mm_cvtps_pi16(__m128 a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtps_pi8
 FORCE_INLINE __m64 _mm_cvtps_pi8(__m128 a)
 {
-    const __m128 i8Min = _mm_set_ps1((float) INT8_MIN);
-    const __m128 i8Max = _mm_set_ps1((float) INT8_MAX);
-    const __m128 i32Max = _mm_set_ps1((float) INT32_MAX);
-    const __m128i maxMask = _mm_castps_si128(
-        _mm_and_ps(_mm_cmpge_ps(a, i8Max), _mm_cmple_ps(a, i32Max)));
-    const __m128i betweenMask = _mm_castps_si128(
-        _mm_and_ps(_mm_cmpgt_ps(a, i8Min), _mm_cmplt_ps(a, i8Max)));
-    const __m128i minMask = _mm_cmpeq_epi32(_mm_or_si128(maxMask, betweenMask),
-                                            _mm_setzero_si128());
-    __m128i max = _mm_and_si128(maxMask, _mm_set1_epi32(INT8_MAX));
-    __m128i min = _mm_and_si128(minMask, _mm_set1_epi32(INT8_MIN));
-    __m128i cvt = _mm_and_si128(betweenMask, _mm_cvtps_epi32(a));
-    __m128i res32 = _mm_or_si128(_mm_or_si128(max, min), cvt);
-    int16x4_t res16 = vmovn_s32(vreinterpretq_s32_m128i(res32));
-    int8x8_t res8 = vmovn_s16(vcombine_s16(res16, res16));
-    static const uint32_t bitMask[2] = {0xFFFFFFFF, 0};
-    int8x8_t mask = vreinterpret_s8_u32(vld1_u32(bitMask));
-
-    return vreinterpret_m64_s8(vorr_s8(vand_s8(mask, res8), vdup_n_s8(0)));
+    return vreinterpret_m64_s8(vqmovn_s16(
+        vcombine_s16(vreinterpret_s16_m64(_mm_cvtps_pi16(a)), vdup_n_s16(0))));
 }
 
 // Convert packed unsigned 16-bit integers in a to packed single-precision
@@ -3950,10 +3921,18 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_cvtpd_epi32
 FORCE_INLINE __m128i _mm_cvtpd_epi32(__m128d a)
 {
+// vrnd32xq_f64 not supported on clang
+#if defined(__ARM_FEATURE_FRINT) && !defined(__clang__)
+    float64x2_t rounded = vrnd32xq_f64(vreinterpretq_f64_m128d(a));
+    int64x2_t integers = vcvtq_s64_f64(rounded);
+    return vreinterpretq_m128i_s32(
+        vcombine_s32(vmovn_s64(integers), vdup_n_s32(0)));
+#else
     __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
     double d0 = ((double *) &rnd)[0];
     double d1 = ((double *) &rnd)[1];
     return _mm_set_epi32(0, 0, (int32_t) d1, (int32_t) d0);
+#endif
 }
 
 // Convert packed double-precision (64-bit) floating-point elements in a to
@@ -4034,7 +4013,9 @@ FORCE_INLINE __m128d _mm_cvtpi32_pd(__m64 a)
 // does not support! It is supported on ARMv8-A however.
 FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
-#if defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if defined(__ARM_FEATURE_FRINT)
+    return vreinterpretq_m128i_s32(vcvtq_s32_f32(vrnd32xq_f32(a)));
+#elif defined(__aarch64__) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     switch (_MM_GET_ROUNDING_MODE()) {
     case _MM_ROUND_NEAREST:
         return vreinterpretq_m128i_s32(vcvtnq_s32_f32(a));
