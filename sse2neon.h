@@ -25,7 +25,9 @@
 //   Yang-Hao Yuan <yanghau@biilabs.io>
 //   Syoyo Fujita <syoyo@lighttransport.com>
 //   Brecht Van Lommel <brecht@blender.org>
+//   Jonathan Hue <jhue@adobe.com>
 //   Cuda Chen <clh960524@gmail.com>
+//   Aymen Qader <aymen.qader@arm.com>
 
 /*
  * sse2neon is freely redistributable under the MIT License.
