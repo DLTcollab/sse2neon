@@ -566,16 +566,12 @@ FORCE_INLINE uint8x16x4_t _sse2neon_vld1q_u8_x4(const uint8_t *p)
     +------+------+------+------+------+------+-------------+
  */
 
-/* Constants for use with _mm_prefetch.  */
+/* Constants for use with _mm_prefetch. */
 enum _mm_hint {
-    _MM_HINT_NTA = 0,  /* load data to L1 and L2 cache, mark it as NTA */
-    _MM_HINT_T0 = 1,   /* load data to L1 and L2 cache */
-    _MM_HINT_T1 = 2,   /* load data to L2 cache only */
-    _MM_HINT_T2 = 3,   /* load data to L2 cache only, mark it as NTA */
-    _MM_HINT_ENTA = 4, /* exclusive version of _MM_HINT_NTA */
-    _MM_HINT_ET0 = 5,  /* exclusive version of _MM_HINT_T0 */
-    _MM_HINT_ET1 = 6,  /* exclusive version of _MM_HINT_T1 */
-    _MM_HINT_ET2 = 7   /* exclusive version of _MM_HINT_T2 */
+    _MM_HINT_NTA = 0, /* load data to L1 and L2 cache, mark it as NTA */
+    _MM_HINT_T0 = 1,  /* load data to L1 and L2 cache */
+    _MM_HINT_T1 = 2,  /* load data to L2 cache only */
+    _MM_HINT_T2 = 3,  /* load data to L2 cache only, mark it as NTA */
 };
 
 // The bit field mapping to the FPCR(floating-point control register)
@@ -2303,12 +2299,25 @@ FORCE_INLINE __m128 _mm_or_ps(__m128 a, __m128 b)
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_m_pmulhuw
 #define _m_pmulhuw(a, b) _mm_mulhi_pu16(a, b)
 
-// Loads one cache line of data from address p to a location closer to the
-// processor. https://msdn.microsoft.com/en-us/library/84szxsww(v=vs.100).aspx
-FORCE_INLINE void _mm_prefetch(const void *p, int i)
+// Fetch the line of data from memory that contains address p to a location in
+// the cache heirarchy specified by the locality hint i.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_prefetch
+FORCE_INLINE void _mm_prefetch(char const *p, int i)
 {
-    (void) i;
-    __builtin_prefetch(p);
+    switch (i) {
+    case _MM_HINT_NTA:
+        __builtin_prefetch(p, 0, 0);
+        break;
+    case _MM_HINT_T0:
+        __builtin_prefetch(p, 0, 3);
+        break;
+    case _MM_HINT_T1:
+        __builtin_prefetch(p, 0, 2);
+        break;
+    case _MM_HINT_T2:
+        __builtin_prefetch(p, 0, 1);
+        break;
+    }
 }
 
 // Compute the absolute differences of packed unsigned 8-bit integers in a and
