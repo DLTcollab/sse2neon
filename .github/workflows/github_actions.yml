@@ -10,7 +10,7 @@ jobs:
         cxx_compiler: [g++-10, clang++-11]
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
       - name: build artifact
         env:
           CXX: ${{ matrix.cxx_compiler }}
@@ -27,11 +27,11 @@ jobs:
         cxx_compiler: [g++-10, clang++-11]
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
       - name: build artifact
         # The Github Action for non-x86 CPU
         # https://github.com/uraimo/run-on-arch-action
-        uses: uraimo/run-on-arch-action@v2.2.0
+        uses: uraimo/run-on-arch-action@v2.3.0
         with:
           arch: ${{ matrix.arch }}
           distro: ubuntu20.04
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
       - name: style check
         run: |
             sudo apt-get install -q -y clang-format-12
