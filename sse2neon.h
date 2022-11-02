@@ -8905,7 +8905,7 @@ static cmpestr_func_t _sse2neon_cmpfunc_table[] = {
 #undef _
 };
 
-static inline int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
+FORCE_INLINE int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
 {
     switch (imm8 & 0x30) {
     case _SIDD_NEGATIVE_POLARITY:
