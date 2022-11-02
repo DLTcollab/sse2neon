@@ -2074,7 +2074,7 @@ result_t test_mm_loadu_si16(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC version before 11 does not implement intrinsic function
     // _mm_loadu_si16. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
     // for more information.
-#if defined(__GNUC__) && __GNUC__ <= 10
+#if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ <= 10)
     return TEST_UNIMPL;
 #else
     const int16_t *addr = (const int16_t *) impl.mTestIntPointer1;
@@ -2090,7 +2090,7 @@ result_t test_mm_loadu_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     // Versions of GCC prior to 9 do not implement intrinsic function
     // _mm_loadu_si64. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=78782
     // for more information.
-#if defined(__GNUC__) && __GNUC__ < 9
+#if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ < 9)
     return TEST_UNIMPL;
 #else
     const int64_t *addr = (const int64_t *) impl.mTestIntPointer1;
@@ -2935,7 +2935,7 @@ result_t test_mm_storeu_si16(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC version before 11 does not implement intrinsic function
     // _mm_storeu_si16. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
     // for more information.
-#if defined(__GNUC__) && __GNUC__ <= 10
+#if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ <= 10)
     return TEST_UNIMPL;
 #else
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
@@ -2954,7 +2954,7 @@ result_t test_mm_storeu_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     // Versions of GCC prior to 9 do not implement intrinsic function
     // _mm_storeu_si64. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=87558
     // for more information.
-#if defined(__GNUC__) && __GNUC__ < 9
+#if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ < 9)
     return TEST_UNIMPL;
 #else
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
@@ -4895,7 +4895,7 @@ result_t test_mm_loadu_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC version before 11 does not implement intrinsic function
     // _mm_loadu_si32. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
     // for more information.
-#if defined(__GNUC__) && __GNUC__ <= 10
+#if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ <= 10)
     return TEST_UNIMPL;
 #else
     const int32_t *addr = (const int32_t *) impl.mTestIntPointer1;
@@ -6315,7 +6315,7 @@ result_t test_mm_storeu_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC version before 11 does not implement intrinsic function
     // _mm_storeu_si32. Check https://gcc.gnu.org/bugzilla/show_bug.cgi?id=95483
     // for more information.
-#if defined(__GNUC__) && __GNUC__ <= 10
+#if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ <= 10)
     return TEST_UNIMPL;
 #else
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
