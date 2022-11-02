@@ -2493,7 +2493,53 @@ result_t test_m_pmulhuw(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_prefetch(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    typedef struct {
+        __m128 a;
+        float r[4];
+    } prefetch_test_t;
+    prefetch_test_t test_vec[8] = {
+        {
+            _mm_set_ps(-0.1f, 0.2f, 0.3f, 0.4f),
+            {0.4f, 0.3f, 0.2f, -0.1f},
+        },
+        {
+            _mm_set_ps(0.5f, 0.6f, -0.7f, -0.8f),
+            {-0.8f, -0.7f, 0.6f, 0.5f},
+        },
+        {
+            _mm_set_ps(0.9f, 0.10f, -0.11f, 0.12f),
+            {0.12f, -0.11f, 0.10f, 0.9f},
+        },
+        {
+            _mm_set_ps(-1.1f, -2.1f, -3.1f, -4.1f),
+            {-4.1f, -3.1f, -2.1f, -1.1f},
+        },
+        {
+            _mm_set_ps(100.0f, -110.0f, 120.0f, -130.0f),
+            {-130.0f, 120.0f, -110.0f, 100.0f},
+        },
+        {
+            _mm_set_ps(200.5f, 210.5f, -220.5f, 230.5f),
+            {995.74f, -93.04f, 144.03f, 902.50f},
+        },
+        {
+            _mm_set_ps(10.11f, -11.12f, -12.13f, 13.14f),
+            {13.14f, -12.13f, -11.12f, 10.11f},
+        },
+        {
+            _mm_set_ps(10.1f, -20.2f, 30.3f, 40.4f),
+            {40.4f, 30.3f, -20.2f, 10.1f},
+        },
+    };
+
+    for (size_t i = 0; i < (sizeof(test_vec) / (sizeof(test_vec[0]))); i++) {
+        _mm_prefetch(((const char *) &test_vec[i].a), _MM_HINT_T0);
+        _mm_prefetch(((const char *) &test_vec[i].a), _MM_HINT_T1);
+        _mm_prefetch(((const char *) &test_vec[i].a), _MM_HINT_T2);
+        _mm_prefetch(((const char *) &test_vec[i].a), _MM_HINT_NTA);
+    }
+
+    return TEST_SUCCESS;
 }
 
 result_t test_m_psadbw(const SSE2NEONTestImpl &impl, uint32_t iter)
