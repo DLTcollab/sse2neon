@@ -8688,8 +8688,8 @@ static int _sse2neon_aggregate_equal_any_16x8(int la, int lb, __m128i mtx[16])
     return res;
 }
 
-#define SSE2NEON_GENERATE_CMP_EQUAL_ANY(f_prefix) \
-    f_prefix##IMPL(byte) f_prefix##IMPL(word)
+#define SSE2NEON_GENERATE_CMP_EQUAL_ANY(prefix) \
+    prefix##IMPL(byte) prefix##IMPL(word)
 
 SSE2NEON_GENERATE_CMP_EQUAL_ANY(SSE2NEON_CMP_EQUAL_ANY_)
 
@@ -8745,11 +8745,13 @@ static int _sse2neon_aggregate_ranges_8x16(int la, int lb, __m128i mtx[16])
 #define SSE2NEON_CMP_RANGES_IS_BYTE 1
 #define SSE2NEON_CMP_RANGES_IS_WORD 0
 
-#define SSE2NEON_GENERATE_CMP_RANGES(f_prefix)               \
-    f_prefix##IMPL(byte, uint, u, f_prefix##IS_BYTE)         \
-        f_prefix##IMPL(byte, int, s, f_prefix##IS_BYTE)      \
-            f_prefix##IMPL(word, uint, u, f_prefix##IS_WORD) \
-                f_prefix##IMPL(word, int, s, f_prefix##IS_WORD)
+/* clang-format off */
+#define SSE2NEON_GENERATE_CMP_RANGES(prefix)             \
+    prefix##IMPL(byte, uint, u, prefix##IS_BYTE)         \
+    prefix##IMPL(byte, int, s, prefix##IS_BYTE)      \
+    prefix##IMPL(word, uint, u, prefix##IS_WORD) \
+    prefix##IMPL(word, int, s, prefix##IS_WORD)
+/* clang-format on */
 
 SSE2NEON_GENERATE_CMP_RANGES(SSE2NEON_CMP_RANGES_)
 
@@ -8838,17 +8840,16 @@ static int _sse2neon_cmp_word_equal_each(__m128i a, int la, __m128i b, int lb)
         return res;                                                            \
     }
 
-#define SSE2NEON_GENERATE_AGGREGATE_EQUAL_ORDER(f_prefix) \
-    f_prefix##IMPL(8, 16, f_prefix##IS_UBYTE)             \
-        f_prefix##IMPL(16, 8, f_prefix##IS_UWORD)
+#define SSE2NEON_GENERATE_AGGREGATE_EQUAL_ORDER(prefix) \
+    prefix##IMPL(8, 16, prefix##IS_UBYTE) prefix##IMPL(16, 8, prefix##IS_UWORD)
 
 SSE2NEON_GENERATE_AGGREGATE_EQUAL_ORDER(SSE2NEON_AGGREGATE_EQUAL_ORDER_)
 
 #undef SSE2NEON_AGGREGATE_EQUAL_ORDER_IS_UBYTE
 #undef SSE2NEON_AGGREGATE_EQUAL_ORDER_IS_UWORD
 
-#define SSE2NEON_GENERATE_CMP_EQUAL_ORDERED(f_prefix) \
-    f_prefix##IMPL(byte) f_prefix##IMPL(word)
+#define SSE2NEON_GENERATE_CMP_EQUAL_ORDERED(prefix) \
+    prefix##IMPL(byte) prefix##IMPL(word)
 
 SSE2NEON_GENERATE_CMP_EQUAL_ORDERED(SSE2NEON_CMP_EQUAL_ORDERED_)
 
