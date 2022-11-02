@@ -1919,9 +1919,11 @@ result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 #endif
 }
 
+result_t test_mm_malloc(const SSE2NEONTestImpl &impl, uint32_t iter);
 result_t test_mm_free(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    /* We verify _mm_malloc first, and there is no need to check _mm_free . */
+    return test_mm_malloc(impl, iter);
 }
 
 result_t test_mm_get_flush_zero_mode(const SSE2NEONTestImpl &impl,
