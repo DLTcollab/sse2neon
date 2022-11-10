@@ -8931,13 +8931,48 @@ FORCE_INLINE int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
 }
 
 #define SSE2NEON_MIN(x, y) (x) < (y) ? (x) : (y)
-#define SSE2NEON_GET_LENGTH_OR_BOUND(la, lb, bound) \
-    int tmp1 = la ^ (la >> 31);                     \
-    la = tmp1 - (la >> 31);                         \
-    int tmp2 = lb ^ (lb >> 31);                     \
-    lb = tmp2 - (lb >> 31);                         \
-    la = SSE2NEON_MIN(la, bound);                   \
-    lb = SSE2NEON_MIN(lb, bound);
+
+#define SSE2NEON_CMPESTRX_SET_UPPER(var, imm) \
+    const int var = (imm & 0x01) ? 8 : 16
+
+#define SSE2NEON_CMPESTRX_COMP_AGG(la, lb, imm8)                   \
+    SSE2NEON_CMPESTRX_SET_UPPER(bound, imm8);                      \
+    int tmp1 = la ^ (la >> 31);                                    \
+    la = tmp1 - (la >> 31);                                        \
+    int tmp2 = lb ^ (lb >> 31);                                    \
+    lb = tmp2 - (lb >> 31);                                        \
+    la = SSE2NEON_MIN(la, bound);                                  \
+    lb = SSE2NEON_MIN(lb, bound);                                  \
+    int r2 = (_sse2neon_cmpfunc_table[imm8 & 0x0f])(a, la, b, lb); \
+    r2 = _sse2neon_sido_negative(r2, lb, imm8, bound)
+
+// Compare packed strings in a and b with lengths la and lb using the control
+// in imm8, and returns 1 if b did not contain a null character and the
+// resulting mask was zero, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpestra
+FORCE_INLINE int _mm_cmpestra(__m128i a,
+                              int la,
+                              __m128i b,
+                              int lb,
+                              const int imm8)
+{
+    int lb_cpy = lb;
+    SSE2NEON_CMPESTRX_COMP_AGG(la, lb, imm8);
+    return !r2 & (lb_cpy > bound);
+}
+
+// Compare packed strings in a and b with lengths la and lb using the control in
+// imm8, and returns 1 if the resulting mask was non-zero, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpestrc
+FORCE_INLINE int _mm_cmpestrc(__m128i a,
+                              int la,
+                              __m128i b,
+                              int lb,
+                              const int imm8)
+{
+    SSE2NEON_CMPESTRX_COMP_AGG(la, lb, imm8);
+    return r2 != 0;
+}
 
 // Compare packed strings in a and b with lengths la and lb using the control
 // in imm8, and store the generated index in dst.
@@ -8948,14 +8983,9 @@ FORCE_INLINE int _mm_cmpestri(__m128i a,
                               int lb,
                               const int imm8)
 {
-    const int upper = (imm8 & 0x01) ? 8 : 16;
-
-    SSE2NEON_GET_LENGTH_OR_BOUND(la, lb, upper)
-
-    int r2 = (_sse2neon_cmpfunc_table[imm8 & 0x0f])(a, la, b, lb);
-    r2 = _sse2neon_sido_negative(r2, lb, imm8, upper);
+    SSE2NEON_CMPESTRX_COMP_AGG(la, lb, imm8);
     return (r2 == 0)
-               ? upper
+               ? bound
                : ((imm8 & 0x40) ? (31 - __builtin_clz(r2)) : __builtin_ctz(r2));
 }
 
@@ -8965,12 +8995,7 @@ FORCE_INLINE int _mm_cmpestri(__m128i a,
 FORCE_INLINE __m128i
 _mm_cmpestrm(__m128i a, int la, __m128i b, int lb, const int imm8)
 {
-    const int bound = (imm8 & 0x01) ? 8 : 16;
-
-    SSE2NEON_GET_LENGTH_OR_BOUND(la, lb, bound)
-
-    int r2 = (_sse2neon_cmpfunc_table[imm8 & 0x0f])(a, la, b, lb);
-    r2 = _sse2neon_sido_negative(r2, lb, imm8, bound);
+    SSE2NEON_CMPESTRX_COMP_AGG(la, lb, imm8);
 
     __m128i dst = vreinterpretq_m128i_u8(vdupq_n_u8(0));
     if (imm8 & 0x40) {
@@ -8997,6 +9022,45 @@ _mm_cmpestrm(__m128i a, int la, __m128i b, int lb, const int imm8)
     }
 
     return dst;
+}
+
+// Compare packed strings in a and b with lengths la and lb using the control in
+// imm8, and returns bit 0 of the resulting bit mask.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpestro
+FORCE_INLINE int _mm_cmpestro(__m128i a,
+                              int la,
+                              __m128i b,
+                              int lb,
+                              const int imm8)
+{
+    SSE2NEON_CMPESTRX_COMP_AGG(la, lb, imm8);
+    return r2 & 1;
+}
+
+// Compare packed strings in a and b with lengths la and lb using the control in
+// imm8, and returns 1 if any character in a was null, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpestrs
+FORCE_INLINE int _mm_cmpestrs(__m128i a,
+                              int la,
+                              __m128i b,
+                              int lb,
+                              const int imm8)
+{
+    SSE2NEON_CMPESTRX_SET_UPPER(bound, imm8);
+    return la <= (bound - 1);
+}
+
+// Compare packed strings in a and b with lengths la and lb using the control in
+// imm8, and returns 1 if any character in b was null, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpestrz
+FORCE_INLINE int _mm_cmpestrz(__m128i a,
+                              int la,
+                              __m128i b,
+                              int lb,
+                              const int imm8)
+{
+    SSE2NEON_CMPESTRX_SET_UPPER(bound, imm8);
+    return lb <= (bound - 1);
 }
 
 // Compares the 2 signed 64-bit integers in a and the 2 signed 64-bit integers
