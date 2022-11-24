@@ -114,6 +114,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [bipartite_motif_finder](https://github.com/soedinglab/bipartite_motif_finder) as known as BMF (Bipartite Motif Finder) is an open source tool for finding co-occurences of sequence motifs in genomic sequences.
 * [Blender](https://www.blender.org/) is the free and open source 3D creation suite, supporting the entirety of the 3D pipeline.
 * [Boo](https://github.com/AxioDL/boo) is a cross-platform windowing and event manager similar to SDL or SFML, with additional 3D rendering functionality.
+* [Brickworks](https://github.com/sdangelo/brickworks) is a music DSP toolkit that supplies with the fundamental building blocks for creating and enhancing audio engines on any platform.
 * [Cardinal](https://github.com/DISTRHO/Cardinal) is a free and open-source virtual modular synthesizer plugin.
 * [CARTA](https://github.com/CARTAvis/carta-backend) is a new visualization tool designed for viewing radio astronomy images in CASA, FITS, MIRIAD, and HDF5 formats (using the IDIA custom schema for HDF5).
 * [Catcoon](https://github.com/i-evi/catcoon) is a [feedforward neural network](https://en.wikipedia.org/wiki/Feedforward_neural_network) implementation in C.
