@@ -172,6 +172,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [SMhasher](https://github.com/rurban/smhasher) provides comprehensive Hash function quality and speed tests.
 * [SNN++](https://github.com/ianmkim/snnpp) implements a single layer non linear Spiking Neural Network for images classification and generation.
 * [Spack](https://github.com/spack/spack) is a multi-platform package manager that builds and installs multiple versions and configurations of software.
+* [SRA](https://github.com/ncbi/sra-tools) is a collection of tools and libraries for using data in the [INSDC Sequence Read Archives](https://www.ncbi.nlm.nih.gov/sra/docs/).
 * [srsLTE](https://github.com/srsLTE/srsLTE) is an open source SDR LTE software suite.
 * [SSW](https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library) is a fast implementation of the [Smith-Waterman algorithm](https://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm), which uses the SIMD instructions to parallelize the algorithm at the instruction level.
 * [Surge](https://github.com/surge-synthesizer/surge) is an open source digital synthesizer.
