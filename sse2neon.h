@@ -8998,12 +8998,12 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 #define SSE2NEON_CMPSTR_SET_UPPER(var, imm) \
     const int var = (imm & 0x01) ? 8 : 16
 
-#define SSE2NEON_CMPESTRX_GET_LEN(a, b, la, lb) \
-    int tmp1 = la ^ (la >> 31);                 \
-    la = tmp1 - (la >> 31);                     \
-    int tmp2 = lb ^ (lb >> 31);                 \
-    lb = tmp2 - (lb >> 31);                     \
-    la = SSE2NEON_MIN(la, bound);               \
+#define SSE2NEON_CMPESTRX_LEN_PAIR(a, b, la, lb) \
+    int tmp1 = la ^ (la >> 31);                  \
+    la = tmp1 - (la >> 31);                      \
+    int tmp2 = lb ^ (lb >> 31);                  \
+    lb = tmp2 - (lb >> 31);                      \
+    la = SSE2NEON_MIN(la, bound);                \
     lb = SSE2NEON_MIN(lb, bound)
 
 // Compare all pairs of character in string a and b,
@@ -9013,7 +9013,7 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 // string a and b.
 #define SSE2NEON_COMP_AGG(a, b, la, lb, imm8, IE)                  \
     SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);                        \
-    SSE2NEON_##IE##_GET_LEN(a, b, la, lb);                         \
+    SSE2NEON_##IE##_LEN_PAIR(a, b, la, lb);                        \
     int r2 = (_sse2neon_cmpfunc_table[imm8 & 0x0f])(a, la, b, lb); \
     r2 = _sse2neon_sido_negative(r2, lb, imm8, bound)
 
@@ -9139,33 +9139,50 @@ FORCE_INLINE int _mm_cmpestrz(__m128i a,
     return lb <= (bound - 1);
 }
 
-#define SSE2NEON_CMPISTRX_GET_LEN(a, b, la, lb)                                \
-    int la, lb;                                                                \
-    do {                                                                       \
-        if (imm8 & 0x01) {                                                     \
-            uint16x8_t equal_mask_a =                                          \
-                vceqq_u16(vreinterpretq_u16_m128i(a), vdupq_n_u16(0));         \
-            uint16x8_t equal_mask_b =                                          \
-                vceqq_u16(vreinterpretq_u16_m128i(b), vdupq_n_u16(0));         \
-            uint8x8_t res_a = vshrn_n_u16(equal_mask_a, 4);                    \
-            uint8x8_t res_b = vshrn_n_u16(equal_mask_b, 4);                    \
-            uint64_t matches_a = vget_lane_u64(vreinterpret_u64_u8(res_a), 0); \
-            uint64_t matches_b = vget_lane_u64(vreinterpret_u64_u8(res_b), 0); \
-            la = _sse2neon_ctzll(matches_a) >> 3;                              \
-            lb = _sse2neon_ctzll(matches_b) >> 3;                              \
-        } else {                                                               \
-            uint16x8_t equal_mask_a = vreinterpretq_u16_u8(                    \
-                vceqq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0)));           \
-            uint16x8_t equal_mask_b = vreinterpretq_u16_u8(                    \
-                vceqq_u8(vreinterpretq_u8_m128i(b), vdupq_n_u8(0)));           \
-            uint8x8_t res_a = vshrn_n_u16(equal_mask_a, 4);                    \
-            uint8x8_t res_b = vshrn_n_u16(equal_mask_b, 4);                    \
-            uint64_t matches_a = vget_lane_u64(vreinterpret_u64_u8(res_a), 0); \
-            uint64_t matches_b = vget_lane_u64(vreinterpret_u64_u8(res_b), 0); \
-            la = _sse2neon_ctzll(matches_a) >> 2;                              \
-            lb = _sse2neon_ctzll(matches_b) >> 2;                              \
-        }                                                                      \
+#define SSE2NEON_CMPISTRX_LENGTH(str, len, imm8)                         \
+    do {                                                                 \
+        if (imm8 & 0x01) {                                               \
+            uint16x8_t equal_mask_##str =                                \
+                vceqq_u16(vreinterpretq_u16_m128i(str), vdupq_n_u16(0)); \
+            uint8x8_t res_##str = vshrn_n_u16(equal_mask_##str, 4);      \
+            uint64_t matches_##str =                                     \
+                vget_lane_u64(vreinterpret_u64_u8(res_##str), 0);        \
+            len = _sse2neon_ctzll(matches_##str) >> 3;                   \
+        } else {                                                         \
+            uint16x8_t equal_mask_##str = vreinterpretq_u16_u8(          \
+                vceqq_u8(vreinterpretq_u8_m128i(str), vdupq_n_u8(0)));   \
+            uint8x8_t res_##str = vshrn_n_u16(equal_mask_##str, 4);      \
+            uint64_t matches_##str =                                     \
+                vget_lane_u64(vreinterpret_u64_u8(res_##str), 0);        \
+            len = _sse2neon_ctzll(matches_##str) >> 2;                   \
+        }                                                                \
     } while (0)
+
+#define SSE2NEON_CMPISTRX_LEN_PAIR(a, b, la, lb) \
+    int la, lb;                                  \
+    do {                                         \
+        SSE2NEON_CMPISTRX_LENGTH(a, la, imm8);   \
+        SSE2NEON_CMPISTRX_LENGTH(b, lb, imm8);   \
+    } while (0)
+
+// Compare packed strings with implicit lengths in a and b using the control in
+// imm8, and returns 1 if b did not contain a null character and the resulting
+// mask was zero, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpistra
+FORCE_INLINE int _mm_cmpistra(__m128i a, __m128i b, const int imm8)
+{
+    SSE2NEON_COMP_AGG(a, b, la, lb, imm8, CMPISTRX);
+    return !r2 & (lb >= bound);
+}
+
+// Compare packed strings with implicit lengths in a and b using the control in
+// imm8, and returns 1 if the resulting mask was non-zero, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpistrc
+FORCE_INLINE int _mm_cmpistrc(__m128i a, __m128i b, const int imm8)
+{
+    SSE2NEON_COMP_AGG(a, b, la, lb, imm8, CMPISTRX);
+    return r2 != 0;
+}
 
 // Compare packed strings with implicit lengths in a and b using the control in
 // imm8, and store the generated index in dst.
@@ -9183,6 +9200,37 @@ FORCE_INLINE __m128i _mm_cmpistrm(__m128i a, __m128i b, const int imm8)
 {
     SSE2NEON_COMP_AGG(a, b, la, lb, imm8, CMPISTRX);
     SSE2NEON_CMPSTR_GENERATE_MASK(dst);
+}
+
+// Compare packed strings with implicit lengths in a and b using the control in
+// imm8, and returns bit 0 of the resulting bit mask.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpistro
+FORCE_INLINE int _mm_cmpistro(__m128i a, __m128i b, const int imm8)
+{
+    SSE2NEON_COMP_AGG(a, b, la, lb, imm8, CMPISTRX);
+    return r2 & 1;
+}
+
+// Compare packed strings with implicit lengths in a and b using the control in
+// imm8, and returns 1 if any character in a was null, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpistrs
+FORCE_INLINE int _mm_cmpistrs(__m128i a, __m128i b, const int imm8)
+{
+    SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);
+    int la;
+    SSE2NEON_CMPISTRX_LENGTH(a, la, imm8);
+    return la <= (bound - 1);
+}
+
+// Compare packed strings with implicit lengths in a and b using the control in
+// imm8, and returns 1 if any character in b was null, and 0 otherwise.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpistrz
+FORCE_INLINE int _mm_cmpistrz(__m128i a, __m128i b, const int imm8)
+{
+    SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);
+    int lb;
+    SSE2NEON_CMPISTRX_LENGTH(b, lb, imm8);
+    return lb <= (bound - 1);
 }
 
 // Compares the 2 signed 64-bit integers in a and the 2 signed 64-bit integers
