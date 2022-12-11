@@ -2680,6 +2680,16 @@ FORCE_INLINE void _mm_mfence(void)
     _sse2neon_smp_mb();
 }
 
+// Perform a serializing operation on all load-from-memory instructions that
+// were issued prior to this instruction. Guarantees that every load instruction
+// that precedes, in program order, is globally visible before any load
+// instruction which follows the fence in program order.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_lfence
+FORCE_INLINE void _mm_lfence(void)
+{
+    _sse2neon_smp_mb();
+}
+
 // FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255)
 // int imm)
 #ifdef _sse2neon_shuffle
