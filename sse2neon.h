@@ -189,6 +189,17 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #endif
 #endif
 
+/* Apple Silicon cache lines are double of what is commonly used by Intel, AMD
+ * and other Arm microarchtectures use.
+ * From sysctl -a on Apple M1:
+ * hw.cachelinesize: 128
+ */
+#if defined(__APPLE__) && (defined(__aarch64__) || defined(__arm64__))
+#define SSE2NEON_CACHELINE_SIZE 128
+#else
+#define SSE2NEON_CACHELINE_SIZE 64
+#endif
+
 /* Rounding functions require either Aarch64 instructions or libm failback */
 #if !defined(__aarch64__)
 #include <math.h>
@@ -3372,13 +3383,29 @@ FORCE_INLINE __m128 _mm_castsi128_ps(__m128i a)
     return vreinterpretq_m128_s32(vreinterpretq_s32_m128i(a));
 }
 
-// Cache line containing p is flushed and invalidated from all caches in the
-// coherency domain. :
-// https://msdn.microsoft.com/en-us/library/ba08y07y(v=vs.100).aspx
+// Invalidate and flush the cache line that contains p from all levels of the
+// cache hierarchy.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_clflush
+#if defined(__APPLE__)
+#include <libkern/OSCacheControl.h>
+#endif
 FORCE_INLINE void _mm_clflush(void const *p)
 {
     (void) p;
-    // no corollary for Neon?
+
+    /* sys_icache_invalidate is supported since macOS 10.5.
+     * However, it does not work on non-jailbroken iOS devices, although the
+     * compilation is successful.
+     */
+#if defined(__APPLE__)
+    sys_icache_invalidate((void *) (uintptr_t) p, SSE2NEON_CACHELINE_SIZE);
+#elif defined(__GNUC__) || defined(__clang__)
+    uintptr_t ptr = (uintptr_t) p;
+    __builtin___clear_cache((char *) ptr,
+                            (char *) ptr + SSE2NEON_CACHELINE_SIZE);
+#else
+    /* FIXME: MSVC support */
+#endif
 }
 
 // Compares the 8 signed or unsigned 16-bit integers in a and the 8 signed or
