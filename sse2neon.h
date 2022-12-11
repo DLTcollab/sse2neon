@@ -114,12 +114,40 @@
 /* If using MSVC */
 #ifdef _MSC_VER
 #include <intrin.h>
-
 #if (defined(_M_AMD64) || defined(__x86_64__)) || \
     (defined(_M_ARM) || defined(__arm__))
 #define SSE2NEON_HAS_BITSCAN64
 #endif
 #endif
+
+/* Compiler barrier */
+#define SSE2NEON_BARRIER()                     \
+    do {                                       \
+        __asm__ __volatile__("" ::: "memory"); \
+        (void) 0;                              \
+    } while (0)
+
+/* Memory barriers
+ * __atomic_thread_fence does not include a compiler barrier; instead,
+ * the barrier is part of __atomic_load/__atomic_store's "volatile-like"
+ * semantics.
+ */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#include <stdatomic.h>
+#endif
+
+FORCE_INLINE void _sse2neon_smp_mb(void)
+{
+    SSE2NEON_BARRIER();
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) && \
+    !defined(__STDC_NO_ATOMICS__)
+    atomic_thread_fence(memory_order_seq_cst);
+#elif defined(__GNUC__) || defined(__clang__)
+    __atomic_thread_fence(__ATOMIC_SEQ_CST);
+#else
+    /* FIXME: MSVC support */
+#endif
+}
 
 /* Architecture-specific build options */
 /* FIXME: #pragma GCC push_options is only available on GCC */
@@ -2631,12 +2659,25 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
     })
 #endif
 
-// Guarantees that every preceding store is globally visible before any
-// subsequent store.
-// https://msdn.microsoft.com/en-us/library/5h2w73d1%28v=vs.90%29.aspx
+// Perform a serializing operation on all store-to-memory instructions that were
+// issued prior to this instruction. Guarantees that every store instruction
+// that precedes, in program order, is globally visible before any store
+// instruction which follows the fence in program order.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_sfence
 FORCE_INLINE void _mm_sfence(void)
 {
-    __sync_synchronize();
+    _sse2neon_smp_mb();
+}
+
+// Perform a serializing operation on all load-from-memory and store-to-memory
+// instructions that were issued prior to this instruction. Guarantees that
+// every memory access that precedes, in program order, the memory fence
+// instruction is globally visible before any memory instruction which follows
+// the fence in program order.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_mfence
+FORCE_INLINE void _mm_mfence(void)
+{
+    _sse2neon_smp_mb();
 }
 
 // FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255)
