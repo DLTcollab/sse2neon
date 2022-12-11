@@ -7201,7 +7201,7 @@ result_t test_mm_alignr_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
         memcpy((void *) d, (const void *) _b, 16);
         memcpy((void *) (d + 16), (const void *) _a, 16);
         // shifting
-        for (uint x = 0; x < sizeof(d); x++) {
+        for (size_t x = 0; x < sizeof(d); x++) {
             if (x + shift >= sizeof(d))
                 d[x] = 0;
             else
@@ -7251,7 +7251,7 @@ result_t test_mm_alignr_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
         memcpy((void *) d, (const void *) _b, 8);
         memcpy((void *) (d + 8), (const void *) _a, 8);
         // shifting
-        for (uint x = 0; x < sizeof(d); x++) {
+        for (size_t x = 0; x < sizeof(d); x++) {
             if (x + shift >= sizeof(d))
                 d[x] = 0;
             else
