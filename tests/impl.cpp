@@ -241,7 +241,11 @@ public:
     }
 };
 
-const char *instructionString[] = {INTRIN_FOREACH(STR)};
+const char *instructionString[] = {
+#define _(x) #x,
+    INTRIN_LIST
+#undef _
+};
 
 // Produce rounding which is the same as SSE instructions with _MM_ROUND_NEAREST
 // rounding mode
@@ -11703,7 +11707,12 @@ result_t SSE2NEONTestImpl::runSingleTest(InstructionTest test, uint32_t i)
     result_t ret = TEST_SUCCESS;
 
     switch (test) {
-        INTRIN_FOREACH(CASE)
+#define _(x)                      \
+    case it_##x:                  \
+        ret = test_##x(*this, i); \
+        break;
+        INTRIN_LIST
+#undef _
     }
 
     return ret;

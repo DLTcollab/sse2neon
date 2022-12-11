@@ -7,10 +7,10 @@ Once the conversion is implemented, the test can be added with the following ste
 
 * File `tests/impl.h`
 
-  Add the intrinsic under `#define INTRIN_FOREACH(TYPE)` macro. The naming convention
+  Add the intrinsic under `INTRIN_LIST` macro. The naming convention
   should be `mm_xxx`.
   Place it in the correct classification with the alphabetical order.
-  The classification can be referenced from [Intel Intrinsics Guide](https://software.intel.com/sites/landingpage/IntrinsicsGuide/#).
+  The classification can be referenced from [Intel Intrinsics Guide](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html).
 
 * File `tests/impl.cpp`
     ```c
