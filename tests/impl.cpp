@@ -8339,7 +8339,7 @@ result_t test_mm_extract_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
     int64_t *_a = (int64_t *) impl.mTestIntPointer1;
 
     __m128i a = load_m128i(_a);
-    __int64_t c;
+    __int64 c;
 
     switch (iter & 0x1) {
     case 0:
