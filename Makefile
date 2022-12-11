@@ -1,3 +1,7 @@
+ifndef CC
+override CC = gcc
+endif
+
 ifndef CXX
 override CXX = g++
 endif
@@ -5,6 +9,7 @@ endif
 ifndef CROSS_COMPILE
     processor := $(shell uname -m)
 else # CROSS_COMPILE was set
+    CC = $(CROSS_COMPILE)gcc
     CXX = $(CROSS_COMPILE)g++
     CXXFLAGS += -static
     LDFLAGS += -static
@@ -53,6 +58,9 @@ $(EXEC): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 check: tests/main
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+endif
 	$(EXEC_WRAPPER) $^
 
 indent:
@@ -62,6 +70,6 @@ indent:
 
 .PHONY: clean check format
 clean:
-	$(RM) $(OBJS) $(EXEC) $(deps)
+	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 
 -include $(deps)

@@ -1,4 +1,5 @@
 *.o
+*.gch
 tests/*.d
 tests/main
 gcc-arm-*

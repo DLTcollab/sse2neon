@@ -40,6 +40,7 @@ jobs:
           install: |
             apt-get update -q -y
             apt-get install -q -y "${{ matrix.cxx_compiler }}" make
+            apt-get install -q -y gcc
           run: make check
 
   coding_style:
