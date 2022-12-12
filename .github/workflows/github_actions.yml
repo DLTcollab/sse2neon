@@ -19,6 +19,37 @@ jobs:
           make check
           sh .ci/cross-check.sh
 
+  host_win:
+    runs-on: windows-2022
+    strategy:
+      matrix:
+        arch:
+          - x86_64
+          - armv7
+          - aarch64
+    env:
+      LLVM_MINGW_URL: https://github.com/mstorsjo/llvm-mingw/releases/download/20220906/llvm-mingw-20220906-ucrt-x86_64.zip
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: unpack llvm-mingw
+        run: |
+          curl -L -O $LLVM_MINGW_URL
+          unzip -q llvm-mingw-*.zip
+          rm llvm-mingw-*.zip
+          mv llvm-mingw-* "$HOME/llvm-mingw"
+          echo "$HOME/llvm-mingw/bin" >> $GITHUB_PATH
+      - name: checkout code
+        uses: actions/checkout@v3.0.2
+      - name: build artifact
+        env:
+          CXX: ${{ matrix.arch }}-w64-mingw32-clang++
+        run: mingw32-make processor=${{ matrix.arch }}
+      - name: run tests
+        if: matrix.arch == 'x86_64'
+        run: mingw32-make check
+
   host_arm:
     runs-on: ubuntu-20.04
     strategy:
