@@ -5997,7 +5997,7 @@ result_t test_mm_sqrt_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d a = load_m128d(_a);
     __m128d c = _mm_sqrt_pd(a);
 
-    return validateDouble(c, f0, f1);
+    return validateFloatError(c, f0, f1, 1.0e-15);
 }
 
 result_t test_mm_sqrt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -6012,7 +6012,7 @@ result_t test_mm_sqrt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d b = load_m128d(_b);
     __m128d c = _mm_sqrt_sd(a, b);
 
-    return validateDouble(c, f0, f1);
+    return validateFloatError(c, f0, f1, 1.0e-15);
 }
 
 result_t test_mm_sra_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
