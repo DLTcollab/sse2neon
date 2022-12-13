@@ -141,6 +141,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [libhdfs3](https://github.com/ClickHouse/libhdfs3) is implemented based on native Hadoop RPC protocol and Hadoop Distributed File System (HDFS), a highly fault-tolerant distributed fs, data transfer protocol.
 * [libpostal](https://github.com/openvenues/libpostal) is a C library for parsing/normalizing street addresses around the world using statistical NLP and open data.
 * [libscapi](https://github.com/cryptobiu/libscapi) stands for the "Secure Computation API", providing  reliable, efficient, and highly flexible cryptographic infrastructure.
+* [libstreamvbyte](https://github.com/wst24365888/libstreamvbyte) is a C++ implementation of [StreamVByte](https://arxiv.org/abs/1709.08990).
 * [libmatoya](https://github.com/matoya/libmatoya) is a cross-platform application development library, providing various features such as common cryptography tasks.
 * [Loosejaw](https://github.com/TheHolyDiver/Loosejaw) provides deep hybrid CPU/GPU digital signal processing.
 * [Madronalib](https://github.com/madronalabs/madronalib) enables efficient audio DSP on SIMD processors with readable and brief C++ code.
