@@ -102,6 +102,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Aaru Data Preservation Suite](https://www.aaru.app/) is a fully-featured software package to preserve all storage media from the very old to the cutting edge, as well as to give detailed information about any supported image file (whether from Aaru or not) and to extract the files from those images.
 * [aether-game-utils](https://github.com/johnhues/aether-game-utils) is a collection of cross platform utilities for quickly creating small game prototypes in C++.
 * [ALE](https://github.com/sc932/ALE), aka Assembly Likelihood Evaluation, is a tool for evaluating accuracy of assemblies without the need of a reference genome.
+* [ATAK-CIV](https://github.com/deptofdefense/AndroidTacticalAssaultKit-CIV), Android Tactical Assault Kit for Civilian Use, is the official geospatial-temporal and situational awareness tool used by the US Government.
 * [Apache Doris](https://doris.apache.org/) is a Massively Parallel Processing (MPP) based interactive SQL data warehousing for reporting and analysis.
 * [Apache Impala](https://impala.apache.org/) is a lightning-fast, distributed SQL queries for petabytes of data stored in Apache Hadoop clusters.
 * [Apache Kudu](https://kudu.apache.org/) completes Hadoop's storage layer to enable fast analytics on fast data.
