@@ -9404,7 +9404,7 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 
 #if !defined(__ARM_FEATURE_CRYPTO)
 /* clang-format off */
-#define SSE2NEON_AES_DATA(w)                                           \
+#define SSE2NEON_AES_SBOX(w)                                           \
     {                                                                  \
         w(0x63), w(0x7c), w(0x77), w(0x7b), w(0xf2), w(0x6b), w(0x6f), \
         w(0xc5), w(0x30), w(0x01), w(0x67), w(0x2b), w(0xfe), w(0xd7), \
@@ -9444,11 +9444,52 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
         w(0xe6), w(0x42), w(0x68), w(0x41), w(0x99), w(0x2d), w(0x0f), \
         w(0xb0), w(0x54), w(0xbb), w(0x16)                             \
     }
+#define SSE2NEON_AES_RSBOX(w)                                          \
+    {                                                                  \
+        w(0x52), w(0x09), w(0x6a), w(0xd5), w(0x30), w(0x36), w(0xa5), \
+        w(0x38), w(0xbf), w(0x40), w(0xa3), w(0x9e), w(0x81), w(0xf3), \
+        w(0xd7), w(0xfb), w(0x7c), w(0xe3), w(0x39), w(0x82), w(0x9b), \
+        w(0x2f), w(0xff), w(0x87), w(0x34), w(0x8e), w(0x43), w(0x44), \
+        w(0xc4), w(0xde), w(0xe9), w(0xcb), w(0x54), w(0x7b), w(0x94), \
+        w(0x32), w(0xa6), w(0xc2), w(0x23), w(0x3d), w(0xee), w(0x4c), \
+        w(0x95), w(0x0b), w(0x42), w(0xfa), w(0xc3), w(0x4e), w(0x08), \
+        w(0x2e), w(0xa1), w(0x66), w(0x28), w(0xd9), w(0x24), w(0xb2), \
+        w(0x76), w(0x5b), w(0xa2), w(0x49), w(0x6d), w(0x8b), w(0xd1), \
+        w(0x25), w(0x72), w(0xf8), w(0xf6), w(0x64), w(0x86), w(0x68), \
+        w(0x98), w(0x16), w(0xd4), w(0xa4), w(0x5c), w(0xcc), w(0x5d), \
+        w(0x65), w(0xb6), w(0x92), w(0x6c), w(0x70), w(0x48), w(0x50), \
+        w(0xfd), w(0xed), w(0xb9), w(0xda), w(0x5e), w(0x15), w(0x46), \
+        w(0x57), w(0xa7), w(0x8d), w(0x9d), w(0x84), w(0x90), w(0xd8), \
+        w(0xab), w(0x00), w(0x8c), w(0xbc), w(0xd3), w(0x0a), w(0xf7), \
+        w(0xe4), w(0x58), w(0x05), w(0xb8), w(0xb3), w(0x45), w(0x06), \
+        w(0xd0), w(0x2c), w(0x1e), w(0x8f), w(0xca), w(0x3f), w(0x0f), \
+        w(0x02), w(0xc1), w(0xaf), w(0xbd), w(0x03), w(0x01), w(0x13), \
+        w(0x8a), w(0x6b), w(0x3a), w(0x91), w(0x11), w(0x41), w(0x4f), \
+        w(0x67), w(0xdc), w(0xea), w(0x97), w(0xf2), w(0xcf), w(0xce), \
+        w(0xf0), w(0xb4), w(0xe6), w(0x73), w(0x96), w(0xac), w(0x74), \
+        w(0x22), w(0xe7), w(0xad), w(0x35), w(0x85), w(0xe2), w(0xf9), \
+        w(0x37), w(0xe8), w(0x1c), w(0x75), w(0xdf), w(0x6e), w(0x47), \
+        w(0xf1), w(0x1a), w(0x71), w(0x1d), w(0x29), w(0xc5), w(0x89), \
+        w(0x6f), w(0xb7), w(0x62), w(0x0e), w(0xaa), w(0x18), w(0xbe), \
+        w(0x1b), w(0xfc), w(0x56), w(0x3e), w(0x4b), w(0xc6), w(0xd2), \
+        w(0x79), w(0x20), w(0x9a), w(0xdb), w(0xc0), w(0xfe), w(0x78), \
+        w(0xcd), w(0x5a), w(0xf4), w(0x1f), w(0xdd), w(0xa8), w(0x33), \
+        w(0x88), w(0x07), w(0xc7), w(0x31), w(0xb1), w(0x12), w(0x10), \
+        w(0x59), w(0x27), w(0x80), w(0xec), w(0x5f), w(0x60), w(0x51), \
+        w(0x7f), w(0xa9), w(0x19), w(0xb5), w(0x4a), w(0x0d), w(0x2d), \
+        w(0xe5), w(0x7a), w(0x9f), w(0x93), w(0xc9), w(0x9c), w(0xef), \
+        w(0xa0), w(0xe0), w(0x3b), w(0x4d), w(0xae), w(0x2a), w(0xf5), \
+        w(0xb0), w(0xc8), w(0xeb), w(0xbb), w(0x3c), w(0x83), w(0x53), \
+        w(0x99), w(0x61), w(0x17), w(0x2b), w(0x04), w(0x7e), w(0xba), \
+        w(0x77), w(0xd6), w(0x26), w(0xe1), w(0x69), w(0x14), w(0x63), \
+        w(0x55), w(0x21), w(0x0c), w(0x7d)                             \
+    }
 /* clang-format on */
 
 /* X Macro trick. See https://en.wikipedia.org/wiki/X_Macro */
 #define SSE2NEON_AES_H0(x) (x)
-static const uint8_t SSE2NEON_sbox[256] = SSE2NEON_AES_DATA(SSE2NEON_AES_H0);
+static const uint8_t SSE2NEON_sbox[256] = SSE2NEON_AES_SBOX(SSE2NEON_AES_H0);
+static const uint8_t SSE2NEON_rsbox[256] = SSE2NEON_AES_RSBOX(SSE2NEON_AES_H0);
 #undef SSE2NEON_AES_H0
 
 // In the absence of crypto extensions, implement aesenc using regular neon
@@ -9457,7 +9498,7 @@ static const uint8_t SSE2NEON_sbox[256] = SSE2NEON_AES_DATA(SSE2NEON_AES_H0);
 // https://www.workofard.com/2017/07/ghash-for-low-end-cores/ and
 // https://github.com/ColinIanKing/linux-next-mirror/blob/b5f466091e130caaf0735976648f72bd5e09aa84/crypto/aegis128-neon-inner.c#L52
 // for more information Reproduced with permission of the author.
-FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
+FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 {
 #if defined(__aarch64__)
     static const uint8_t shift_rows[] = {0x0, 0x5, 0xa, 0xf, 0x4, 0x9,
@@ -9467,7 +9508,7 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
                                        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc};
 
     uint8x16_t v;
-    uint8x16_t w = vreinterpretq_u8_m128i(EncBlock);
+    uint8x16_t w = vreinterpretq_u8_m128i(a);
 
     // shift rows
     w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
@@ -9486,11 +9527,13 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
     //  add round key
     return vreinterpretq_m128i_u8(w) ^ RoundKey;
 
-#else /* ARMv7-A implementation */
+#else /* ARMv7-A implementation for a table-based AES */
 #define SSE2NEON_AES_B2W(b0, b1, b2, b3)                 \
     (((uint32_t) (b3) << 24) | ((uint32_t) (b2) << 16) | \
      ((uint32_t) (b1) << 8) | (uint32_t) (b0))
+// muliplying 'x' by 2 in GF(2^8)
 #define SSE2NEON_AES_F2(x) ((x << 1) ^ (((x >> 7) & 1) * 0x011b /* WPOLY */))
+// muliplying 'x' by 3 in GF(2^8)
 #define SSE2NEON_AES_F3(x) (SSE2NEON_AES_F2(x) ^ x)
 #define SSE2NEON_AES_U0(p) \
     SSE2NEON_AES_B2W(SSE2NEON_AES_F2(p), p, p, SSE2NEON_AES_F3(p))
@@ -9500,11 +9543,14 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
     SSE2NEON_AES_B2W(p, SSE2NEON_AES_F3(p), SSE2NEON_AES_F2(p), p)
 #define SSE2NEON_AES_U3(p) \
     SSE2NEON_AES_B2W(p, p, SSE2NEON_AES_F3(p), SSE2NEON_AES_F2(p))
+
+    // this generates a table containing every possible permutation of
+    // shift_rows() and sub_bytes() with mix_columns().
     static const uint32_t ALIGN_STRUCT(16) aes_table[4][256] = {
-        SSE2NEON_AES_DATA(SSE2NEON_AES_U0),
-        SSE2NEON_AES_DATA(SSE2NEON_AES_U1),
-        SSE2NEON_AES_DATA(SSE2NEON_AES_U2),
-        SSE2NEON_AES_DATA(SSE2NEON_AES_U3),
+        SSE2NEON_AES_SBOX(SSE2NEON_AES_U0),
+        SSE2NEON_AES_SBOX(SSE2NEON_AES_U1),
+        SSE2NEON_AES_SBOX(SSE2NEON_AES_U2),
+        SSE2NEON_AES_SBOX(SSE2NEON_AES_U3),
     };
 #undef SSE2NEON_AES_B2W
 #undef SSE2NEON_AES_F2
@@ -9514,11 +9560,15 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
 #undef SSE2NEON_AES_U2
 #undef SSE2NEON_AES_U3
 
-    uint32_t x0 = _mm_cvtsi128_si32(EncBlock);
-    uint32_t x1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(EncBlock, 0x55));
-    uint32_t x2 = _mm_cvtsi128_si32(_mm_shuffle_epi32(EncBlock, 0xAA));
-    uint32_t x3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(EncBlock, 0xFF));
+    uint32_t x0 = _mm_cvtsi128_si32(a);  // get a[31:0]
+    uint32_t x1 =
+        _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0x55));  // get a[63:32]
+    uint32_t x2 =
+        _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0xAA));  // get a[95:64]
+    uint32_t x3 =
+        _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0xFF));  // get a[127:96]
 
+    // finish the modulo addition step in mix_columns()
     __m128i out = _mm_set_epi32(
         (aes_table[0][x3 & 0xff] ^ aes_table[1][(x0 >> 8) & 0xff] ^
          aes_table[2][(x1 >> 16) & 0xff] ^ aes_table[3][x2 >> 24]),
@@ -9530,6 +9580,80 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i EncBlock, __m128i RoundKey)
          aes_table[2][(x2 >> 16) & 0xff] ^ aes_table[3][x3 >> 24]));
 
     return _mm_xor_si128(out, RoundKey);
+#endif
+}
+
+// Perform one round of an AES decryption flow on data (state) in a using the
+// round key in RoundKey, and store the result in dst.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdec_si128
+FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
+{
+#if defined(__aarch64__)
+    static const uint8_t inv_shift_rows[] = {0x0, 0xd, 0xa, 0x7, 0x4, 0x1,
+                                             0xe, 0xb, 0x8, 0x5, 0x2, 0xf,
+                                             0xc, 0x9, 0x6, 0x3};
+    static const uint8_t ror32by8[] = {0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
+                                       0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc};
+
+    uint8x16_t v;
+    uint8x16_t w = vreinterpretq_u8_m128i(a);
+
+    // shift rows
+    w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
+
+    // sub bytes
+    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(SSE2NEON_rsbox), w);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0x40), w - 0x40);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0x80), w - 0x80);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0xc0), w - 0xc0);
+
+    // muliplying 'v' by 4 in GF(2^8)
+    w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) & 0x1b);
+    w = (w << 1) ^ (uint8x16_t) (((int8x16_t) w >> 7) & 0x1b);
+    v ^= w;
+    v ^= (uint8x16_t) vrev32q_u16((uint16x8_t) w);
+
+    // mix columns
+    w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) &
+                                 0x1b);  // muliplying 'v' by 2 in GF(2^8)
+    w ^= (uint8x16_t) vrev32q_u16((uint16x8_t) v);
+    w ^= vqtbl1q_u8(v ^ w, vld1q_u8(ror32by8));
+
+    // add round key
+    return vreinterpretq_m128i_u8(w) ^ RoundKey;
+
+#else /* ARMv7-A NEON implementation */
+/* FIXME: optimized for NEON */
+#define XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
+#define MULTIPLY(x, y)                                                     \
+    (((y & 1) * x) ^ ((y >> 1 & 1) * XT(x)) ^ ((y >> 2 & 1) * XT(XT(x))) ^ \
+     ((y >> 3 & 1) * XT(XT(XT(x)))) ^ ((y >> 4 & 1) * XT(XT(XT(XT(x))))))
+
+    uint8_t i, e, f, g, h, v[4][4];
+    uint8_t *_a = (uint8_t *) &a;
+    for (i = 0; i < 16; ++i) {
+        v[((i / 4) + (i % 4)) % 4][i % 4] = SSE2NEON_rsbox[_a[i]];
+    }
+
+    for (i = 0; i < 4; ++i) {
+        e = v[i][0];
+        f = v[i][1];
+        g = v[i][2];
+        h = v[i][3];
+
+        v[i][0] = MULTIPLY(e, 0x0e) ^ MULTIPLY(f, 0x0b) ^ MULTIPLY(g, 0x0d) ^
+                  MULTIPLY(h, 0x09);
+        v[i][1] = MULTIPLY(e, 0x09) ^ MULTIPLY(f, 0x0e) ^ MULTIPLY(g, 0x0b) ^
+                  MULTIPLY(h, 0x0d);
+        v[i][2] = MULTIPLY(e, 0x0d) ^ MULTIPLY(f, 0x09) ^ MULTIPLY(g, 0x0e) ^
+                  MULTIPLY(h, 0x0b);
+        v[i][3] = MULTIPLY(e, 0x0b) ^ MULTIPLY(f, 0x0d) ^ MULTIPLY(g, 0x09) ^
+                  MULTIPLY(h, 0x0e);
+    }
+#undef XT
+#undef MULTIPLY
+
+    return vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v)) ^ RoundKey;
 #endif
 }
 
@@ -9601,7 +9725,8 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i key, const int rcon)
     return _mm_set_epi32(((X3 >> 8) | (X3 << 24)) ^ rcon, X3,
                          ((X1 >> 8) | (X1 << 24)) ^ rcon, X1);
 }
-#undef SSE2NEON_AES_DATA
+#undef SSE2NEON_AES_SBOX
+#undef SSE2NEON_AES_RSBOX
 
 #else /* __ARM_FEATURE_CRYPTO */
 // Implements equivalent of 'aesenc' by combining AESE (with an empty key) and
@@ -9617,6 +9742,16 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
         vreinterpretq_u8_m128i(b));
 }
 
+// Perform one round of an AES decryption flow on data (state) in a using the
+// round key in RoundKey, and store the result in dst.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdec_si128
+FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
+{
+    return vreinterpretq_m128i_u8(veorq_u8(
+        vaesimcq_u8(vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))),
+        vreinterpretq_u8_m128i(RoundKey)));
+}
+
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_aesenclast_si128
 FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 {
@@ -9625,6 +9760,10 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
                          RoundKey);
 }
 
+// Assist in expanding the AES cipher key by computing steps towards generating
+// a round key for encryption cipher using data from a and an 8-bit round
+// constant specified in imm8, and store the result in dst."
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aeskeygenassist_si128
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 {
     // AESE does ShiftRows and SubBytes on A
