@@ -11572,11 +11572,8 @@ result_t test_mm_aeskeygenassist_si128(const SSE2NEONTestImpl &impl,
                                        uint32_t iter)
 {
     const int32_t *a = (int32_t *) impl.mTestIntPointer1;
-    const int32_t *b = (int32_t *) impl.mTestIntPointer2;
     __m128i data = _mm_loadu_si128((const __m128i *) a);
 
-    (void) b;  // parameter b is unused because we can only pass an 8-bit
-               // immediate to _mm_aeskeygenassist_si128.
     const int8_t rcon = 0x40; /* an arbitrary 8-bit immediate */
     __m128i resultReference = aeskeygenassist_128_reference(data, rcon);
     __m128i resultIntrinsic = _mm_aeskeygenassist_si128(data, rcon);
