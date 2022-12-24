@@ -11577,7 +11577,24 @@ result_t test_mm_aesenclast_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_aesdeclast_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return TEST_UNIMPL;
+    const uint8_t *a = (uint8_t *) impl.mTestIntPointer1;
+    const uint8_t *rk = (uint8_t *) impl.mTestIntPointer2;
+    __m128i _a = _mm_loadu_si128((const __m128i *) a);
+    __m128i _rk = _mm_loadu_si128((const __m128i *) rk);
+    uint8_t c[16] = {};
+
+    uint8_t v[4][4];
+    for (int i = 0; i < 16; ++i) {
+        v[((i / 4) + (i % 4)) % 4][i % 4] = crypto_aes_rsbox[a[i]];
+    }
+    for (int i = 0; i < 16; ++i) {
+        c[i] = v[i / 4][i % 4] ^ rk[i];
+    }
+
+    __m128i result_reference = _mm_loadu_si128((const __m128i *) c);
+    __m128i result_intrinsic = _mm_aesdeclast_si128(_a, _rk);
+
+    return validate128(result_reference, result_intrinsic);
 }
 
 static inline uint32_t sub_word(uint32_t key)
