@@ -9509,21 +9509,27 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);
 
-    // shift rows
+    /* shift rows */
     w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
 
-    // sub bytes
+    /* sub bytes */
+    // Here, we separate the whole 256-bytes table into 4 64-bytes tables, and
+    // look up each of the table. After each lookup, we load the next table
+    // which locates at the next 64-bytes. In the meantime, the index in the
+    // table would be smaller than it was, so the index parameters of
+    // `vqtbx4q_u8()` need to be added the same constant as the loaded tables.
     v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(SSE2NEON_sbox), w);
+    // 'w-0x40' equals to 'vsubq_u8(w, vdupq_n_u8(0x40))'
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x40), w - 0x40);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x80), w - 0x80);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0xc0), w - 0xc0);
 
-    // mix columns
+    /* mix columns */
     w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) & 0x1b);
     w ^= (uint8x16_t) vrev32q_u16((uint16x8_t) v);
     w ^= vqtbl1q_u8(v ^ w, vld1q_u8(ror32by8));
 
-    //  add round key
+    /* add round key */
     return vreinterpretq_m128i_u8(w) ^ RoundKey;
 
 #else /* ARMv7-A implementation for a table-based AES */
@@ -9676,12 +9682,11 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 
     // sub bytes
     v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(SSE2NEON_sbox), w);
-    // 'w-0x40' equals to 'vsubq_u8(w, vdupq_n_u8(0x40))'
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x40), w - 0x40);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0x80), w - 0x80);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_sbox + 0xc0), w - 0xc0);
 
-    //  add round key
+    // add round key
     return vreinterpretq_m128i_u8(v) ^ RoundKey;
 
 #else /* ARMv7-A implementation */
