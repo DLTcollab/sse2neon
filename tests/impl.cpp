@@ -1,6 +1,6 @@
-#include "impl.h"
 #include <assert.h>
 #include <float.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stdalign.h>
 #include <stdint.h>
@@ -8,9 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <utility>
-#include "binding.h"
 
-#include <inttypes.h>
+#include "binding.h"
+#include "impl.h"
 
 // Try 10,000 random floating point values for each test we run
 #define MAX_TEST_VALUE 10000
@@ -31,7 +31,7 @@
 // This program a set of unit tests to ensure that each SSE call provide the
 // output we expect.  If this fires an assert, then something didn't match up.
 //
-// Functions with `test_` prefix will be called in runSingleTest.
+// Functions with "test_" prefix will be called in runSingleTest.
 namespace SSE2NEON
 {
 // Forward declaration
@@ -329,8 +329,8 @@ result_t test_mm_slli_si128(const SSE2NEONTestImpl &impl, uint32_t iter);
 result_t test_mm_srli_si128(const SSE2NEONTestImpl &impl, uint32_t iter);
 result_t test_mm_shuffle_pi16(const SSE2NEONTestImpl &impl, uint32_t iter);
 
-// This function is not called from `runSingleTest`, but for other intrinsic
-// tests that might need to call `_mm_set_epi32`.
+// This function is not called from "runSingleTest", but for other intrinsic
+// tests that might need to call "_mm_set_epi32".
 __m128i do_mm_set_epi32(int32_t x, int32_t y, int32_t z, int32_t w)
 {
     __m128i a = _mm_set_epi32(x, y, z, w);
@@ -338,7 +338,7 @@ __m128i do_mm_set_epi32(int32_t x, int32_t y, int32_t z, int32_t w)
     return a;
 }
 
-// This function is not called from `runSingleTest`, but for other intrinsic
+// This function is not called from "runSingleTest", but for other intrinsic
 // tests that might need to load __m64 data.
 template <class T>
 __m64 load_m64(const T *p)
@@ -346,16 +346,16 @@ __m64 load_m64(const T *p)
     return *((const __m64 *) p);
 }
 
-// This function is not called from `runSingleTest`, but for other intrinsic
-// tests that might need to call `_mm_load_ps`.
+// This function is not called from "runSingleTest", but for other intrinsic
+// tests that might need to call "_mm_load_ps".
 template <class T>
 __m128 load_m128(const T *p)
 {
     return _mm_loadu_ps((const float *) p);
 }
 
-// This function is not called from `runSingleTest`, but for other intrinsic
-// tests that might need to call `_mm_load_ps`.
+// This function is not called from "runSingleTest", but for other intrinsic
+// tests that might need to call "_mm_load_ps".
 template <class T>
 __m128i load_m128i(const T *p)
 {
@@ -364,16 +364,16 @@ __m128i load_m128i(const T *p)
     return ia;
 }
 
-// This function is not called from `runSingleTest`, but for other intrinsic
-// tests that might need to call `_mm_load_pd`.
+// This function is not called from "runSingleTest", but for other intrinsic
+// tests that might need to call "_mm_load_pd".
 template <class T>
 __m128d load_m128d(const T *p)
 {
     return _mm_loadu_pd((const double *) p);
 }
 
-// This function is not called from `runSingleTest`, but for other intrinsic
-// tests that might need to call `_mm_store_ps`.
+// This function is not called from "runSingleTest", but for other intrinsic
+// tests that might need to call "_mm_store_ps".
 result_t do_mm_store_ps(float *p, float x, float y, float z, float w)
 {
     __m128 a = _mm_set_ps(x, y, z, w);
@@ -385,8 +385,8 @@ result_t do_mm_store_ps(float *p, float x, float y, float z, float w)
     return TEST_SUCCESS;
 }
 
-// This function is not called from `runSingleTest`, but for other intrinsic
-// tests that might need to call `_mm_store_ps`.
+// This function is not called from "runSingleTest", but for other intrinsic
+// tests that might need to call "_mm_store_ps".
 result_t do_mm_store_ps(int32_t *p, int32_t x, int32_t y, int32_t z, int32_t w)
 {
     __m128i a = _mm_set_epi32(x, y, z, w);
@@ -608,6 +608,7 @@ static const uint8_t crypto_aes_rsbox[256] = {
 
 // XT is x_time function that muliplies 'x' by 2 in GF(2^8)
 #define XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
+
 inline __m128i aesenc_128_reference(__m128i a, __m128i b)
 {
     uint8_t i, t, u, v[4][4];
@@ -1953,7 +1954,7 @@ result_t test_mm_div_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    // FIXME GCC has bug on `_mm_extract_pi16` intrinsics. We will enable this
+    // FIXME GCC has bug on "_mm_extract_pi16" intrinsics. We will enable this
     // test when GCC fix this bug.
     // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98495 for more
     // information
@@ -2668,8 +2669,8 @@ result_t test_mm_rsqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_rsqrt_ps(a);
 
-    // Here, we ensure `_mm_rsqrt_ps()`'s error is under 1% compares to the C
-    // implementation.
+    // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 1% compared
+    // to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.01f);
 }
 
@@ -2685,8 +2686,8 @@ result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_rsqrt_ss(a);
 
-    // Here, we ensure `_mm_rsqrt_ps()`'s error is under 1% compares to the C
-    // implementation.
+    // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 1% compared
+    // to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.01f);
 }
 
@@ -2910,8 +2911,8 @@ result_t test_mm_sqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_sqrt_ps(a);
 
-    // Here, we ensure `_mm_sqrt_ps()`'s error is under 1% compares to the C
-    // implementation.
+    // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 1% compared
+    // to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.01f);
 }
 
@@ -2927,8 +2928,8 @@ result_t test_mm_sqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_sqrt_ss(a);
 
-    // Here, we ensure `_mm_sqrt_ps()`'s error is under 1% compares to the C
-    // implementation.
+    // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 1% compared
+    // to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.01f);
 }
 
@@ -5999,7 +6000,7 @@ result_t test_mm_slli_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
 #if defined(__clang__)
-    // Clang compiler does not allow the second argument of `_mm_slli_epi64()`
+    // Clang compiler does not allow the second argument of "_mm_slli_epi64()"
     // to be greater than 63.
     const int count = (int) (iter % 65 - 1);  // range: -1 ~ 63
 #else
