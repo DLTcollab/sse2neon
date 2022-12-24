@@ -628,25 +628,10 @@ inline __m128i aesenclast_128_reference(__m128i s, __m128i rk)
     return s;
 }
 
-static inline uint32_t sub_word(uint32_t key)
-{
-    return (crypto_aes_sbox[key >> 24] << 24) |
-           (crypto_aes_sbox[(key >> 16) & 0xff] << 16) |
-           (crypto_aes_sbox[(key >> 8) & 0xff] << 8) |
-           crypto_aes_sbox[key & 0xff];
-}
-
 // Rotates right (circular right shift) value by "amount" positions
 static inline uint32_t rotr(uint32_t value, uint32_t amount)
 {
     return (value >> amount) | (value << ((32 - amount) & 31));
-}
-
-inline __m128i aeskeygenassist_128_reference(__m128i a, const int rcon)
-{
-    const uint32_t X1 = sub_word(_mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0x55)));
-    const uint32_t X3 = sub_word(_mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0xFF)));
-    return _mm_set_epi32(rotr(X3, 8) ^ rcon, X3, rotr(X1, 8) ^ rcon, X1);
 }
 
 static inline uint64_t MUL(uint32_t a, uint32_t b)
@@ -11595,20 +11580,37 @@ result_t test_mm_aesdeclast_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_UNIMPL;
 }
 
+static inline uint32_t sub_word(uint32_t key)
+{
+    return (crypto_aes_sbox[(key >> 24) & 0xff] << 24) |
+           (crypto_aes_sbox[(key >> 16) & 0xff] << 16) |
+           (crypto_aes_sbox[(key >> 8) & 0xff] << 8) |
+           (crypto_aes_sbox[key & 0xff]);
+}
+
 // FIXME: improve the test case for AES-256 key expansion.
 // Reference:
 // https://github.com/randombit/botan/blob/master/src/lib/block/aes/aes_ni/aes_ni.cpp
 result_t test_mm_aeskeygenassist_si128(const SSE2NEONTestImpl &impl,
                                        uint32_t iter)
 {
-    const int32_t *a = (int32_t *) impl.mTestIntPointer1;
-    __m128i data = _mm_loadu_si128((const __m128i *) a);
-
+    const uint32_t *a = (uint32_t *) impl.mTestIntPointer1;
+    __m128i data = load_m128i(a);
     const int8_t rcon = 0x40; /* an arbitrary 8-bit immediate */
-    __m128i resultReference = aeskeygenassist_128_reference(data, rcon);
-    __m128i resultIntrinsic = _mm_aeskeygenassist_si128(data, rcon);
 
-    return validate128(resultReference, resultIntrinsic);
+    uint32_t sub_x1 = sub_word(a[1]);
+    uint32_t sub_x3 = sub_word(a[3]);
+    uint32_t res[4] = {
+        sub_x1,
+        rotr(sub_x1, 8) ^ rcon,
+        sub_x3,
+        rotr(sub_x3, 8) ^ rcon,
+    };
+    __m128i result_reference = load_m128i(res);
+
+    __m128i result_intrinsic = _mm_aeskeygenassist_si128(data, rcon);
+
+    return validate128(result_reference, result_intrinsic);
 }
 
 /* Others */
