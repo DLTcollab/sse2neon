@@ -30,8 +30,8 @@ Header file | Extension |
 
 In order to deliver NEON-equivalent intrinsics for all SSE intrinsics used widely,
 please be aware that some SSE intrinsics exist a direct mapping with a concrete
-NEON-equivalent intrinsic. However, others lack of 1-to-1 mapping, that means the
-equivalents are implemented using several NEON intrinsics.
+NEON-equivalent intrinsic. Others, unfortunately, lack a 1:1 mapping, meaning that
+their equivalents are built utilizing a number of NEON intrinsics.
 
 For example, SSE intrinsic `_mm_loadu_si128` has a direct NEON mapping (`vld1q_s32`),
 but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instructions.
@@ -199,7 +199,8 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
     - implementation: [xmmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/xmmintrin.h), [emmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/emmintrin.h), [pmmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/pmmintrin.h), [tmmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/tmmintrin.h), [smmintrin.h](https://github.com/gcc-mirror/gcc/blob/master/gcc/config/rs6000/smmintrin.h)
 
 ## Reference
-* [Intel Intrinsics Guide](https://software.intel.com/sites/landingpage/IntrinsicsGuide/)
+* [Intel Intrinsics Guide](https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html)
+* [Microsoft: x86 intrinsics list](https://learn.microsoft.com/en-us/cpp/intrinsics/x86-intrinsics-list)
 * [Arm Neon Intrinsics Reference](https://developer.arm.com/architectures/instruction-sets/simd-isas/neon/intrinsics)
 * [Neon Programmer's Guide for Armv8-A](https://developer.arm.com/architectures/instruction-sets/simd-isas/neon/neon-programmers-guide-for-armv8-a)
 * [NEON Programmer's Guide](https://static.docs.arm.com/den0018/a/DEN0018A_neon_programmers_guide_en.pdf)
