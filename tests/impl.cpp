@@ -420,96 +420,44 @@ double cmp_hasNaN(double a, double b)
 
 int32_t comilt_ss(float a, float b)
 {
-    int32_t ret;
-
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    if (!isNANA && !isNANB) {
-        ret = a < b ? 1 : 0;
-    } else {
-        ret = 0;  // **NOTE** The documentation on MSDN is in error!  The actual
-                  // hardware returns a 0, not a 1 if either of the values is a
-                  // NAN!
-    }
-    return ret;
+    if (isnan(a) || isnan(b))
+        return 0;
+    return (a < b);
 }
 
 int32_t comigt_ss(float a, float b)
 {
-    int32_t ret;
-
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    if (!isNANA && !isNANB) {
-        ret = a > b ? 1 : 0;
-    } else {
-        ret = 0;  // **NOTE** The documentation on MSDN is in error!  The actual
-                  // hardware returns a 0, not a 1 if either of the values is a
-                  // NAN!
-    }
-    return ret;
+    if (isnan(a) || isnan(b))
+        return 0;
+    return (a > b);
 }
 
 int32_t comile_ss(float a, float b)
 {
-    int32_t ret;
-
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    if (!isNANA && !isNANB) {
-        ret = a <= b ? 1 : 0;
-    } else {
-        ret = 0;  // **NOTE** The documentation on MSDN is in error!  The actual
-                  // hardware returns a 0, not a 1 if either of the values is a
-                  // NAN!
-    }
-    return ret;
+    if (isnan(a) || isnan(b))
+        return 0;
+    return (a <= b);
 }
 
 int32_t comige_ss(float a, float b)
 {
-    int32_t ret;
-
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    if (!isNANA && !isNANB) {
-        ret = a >= b ? 1 : 0;
-    } else {
-        ret = 0;  // **NOTE** The documentation on MSDN is in error!  The actual
-                  // hardware returns a 0, not a 1 if either of the values is a
-                  // NAN!
-    }
-    return ret;
+    if (isnan(a) || isnan(b))
+        return 0;
+    return (a >= b);
 }
 
 int32_t comieq_ss(float a, float b)
 {
-    int32_t ret;
-
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    if (!isNANA && !isNANB) {
-        ret = a == b ? 1 : 0;
-    } else {
-        ret = 0;  // **NOTE** The documentation on MSDN is in error!  The actual
-                  // hardware returns a 0, not a 1 if either of the values is a
-                  // NAN!
-    }
-    return ret;
+    if (isnan(a) || isnan(b))
+        return 0;
+    return (a == b);
 }
 
 int32_t comineq_ss(float a, float b)
 {
-    int32_t ret;
-
-    bool isNANA = isnan(a);
-    bool isNANB = isnan(b);
-    if (!isNANA && !isNANB) {
-        ret = a != b ? 1 : 0;
-    } else {
-        ret = 1;
-    }
-    return ret;
+    if (isnan(a) || isnan(b))
+        return 1;
+    return (a != b);
 }
 
 static inline int16_t saturate_16(int32_t a)
