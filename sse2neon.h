@@ -4,8 +4,6 @@
 // This header file provides a simple API translation layer
 // between SSE intrinsics to their corresponding Arm/Aarch64 NEON versions
 //
-// This header file does not yet translate all of the SSE intrinsics.
-//
 // Contributors to this work are:
 //   John W. Ratcliff <jratcliffscarab@gmail.com>
 //   Brandon Rowlett <browlett@nvidia.com>
@@ -13,8 +11,8 @@
 //   Eric van Beurden <evanbeurden@nvidia.com>
 //   Alexander Potylitsin <apotylitsin@nvidia.com>
 //   Hasindu Gamaarachchi <hasindu2008@gmail.com>
-//   Jim Huang <jserv@biilabs.io>
-//   Mark Cheng <marktwtn@biilabs.io>
+//   Jim Huang <jserv@ccns.ncku.edu.tw>
+//   Mark Cheng <marktwtn@gmail.com>
 //   Malcolm James MacLeod <malcolm@gulden.com>
 //   Devin Hussey (easyaspi314) <husseydevin@gmail.com>
 //   Sebastian Pop <spop@amazon.com>
@@ -22,7 +20,7 @@
 //   Danila Kutenin <danilak@google.com>
 //   François Turban (JishinMaster) <francois.turban@gmail.com>
 //   Pei-Hsuan Hung <afcidk@gmail.com>
-//   Yang-Hao Yuan <yanghau@biilabs.io>
+//   Yang-Hao Yuan <yuanyanghau@gmail.com>
 //   Syoyo Fujita <syoyo@lighttransport.com>
 //   Brecht Van Lommel <brecht@blender.org>
 //   Jonathan Hue <jhue@adobe.com>
