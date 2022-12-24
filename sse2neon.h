@@ -9499,9 +9499,10 @@ static const uint8_t SSE2NEON_rsbox[256] = SSE2NEON_AES_RSBOX(SSE2NEON_AES_H0);
 FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 {
 #if defined(__aarch64__)
-    static const uint8_t shift_rows[] = {0x0, 0x5, 0xa, 0xf, 0x4, 0x9,
-                                         0xe, 0x3, 0x8, 0xd, 0x2, 0x7,
-                                         0xc, 0x1, 0x6, 0xb};
+    static const uint8_t shift_rows[] = {
+        0x0, 0x5, 0xa, 0xf, 0x4, 0x9, 0xe, 0x3,
+        0x8, 0xd, 0x2, 0x7, 0xc, 0x1, 0x6, 0xb,
+    };
     static const uint8_t ror32by8[] = {0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
                                        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc};
 
@@ -9587,31 +9588,32 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
 {
 #if defined(__aarch64__)
-    static const uint8_t inv_shift_rows[] = {0x0, 0xd, 0xa, 0x7, 0x4, 0x1,
-                                             0xe, 0xb, 0x8, 0x5, 0x2, 0xf,
-                                             0xc, 0x9, 0x6, 0x3};
+    static const uint8_t inv_shift_rows[] = {
+        0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
+        0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
+    };
     static const uint8_t ror32by8[] = {0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
                                        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc};
 
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);
 
-    // shift rows
+    // inverse shift rows
     w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
 
-    // sub bytes
+    // inverse sub bytes
     v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(SSE2NEON_rsbox), w);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0x40), w - 0x40);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0x80), w - 0x80);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0xc0), w - 0xc0);
 
+    // inverse mix columns
     // muliplying 'v' by 4 in GF(2^8)
     w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) & 0x1b);
     w = (w << 1) ^ (uint8x16_t) (((int8x16_t) w >> 7) & 0x1b);
     v ^= w;
     v ^= (uint8x16_t) vrev32q_u16((uint16x8_t) w);
 
-    // mix columns
     w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) &
                                  0x1b);  // muliplying 'v' by 2 in GF(2^8)
     w ^= (uint8x16_t) vrev32q_u16((uint16x8_t) v);
@@ -9706,6 +9708,44 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 #endif
 }
 
+// Perform the last round of an AES decryption flow on data (state) in a using
+// the round key in RoundKey, and store the result in dst.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdeclast_si128
+FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
+{
+#if defined(__aarch64__)
+    static const uint8_t inv_shift_rows[] = {
+        0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
+        0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
+    };
+
+    uint8x16_t v;
+    uint8x16_t w = vreinterpretq_u8_m128i(a);
+
+    // inverse shift rows
+    w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
+
+    // inverse sub bytes
+    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(SSE2NEON_rsbox), w);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0x40), w - 0x40);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0x80), w - 0x80);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(SSE2NEON_rsbox + 0xc0), w - 0xc0);
+
+    // add round key
+    return vreinterpretq_m128i_u8(v) ^ RoundKey;
+
+#else /* ARMv7-A NEON implementation */
+    /* FIXME: optimized for NEON */
+    uint8_t v[4][4];
+    uint8_t *_a = (uint8_t *) &a;
+    for (int i = 0; i < 16; ++i) {
+        v[((i / 4) + (i % 4)) % 4][i % 4] = SSE2NEON_rsbox[_a[i]];
+    }
+
+    return vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v)) ^ RoundKey;
+#endif
+}
+
 // Emits the Advanced Encryption Standard (AES) instruction aeskeygenassist.
 // This instruction generates a round key for AES encryption. See
 // https://kazakov.life/2017/11/01/cryptocurrency-mining-on-ios-devices/
@@ -9750,12 +9790,24 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
         vreinterpretq_u8_m128i(RoundKey)));
 }
 
+// Perform the last round of an AES encryption flow on data (state) in a using
+// the round key in RoundKey, and store the result in dst.
 // https://software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_aesenclast_si128
 FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 {
     return _mm_xor_si128(vreinterpretq_m128i_u8(vaeseq_u8(
                              vreinterpretq_u8_m128i(a), vdupq_n_u8(0))),
                          RoundKey);
+}
+
+// Perform the last round of an AES decryption flow on data (state) in a using
+// the round key in RoundKey, and store the result in dst.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdeclast_si128
+FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
+{
+    return vreinterpretq_m128i_u8(
+               vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))) ^
+           vreinterpretq_u8_m128i(RoundKey);
 }
 
 // Assist in expanding the AES cipher key by computing steps towards generating
