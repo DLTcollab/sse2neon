@@ -11597,6 +11597,37 @@ result_t test_mm_aesdeclast_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validate128(result_reference, result_intrinsic);
 }
 
+result_t test_mm_aesimc_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
+{
+    const uint8_t *a = (uint8_t *) impl.mTestIntPointer1;
+    __m128i _a = _mm_loadu_si128((const __m128i *) a);
+
+    uint8_t e, f, g, h, v[4][4];
+    for (int i = 0; i < 16; ++i) {
+        ((uint8_t *) v)[i] = a[i];
+    }
+    for (int i = 0; i < 4; ++i) {
+        e = v[i][0];
+        f = v[i][1];
+        g = v[i][2];
+        h = v[i][3];
+
+        v[i][0] = MULTIPLY(e, 0x0e) ^ MULTIPLY(f, 0x0b) ^ MULTIPLY(g, 0x0d) ^
+                  MULTIPLY(h, 0x09);
+        v[i][1] = MULTIPLY(e, 0x09) ^ MULTIPLY(f, 0x0e) ^ MULTIPLY(g, 0x0b) ^
+                  MULTIPLY(h, 0x0d);
+        v[i][2] = MULTIPLY(e, 0x0d) ^ MULTIPLY(f, 0x09) ^ MULTIPLY(g, 0x0e) ^
+                  MULTIPLY(h, 0x0b);
+        v[i][3] = MULTIPLY(e, 0x0b) ^ MULTIPLY(f, 0x0d) ^ MULTIPLY(g, 0x09) ^
+                  MULTIPLY(h, 0x0e);
+    }
+
+    __m128i result_reference = _mm_loadu_si128((const __m128i *) v);
+    __m128i result_intrinsic = _mm_aesimc_si128(_a);
+
+    return validate128(result_reference, result_intrinsic);
+}
+
 static inline uint32_t sub_word(uint32_t key)
 {
     return (crypto_aes_sbox[(key >> 24) & 0xff] << 24) |
