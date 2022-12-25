@@ -11628,12 +11628,12 @@ result_t test_mm_aesimc_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validate128(result_reference, result_intrinsic);
 }
 
-static inline uint32_t sub_word(uint32_t key)
+static inline uint32_t sub_word(uint32_t in)
 {
-    return (crypto_aes_sbox[(key >> 24) & 0xff] << 24) |
-           (crypto_aes_sbox[(key >> 16) & 0xff] << 16) |
-           (crypto_aes_sbox[(key >> 8) & 0xff] << 8) |
-           (crypto_aes_sbox[key & 0xff]);
+    return (crypto_aes_sbox[(in >> 24) & 0xff] << 24) |
+           (crypto_aes_sbox[(in >> 16) & 0xff] << 16) |
+           (crypto_aes_sbox[(in >> 8) & 0xff] << 8) |
+           (crypto_aes_sbox[in & 0xff]);
 }
 
 // FIXME: improve the test case for AES-256 key expansion.
