@@ -9503,8 +9503,10 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
         0x0, 0x5, 0xa, 0xf, 0x4, 0x9, 0xe, 0x3,
         0x8, 0xd, 0x2, 0x7, 0xc, 0x1, 0x6, 0xb,
     };
-    static const uint8_t ror32by8[] = {0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
-                                       0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc};
+    static const uint8_t ror32by8[] = {
+        0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
+        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
+    };
 
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);
@@ -9592,8 +9594,10 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
         0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
         0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
     };
-    static const uint8_t ror32by8[] = {0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
-                                       0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc};
+    static const uint8_t ror32by8[] = {
+        0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
+        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
+    };
 
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);
@@ -9623,35 +9627,38 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
     return vreinterpretq_m128i_u8(w) ^ RoundKey;
 
 #else /* ARMv7-A NEON implementation */
-/* FIXME: optimized for NEON */
-#define XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
-#define MULTIPLY(x, y)                                                     \
-    (((y & 1) * x) ^ ((y >> 1 & 1) * XT(x)) ^ ((y >> 2 & 1) * XT(XT(x))) ^ \
-     ((y >> 3 & 1) * XT(XT(XT(x)))) ^ ((y >> 4 & 1) * XT(XT(XT(XT(x))))))
-
+    /* FIXME: optimized for NEON */
     uint8_t i, e, f, g, h, v[4][4];
     uint8_t *_a = (uint8_t *) &a;
     for (i = 0; i < 16; ++i) {
         v[((i / 4) + (i % 4)) % 4][i % 4] = SSE2NEON_rsbox[_a[i]];
     }
 
+#define SSE2NEON_XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
+#define SSE2NEON_MULTIPLY(x, y)                                  \
+    (((y & 1) * x) ^ ((y >> 1 & 1) * SSE2NEON_XT(x)) ^           \
+     ((y >> 2 & 1) * SSE2NEON_XT(SSE2NEON_XT(x))) ^              \
+     ((y >> 3 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x)))) ^ \
+     ((y >> 4 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x))))))
+
+    // inverse mix columns
     for (i = 0; i < 4; ++i) {
         e = v[i][0];
         f = v[i][1];
         g = v[i][2];
         h = v[i][3];
 
-        v[i][0] = MULTIPLY(e, 0x0e) ^ MULTIPLY(f, 0x0b) ^ MULTIPLY(g, 0x0d) ^
-                  MULTIPLY(h, 0x09);
-        v[i][1] = MULTIPLY(e, 0x09) ^ MULTIPLY(f, 0x0e) ^ MULTIPLY(g, 0x0b) ^
-                  MULTIPLY(h, 0x0d);
-        v[i][2] = MULTIPLY(e, 0x0d) ^ MULTIPLY(f, 0x09) ^ MULTIPLY(g, 0x0e) ^
-                  MULTIPLY(h, 0x0b);
-        v[i][3] = MULTIPLY(e, 0x0b) ^ MULTIPLY(f, 0x0d) ^ MULTIPLY(g, 0x09) ^
-                  MULTIPLY(h, 0x0e);
+        v[i][0] = SSE2NEON_MULTIPLY(e, 0x0e) ^ SSE2NEON_MULTIPLY(f, 0x0b) ^
+                  SSE2NEON_MULTIPLY(g, 0x0d) ^ SSE2NEON_MULTIPLY(h, 0x09);
+        v[i][1] = SSE2NEON_MULTIPLY(e, 0x09) ^ SSE2NEON_MULTIPLY(f, 0x0e) ^
+                  SSE2NEON_MULTIPLY(g, 0x0b) ^ SSE2NEON_MULTIPLY(h, 0x0d);
+        v[i][2] = SSE2NEON_MULTIPLY(e, 0x0d) ^ SSE2NEON_MULTIPLY(f, 0x09) ^
+                  SSE2NEON_MULTIPLY(g, 0x0e) ^ SSE2NEON_MULTIPLY(h, 0x0b);
+        v[i][3] = SSE2NEON_MULTIPLY(e, 0x0b) ^ SSE2NEON_MULTIPLY(f, 0x0d) ^
+                  SSE2NEON_MULTIPLY(g, 0x09) ^ SSE2NEON_MULTIPLY(h, 0x0e);
     }
-#undef XT
-#undef MULTIPLY
+#undef SSE2NEON_XT
+#undef SSE2NEON_MULTIPLY
 
     return vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v)) ^ RoundKey;
 #endif
@@ -9746,6 +9753,61 @@ FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 #endif
 }
 
+// Perform the InvMixColumns transformation on a and store the result in dst.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesimc_si128
+FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
+{
+#if defined(__aarch64__)
+    static const uint8_t ror32by8[] = {
+        0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
+        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
+    };
+    uint8x16_t v = vreinterpretq_u8_m128i(a);
+    uint8x16_t w;
+
+    // multiplying 'v' by 4 in GF(2^8)
+    w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) & 0x1b);
+    w = (w << 1) ^ (uint8x16_t) (((int8x16_t) w >> 7) & 0x1b);
+    v ^= w;
+    v ^= (uint8x16_t) vrev32q_u16((uint16x8_t) w);
+
+    // multiplying 'v' by 2 in GF(2^8)
+    w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) & 0x1b);
+    w ^= (uint8x16_t) vrev32q_u16((uint16x8_t) v);
+    w ^= vqtbl1q_u8(v ^ w, vld1q_u8(ror32by8));
+    return vreinterpretq_m128i_u8(w);
+
+#else /* ARMv7-A NEON implementation */
+#define SSE2NEON_XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
+#define SSE2NEON_MULTIPLY(x, y)                                  \
+    (((y & 1) * x) ^ ((y >> 1 & 1) * SSE2NEON_XT(x)) ^           \
+     ((y >> 2 & 1) * SSE2NEON_XT(SSE2NEON_XT(x))) ^              \
+     ((y >> 3 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x)))) ^ \
+     ((y >> 4 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x))))))
+
+    uint8_t i, e, f, g, h, v[4][4];
+    vst1q_u8((uint8_t *) v, vreinterpretq_u8_m128i(a));
+    for (i = 0; i < 4; ++i) {
+        e = v[i][0];
+        f = v[i][1];
+        g = v[i][2];
+        h = v[i][3];
+
+        v[i][0] = SSE2NEON_MULTIPLY(e, 0x0e) ^ SSE2NEON_MULTIPLY(f, 0x0b) ^
+                  SSE2NEON_MULTIPLY(g, 0x0d) ^ SSE2NEON_MULTIPLY(h, 0x09);
+        v[i][1] = SSE2NEON_MULTIPLY(e, 0x09) ^ SSE2NEON_MULTIPLY(f, 0x0e) ^
+                  SSE2NEON_MULTIPLY(g, 0x0b) ^ SSE2NEON_MULTIPLY(h, 0x0d);
+        v[i][2] = SSE2NEON_MULTIPLY(e, 0x0d) ^ SSE2NEON_MULTIPLY(f, 0x09) ^
+                  SSE2NEON_MULTIPLY(g, 0x0e) ^ SSE2NEON_MULTIPLY(h, 0x0b);
+        v[i][3] = SSE2NEON_MULTIPLY(e, 0x0b) ^ SSE2NEON_MULTIPLY(f, 0x0d) ^
+                  SSE2NEON_MULTIPLY(g, 0x09) ^ SSE2NEON_MULTIPLY(h, 0x0e);
+    }
+#undef SSE2NEON_XT
+#undef SSE2NEON_MULTIPLY
+    return vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v));
+#endif
+}
+
 // Emits the Advanced Encryption Standard (AES) instruction aeskeygenassist.
 // This instruction generates a round key for AES encryption. See
 // https://kazakov.life/2017/11/01/cryptocurrency-mining-on-ios-devices/
@@ -9808,6 +9870,13 @@ FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
     return vreinterpretq_m128i_u8(
                vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))) ^
            vreinterpretq_u8_m128i(RoundKey);
+}
+
+// Perform the InvMixColumns transformation on a and store the result in dst.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesimc_si128
+FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
+{
+    return vreinterpretq_m128i_u8(vaesimcq_u8(a));
 }
 
 // Assist in expanding the AES cipher key by computing steps towards generating
