@@ -9490,6 +9490,16 @@ static const uint8_t SSE2NEON_sbox[256] = SSE2NEON_AES_SBOX(SSE2NEON_AES_H0);
 static const uint8_t SSE2NEON_rsbox[256] = SSE2NEON_AES_RSBOX(SSE2NEON_AES_H0);
 #undef SSE2NEON_AES_H0
 
+/* x_time function and matrix multiply function */
+#if !defined(__aarch64__)
+#define SSE2NEON_XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
+#define SSE2NEON_MULTIPLY(x, y)                                  \
+    (((y & 1) * x) ^ ((y >> 1 & 1) * SSE2NEON_XT(x)) ^           \
+     ((y >> 2 & 1) * SSE2NEON_XT(SSE2NEON_XT(x))) ^              \
+     ((y >> 3 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x)))) ^ \
+     ((y >> 4 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x))))))
+#endif
+
 // In the absence of crypto extensions, implement aesenc using regular neon
 // intrinsics instead. See:
 // https://www.workofard.com/2017/01/accelerated-aes-for-the-arm64-linux-kernel/
@@ -9634,13 +9644,6 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
         v[((i / 4) + (i % 4)) % 4][i % 4] = SSE2NEON_rsbox[_a[i]];
     }
 
-#define SSE2NEON_XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
-#define SSE2NEON_MULTIPLY(x, y)                                  \
-    (((y & 1) * x) ^ ((y >> 1 & 1) * SSE2NEON_XT(x)) ^           \
-     ((y >> 2 & 1) * SSE2NEON_XT(SSE2NEON_XT(x))) ^              \
-     ((y >> 3 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x)))) ^ \
-     ((y >> 4 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x))))))
-
     // inverse mix columns
     for (i = 0; i < 4; ++i) {
         e = v[i][0];
@@ -9657,8 +9660,6 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
         v[i][3] = SSE2NEON_MULTIPLY(e, 0x0b) ^ SSE2NEON_MULTIPLY(f, 0x0d) ^
                   SSE2NEON_MULTIPLY(g, 0x09) ^ SSE2NEON_MULTIPLY(h, 0x0e);
     }
-#undef SSE2NEON_XT
-#undef SSE2NEON_MULTIPLY
 
     return vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v)) ^ RoundKey;
 #endif
@@ -9778,13 +9779,6 @@ FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
     return vreinterpretq_m128i_u8(w);
 
 #else /* ARMv7-A NEON implementation */
-#define SSE2NEON_XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
-#define SSE2NEON_MULTIPLY(x, y)                                  \
-    (((y & 1) * x) ^ ((y >> 1 & 1) * SSE2NEON_XT(x)) ^           \
-     ((y >> 2 & 1) * SSE2NEON_XT(SSE2NEON_XT(x))) ^              \
-     ((y >> 3 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x)))) ^ \
-     ((y >> 4 & 1) * SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(SSE2NEON_XT(x))))))
-
     uint8_t i, e, f, g, h, v[4][4];
     vst1q_u8((uint8_t *) v, vreinterpretq_u8_m128i(a));
     for (i = 0; i < 4; ++i) {
@@ -9802,8 +9796,7 @@ FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
         v[i][3] = SSE2NEON_MULTIPLY(e, 0x0b) ^ SSE2NEON_MULTIPLY(f, 0x0d) ^
                   SSE2NEON_MULTIPLY(g, 0x09) ^ SSE2NEON_MULTIPLY(h, 0x0e);
     }
-#undef SSE2NEON_XT
-#undef SSE2NEON_MULTIPLY
+
     return vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v));
 #endif
 }
@@ -9827,6 +9820,11 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i key, const int rcon)
 }
 #undef SSE2NEON_AES_SBOX
 #undef SSE2NEON_AES_RSBOX
+
+#if defined(__aarch64__)
+#undef SSE2NEON_XT
+#undef SSE2NEON_MULTIPLY
+#endif
 
 #else /* __ARM_FEATURE_CRYPTO */
 // Implements equivalent of 'aesenc' by combining AESE (with an empty key) and
