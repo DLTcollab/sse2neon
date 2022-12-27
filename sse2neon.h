@@ -9889,15 +9889,15 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 {
     return vreinterpretq_m128i_u8(
-               vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))) ^
-           vreinterpretq_u8_m128i(RoundKey);
+        vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0)) ^
+        vreinterpretq_u8_m128i(RoundKey));
 }
 
 // Perform the InvMixColumns transformation on a and store the result in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesimc_si128
 FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
 {
-    return vreinterpretq_m128i_u8(vaesimcq_u8(a));
+    return vreinterpretq_m128i_u8(vaesimcq_u8(vreinterpretq_u8_m128i(a)));
 }
 
 // Assist in expanding the AES cipher key by computing steps towards generating
