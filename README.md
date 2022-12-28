@@ -45,7 +45,7 @@ but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instru
 #include <xmmintrin.h>
 #include <emmintrin.h>
 ```
-  {p,t,s,n,w}mmintrin.h should be replaceable, but the coverage of these extensions might be limited though.
+  {p,t,s,n,w}mmintrin.h could be replaceable as well.
 
 - Replace them with:
 ```C
