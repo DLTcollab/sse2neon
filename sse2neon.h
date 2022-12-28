@@ -6451,11 +6451,17 @@ FORCE_INLINE __m128i _mm_unpackhi_epi32(__m128i a, __m128i b)
 //
 //   r0 := a1
 //   r1 := b1
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_unpackhi_epi64
 FORCE_INLINE __m128i _mm_unpackhi_epi64(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s64(
+        vzip2q_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
+#else
     int64x1_t a_h = vget_high_s64(vreinterpretq_s64_m128i(a));
     int64x1_t b_h = vget_high_s64(vreinterpretq_s64_m128i(b));
     return vreinterpretq_m128i_s64(vcombine_s64(a_h, b_h));
+#endif
 }
 
 // Interleaves the upper 8 signed or unsigned 8-bit integers in a with the upper
@@ -6556,11 +6562,19 @@ FORCE_INLINE __m128i _mm_unpacklo_epi32(__m128i a, __m128i b)
 #endif
 }
 
+// Unpack and interleave 64-bit integers from the low half of a and b, and store
+// the results in dst.
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_unpacklo_epi64
 FORCE_INLINE __m128i _mm_unpacklo_epi64(__m128i a, __m128i b)
 {
+#if defined(__aarch64__)
+    return vreinterpretq_m128i_s64(
+        vzip1q_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b)));
+#else
     int64x1_t a_l = vget_low_s64(vreinterpretq_s64_m128i(a));
     int64x1_t b_l = vget_low_s64(vreinterpretq_s64_m128i(b));
     return vreinterpretq_m128i_s64(vcombine_s64(a_l, b_l));
+#endif
 }
 
 // Interleaves the lower 8 signed or unsigned 8-bit integers in a with the lower
