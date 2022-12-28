@@ -30,13 +30,21 @@ endif
 
 # Follow platform-specific configurations
 ifeq ($(processor),$(filter $(processor),aarch64 arm64))
-    ARCH_CFLAGS = -march=armv8-a+fp+simd+crc
+    ARCH_CFLAGS = -march=armv8-a+fp+simd
 else ifeq ($(processor),$(filter $(processor),i386 x86_64))
     ARCH_CFLAGS = -maes -mpclmul -mssse3 -msse4.2
 else ifeq ($(processor),$(filter $(processor),arm armv7 armv7l))
     ARCH_CFLAGS = -mfpu=neon
 else
     $(error Unsupported architecture)
+endif
+
+FEATURE ?=
+ifneq ($(FEATURE),)
+ifneq ($(FEATURE),none)
+COMMA:= ,
+ARCH_CFLAGS := $(ARCH_CFLAGS)+$(subst $(COMMA),+,$(FEATURE))
+endif
 endif
 
 CXXFLAGS += -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -std=gnu++14
