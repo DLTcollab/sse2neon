@@ -9821,14 +9821,11 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x80), _a - 0x80);
     v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0xc0), _a - 0xc0);
 
-    uint32x4_t select_mask = {0xffffffff, 0x0, 0xffffffff, 0x0};
-    uint64x2_t v_mask = vshrq_n_u64(vreinterpretq_u64_u8(v), 32);
-    uint32x4_t x = vbslq_u32(select_mask, vreinterpretq_u32_u64(v_mask),
-                             vreinterpretq_u32_u8(v));
-    uint32x4_t ror_x = vorrq_u32(vshrq_n_u32(x, 8), vshlq_n_u32(x, 24));
-    uint32x4_t ror_xor_x = veorq_u32(ror_x, vdupq_n_u32(rcon));
+    uint32x4_t v_u32 = vreinterpretq_u32_u8(v);
+    uint32x4_t ror_v = vorrq_u32(vshrq_n_u32(v_u32, 8), vshlq_n_u32(v_u32, 24));
+    uint32x4_t ror_xor_v = veorq_u32(ror_v, vdupq_n_u32(rcon));
 
-    return vreinterpretq_m128i_u32(vbslq_u32(select_mask, x, ror_xor_x));
+    return vreinterpretq_m128i_u32(vtrn2q_u32(v_u32, ror_xor_v));
 
 #else /* ARMv7-A NEON implementation */
     uint32_t X1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0x55));
