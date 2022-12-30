@@ -1855,7 +1855,8 @@ result_t test_mm_div_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The implementation of "_mm_div_ps()" on ARM 32bit doesn't use "DIV"
     // instruction directly, instead it uses "FRECPE" instruction to approximate
     // it. Therefore, the precision is not as small as other architecture
-    return validateFloatError(c, f0, f1, f2, f3, 0.00001f);
+    //return validateFloatError(c, f0, f1, f2, f3, 0.00001f);
+    return validateFloatEpsilon(c, d0, d1, d2, d3, FLT_EPSILON * 2);
 #else
     return validateFloat(c, f0, f1, f2, f3);
 #endif
@@ -1879,7 +1880,8 @@ result_t test_mm_div_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The implementation of "_mm_div_ps()" on ARM 32bit doesn't use "DIV"
     // instruction directly, instead it uses "FRECPE" instruction to approximate
     // it. Therefore, the precision is not as small as other architecture
-    return validateFloatError(c, d0, d1, d2, d3, 0.00001f);
+    //return validateFloatError(c, d0, d1, d2, d3, 0.00001f);
+    return validateFloatEpsilon(c, d0, d1, d2, d3, FLT_EPSILON * 2);
 #else
     return validateFloat(c, d0, d1, d2, d3);
 #endif
@@ -2573,7 +2575,8 @@ result_t test_mm_rcp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     __m128 a = load_m128(_a);
     __m128 c = _mm_rcp_ps(a);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+    //return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+    return validateFloatError(c, dx, dy, dz, dw, 0.0001f);
 }
 
 result_t test_mm_rcp_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2846,7 +2849,8 @@ result_t test_mm_sqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 0.1% compared
     // to the C implementation.
-    return validateFloatError(c, f0, f1, f2, f3, 0.001f);
+    //return validateFloatError(c, f0, f1, f2, f3, 0.001f);
+    return validateFloatEpsilon(c, f0, f1, f2, f3, FLT_EPSILON * 2);
 }
 
 result_t test_mm_sqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2863,7 +2867,8 @@ result_t test_mm_sqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 0.1% compared
     // to the C implementation.
-    return validateFloatError(c, f0, f1, f2, f3, 0.001f);
+    //return validateFloatError(c, f0, f1, f2, f3, 0.001f);
+    return validateFloatEpsilon(c, f0, f1, f2, f3, FLT_EPSILON * 2);
 }
 
 result_t test_mm_store_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
