@@ -59,10 +59,6 @@
 #ifndef SSE2NEON_PRECISE_MINMAX
 #define SSE2NEON_PRECISE_MINMAX (0)
 #endif
-/* _mm_rcp_ps and _mm_div_ps */
-#ifndef SSE2NEON_PRECISE_DIV
-#define SSE2NEON_PRECISE_DIV (0)
-#endif
 /* _mm_sqrt_ps and _mm_rsqrt_ps */
 #ifndef SSE2NEON_PRECISE_SQRT
 #define SSE2NEON_PRECISE_SQRT (0)
@@ -1835,26 +1831,24 @@ FORCE_INLINE int64_t _mm_cvttss_si64(__m128 a)
     return (int64_t) vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
 }
 
-// Divides the four single-precision, floating-point values of a and b.
+// Divide packed single-precision (32-bit) floating-point elements in a by
+// packed elements in b, and store the results in dst.
 //
 //   r0 := a0 / b0
 //   r1 := a1 / b1
 //   r2 := a2 / b2
 //   r3 := a3 / b3
 //
-// https://msdn.microsoft.com/en-us/library/edaw8147(v=vs.100).aspx
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_div_ps
 FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
 {
-#if defined(__aarch64__) && !SSE2NEON_PRECISE_DIV
+#if defined(__aarch64__)
     return vreinterpretq_m128_f32(
         vdivq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 #else
     float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(b));
     recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(b)));
-#if SSE2NEON_PRECISE_DIV
-    // Additional Netwon-Raphson iteration for accuracy
     recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(b)));
-#endif
     return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(a), recip));
 #endif
 }
@@ -2438,10 +2432,6 @@ FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
 {
     float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(in));
     recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
-#if SSE2NEON_PRECISE_DIV
-    // Additional Netwon-Raphson iteration for accuracy
-    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
-#endif
     return vreinterpretq_m128_f32(recip);
 }
 
@@ -2466,10 +2456,10 @@ FORCE_INLINE __m128 _mm_rcp_ss(__m128 a)
 FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
 {
     float32x4_t out = vrsqrteq_f32(vreinterpretq_f32_m128(in));
-#if SSE2NEON_PRECISE_SQRT
-    // Additional Netwon-Raphson iteration for accuracy
     out = vmulq_f32(
         out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+#if SSE2NEON_PRECISE_SQRT
+    // Additional Netwon-Raphson iteration for accuracy
     out = vmulq_f32(
         out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
 #endif
@@ -2787,7 +2777,9 @@ FORCE_INLINE void _mm_lfence(void)
 // https://msdn.microsoft.com/en-us/library/vstudio/8z67bwwk(v=vs.100).aspx
 FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 {
-#if SSE2NEON_PRECISE_SQRT
+#if defined(__aarch64__)
+    return vreinterpretq_m128_f32(vsqrtq_f32(vreinterpretq_f32_m128(in)));
+#else
     float32x4_t recip = vrsqrteq_f32(vreinterpretq_f32_m128(in));
 
     // Test for vrsqrteq_f32(0) -> positive infinity case.
@@ -2808,12 +2800,6 @@ FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 
     // sqrt(s) = s * 1/sqrt(s)
     return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(in), recip));
-#elif defined(__aarch64__)
-    return vreinterpretq_m128_f32(vsqrtq_f32(vreinterpretq_f32_m128(in)));
-#else
-    float32x4_t recipsq = vrsqrteq_f32(vreinterpretq_f32_m128(in));
-    float32x4_t sq = vrecpeq_f32(recipsq);
-    return vreinterpretq_m128_f32(sq);
 #endif
 }
 
