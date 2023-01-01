@@ -30,6 +30,19 @@ Software requirement: [clang-format](https://clang.llvm.org/docs/ClangFormat.htm
 
 Use the command `$ clang-format -i *.[ch]` to enforce a consistent coding style.
 
+## Naming Conventions
+
+There are some general rules.
+* Names with leading and trailing underscores are reserved for system purposes, and most systems use them for names that the user should not have to know.
+* Function, typedef, and variable names, as well as struct, union, and enum tag names should be in lower case.
+* Many function-like macros are in all CAPS.
+* Avoid names that differ only in case, like `foo` and `Foo`. Similarly, avoid `foobar` and `foo_bar`. The potential for confusion is considerable.
+* Similarly, avoid names that look like each other. On many terminals and printers, `l`, `1` and `I` look quite similar. A variable named `l` is particularly bad because it looks so much like the constant `1`.
+
+In general, global names (including enums) should have a common prefix (`SSE2NEON_` for macros and enum constants; `_sse2neon_` for functions) identifying the module that they belong with. Globals may alternatively be grouped in a global structure. Typedeffed names often have `_t` appended to their name.
+
+Avoid using names that might conflict with other names used in standard libraries. There may be more library code included in some systems than you need. Your program could also be extended in the future.
+
 ## Coding Style for Modern C
 
 This coding style is a variation of the K&R style. Some general principles: honor tradition, but accept progress; be consistent;
