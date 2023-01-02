@@ -179,6 +179,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Surge](https://github.com/surge-synthesizer/surge) is an open source digital synthesizer.
 * [The Forge](https://github.com/ConfettiFX/The-Forge) is a cross-platform rendering framework, providing building blocks to write your own game engine.
 * [Typesense](https://github.com/typesense/typesense) is a fast, typo-tolerant search engine for building delightful search experiences.
+* [Vcpkg](https://github.com/microsoft/vcpkg) is a C++ Library Manager for Windows, Linux, and macOS.
 * [VelocyPack](https://github.com/arangodb/velocypack) is a fast and compact format for serialization and storage.
 * [VOLK](https://github.com/gnuradio/volk), Vector-Optimized Library of Kernel, is a sub-project of [GNU Radio](https://www.gnuradio.org/).
 * [Vowpal Wabbit](https://github.com/VowpalWabbit/vowpal_wabbit) is a machine learning system which pushes the frontier of machine learning with techniques such as online, hashing, allreduce, reductions, learning2search, active, and interactive learning.
