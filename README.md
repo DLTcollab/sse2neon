@@ -85,6 +85,13 @@ runtime. Use the following commands to perform test cases:
 $ make check
 ```
 
+For running check with enabling features, you can use assign the features with `FEATURE` command.
+If `none` is assigned, then the command will be the same as simply calling `make check`.
+The following command enable `crypto` and `crc` features in the tests.
+```
+$ make FEATURE=crypto+crc check
+```
+
 You can specify GNU toolchain for cross compilation as well.
 [QEMU](https://www.qemu.org/) should be installed in advance.
 ```shell
