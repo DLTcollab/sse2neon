@@ -193,6 +193,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Winter](https://github.com/rosenthj/Winter) is the top rated chess engine from Switzerland and has competed at top invite only computer chess events.
 * [XEVE](https://github.com/mpeg5/xeve) (eXtra-fast Essential Video Encoder) is an open sourced and fast MPEG-5 EVC encoder.
 * [XMRig](https://github.com/xmrig/xmrig) is an open source CPU miner for [Monero](https://web.getmonero.org/) cryptocurrency.
+* [xsimd](https://github.com/xtensor-stack/xsimd) provides a unified means for using SIMD intrinsics and parallelized, optimized mathematical functions.
 * [YACL](https://github.com/secretflow/yasl) is a C++ library contains modules and utilities which [SecretFlow](https://github.com/secretflow) code depends on.
 
 ## Related Projects
