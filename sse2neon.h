@@ -2217,17 +2217,25 @@ FORCE_INLINE __m128 _mm_move_ss(__m128 a, __m128 b)
                        vreinterpretq_f32_m128(a), 0));
 }
 
-// Moves the upper two values of B into the lower two values of A.
+// Move the upper 2 single-precision (32-bit) floating-point elements from b to
+// the lower 2 elements of dst, and copy the upper 2 elements from a to the
+// upper 2 elements of dst.
 //
 //   r3 := a3
 //   r2 := a2
 //   r1 := b3
 //   r0 := b2
-FORCE_INLINE __m128 _mm_movehl_ps(__m128 __A, __m128 __B)
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_movehl_ps
+FORCE_INLINE __m128 _mm_movehl_ps(__m128 a, __m128 b)
 {
-    float32x2_t a32 = vget_high_f32(vreinterpretq_f32_m128(__A));
-    float32x2_t b32 = vget_high_f32(vreinterpretq_f32_m128(__B));
+#if defined(aarch64__)
+    return vreinterpretq_m128_u64(
+        vzip2q_u64(vreinterpretq_u64_m128(b), vreinterpretq_u64_m128(a)));
+#else
+    float32x2_t a32 = vget_high_f32(vreinterpretq_f32_m128(a));
+    float32x2_t b32 = vget_high_f32(vreinterpretq_f32_m128(b));
     return vreinterpretq_m128_f32(vcombine_f32(b32, a32));
+#endif
 }
 
 // Moves the lower two values of B into the upper two values of A.
