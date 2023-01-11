@@ -4824,21 +4824,38 @@ result_t test_mm_extract_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_SUCCESS;
 }
 
+#define IMM_8_ITER \
+    TEST(0)        \
+    TEST(1)        \
+    TEST(2)        \
+    TEST(3)        \
+    TEST(4)        \
+    TEST(5)        \
+    TEST(6)        \
+    TEST(7)
+#define ASSERT_VALIDATE_INT16(a, b)                                            \
+    assert(validateInt16(a, b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]) == \
+           TEST_SUCCESS)
 result_t test_mm_insert_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t insert = (int16_t) *impl.mTestIntPointer2;
-    const int imm8 = 2;
 
-    int16_t d[8];
-    for (int i = 0; i < 8; i++) {
-        d[i] = _a[i];
-    }
-    d[imm8] = insert;
+#define TEST(IDX)                                           \
+    int16_t d##IDX[8];                                      \
+    for (int i = 0; i < 8; i++) {                           \
+        d##IDX[i] = _a[i];                                  \
+    }                                                       \
+    d##IDX[IDX] = insert;                                   \
+                                                            \
+    __m128i a##IDX = load_m128i(_a);                        \
+    __m128i b##IDX = _mm_insert_epi16(a##IDX, insert, IDX); \
+    ASSERT_VALIDATE_INT16(b##IDX, d##IDX);
 
-    __m128i a = load_m128i(_a);
-    __m128i b = _mm_insert_epi16(a, insert, imm8);
-    return validateInt16(b, d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7]);
+    IMM_8_ITER
+#undef TEST
+
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_lfence(const SSE2NEONTestImpl &impl, uint32_t iter)
