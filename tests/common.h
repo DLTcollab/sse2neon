@@ -188,6 +188,38 @@ result_t validateFloatError(__m128 a,
                             float err);
 result_t validateDouble(__m128d a, double d0, double d1);
 result_t validateFloatError(__m128d a, double d0, double d1, double err);
+
+#define VALIDATE_INT8_M128(A, B)                                          \
+    validateInt8(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7], B[8], \
+                 B[9], B[10], B[11], B[12], B[13], B[14], B[15])
+#define VALIDATE_UINT8_M128(A, B)                                          \
+    validateUInt8(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7], B[8], \
+                  B[9], B[10], B[11], B[12], B[13], B[14], B[15])
+#define VALIDATE_INT16_M128(A, B) \
+    validateInt16(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7])
+#define VALIDATE_UINT16_M128(A, B) \
+    validateUInt16(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7])
+#define VALIDATE_INT32_M128(A, B) validateInt32(A, B[0], B[1], B[2], B[3])
+#define VALIDATE_UINT32_M128(A, B) validateUInt32(A, B[0], B[1], B[2], B[3])
+
+#define VALIDATE_INT8_M64(A, B) \
+    validateInt8(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7])
+#define VALIDATE_UINT8_M64(A, B) \
+    validateUInt8(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7])
+#define VALIDATE_INT16_M64(A, B) validateInt16(A, B[0], B[1], B[2], B[3])
+#define VALIDATE_UINT16_M64(A, B) validateUInt16(A, B[0], B[1], B[2], B[3])
+#define VALIDATE_INT32_M64(A, B) validateInt32(A, B[0], B[1])
+#define VALIDATE_UINT32_M64(A, B) validateUInt32(A, B[0], B[1])
+
+#define IMM_8_ITER \
+    TEST(0)        \
+    TEST(1)        \
+    TEST(2)        \
+    TEST(3)        \
+    TEST(4)        \
+    TEST(5)        \
+    TEST(6)        \
+    TEST(7)
 }  // namespace SSE2NEON
 
 #endif
