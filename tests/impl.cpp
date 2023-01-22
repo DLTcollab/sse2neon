@@ -2002,18 +2002,23 @@ result_t test_mm_insert_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t insert = (int16_t) impl.mTestInts[iter];
-    const int imm8 = 2;
+    __m64 a;
+    __m64 b;
 
-    int16_t d[4];
-    for (int i = 0; i < 4; i++) {
-        d[i] = _a[i];
-    }
-    d[imm8] = insert;
+#define TEST_IMPL(IDX)                   \
+    int16_t d##IDX[4];                   \
+    for (int i = 0; i < 4; i++) {        \
+        d##IDX[i] = _a[i];               \
+    }                                    \
+    d##IDX[IDX] = insert;                \
+                                         \
+    a = load_m64(_a);                    \
+    b = _mm_insert_pi16(a, insert, IDX); \
+    CHECK_RESULT(VALIDATE_INT16_M64(b, d##IDX))
 
-    __m64 a = load_m64(_a);
-    __m64 b = _mm_insert_pi16(a, insert, imm8);
-
-    return VALIDATE_INT16_M64(b, d);
+    IMM_4_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_load_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2771,18 +2776,25 @@ result_t test_mm_sfence(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_shuffle_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
-    const int32_t imm = 73;
+    __m64 a;
+    __m64 d;
 
-    __m64 a = load_m64(_a);
-    __m64 d = _mm_shuffle_pi16(a, imm);
+#define TEST_IMPL(IDX)                                    \
+    a = load_m64(_a);                                     \
+    d = _mm_shuffle_pi16(a, IDX);                         \
+                                                          \
+    int16_t _d##IDX[4];                                   \
+    _d##IDX[0] = _a[IDX & 0x3];                           \
+    _d##IDX[1] = _a[(IDX >> 2) & 0x3];                    \
+    _d##IDX[2] = _a[(IDX >> 4) & 0x3];                    \
+    _d##IDX[3] = _a[(IDX >> 6) & 0x3];                    \
+    if (VALIDATE_INT16_M64(d, _d##IDX) != TEST_SUCCESS) { \
+        return TEST_FAIL;                                 \
+    }
 
-    int16_t _d[4];
-    _d[0] = _a[imm & 0x3];
-    _d[1] = _a[(imm >> 2) & 0x3];
-    _d[2] = _a[(imm >> 4) & 0x3];
-    _d[3] = _a[(imm >> 6) & 0x3];
-
-    return VALIDATE_INT16_M64(d, _d);
+    IMM_256_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 // Note, NEON does not have a general purpose shuffled command like SSE.
@@ -4860,7 +4872,7 @@ result_t test_mm_insert_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t insert = (int16_t) *impl.mTestIntPointer2;
 
-#define TEST(IDX)                                           \
+#define TEST_IMPL(IDX)                                      \
     int16_t d##IDX[8];                                      \
     for (int i = 0; i < 8; i++) {                           \
         d##IDX[i] = _a[i];                                  \
@@ -4869,10 +4881,10 @@ result_t test_mm_insert_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
                                                             \
     __m128i a##IDX = load_m128i(_a);                        \
     __m128i b##IDX = _mm_insert_epi16(a##IDX, insert, IDX); \
-    assert(VALIDATE_INT16_M128(b##IDX, d##IDX) == TEST_SUCCESS);
+    CHECK_RESULT(VALIDATE_INT16_M128(b##IDX, d##IDX))
 
     IMM_8_ITER
-#undef TEST
+#undef TEST_IMPL
 
     return TEST_SUCCESS;
 }
@@ -5793,164 +5805,188 @@ result_t test_mm_setzero_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_shuffle_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int32_t *_a = impl.mTestIntPointer1;
-    const int imm = 105;
+    __m128i a, c;
 
-    int32_t d[4];
-    d[0] = _a[((imm) &0x3)];
-    d[1] = _a[((imm >> 2) & 0x3)];
-    d[2] = _a[((imm >> 4) & 0x3)];
-    d[3] = _a[((imm >> 6) & 0x3)];
+#define TEST_IMPL(IDX)                  \
+    int32_t d##IDX[4];                  \
+    d##IDX[0] = _a[((IDX) &0x3)];       \
+    d##IDX[1] = _a[((IDX >> 2) & 0x3)]; \
+    d##IDX[2] = _a[((IDX >> 4) & 0x3)]; \
+    d##IDX[3] = _a[((IDX >> 6) & 0x3)]; \
+                                        \
+    a = load_m128i(_a);                 \
+    c = _mm_shuffle_epi32(a, IDX);      \
+    CHECK_RESULT(VALIDATE_INT32_M128(c, d##IDX))
 
-    __m128i a = load_m128i(_a);
-    __m128i c = _mm_shuffle_epi32(a, imm);
-
-    return VALIDATE_INT32_M128(c, d);
+    IMM_256_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_shuffle_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
+    __m128d a, b, c;
 
-    double d0 = _a[iter & 0x1];
-    double d1 = _b[(iter & 0x2) >> 1];
+#define TEST_IMPL(IDX)                     \
+    a = load_m128d(_a);                    \
+    b = load_m128d(_b);                    \
+    c = _mm_shuffle_pd(a, b, IDX);         \
+                                           \
+    double d0##IDX = _a[IDX & 0x1];        \
+    double d1##IDX = _b[(IDX & 0x2) >> 1]; \
+    CHECK_RESULT(validateDouble(c, d0##IDX, d1##IDX))
 
-    __m128d a = load_m128d(_a);
-    __m128d b = load_m128d(_b);
-    __m128d c;
-    switch (iter & 0x3) {
-    case 0:
-        c = _mm_shuffle_pd(a, b, 0);
-        break;
-    case 1:
-        c = _mm_shuffle_pd(a, b, 1);
-        break;
-    case 2:
-        c = _mm_shuffle_pd(a, b, 2);
-        break;
-    case 3:
-        c = _mm_shuffle_pd(a, b, 3);
-        break;
-    }
-
-    return validateDouble(c, d0, d1);
+    IMM_4_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_shufflehi_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
-    const int imm = 112;
+    __m128i a, c;
 
-    int16_t d[8];
-    d[0] = _a[0];
-    d[1] = _a[1];
-    d[2] = _a[2];
-    d[3] = _a[3];
-    d[4] = ((const int64_t *) _a)[1] >> ((imm & 0x3) * 16);
-    d[5] = ((const int64_t *) _a)[1] >> (((imm >> 2) & 0x3) * 16);
-    d[6] = ((const int64_t *) _a)[1] >> (((imm >> 4) & 0x3) * 16);
-    d[7] = ((const int64_t *) _a)[1] >> (((imm >> 6) & 0x3) * 16);
+#define TEST_IMPL(IDX)                                                  \
+    int16_t d##IDX[8];                                                  \
+    d##IDX[0] = _a[0];                                                  \
+    d##IDX[1] = _a[1];                                                  \
+    d##IDX[2] = _a[2];                                                  \
+    d##IDX[3] = _a[3];                                                  \
+    d##IDX[4] = ((const int64_t *) _a)[1] >> ((IDX & 0x3) * 16);        \
+    d##IDX[5] = ((const int64_t *) _a)[1] >> (((IDX >> 2) & 0x3) * 16); \
+    d##IDX[6] = ((const int64_t *) _a)[1] >> (((IDX >> 4) & 0x3) * 16); \
+    d##IDX[7] = ((const int64_t *) _a)[1] >> (((IDX >> 6) & 0x3) * 16); \
+                                                                        \
+    a = load_m128i(_a);                                                 \
+    c = _mm_shufflehi_epi16(a, IDX);                                    \
+                                                                        \
+    CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
 
-    __m128i a = load_m128i(_a);
-    __m128i c = _mm_shufflehi_epi16(a, imm);
-
-    return VALIDATE_INT16_M128(c, d);
+    IMM_256_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_shufflelo_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
-    const int imm = 112;
+    __m128i a, c;
 
-    int16_t d[8];
-    d[0] = ((const int64_t *) _a)[0] >> ((imm & 0x3) * 16);
-    d[1] = ((const int64_t *) _a)[0] >> (((imm >> 2) & 0x3) * 16);
-    d[2] = ((const int64_t *) _a)[0] >> (((imm >> 4) & 0x3) * 16);
-    d[3] = ((const int64_t *) _a)[0] >> (((imm >> 6) & 0x3) * 16);
-    d[4] = _a[4];
-    d[5] = _a[5];
-    d[6] = _a[6];
-    d[7] = _a[7];
+#define TEST_IMPL(IDX)                                                  \
+    int16_t d##IDX[8];                                                  \
+    d##IDX[0] = ((const int64_t *) _a)[0] >> ((IDX & 0x3) * 16);        \
+    d##IDX[1] = ((const int64_t *) _a)[0] >> (((IDX >> 2) & 0x3) * 16); \
+    d##IDX[2] = ((const int64_t *) _a)[0] >> (((IDX >> 4) & 0x3) * 16); \
+    d##IDX[3] = ((const int64_t *) _a)[0] >> (((IDX >> 6) & 0x3) * 16); \
+    d##IDX[4] = _a[4];                                                  \
+    d##IDX[5] = _a[5];                                                  \
+    d##IDX[6] = _a[6];                                                  \
+    d##IDX[7] = _a[7];                                                  \
+                                                                        \
+    a = load_m128i(_a);                                                 \
+    c = _mm_shufflelo_epi16(a, IDX);                                    \
+                                                                        \
+    CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
 
-    __m128i a = load_m128i(_a);
-    __m128i c = _mm_shufflelo_epi16(a, imm);
-
-    return VALIDATE_INT16_M128(c, d);
+    IMM_256_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_sll_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
-    const int64_t count = (int64_t) (iter % 18 - 1);  // range: -1 ~ 16
+    __m128i a, b, c;
 
-    uint16_t d[8];
-    d[0] = (count & ~15) ? 0 : _a[0] << count;
-    d[1] = (count & ~15) ? 0 : _a[1] << count;
-    d[2] = (count & ~15) ? 0 : _a[2] << count;
-    d[3] = (count & ~15) ? 0 : _a[3] << count;
-    d[4] = (count & ~15) ? 0 : _a[4] << count;
-    d[5] = (count & ~15) ? 0 : _a[5] << count;
-    d[6] = (count & ~15) ? 0 : _a[6] << count;
-    d[7] = (count & ~15) ? 0 : _a[7] << count;
+#define TEST_IMPL(IDX)                          \
+    uint16_t d##IDX[8];                         \
+    d##IDX[0] = (IDX & ~15) ? 0 : _a[0] << IDX; \
+    d##IDX[1] = (IDX & ~15) ? 0 : _a[1] << IDX; \
+    d##IDX[2] = (IDX & ~15) ? 0 : _a[2] << IDX; \
+    d##IDX[3] = (IDX & ~15) ? 0 : _a[3] << IDX; \
+    d##IDX[4] = (IDX & ~15) ? 0 : _a[4] << IDX; \
+    d##IDX[5] = (IDX & ~15) ? 0 : _a[5] << IDX; \
+    d##IDX[6] = (IDX & ~15) ? 0 : _a[6] << IDX; \
+    d##IDX[7] = (IDX & ~15) ? 0 : _a[7] << IDX; \
+                                                \
+    a = load_m128i(_a);                         \
+    b = _mm_set1_epi64x(IDX);                   \
+    c = _mm_sll_epi16(a, b);                    \
+    CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
 
-    __m128i a = load_m128i(_a);
-    __m128i b = _mm_set1_epi64x(count);
-    __m128i c = _mm_sll_epi16(a, b);
+    IMM_64_ITER
+#undef TEST_IMPL
 
-    return VALIDATE_INT16_M128(c, d);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_sll_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
-    const int64_t count = (int64_t) (iter % 34 - 1);  // range: -1 ~ 32
+    __m128i a, b, c;
 
-    uint32_t d[4];
-    d[0] = (count & ~31) ? 0 : _a[0] << count;
-    d[1] = (count & ~31) ? 0 : _a[1] << count;
-    d[2] = (count & ~31) ? 0 : _a[2] << count;
-    d[3] = (count & ~31) ? 0 : _a[3] << count;
+#define TEST_IMPL(IDX)                          \
+    uint32_t d##IDX[4];                         \
+    d##IDX[0] = (IDX & ~31) ? 0 : _a[0] << IDX; \
+    d##IDX[1] = (IDX & ~31) ? 0 : _a[1] << IDX; \
+    d##IDX[2] = (IDX & ~31) ? 0 : _a[2] << IDX; \
+    d##IDX[3] = (IDX & ~31) ? 0 : _a[3] << IDX; \
+                                                \
+    a = load_m128i(_a);                         \
+    b = _mm_set1_epi64x(IDX);                   \
+    c = _mm_sll_epi32(a, b);                    \
+    CHECK_RESULT(VALIDATE_INT32_M128(c, d##IDX))
 
-    __m128i a = load_m128i(_a);
-    __m128i b = _mm_set1_epi64x(count);
-    __m128i c = _mm_sll_epi32(a, b);
-
-    return VALIDATE_INT32_M128(c, d);
+    IMM_64_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_sll_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
-    const int64_t count = (int64_t) (iter % 66 - 1);  // range: -1 ~ 64
+    __m128i a, b, c;
 
-    uint64_t d0 = (count & ~63) ? 0 : _a[0] << count;
-    uint64_t d1 = (count & ~63) ? 0 : _a[1] << count;
+#define TEST_IMPL(IDX)                                 \
+    uint64_t d0##IDX = (IDX & ~63) ? 0 : _a[0] << IDX; \
+    uint64_t d1##IDX = (IDX & ~63) ? 0 : _a[1] << IDX; \
+                                                       \
+    a = load_m128i(_a);                                \
+    b = _mm_set1_epi64x(IDX);                          \
+    c = _mm_sll_epi64(a, b);                           \
+                                                       \
+    CHECK_RESULT(validateInt64(c, d0##IDX, d1##IDX))
 
-    __m128i a = load_m128i(_a);
-    __m128i b = _mm_set1_epi64x(count);
-    __m128i c = _mm_sll_epi64(a, b);
-
-    return validateInt64(c, d0, d1);
+    IMM_64_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_slli_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
-    const int count = (int64_t) (iter % 18 - 1);  // range: -1 ~ 16
+    __m128i a, c;
 
-    int16_t d[8];
-    d[0] = (count & ~15) ? 0 : _a[0] << count;
-    d[1] = (count & ~15) ? 0 : _a[1] << count;
-    d[2] = (count & ~15) ? 0 : _a[2] << count;
-    d[3] = (count & ~15) ? 0 : _a[3] << count;
-    d[4] = (count & ~15) ? 0 : _a[4] << count;
-    d[5] = (count & ~15) ? 0 : _a[5] << count;
-    d[6] = (count & ~15) ? 0 : _a[6] << count;
-    d[7] = (count & ~15) ? 0 : _a[7] << count;
+#define TEST_IMPL(IDX)                          \
+    int16_t d##IDX[8];                          \
+    d##IDX[0] = (IDX & ~15) ? 0 : _a[0] << IDX; \
+    d##IDX[1] = (IDX & ~15) ? 0 : _a[1] << IDX; \
+    d##IDX[2] = (IDX & ~15) ? 0 : _a[2] << IDX; \
+    d##IDX[3] = (IDX & ~15) ? 0 : _a[3] << IDX; \
+    d##IDX[4] = (IDX & ~15) ? 0 : _a[4] << IDX; \
+    d##IDX[5] = (IDX & ~15) ? 0 : _a[5] << IDX; \
+    d##IDX[6] = (IDX & ~15) ? 0 : _a[6] << IDX; \
+    d##IDX[7] = (IDX & ~15) ? 0 : _a[7] << IDX; \
+                                                \
+    a = load_m128i(_a);                         \
+    c = _mm_slli_epi16(a, IDX);                 \
+    CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
 
-    __m128i a = load_m128i(_a);
-    __m128i c = _mm_slli_epi16(a, count);
-    return VALIDATE_INT16_M128(c, d);
+    IMM_64_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_slli_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -7849,125 +7885,80 @@ result_t test_mm_blend_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
-    const int mask = 104;
-
     int16_t _c[8];
-    for (int j = 0; j < 8; j++) {
-        if ((mask >> j) & 0x1) {
-            _c[j] = _b[j];
-        } else {
-            _c[j] = _a[j];
-        }
-    }
+    __m128i a, b, c;
 
-    __m128i a = load_m128i(_a);
-    __m128i b = load_m128i(_b);
-    __m128i c = _mm_blend_epi16(a, b, mask);
+#define TEST_IMPL(IDX)              \
+    for (int j = 0; j < 8; j++) {   \
+        if ((IDX >> j) & 0x1) {     \
+            _c[j] = _b[j];          \
+        } else {                    \
+            _c[j] = _a[j];          \
+        }                           \
+    }                               \
+    a = load_m128i(_a);             \
+    b = load_m128i(_b);             \
+    c = _mm_blend_epi16(a, b, IDX); \
+    CHECK_RESULT(VALIDATE_INT16_M128(c, _c));
 
-    return VALIDATE_INT16_M128(c, _c);
+    IMM_256_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_blend_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    // the last argument must be a 2-bit immediate
-    const int mask = 3;
+    __m128d a, b, c;
 
-    double _c[2];
-    for (int j = 0; j < 2; j++) {
-        if ((mask >> j) & 0x1) {
-            _c[j] = _b[j];
-        } else {
-            _c[j] = _a[j];
-        }
-    }
+#define TEST_IMPL(IDX)            \
+    double _c##IDX[2];            \
+    for (int j = 0; j < 2; j++) { \
+        if ((IDX >> j) & 0x1) {   \
+            _c##IDX[j] = _b[j];   \
+        } else {                  \
+            _c##IDX[j] = _a[j];   \
+        }                         \
+    }                             \
+                                  \
+    a = load_m128d(_a);           \
+    b = load_m128d(_b);           \
+    c = _mm_blend_pd(a, b, IDX);  \
+    CHECK_RESULT(validateDouble(c, _c##IDX[0], _c##IDX[1]))
 
-    __m128d a = load_m128d(_a);
-    __m128d b = load_m128d(_b);
-    __m128d c = _mm_blend_pd(a, b, mask);
-
-    return validateDouble(c, _c[0], _c[1]);
+    IMM_4_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_blend_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
-
-    const char mask = (char) iter;
-
-    float _c[4];
-    for (int i = 0; i < 4; i++) {
-        if (mask & (1 << i)) {
-            _c[i] = _b[i];
-        } else {
-            _c[i] = _a[i];
-        }
-    }
-
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
+    __m128 c;
 
     // gcc and clang can't compile call to _mm_blend_ps with 3rd argument as
-    // integer type due 4 bit size limitation and test framework doesn't support
-    // compile time constant so for testing decided explicit define all 16
-    // possible values
-    __m128 c;
-    switch (mask & 0xF) {
-    case 0:
-        c = _mm_blend_ps(a, b, 0);
-        break;
-    case 1:
-        c = _mm_blend_ps(a, b, 1);
-        break;
-    case 2:
-        c = _mm_blend_ps(a, b, 2);
-        break;
-    case 3:
-        c = _mm_blend_ps(a, b, 3);
-        break;
+    // integer type due 4 bit size limitation.
+#define TEST_IMPL(IDX)            \
+    float _c##IDX[4];             \
+    for (int i = 0; i < 4; i++) { \
+        if (IDX & (1 << i)) {     \
+            _c##IDX[i] = _b[i];   \
+        } else {                  \
+            _c##IDX[i] = _a[i];   \
+        }                         \
+    }                             \
+                                  \
+    c = _mm_blend_ps(a, b, IDX);  \
+    CHECK_RESULT(                 \
+        validateFloat(c, _c##IDX[0], _c##IDX[1], _c##IDX[2], _c##IDX[3]))
 
-    case 4:
-        c = _mm_blend_ps(a, b, 4);
-        break;
-    case 5:
-        c = _mm_blend_ps(a, b, 5);
-        break;
-    case 6:
-        c = _mm_blend_ps(a, b, 6);
-        break;
-    case 7:
-        c = _mm_blend_ps(a, b, 7);
-        break;
-
-    case 8:
-        c = _mm_blend_ps(a, b, 8);
-        break;
-    case 9:
-        c = _mm_blend_ps(a, b, 9);
-        break;
-    case 10:
-        c = _mm_blend_ps(a, b, 10);
-        break;
-    case 11:
-        c = _mm_blend_ps(a, b, 11);
-        break;
-
-    case 12:
-        c = _mm_blend_ps(a, b, 12);
-        break;
-    case 13:
-        c = _mm_blend_ps(a, b, 13);
-        break;
-    case 14:
-        c = _mm_blend_ps(a, b, 14);
-        break;
-    case 15:
-        c = _mm_blend_ps(a, b, 15);
-        break;
-    }
-    return validateFloat(c, _c[0], _c[1], _c[2], _c[3]);
+    IMM_4_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_blendv_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -8385,83 +8376,45 @@ result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_extract_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     int32_t *_a = (int32_t *) impl.mTestIntPointer1;
-    const int idx = iter & 0x3;
     __m128i a = load_m128i(_a);
     int c;
-    switch (idx) {
-    case 0:
-        c = _mm_extract_epi32(a, 0);
-        break;
-    case 1:
-        c = _mm_extract_epi32(a, 1);
-        break;
-    case 2:
-        c = _mm_extract_epi32(a, 2);
-        break;
-    case 3:
-        c = _mm_extract_epi32(a, 3);
-        break;
-    }
 
-    ASSERT_RETURN(c == *(_a + idx));
+#define TEST_IMPL(IDX)             \
+    c = _mm_extract_epi32(a, IDX); \
+    ASSERT_RETURN(c == *(_a + IDX));
+
+    IMM_4_ITER
+#undef TEST_IMPL
     return TEST_SUCCESS;
 }
 
 result_t test_mm_extract_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     int64_t *_a = (int64_t *) impl.mTestIntPointer1;
-
     __m128i a = load_m128i(_a);
     __int64 c;
 
-    switch (iter & 0x1) {
-    case 0:
-        c = _mm_extract_epi64(a, 0);
-        break;
-    case 1:
-        c = _mm_extract_epi64(a, 1);
-        break;
-    }
+#define TEST_IMPL(IDX)             \
+    c = _mm_extract_epi64(a, IDX); \
+    ASSERT_RETURN(c == *(_a + IDX));
 
-    ASSERT_RETURN(c == *(_a + (iter & 1)));
+    IMM_2_ITER
+#undef TEST_IMPL
     return TEST_SUCCESS;
 }
 
 result_t test_mm_extract_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     uint8_t *_a = (uint8_t *) impl.mTestIntPointer1;
-    const int idx = iter & 0x7;
-
     __m128i a = load_m128i(_a);
     int c;
-    switch (idx) {
-    case 0:
-        c = _mm_extract_epi8(a, 0);
-        break;
-    case 1:
-        c = _mm_extract_epi8(a, 1);
-        break;
-    case 2:
-        c = _mm_extract_epi8(a, 2);
-        break;
-    case 3:
-        c = _mm_extract_epi8(a, 3);
-        break;
-    case 4:
-        c = _mm_extract_epi8(a, 4);
-        break;
-    case 5:
-        c = _mm_extract_epi8(a, 5);
-        break;
-    case 6:
-        c = _mm_extract_epi8(a, 6);
-        break;
-    case 7:
-        c = _mm_extract_epi8(a, 7);
-        break;
-    }
 
-    ASSERT_RETURN(c == *(_a + idx));
+#define TEST_IMPL(IDX)            \
+    c = _mm_extract_epi8(a, IDX); \
+    ASSERT_RETURN(c == *(_a + IDX));
+
+    IMM_8_ITER
+#undef TEST_IMPL
     return TEST_SUCCESS;
 }
 
@@ -8472,22 +8425,12 @@ result_t test_mm_extract_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = _mm_load_ps(_a);
     int32_t c;
 
-    switch (iter & 0x3) {
-    case 0:
-        c = _mm_extract_ps(a, 0);
-        break;
-    case 1:
-        c = _mm_extract_ps(a, 1);
-        break;
-    case 2:
-        c = _mm_extract_ps(a, 2);
-        break;
-    case 3:
-        c = _mm_extract_ps(a, 3);
-        break;
-    }
+#define TEST_IMPL(IDX)          \
+    c = _mm_extract_ps(a, IDX); \
+    ASSERT_RETURN(c == *(const int32_t *) (_a + IDX));
 
-    ASSERT_RETURN(c == *(const int32_t *) (_a + (iter & 0x3)));
+    IMM_4_ITER
+#undef TEST_IMPL
     return TEST_SUCCESS;
 }
 
@@ -8550,73 +8493,89 @@ result_t test_mm_insert_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     const int32_t insert = (int32_t) *impl.mTestIntPointer2;
-    const int imm8 = 2;
+    __m128i a, b;
 
-    int32_t d[4];
-    for (int i = 0; i < 4; i++) {
-        d[i] = _a[i];
-    }
-    d[imm8] = insert;
+#define TEST_IMPL(IDX)                          \
+    int32_t d##IDX[4];                          \
+    for (int i = 0; i < 4; i++) {               \
+        d##IDX[i] = _a[i];                      \
+    }                                           \
+    d##IDX[IDX] = insert;                       \
+                                                \
+    a = load_m128i(_a);                         \
+    b = _mm_insert_epi32(a, (int) insert, IDX); \
+    CHECK_RESULT(VALIDATE_INT32_M128(b, d##IDX));
 
-    __m128i a = load_m128i(_a);
-    __m128i b = _mm_insert_epi32(a, (int) insert, imm8);
-    return VALIDATE_INT32_M128(b, d);
+    IMM_4_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_insert_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
     int64_t insert = (int64_t) *impl.mTestIntPointer2;
-    const int imm8 = 1;
 
+    __m128i a, b;
     int64_t d[2];
+#define TEST_IMPL(IDX)                    \
+    d[0] = _a[0];                         \
+    d[1] = _a[1];                         \
+    d[IDX] = insert;                      \
+    a = load_m128i(_a);                   \
+    b = _mm_insert_epi64(a, insert, IDX); \
+    CHECK_RESULT(validateInt64(b, d[0], d[1]));
 
-    d[0] = _a[0];
-    d[1] = _a[1];
-    d[imm8] = insert;
-
-    __m128i a = load_m128i(_a);
-    __m128i b = _mm_insert_epi64(a, insert, imm8);
-    return validateInt64(b, d[0], d[1]);
+    IMM_2_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_insert_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
     const int8_t insert = (int8_t) *impl.mTestIntPointer2;
-    const int imm8 = 2;
-
+    __m128i a, b;
     int8_t d[16];
-    for (int i = 0; i < 16; i++) {
-        d[i] = _a[i];
-    }
-    d[imm8] = insert;
 
-    __m128i a = load_m128i(_a);
-    __m128i b = _mm_insert_epi8(a, insert, imm8);
-    return VALIDATE_INT8_M128(b, d);
+#define TEST_IMPL(IDX)                   \
+    for (int i = 0; i < 16; i++) {       \
+        d[i] = _a[i];                    \
+    }                                    \
+    d[IDX] = insert;                     \
+    a = load_m128i(_a);                  \
+    b = _mm_insert_epi8(a, insert, IDX); \
+    CHECK_RESULT(VALIDATE_INT8_M128(b, d));
+
+    IMM_16_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_insert_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
     const float *_b = impl.mTestFloatPointer2;
-    const uint8_t imm = 0x1 << 6 | 0x2 << 4 | 0x1 << 2;
 
-    float d[4] = {_a[0], _a[1], _a[2], _a[3]};
-    d[(imm >> 4) & 0x3] = _b[(imm >> 6) & 0x3];
+    __m128 a, b, c;
+#define TEST_IMPL(IDX)                               \
+    float d##IDX[4] = {_a[0], _a[1], _a[2], _a[3]};  \
+    d##IDX[(IDX >> 4) & 0x3] = _b[(IDX >> 6) & 0x3]; \
+                                                     \
+    for (int j = 0; j < 4; j++) {                    \
+        if (IDX & (1 << j)) {                        \
+            d##IDX[j] = 0;                           \
+        }                                            \
+    }                                                \
+                                                     \
+    a = _mm_load_ps(_a);                             \
+    b = _mm_load_ps(_b);                             \
+    c = _mm_insert_ps(a, b, IDX);                    \
+    CHECK_RESULT(validateFloat(c, d##IDX[0], d##IDX[1], d##IDX[2], d##IDX[3]));
 
-    for (int j = 0; j < 4; j++) {
-        if (imm & (1 << j)) {
-            d[j] = 0;
-        }
-    }
-
-    __m128 a = _mm_load_ps(_a);
-    __m128 b = _mm_load_ps(_b);
-    __m128 c = _mm_insert_ps(a, b, imm);
-
-    return validateFloat(c, d[0], d[1], d[2], d[3]);
+    IMM_256_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_max_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -8816,52 +8775,27 @@ result_t test_mm_mpsadbw_epu8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const uint8_t *_a = (const uint8_t *) impl.mTestIntPointer1;
     const uint8_t *_b = (const uint8_t *) impl.mTestIntPointer2;
-    const uint8_t imm = impl.mTestInts[iter];
-
-    uint8_t a_offset = ((imm >> 2) & 0x1) * 4;
-    uint8_t b_offset = (imm & 0x3) * 4;
-
-    uint16_t d[8] = {};
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 4; j++) {
-            d[i] += abs(_a[(a_offset + i) + j] - _b[b_offset + j]);
-        }
-    }
 
     __m128i a = load_m128i(_a);
     __m128i b = load_m128i(_b);
     __m128i c;
-    switch (imm & 0x7) {
-    case 0:
-        c = _mm_mpsadbw_epu8(a, b, 0);
-        break;
-    case 1:
-        c = _mm_mpsadbw_epu8(a, b, 1);
-        break;
-    case 2:
-        c = _mm_mpsadbw_epu8(a, b, 2);
-        break;
-    case 3:
-        c = _mm_mpsadbw_epu8(a, b, 3);
-        break;
-    case 4:
-        c = _mm_mpsadbw_epu8(a, b, 4);
-        break;
-    case 5:
-        c = _mm_mpsadbw_epu8(a, b, 5);
-        break;
-    case 6:
-        c = _mm_mpsadbw_epu8(a, b, 6);
-        break;
-    case 7:
-        c = _mm_mpsadbw_epu8(a, b, 7);
-        break;
+#define TEST_IMPL(IDX)                                                    \
+    uint8_t a_offset##IDX = ((IDX >> 2) & 0x1) * 4;                       \
+    uint8_t b_offset##IDX = (IDX & 0x3) * 4;                              \
+                                                                          \
+    uint16_t d##IDX[8] = {};                                              \
+    for (int i = 0; i < 8; i++) {                                         \
+        for (int j = 0; j < 4; j++) {                                     \
+            d##IDX[i] +=                                                  \
+                abs(_a[(a_offset##IDX + i) + j] - _b[b_offset##IDX + j]); \
+        }                                                                 \
+    }                                                                     \
+    c = _mm_mpsadbw_epu8(a, b, IDX);                                      \
+    CHECK_RESULT(VALIDATE_UINT16_M128(c, d##IDX));
 
-    default:
-        return TEST_FAIL;
-    }
-
-    return VALIDATE_UINT16_M128(c, d);
+    IMM_8_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_mul_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -11703,21 +11637,24 @@ result_t test_mm_aeskeygenassist_si128(const SSE2NEONTestImpl &impl,
 {
     const uint32_t *a = (uint32_t *) impl.mTestIntPointer1;
     __m128i data = load_m128i(a);
-    const int8_t rcon = 0x40; /* an arbitrary 8-bit immediate */
-
     uint32_t sub_x1 = sub_word(a[1]);
     uint32_t sub_x3 = sub_word(a[3]);
-    uint32_t res[4] = {
-        sub_x1,
-        rotr(sub_x1, 8) ^ rcon,
-        sub_x3,
-        rotr(sub_x3, 8) ^ rcon,
-    };
-    __m128i result_reference = load_m128i(res);
+    __m128i result_reference;
+    __m128i result_intrinsic;
+#define TEST_IMPL(IDX)                                       \
+    uint32_t res##IDX[4] = {                                 \
+        sub_x1,                                              \
+        rotr(sub_x1, 8) ^ IDX,                               \
+        sub_x3,                                              \
+        rotr(sub_x3, 8) ^ IDX,                               \
+    };                                                       \
+    result_reference = load_m128i(res##IDX);                 \
+    result_intrinsic = _mm_aeskeygenassist_si128(data, IDX); \
+    CHECK_RESULT(validate128(result_reference, result_intrinsic));
 
-    __m128i result_intrinsic = _mm_aeskeygenassist_si128(data, rcon);
-
-    return validate128(result_reference, result_intrinsic);
+    IMM_256_ITER
+#undef TEST_IMPL
+    return TEST_SUCCESS;
 }
 
 /* Others */
