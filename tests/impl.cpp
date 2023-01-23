@@ -2580,7 +2580,7 @@ result_t test_mm_rcp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     __m128 a = load_m128(_a);
     __m128 c = _mm_rcp_ps(a);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+    return validateFloatError(c, dx, dy, dz, dw, 0.001f);
 }
 
 result_t test_mm_rcp_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2591,10 +2591,9 @@ result_t test_mm_rcp_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     float dy = _a[1];
     float dz = _a[2];
     float dw = _a[3];
-
     __m128 a = load_m128(_a);
     __m128 c = _mm_rcp_ss(a);
-    return validateFloatEpsilon(c, dx, dy, dz, dw, 300.0f);
+    return validateFloatError(c, dx, dy, dz, dw, 0.001f);
 }
 
 result_t test_mm_rsqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2609,9 +2608,9 @@ result_t test_mm_rsqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_rsqrt_ps(a);
 
-    // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 1% compared
+    // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 0.1% compared
     // to the C implementation.
-    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
+    return validateFloatError(c, f0, f1, f2, f3, 0.001f);
 }
 
 result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2626,9 +2625,9 @@ result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_rsqrt_ss(a);
 
-    // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 1% compared
+    // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 0.1% compared
     // to the C implementation.
-    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
+    return validateFloatError(c, f0, f1, f2, f3, 0.001f);
 }
 
 result_t test_mm_sad_pu8(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2851,9 +2850,15 @@ result_t test_mm_sqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_sqrt_ps(a);
 
-    // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 1% compared
-    // to the C implementation.
-    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
+#if defined(__arm__) && !defined(__arm64__)
+    // Here, we ensure the error rate of "_mm_sqrt_ps()" ARMv7-A implementation
+    // is under 10^-4% compared to the C implementation.
+    return validateFloatError(c, f0, f1, f2, f3, 0.0001f);
+#else
+    // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 10^-6%
+    // compared to the C implementation.
+    return validateFloatError(c, f0, f1, f2, f3, 0.000001f);
+#endif
 }
 
 result_t test_mm_sqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2868,9 +2873,15 @@ result_t test_mm_sqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_sqrt_ss(a);
 
-    // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 1% compared
-    // to the C implementation.
-    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
+#if defined(__arm__) && !defined(__arm64__)
+    // Here, we ensure the error rate of "_mm_sqrt_ps()" ARMv7-A implementation
+    // is under 10^-4% compared to the C implementation.
+    return validateFloatError(c, f0, f1, f2, f3, 0.0001f);
+#else
+    // Here, we ensure the error rate of "_mm_sqrt_ps()" is under 10^-6%
+    // compared to the C implementation.
+    return validateFloatError(c, f0, f1, f2, f3, 0.000001f);
+#endif
 }
 
 result_t test_mm_store_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
