@@ -8027,17 +8027,15 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 #if _MSC_VER
     unsigned long cnt;
 #if defined(SSE2NEON_HAS_BITSCAN64)
-    (defined(_M_AMD64) || defined(__x86_64__))
-        if((_BitScanForward64(&cnt, x))
-            return (int)(cnt);
+    if ((_BitScanForward64(&cnt, x))
+        return (int)(cnt);
 #else
     if (_BitScanForward(&cnt, (unsigned long) (x)))
         return (int) cnt;
     if (_BitScanForward(&cnt, (unsigned long) (x >> 32)))
         return (int) (cnt + 32);
-#endif
-    return 64;
-#else
+#endif /* SSE2NEON_HAS_BITSCAN64 */
+#else  /* assume GNU compatible compilers */
     return x != 0 ? __builtin_ctzll(x) : 64;
 #endif
 }
