@@ -113,7 +113,7 @@
 #ifdef _MSC_VER
 #include <intrin.h>
 #if (defined(_M_AMD64) || defined(__x86_64__)) || \
-    (defined(_M_ARM) || defined(__arm__))
+    (defined(_M_ARM64) || defined(__arm64__))
 #define SSE2NEON_HAS_BITSCAN64
 #endif
 #endif
