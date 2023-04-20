@@ -145,6 +145,22 @@ public:
                 }
             }
 
+            if (test == it_mm_max_pd || test == it_mm_max_sd ||
+                test == it_mm_min_pd || test == it_mm_min_sd) {
+                // Make sure the positive/negative inifinity values are included
+                // in the testing one out of four times.
+                if ((rand() & 3) == 0) {
+                    uint32_t r1 = ((rand() & 1) << 1) + 1;
+                    uint32_t r2 = ((rand() & 1) << 1) + 1;
+                    uint32_t r3 = ((rand() & 1) << 1) + 1;
+                    uint32_t r4 = ((rand() & 1) << 1) + 1;
+                    mTestFloatPointer1[r1] = INFINITY;
+                    mTestFloatPointer2[r2] = INFINITY;
+                    mTestFloatPointer1[r3] = -INFINITY;
+                    mTestFloatPointer1[r4] = -INFINITY;
+                }
+            }
+
 #if SSE2NEON_PRECISE_MINMAX
             if (test == it_mm_max_ps || test == it_mm_max_ss ||
                 test == it_mm_min_ps || test == it_mm_min_ss) {
