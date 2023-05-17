@@ -1871,7 +1871,7 @@ result_t test_mm_div_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 b = load_m128(_b);
     __m128 c = _mm_div_ps(a, b);
 
-#if defined(__arm__) && !defined(__aarch64__)
+#if defined(__arm__) && !defined(__aarch64__) && !defined(_M_ARM64)
     // The implementation of "_mm_div_ps()" on ARM 32bit doesn't use "DIV"
     // instruction directly, instead it uses "FRECPE" instruction to approximate
     // it. Therefore, the precision is not as small as other architecture
@@ -1895,7 +1895,7 @@ result_t test_mm_div_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 b = load_m128(_b);
     __m128 c = _mm_div_ss(a, b);
 
-#if defined(__arm__) && !defined(__aarch64__)
+#if defined(__arm__) && !defined(__aarch64__) && !defined(_M_ARM64)
     // The implementation of "_mm_div_ps()" on ARM 32bit doesn't use "DIV"
     // instruction directly, instead it uses "FRECPE" instruction to approximate
     // it. Therefore, the precision is not as small as other architecture
@@ -1911,7 +1911,7 @@ result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     // test when GCC fix this bug.
     // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98495 for more
     // information
-#if defined(__clang__)
+#if defined(__clang__) || defined(_MSC_VER)
     uint64_t *_a = (uint64_t *) impl.mTestIntPointer1;
     const int idx = iter & 0x3;
 
@@ -2311,10 +2311,10 @@ result_t test_mm_move_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 b = load_m128(_b);
 
     float result[4];
-    result[0] = b[0];
-    result[1] = a[1];
-    result[2] = a[2];
-    result[3] = a[3];
+    result[0] = _b[0];
+    result[1] = _a[1];
+    result[2] = _a[2];
+    result[3] = _a[3];
 
     __m128 ret = _mm_move_ss(a, b);
     return validateFloat(ret, result[0], result[1], result[2], result[3]);
@@ -2625,8 +2625,12 @@ result_t test_mm_rsqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 c = _mm_rsqrt_ps(a);
 
     // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 0.1% compared
-    // to the C implementation.
+    // to the C implementation on non-MSVC compilers, and under 1% on MSVC.
+#if defined(_MSC_VER)
+    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
+#else
     return validateFloatError(c, f0, f1, f2, f3, 0.001f);
+#endif
 }
 
 result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2642,8 +2646,12 @@ result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 c = _mm_rsqrt_ss(a);
 
     // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 0.1% compared
-    // to the C implementation.
+    // to the C implementation on non-MSVC compilers, and under 1% on MSVC.
+#if defined(_MSC_VER)
+    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
+#else
     return validateFloatError(c, f0, f1, f2, f3, 0.001f);
+#endif
 }
 
 result_t test_mm_sad_pu8(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2866,7 +2874,7 @@ result_t test_mm_sqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_sqrt_ps(a);
 
-#if defined(__arm__) && !defined(__arm64__)
+#if defined(__arm__) && !defined(__arm64__) && !defined(_M_ARM64)
     // Here, we ensure the error rate of "_mm_sqrt_ps()" ARMv7-A implementation
     // is under 10^-4% compared to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.0001f);
@@ -2889,7 +2897,7 @@ result_t test_mm_sqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     __m128 c = _mm_sqrt_ss(a);
 
-#if defined(__arm__) && !defined(__arm64__)
+#if defined(__arm__) && !defined(__arm64__) && !defined(_M_ARM64)
     // Here, we ensure the error rate of "_mm_sqrt_ps()" ARMv7-A implementation
     // is under 10^-4% compared to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.0001f);
@@ -3139,12 +3147,19 @@ result_t test_mm_ucomineq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     return test_mm_comineq_ss(impl, iter);
 }
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4700)
+#endif
 result_t test_mm_undefined_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     __m128 a = _mm_undefined_ps();
     a = _mm_xor_ps(a, a);
     return validateFloat(a, 0, 0, 0, 0);
 }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 result_t test_mm_unpackhi_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
@@ -5610,7 +5625,7 @@ result_t test_mm_set_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
 
-    __m128i ret = _mm_set_epi64((__m64) _a[1], (__m64) _a[0]);
+    __m128i ret = _mm_set_epi64(load_m64(&_a[1]), load_m64(&_a[0]));
 
     return validateInt64(ret, _a[0], _a[1]);
 }
@@ -5700,7 +5715,7 @@ result_t test_mm_set1_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
 
-    __m128i ret = _mm_set1_epi64((__m64) _a[0]);
+    __m128i ret = _mm_set1_epi64(load_m64(&_a[0]));
 
     return validateInt64(ret, _a[0], _a[0]);
 }
@@ -5750,9 +5765,9 @@ result_t test_mm_setr_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_setr_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    const __m64 *_a = (const __m64 *) impl.mTestIntPointer1;
-    __m128i c = _mm_setr_epi64(_a[0], _a[1]);
-    return validateInt64(c, (int64_t) _a[0], (int64_t) _a[1]);
+    const int64_t *_a = (const int64_t *) impl.mTestIntPointer1;
+    __m128i c = _mm_setr_epi64(load_m64(&_a[0]), load_m64(&_a[1]));
+    return validateInt64(c, _a[0], _a[1]);
 }
 
 result_t test_mm_setr_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -6348,7 +6363,7 @@ result_t test_mm_storel_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128i a = load_m128i(p);
     _mm_storel_epi64(&mem, a);
 
-    ASSERT_RETURN(mem[0] == p[0]);
+    ASSERT_RETURN(((SIMDVec *) &mem)->m128_u64[0] == p[0]);
     return TEST_SUCCESS;
 }
 
@@ -6752,6 +6767,10 @@ result_t test_mm_ucomineq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     return test_mm_comineq_sd(impl, iter);
 }
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4700)
+#endif
 result_t test_mm_undefined_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     __m128d a = _mm_undefined_pd();
@@ -6765,6 +6784,9 @@ result_t test_mm_undefined_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     a = _mm_xor_si128(a, a);
     return validateInt64(a, 0, 0);
 }
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 result_t test_mm_unpackhi_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
@@ -11749,17 +11771,27 @@ result_t test_mm_get_denormals_zero_mode(const SSE2NEONTestImpl &impl,
                                                              : TEST_FAIL;
 }
 
+static int popcnt_reference(uint64_t a)
+{
+    int count = 0;
+    while (a != 0) {
+        count += a & 1;
+        a >>= 1;
+    }
+    return count;
+}
+
 result_t test_mm_popcnt_u32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const uint64_t *a = (const uint64_t *) impl.mTestIntPointer1;
-    ASSERT_RETURN(__builtin_popcount(a[0]) == _mm_popcnt_u32(a[0]));
+    ASSERT_RETURN(popcnt_reference((uint32_t) a[0]) == _mm_popcnt_u32(a[0]));
     return TEST_SUCCESS;
 }
 
 result_t test_mm_popcnt_u64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const uint64_t *a = (const uint64_t *) impl.mTestIntPointer1;
-    ASSERT_RETURN(__builtin_popcountll(a[0]) == _mm_popcnt_u64(a[0]));
+    ASSERT_RETURN(popcnt_reference(a[0]) == _mm_popcnt_u64(a[0]));
     return TEST_SUCCESS;
 }
 
@@ -11797,8 +11829,15 @@ result_t test_mm_set_denormals_zero_mode(const SSE2NEONTestImpl &impl,
 result_t test_rdtsc(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     uint64_t start = _rdtsc();
-    for (int i = 0; i < 100000; i++)
+    for (int i = 0; i < 100000; i++) {
+#if defined(_MSC_VER)
+        __nop();
+        __noop();
+        _ReadWriteBarrier();
+#else
         __asm__ __volatile__("" ::: "memory");
+#endif
+    }
     uint64_t end = _rdtsc();
     return end > start ? TEST_SUCCESS : TEST_FAIL;
 }
