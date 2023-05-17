@@ -26,6 +26,7 @@
 //   Jonathan Hue <jhue@adobe.com>
 //   Cuda Chen <clh960524@gmail.com>
 //   Aymen Qader <aymen.qader@arm.com>
+//   Anthony Roberts <anthony.roberts@linaro.org>
 
 /*
  * sse2neon is freely redistributable under the MIT License.
