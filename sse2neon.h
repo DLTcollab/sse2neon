@@ -2241,7 +2241,20 @@ FORCE_INLINE void _mm_prefetch(char const *p, int i)
 {
     (void) i;
 #if defined(_MSC_VER)
-    __prefetch(p);
+    switch (i) {
+    case _MM_HINT_NTA:
+        __prefetch2(p, ARM64_PREFETCH(PLD, L1, STRM));
+        break;
+    case _MM_HINT_T0:
+        __prefetch2(p, ARM64_PREFETCH(PLD, L1, KEEP));
+        break;
+    case _MM_HINT_T1:
+        __prefetch2(p, ARM64_PREFETCH(PLD, L2, KEEP));
+        break;
+    case _MM_HINT_T2:
+        __prefetch2(p, ARM64_PREFETCH(PLD, L3, KEEP));
+        break;
+    }
 #else
     switch (i) {
     case _MM_HINT_NTA:
