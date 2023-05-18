@@ -76,7 +76,7 @@ jobs:
           run: |
             make FEATURE=${{ matrix.arch_with_features.feature }} check
 
-  host_win:
+  host_win_msvc:
     runs-on: windows-2022
     steps:
       - name: checkout code
