@@ -81,8 +81,10 @@
 #define ALIGN_STRUCT(x) __attribute__((aligned(x)))
 #define _sse2neon_likely(x) __builtin_expect(!!(x), 1)
 #define _sse2neon_unlikely(x) __builtin_expect(!!(x), 0)
-#else /* non-GNU / non-clang compilers */
-#pragma message("Macro name collisions may happen with unsupported compiler.")
+#elif defined(_MSC_VER)
+#if _MSVC_TRADITIONAL
+#error Using the traditional MSVC preprocessor is not supported! Use /Zc:preprocessor instead.
+#endif
 #ifndef FORCE_INLINE
 #define FORCE_INLINE static inline
 #endif
@@ -91,6 +93,8 @@
 #endif
 #define _sse2neon_likely(x) (x)
 #define _sse2neon_unlikely(x) (x)
+#else
+#pragma message("Macro name collisions may happen with unsupported compilers.")
 #endif
 
 /* C language does not allow initializing a variable with a function call. */
@@ -112,7 +116,13 @@
 
 /* If using MSVC */
 #ifdef _MSC_VER
+#include <windows.h>
 #include <intrin.h>
+#include <processthreadsapi.h>
+
+#if !defined(__cplusplus)
+#error sse2neon only supports C++ compilation with this compiler
+#endif
 
 #ifdef SSE2NEON_ALLOC_DEFINED
 #include <malloc.h>
@@ -124,7 +134,7 @@
 #endif
 #endif
 
-#if defined(__GNUC__) || defined(__clang__) || 0
+#if defined(__GNUC__) || defined(__clang__)
 #define _sse2neon_define0(type, s, body) \
     __extension__({                      \
         type _a = (s);                   \
@@ -142,7 +152,6 @@
     })
 #define _sse2neon_return(ret) (ret)
 #else
-// #define _sse2neon_define(type, a, body) [_a = (a)](){body}()
 #define _sse2neon_define0(type, a, body) [=](type _a) { body }(a)
 #define _sse2neon_define1(type, a, body) [](type _a) { body }(a)
 #define _sse2neon_define2(type, a, b, body) \
@@ -157,9 +166,7 @@
 
 /* Compiler barrier */
 #if defined(_MSC_VER)
-#define SSE2NEON_BARRIER()                     \
-    __dmb(_ARM64_BARRIER_ISHST);               \
-    __yield();
+#define SSE2NEON_BARRIER() _ReadWriteBarrier()
 #else
 #define SSE2NEON_BARRIER()                     \
     do {                                       \
@@ -185,8 +192,8 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
     atomic_thread_fence(memory_order_seq_cst);
 #elif defined(__GNUC__) || defined(__clang__)
     __atomic_thread_fence(__ATOMIC_SEQ_CST);
-#else
-    /* FIXME: MSVC support */
+#else /* MSVC */
+    __dmb(_ARM64_BARRIER_ISH);
 #endif
 }
 
@@ -2499,11 +2506,7 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_sfence
 FORCE_INLINE void _mm_sfence(void)
 {
-#if defined(_MSC_VER)
-    __dmb(_ARM64_BARRIER_SY);
-#else
     _sse2neon_smp_mb();
-#endif
 }
 
 // Perform a serializing operation on all load-from-memory and store-to-memory
@@ -2529,7 +2532,7 @@ FORCE_INLINE void _mm_lfence(void)
 
 // FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255)
 // int imm)
-#if defined(_sse2neon_shuffle) && defined(SSE2NEON_STATEMENT_EXPRESSION)
+#ifdef _sse2neon_shuffle
 #define _mm_shuffle_ps(a, b, imm)                                              \
     __extension__({                                                            \
         float32x4_t _input1 = vreinterpretq_f32_m128(a);                       \
@@ -2804,10 +2807,6 @@ FORCE_INLINE __m128i _mm_undefined_si128(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4700)
-#endif
     __m128i a;
 #if defined(_MSC_VER)
     a = _mm_setzero_si128();
@@ -2815,9 +2814,6 @@ FORCE_INLINE __m128i _mm_undefined_si128(void)
     return a;
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
-#endif
-#if defined(_MSC_VER)
-#pragma warning(pop)
 #endif
 }
 
@@ -2829,10 +2825,6 @@ FORCE_INLINE __m128 _mm_undefined_ps(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4700)
-#endif
     __m128 a;
 #if defined(_MSC_VER)
     a = _mm_setzero_ps();
@@ -2840,9 +2832,6 @@ FORCE_INLINE __m128 _mm_undefined_ps(void)
     return a;
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
-#endif
-#if defined(_MSC_VER)
-#pragma warning(pop)
 #endif
 }
 
@@ -3140,7 +3129,7 @@ FORCE_INLINE void _mm_clflush(void const *p)
     __builtin___clear_cache((char *) ptr,
                             (char *) ptr + SSE2NEON_CACHELINE_SIZE);
 #else
-    /* FIXME: MSVC support */
+    FlushInstructionCache(GetCurrentProcess(), p, SSE2NEON_CACHELINE_SIZE);
 #endif
 }
 
@@ -4784,8 +4773,7 @@ FORCE_INLINE __m128i _mm_packus_epi16(const __m128i a, const __m128i b)
 FORCE_INLINE void _mm_pause()
 {
 #if defined(_MSC_VER)
-    __dmb(_ARM64_BARRIER_ISHST);
-    __yield();
+    __isb(_ARM64_BARRIER_SY);
 #else
     __asm__ __volatile__("isb\n");
 #endif
@@ -5679,10 +5667,6 @@ FORCE_INLINE __m128d _mm_undefined_pd(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4700)
-#endif
     __m128d a;
 #if defined(_MSC_VER)
     a = _mm_setzero_pd();
@@ -5690,9 +5674,6 @@ FORCE_INLINE __m128d _mm_undefined_pd(void)
     return a;
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic pop
-#endif
-#if defined(_MSC_VER)
-#pragma warning(pop)
 #endif
 }
 
@@ -8917,14 +8898,9 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 // for more details.
 FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i b)
 {
-#ifdef _MSC_VER
-    __n128 cols = vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0)));
-    return { cols.n128_u64[0] ^ b.n128_u64[0], cols.n128_u64[1] ^ b.n128_u64[1] };
-#else
-    return vreinterpretq_m128i_u8(
-        vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))) ^
-        vreinterpretq_u8_m128i(b));
-#endif
+    return vreinterpretq_m128i_u8(veorq_u8(
+        vaesmcq_u8(vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0))),
+        vreinterpretq_u8_m128i(b)));
 }
 
 // Perform one round of an AES decryption flow on data (state) in a using the
@@ -8952,15 +8928,9 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdeclast_si128
 FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 {
-#ifdef _MSC_VER
-    __n128 a1 = vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0));
-    return {a1.n128_u64[0] ^ RoundKey.n128_u64[0],
-            a1.n128_u64[1] ^ RoundKey.n128_u64[1]};
-#else
     return vreinterpretq_m128i_u8(
-        vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0)) ^
-        vreinterpretq_u8_m128i(RoundKey));
-#endif
+        veorq_u8(vaesdq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0)),
+                 vreinterpretq_u8_m128i(RoundKey)));
 }
 
 // Perform the InvMixColumns transformation on a and store the result in dst.
