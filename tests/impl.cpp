@@ -3147,19 +3147,12 @@ result_t test_mm_ucomineq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     return test_mm_comineq_ss(impl, iter);
 }
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4700)
-#endif
 result_t test_mm_undefined_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     __m128 a = _mm_undefined_ps();
     a = _mm_xor_ps(a, a);
     return validateFloat(a, 0, 0, 0, 0);
 }
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
 result_t test_mm_unpackhi_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
@@ -6767,10 +6760,6 @@ result_t test_mm_ucomineq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     return test_mm_comineq_sd(impl, iter);
 }
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable : 4700)
-#endif
 result_t test_mm_undefined_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     __m128d a = _mm_undefined_pd();
@@ -6784,9 +6773,6 @@ result_t test_mm_undefined_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     a = _mm_xor_si128(a, a);
     return validateInt64(a, 0, 0);
 }
-#if defined(_MSC_VER)
-#pragma warning(pop)
-#endif
 
 result_t test_mm_unpackhi_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
