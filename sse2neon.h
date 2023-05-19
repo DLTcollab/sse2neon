@@ -73,6 +73,13 @@
 #define SSE2NEON_PRECISE_DP (0)
 #endif
 
+/* Enable inclusion of windows.h on MSVC platforms 
+ * This makes _mm_clflush functional on windows, as there is no builtin.
+ */
+#ifndef SSE2NEON_INCLUDE_WINDOWS_H
+#define SSE2NEON_INCLUDE_WINDOWS_H (0)
+#endif
+
 /* compiler specific definitions */
 #if defined(__GNUC__) || defined(__clang__)
 #pragma push_macro("FORCE_INLINE")
@@ -116,9 +123,11 @@
 
 /* If using MSVC */
 #ifdef _MSC_VER
-#include <windows.h>
 #include <intrin.h>
+#if SSE2NEON_INCLUDE_WINDOWS_H
+#include <windows.h>
 #include <processthreadsapi.h>
+#endif
 
 #if !defined(__cplusplus)
 #error sse2neon only supports C++ compilation with this compiler
@@ -2241,16 +2250,16 @@ FORCE_INLINE void _mm_prefetch(char const *p, int i)
 #if defined(_MSC_VER)
     switch (i) {
     case _MM_HINT_NTA:
-        __prefetch2(p, ARM64_PREFETCH(PLD, L1, STRM));
+        __prefetch2(p, 1);
         break;
     case _MM_HINT_T0:
-        __prefetch2(p, ARM64_PREFETCH(PLD, L1, KEEP));
+        __prefetch2(p, 0);
         break;
     case _MM_HINT_T1:
-        __prefetch2(p, ARM64_PREFETCH(PLD, L2, KEEP));
+        __prefetch2(p, 2);
         break;
     case _MM_HINT_T2:
-        __prefetch2(p, ARM64_PREFETCH(PLD, L3, KEEP));
+        __prefetch2(p, 4);
         break;
     }
 #else
@@ -3139,7 +3148,7 @@ FORCE_INLINE void _mm_clflush(void const *p)
     uintptr_t ptr = (uintptr_t) p;
     __builtin___clear_cache((char *) ptr,
                             (char *) ptr + SSE2NEON_CACHELINE_SIZE);
-#else
+#elif (_MSC_VER) && SSE2NEON_INCLUDE_WINDOWS_H
     FlushInstructionCache(GetCurrentProcess(), p, SSE2NEON_CACHELINE_SIZE);
 #endif
 }
