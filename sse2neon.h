@@ -8421,7 +8421,7 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
                          : [c] "+r"(crc)
                          : [v] "r"(v));
 #elif defined(_M_ARM64)
-    crc = __crc32cd(crc, v);
+    crc = __crc32cd((uint32_t)crc, v);
 #else
     crc = _mm_crc32_u32((uint32_t) (crc), v & 0xffffffff);
     crc = _mm_crc32_u32((uint32_t) (crc), (v >> 32) & 0xffffffff);
