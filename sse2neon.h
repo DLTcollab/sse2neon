@@ -7279,6 +7279,8 @@ FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm)
     default:
 #if defined(__GNUC__) || defined(__clang__)
         __builtin_unreachable();
+#elif defined(_MSC_VER)
+        __assume(0);
 #endif
         break;
     }
@@ -7303,6 +7305,8 @@ FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm)
     default:
 #if defined(__GNUC__) || defined(__clang__)
         __builtin_unreachable();
+#elif defined (_MSC_VER)
+        __assume(0);
 #endif
         break;
     }
