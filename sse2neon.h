@@ -1068,8 +1068,6 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
     return vreinterpretq_m128i_s32(vcombine_s32(a32, a33));
 }
 
-// FORCE_INLINE __m128i _mm_shuffle_epi32_splat(__m128i a, __constrange(0,255)
-// int imm)
 #if defined(__aarch64__) || defined(_M_ARM64)
 #define _mm_shuffle_epi32_splat(a, imm) \
     vreinterpretq_m128i_s32(vdupq_laneq_s32(vreinterpretq_s32_m128i(a), (imm)))
