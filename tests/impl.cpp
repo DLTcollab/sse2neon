@@ -2625,12 +2625,8 @@ result_t test_mm_rsqrt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 c = _mm_rsqrt_ps(a);
 
     // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 0.1% compared
-    // to the C implementation on non-MSVC compilers, and under 1% on MSVC.
-#if defined(_MSC_VER)
-    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
-#else
+    // to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.001f);
-#endif
 }
 
 result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -2646,12 +2642,8 @@ result_t test_mm_rsqrt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 c = _mm_rsqrt_ss(a);
 
     // Here, we ensure the error rate of "_mm_rsqrt_ps()" is under 0.1% compared
-    // to the C implementation on non-MSVC compilers, and under 1% on MSVC.
-#if defined(_MSC_VER)
-    return validateFloatError(c, f0, f1, f2, f3, 0.01f);
-#else
+    // to the C implementation.
     return validateFloatError(c, f0, f1, f2, f3, 0.001f);
-#endif
 }
 
 result_t test_mm_sad_pu8(const SSE2NEONTestImpl &impl, uint32_t iter)
