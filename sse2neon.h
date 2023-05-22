@@ -5040,7 +5040,7 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_shuffle_epi32
 // FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a,
 //                                        __constrange(0,255) int imm)
-#if defined(_sse2neon_shuffle) && defined(SSE2NEON_STATEMENT_EXPRESSION)
+#if defined(_sse2neon_shuffle)
 #define _mm_shuffle_epi32(a, imm)                                            \
     __extension__({                                                          \
         int32x4_t _input = vreinterpretq_s32_m128i(a);                       \
@@ -5118,7 +5118,7 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
 
 // FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a,
 //                                          __constrange(0,255) int imm)
-#if defined(_sse2neon_shuffle) && defined(SSE2NEON_STATEMENT_EXPRESSION)
+#if defined(_sse2neon_shuffle)
 #define _mm_shufflehi_epi16(a, imm)                                           \
     __extension__({                                                           \
         int16x8_t _input = vreinterpretq_s16_m128i(a);                        \
@@ -5134,7 +5134,7 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
 
 // FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a,
 //                                          __constrange(0,255) int imm)
-#if defined(_sse2neon_shuffle) && defined(SSE2NEON_STATEMENT_EXPRESSION)
+#if defined(_sse2neon_shuffle)
 #define _mm_shufflelo_epi16(a, imm)                                  \
     __extension__({                                                  \
         int16x8_t _input = vreinterpretq_s16_m128i(a);               \
