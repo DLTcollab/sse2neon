@@ -8347,25 +8347,39 @@ result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_SUCCESS;
 }
 
+#define MM_DP_PS_TEST_CASE_WITH(IMM)                                          \
+    do {                                                                      \
+        const float *_a = impl.mTestFloatPointer1;                            \
+        const float *_b = impl.mTestFloatPointer2;                            \
+        const int imm = IMM;                                                  \
+        __m128 a = load_m128(_a);                                             \
+        __m128 b = load_m128(_b);                                             \
+        __m128 out = _mm_dp_ps(a, b, imm);                                    \
+        float r[4]; /* the reference */                                       \
+        float sum = 0;                                                        \
+        for (size_t i = 0; i < 4; i++)                                        \
+            sum += ((imm) & (1 << (i + 4))) ? _a[i] * _b[i] : 0;              \
+        for (size_t i = 0; i < 4; i++)                                        \
+            r[i] = (imm & (1 << i)) ? sum : 0;                                \
+        /* the epsilon has to be large enough, otherwise test suite fails. */ \
+        if (validateFloatEpsilon(out, r[0], r[1], r[2], r[3], 2050.0f) !=     \
+            TEST_SUCCESS)                                                     \
+            return TEST_FAIL;                                                 \
+    } while (0)
+
+#define GENERATE_MM_DP_PS_TEST_CASES \
+    MM_DP_PS_TEST_CASE_WITH(0xFF);   \
+    MM_DP_PS_TEST_CASE_WITH(0x7F);   \
+    MM_DP_PS_TEST_CASE_WITH(0x9F);   \
+    MM_DP_PS_TEST_CASE_WITH(0x2F);   \
+    MM_DP_PS_TEST_CASE_WITH(0x0F);   \
+    MM_DP_PS_TEST_CASE_WITH(0x23);   \
+    MM_DP_PS_TEST_CASE_WITH(0xB5);
+
 result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    const float *_a = impl.mTestFloatPointer1;
-    const float *_b = impl.mTestFloatPointer2;
-    const int imm = 0xFF;
-    __m128 a = load_m128(_a);
-    __m128 b = load_m128(_b);
-    __m128 out = _mm_dp_ps(a, b, imm);
-
-    float r[4]; /* the reference */
-    float sum = 0;
-
-    for (size_t i = 0; i < 4; i++)
-        sum += ((imm) & (1 << (i + 4))) ? _a[i] * _b[i] : 0;
-    for (size_t i = 0; i < 4; i++)
-        r[i] = (imm & (1 << i)) ? sum : 0;
-
-    /* the epsilon has to be large enough, otherwise test suite fails. */
-    return validateFloatEpsilon(out, r[0], r[1], r[2], r[3], 2050.0f);
+    GENERATE_MM_DP_PS_TEST_CASES
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_extract_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)

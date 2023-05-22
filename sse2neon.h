@@ -838,16 +838,6 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2032(__m128 a, __m128 b)
     return vreinterpretq_m128_f32(vcombine_f32(a32, b20));
 }
 
-// Kahan summation for accurate summation of floating-point numbers.
-// http://blog.zachbjornson.com/2019/08/11/fast-float-summation.html
-FORCE_INLINE void _sse2neon_kadd_f32(float *sum, float *c, float y)
-{
-    y -= *c;
-    float t = *sum + y;
-    *c = (t - *sum) - y;
-    *sum = t;
-}
-
 // For MSVC, we check only if it is ARM64, as every single ARM64 processor
 // supported by WoA has crypto extensions. If this changes in the future,
 // this can be verified via the runtime-only method of:
@@ -6983,44 +6973,44 @@ FORCE_INLINE __m128d _mm_dp_pd(__m128d a, __m128d b, const int imm)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_dp_ps
 FORCE_INLINE __m128 _mm_dp_ps(__m128 a, __m128 b, const int imm)
 {
+    float32x4_t elementwise_prod = _mm_mul_ps(a, b);
+
 #if defined(__aarch64__) || defined(_M_ARM64)
     /* shortcuts */
     if (imm == 0xFF) {
-        return _mm_set1_ps(vaddvq_f32(_mm_mul_ps(a, b)));
+        return _mm_set1_ps(vaddvq_f32(elementwise_prod));
     }
-    if (imm == 0x7F) {
-        float32x4_t m = _mm_mul_ps(a, b);
-        m = vsetq_lane_f32(0, m, 3);
-        return _mm_set1_ps(vaddvq_f32(m));
+
+    if ((imm & 0x0F) == 0x0F) {
+        if (!(imm & (1 << 4)))
+            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 0);
+        if (!(imm & (1 << 5)))
+            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 1);
+        if (!(imm & (1 << 6)))
+            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 2);
+        if (!(imm & (1 << 7)))
+            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 3);
+
+        return _mm_set1_ps(vaddvq_f32(elementwise_prod));
     }
 #endif
 
-    float s = 0, c = 0;
-    float32x4_t f32a = vreinterpretq_f32_m128(a);
-    float32x4_t f32b = vreinterpretq_f32_m128(b);
+    float s = 0.0f;
 
-    /* To improve the accuracy of floating-point summation, Kahan algorithm
-     * is used for each operation.
-     */
     if (imm & (1 << 4))
-        _sse2neon_kadd_f32(&s, &c,
-                           vgetq_lane_f32(f32a, 0) * vgetq_lane_f32(f32b, 0));
+        s += vgetq_lane_f32(elementwise_prod, 0);
     if (imm & (1 << 5))
-        _sse2neon_kadd_f32(&s, &c,
-                           vgetq_lane_f32(f32a, 1) * vgetq_lane_f32(f32b, 1));
+        s += vgetq_lane_f32(elementwise_prod, 1);
     if (imm & (1 << 6))
-        _sse2neon_kadd_f32(&s, &c,
-                           vgetq_lane_f32(f32a, 2) * vgetq_lane_f32(f32b, 2));
+        s += vgetq_lane_f32(elementwise_prod, 2);
     if (imm & (1 << 7))
-        _sse2neon_kadd_f32(&s, &c,
-                           vgetq_lane_f32(f32a, 3) * vgetq_lane_f32(f32b, 3));
-    s += c;
+        s += vgetq_lane_f32(elementwise_prod, 3);
 
-    float32_t res[4] = {
-        (imm & 0x1) ? s : 0,
-        (imm & 0x2) ? s : 0,
-        (imm & 0x4) ? s : 0,
-        (imm & 0x8) ? s : 0,
+    const float32_t res[4] = {
+        (imm & 0x1) ? s : 0.0f,
+        (imm & 0x2) ? s : 0.0f,
+        (imm & 0x4) ? s : 0.0f,
+        (imm & 0x8) ? s : 0.0f,
     };
     return vreinterpretq_m128_f32(vld1q_f32(res));
 }
