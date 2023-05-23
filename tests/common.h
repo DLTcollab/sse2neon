@@ -1,7 +1,7 @@
 #ifndef SSE2NEONCOMMON_H
 #define SSE2NEONCOMMON_H
 #include <cstdint>
-#if defined(__aarch64__) || defined(__arm__)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__arm__)
 #include "sse2neon.h"
 #elif defined(__x86_64__) || defined(__i386__)
 #include <emmintrin.h>
