@@ -8455,7 +8455,7 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 
 /* AES */
 
-#if !defined(__ARM_FEATURE_CRYPTO) && !defined(_M_ARM64)
+#if !defined(__ARM_FEATURE_CRYPTO) && (!defined(_M_ARM64) || defined(__clang__))
 /* clang-format off */
 #define SSE2NEON_AES_SBOX(w)                                           \
     {                                                                  \
