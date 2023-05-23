@@ -73,7 +73,7 @@
 #define SSE2NEON_PRECISE_DP (0)
 #endif
 
-/* Enable inclusion of windows.h on MSVC platforms 
+/* Enable inclusion of windows.h on MSVC platforms
  * This makes _mm_clflush functional on windows, as there is no builtin.
  */
 #ifndef SSE2NEON_INCLUDE_WINDOWS_H
@@ -125,8 +125,8 @@
 #ifdef _MSC_VER
 #include <intrin.h>
 #if SSE2NEON_INCLUDE_WINDOWS_H
-#include <windows.h>
 #include <processthreadsapi.h>
+#include <windows.h>
 #endif
 
 #if !defined(__cplusplus)
@@ -222,7 +222,7 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #pragma GCC target("fpu=neon")
 #endif
 #elif defined(__aarch64__) || defined(_M_ARM64)
-#if !defined(__clang__) && !defined (_MSC_VER)
+#if !defined(__clang__) && !defined(_MSC_VER)
 #pragma GCC push_options
 #pragma GCC target("+simd")
 #endif
@@ -843,8 +843,8 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2032(__m128 a, __m128 b)
 // this can be verified via the runtime-only method of:
 // IsProcessorFeaturePresent(PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE)
 #if (defined(_M_ARM64) && !defined(__clang__)) || \
-    (defined(__ARM_FEATURE_CRYPTO) && \
-        (defined(__aarch64__) || __has_builtin(__builtin_arm_crypto_vmullp64)))
+    (defined(__ARM_FEATURE_CRYPTO) &&             \
+     (defined(__aarch64__) || __has_builtin(__builtin_arm_crypto_vmullp64)))
 // Wraps vmull_p64
 FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 {
@@ -1096,7 +1096,7 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
         vsetq_lane_f32(                                                        \
             vgetq_lane_f32(vreinterpretq_f32_m128(b), ((imm) >> 4) & 0x3),     \
             vsetq_lane_f32(                                                    \
-            vgetq_lane_f32(vreinterpretq_f32_m128(a), ((imm) >> 2) & 0x3),     \
+                vgetq_lane_f32(vreinterpretq_f32_m128(a), ((imm) >> 2) & 0x3), \
                 vmovq_n_f32(                                                   \
                     vgetq_lane_f32(vreinterpretq_f32_m128(a), (imm) & (0x3))), \
                 1),                                                            \
@@ -1507,7 +1507,8 @@ FORCE_INLINE __m128 _mm_cvt_pi2ps(__m128 a, __m64 b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvt_ps2pi
 FORCE_INLINE __m64 _mm_cvt_ps2pi(__m128 a)
 {
-#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vreinterpret_m64_s32(
         vget_low_s32(vcvtnq_s32_f32(vrndiq_f32(vreinterpretq_f32_m128(a)))));
 #else
@@ -1531,7 +1532,8 @@ FORCE_INLINE __m128 _mm_cvt_si2ss(__m128 a, int b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvt_ss2si
 FORCE_INLINE int _mm_cvt_ss2si(__m128 a)
 {
-#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vgetq_lane_s32(vcvtnq_s32_f32(vrndiq_f32(vreinterpretq_f32_m128(a))),
                           0);
 #else
@@ -1661,7 +1663,8 @@ FORCE_INLINE float _mm_cvtss_f32(__m128 a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtss_si64
 FORCE_INLINE int64_t _mm_cvtss_si64(__m128 a)
 {
-#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return (int64_t) vgetq_lane_f32(vrndiq_f32(vreinterpretq_f32_m128(a)), 0);
 #else
     float32_t data = vgetq_lane_f32(
@@ -2488,8 +2491,8 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_shuffle_pi16
 #ifdef _sse2neon_shuffle
 #define _mm_shuffle_pi16(a, imm)                                       \
-        vreinterpret_m64_s16(vshuffle_s16(                                 \
-            vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), (imm & 0x3), \
+    vreinterpret_m64_s16(vshuffle_s16(                                 \
+        vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), (imm & 0x3), \
         ((imm >> 2) & 0x3), ((imm >> 4) & 0x3), ((imm >> 6) & 0x3)))
 #else
 #define _mm_shuffle_pi16(a, imm)                                              \
@@ -3870,7 +3873,8 @@ FORCE_INLINE __m128i _mm_cvtps_epi32(__m128 a)
 {
 #if defined(__ARM_FEATURE_FRINT)
     return vreinterpretq_m128i_s32(vcvtq_s32_f32(vrnd32xq_f32(a)));
-#elif (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#elif (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     switch (_MM_GET_ROUNDING_MODE()) {
     case _MM_ROUND_NEAREST:
         return vreinterpretq_m128i_s32(vcvtnq_s32_f32(a));
@@ -5888,7 +5892,8 @@ FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
     _sse2neon_const __m128 mask = _mm_setr_ps(-1.0f, 1.0f, -1.0f, 1.0f);
-#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_FMA) /* VFPv4+ */
+#if (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_FMA) /* VFPv4+ */
     return vreinterpretq_m128_f32(vfmaq_f32(vreinterpretq_f32_m128(a),
                                             vreinterpretq_f32_m128(mask),
                                             vreinterpretq_f32_m128(b)));
@@ -6102,12 +6107,11 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
     _sse2neon_define2(                                                      \
         __m128i, a, b, uint8x16_t __a = vreinterpretq_u8_m128i(_a);         \
         uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;           \
-        if (_sse2neon_unlikely((imm) & ~31))                                \
-           ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));                     \
-        else if (imm >= 16)                                                 \
-            ret =_mm_srli_si128(_a, imm >= 16 ? imm - 16 : 0);              \
-        else                                                                \
-            ret =                                                           \
+        if (_sse2neon_unlikely((imm) & ~31)) ret =                          \
+            vreinterpretq_m128i_u8(vdupq_n_u8(0));                          \
+        else if (imm >= 16) ret =                                           \
+            _mm_srli_si128(_a, imm >= 16 ? imm - 16 : 0);                   \
+        else ret =                                                          \
             vreinterpretq_m128i_u8(vextq_u8(__b, __a, imm < 16 ? imm : 0)); \
         _sse2neon_return(ret);)
 
@@ -6752,7 +6756,8 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_ceil_ps
 FORCE_INLINE __m128 _mm_ceil_ps(__m128 a)
 {
-#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vreinterpretq_m128_f32(vrndpq_f32(vreinterpretq_f32_m128(a)));
 #else
     float *f = (float *) &a;
@@ -7059,7 +7064,8 @@ FORCE_INLINE __m128d _mm_floor_pd(__m128d a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_floor_ps
 FORCE_INLINE __m128 _mm_floor_ps(__m128 a)
 {
-#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     return vreinterpretq_m128_f32(vrndmq_f32(vreinterpretq_f32_m128(a)));
 #else
     float *f = (float *) &a;
@@ -7133,7 +7139,7 @@ FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
                            ((imm8) & (1 << 3)) ? UINT32_MAX : 0);            \
         uint32x4_t mask = vld1q_u32(data);                                   \
         float32x4_t all_zeros = vdupq_n_f32(0);                              \
-                                                                               \
+                                                                             \
         _sse2neon_return(vreinterpretq_m128_f32(                             \
             vbslq_f32(mask, all_zeros, vreinterpretq_f32_m128(tmp2))));)
 
@@ -7304,7 +7310,7 @@ FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm)
     default:
 #if defined(__GNUC__) || defined(__clang__)
         __builtin_unreachable();
-#elif defined (_MSC_VER)
+#elif defined(_MSC_VER)
         __assume(0);
 #endif
         break;
@@ -7448,7 +7454,8 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 // software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_ps
 FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 {
-#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__ARM_FEATURE_DIRECTED_ROUNDING)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || \
+    defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     switch (rounding) {
     case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
         return vreinterpretq_m128_f32(vrndnq_f32(vreinterpretq_f32_m128(a)));
@@ -8109,7 +8116,7 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
     unsigned long cnt;
 #if defined(SSE2NEON_HAS_BITSCAN64)
     if (_BitScanForward64(&cnt, x))
-        return (int)(cnt);
+        return (int) (cnt);
 #else
     if (_BitScanForward(&cnt, (unsigned long) (x)))
         return (int) cnt;
@@ -8117,7 +8124,7 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
         return (int) (cnt + 32);
 #endif /* SSE2NEON_HAS_BITSCAN64 */
     return 64;
-#else  /* assume GNU compatible compilers */
+#else /* assume GNU compatible compilers */
     return x != 0 ? __builtin_ctzll(x) : 64;
 #endif
 }
@@ -8385,7 +8392,8 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
     __asm__ __volatile__("crc32ch %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || (defined(_M_ARM64) && !defined(__clang__))
+#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
+    (defined(_M_ARM64) && !defined(__clang__))
     crc = __crc32ch(crc, v);
 #else
     crc = _mm_crc32_u8(crc, v & 0xff);
@@ -8403,7 +8411,8 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
     __asm__ __volatile__("crc32cw %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || (defined(_M_ARM64) && !defined(__clang__))
+#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
+    (defined(_M_ARM64) && !defined(__clang__))
     crc = __crc32cw(crc, v);
 #else
     crc = _mm_crc32_u16(crc, v & 0xffff);
@@ -8422,7 +8431,7 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
                          : [c] "+r"(crc)
                          : [v] "r"(v));
 #elif (defined(_M_ARM64) && !defined(__clang__))
-    crc = __crc32cd((uint32_t)crc, v);
+    crc = __crc32cd((uint32_t) crc, v);
 #else
     crc = _mm_crc32_u32((uint32_t) (crc), v & 0xffffffff);
     crc = _mm_crc32_u32((uint32_t) (crc), (v >> 32) & 0xffffffff);
@@ -8439,7 +8448,8 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
     __asm__ __volatile__("crc32cb %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || (defined(_M_ARM64) && !defined(__clang__))
+#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
+    (defined(_M_ARM64) && !defined(__clang__))
     crc = __crc32cb(crc, v);
 #else
     crc ^= v;
@@ -8979,15 +8989,21 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
     // unions must be initialized by their first member type.
 
     // As per the Windows ARM64 ABI, it is always little endian, so this works
-    __n128 dest {
-        ((uint64_t)u8.n128_u8[0x4] << 0 ) | ((uint64_t)u8.n128_u8[0x1] << 8 ) |
-        ((uint64_t)u8.n128_u8[0xE] << 16) | ((uint64_t)u8.n128_u8[0xB] << 24) |
-        ((uint64_t)u8.n128_u8[0x1] << 32) | ((uint64_t)u8.n128_u8[0xE] << 40) |
-        ((uint64_t)u8.n128_u8[0xB] << 48) | ((uint64_t)u8.n128_u8[0x4] << 56),
-        ((uint64_t)u8.n128_u8[0xC] << 0 ) | ((uint64_t)u8.n128_u8[0x9] << 8 ) |
-        ((uint64_t)u8.n128_u8[0x6] << 16) | ((uint64_t)u8.n128_u8[0x3] << 24) |
-        ((uint64_t)u8.n128_u8[0x9] << 32) | ((uint64_t)u8.n128_u8[0x6] << 40) |
-        ((uint64_t)u8.n128_u8[0x3] << 48) | ((uint64_t)u8.n128_u8[0xC] << 56)};
+    __n128 dest{
+        ((uint64_t) u8.n128_u8[0x4] << 0) | ((uint64_t) u8.n128_u8[0x1] << 8) |
+            ((uint64_t) u8.n128_u8[0xE] << 16) |
+            ((uint64_t) u8.n128_u8[0xB] << 24) |
+            ((uint64_t) u8.n128_u8[0x1] << 32) |
+            ((uint64_t) u8.n128_u8[0xE] << 40) |
+            ((uint64_t) u8.n128_u8[0xB] << 48) |
+            ((uint64_t) u8.n128_u8[0x4] << 56),
+        ((uint64_t) u8.n128_u8[0xC] << 0) | ((uint64_t) u8.n128_u8[0x9] << 8) |
+            ((uint64_t) u8.n128_u8[0x6] << 16) |
+            ((uint64_t) u8.n128_u8[0x3] << 24) |
+            ((uint64_t) u8.n128_u8[0x9] << 32) |
+            ((uint64_t) u8.n128_u8[0x6] << 40) |
+            ((uint64_t) u8.n128_u8[0x3] << 48) |
+            ((uint64_t) u8.n128_u8[0xC] << 56)};
 
     dest.n128_u32[1] = dest.n128_u32[1] ^ rcon;
     dest.n128_u32[3] = dest.n128_u32[3] ^ rcon;
