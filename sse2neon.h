@@ -842,7 +842,7 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2032(__m128 a, __m128 b)
 // supported by WoA has crypto extensions. If this changes in the future,
 // this can be verified via the runtime-only method of:
 // IsProcessorFeaturePresent(PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE)
-#if defined(_M_ARM64) || \
+#if (defined(_M_ARM64) && !defined(__clang__)) || \
     (defined(__ARM_FEATURE_CRYPTO) && \
         (defined(__aarch64__) || __has_builtin(__builtin_arm_crypto_vmullp64)))
 // Wraps vmull_p64
@@ -8385,7 +8385,7 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
     __asm__ __volatile__("crc32ch %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || defined (_M_ARM64)
+#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || (defined(_M_ARM64) && !defined(__clang__))
     crc = __crc32ch(crc, v);
 #else
     crc = _mm_crc32_u8(crc, v & 0xff);
@@ -8403,7 +8403,7 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
     __asm__ __volatile__("crc32cw %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || defined (_M_ARM64)
+#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || (defined(_M_ARM64) && !defined(__clang__))
     crc = __crc32cw(crc, v);
 #else
     crc = _mm_crc32_u16(crc, v & 0xffff);
@@ -8421,7 +8421,7 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
     __asm__ __volatile__("crc32cx %w[c], %w[c], %x[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif defined(_M_ARM64)
+#elif (defined(_M_ARM64) && !defined(__clang__))
     crc = __crc32cd((uint32_t)crc, v);
 #else
     crc = _mm_crc32_u32((uint32_t) (crc), v & 0xffffffff);
@@ -8439,7 +8439,7 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
     __asm__ __volatile__("crc32cb %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || defined (_M_ARM64)
+#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || (defined(_M_ARM64) && !defined(__clang__))
     crc = __crc32cb(crc, v);
 #else
     crc ^= v;
