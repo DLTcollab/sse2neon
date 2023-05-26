@@ -78,6 +78,27 @@ public:
                 mTestFloatPointer1[2] = 1.0f / mTestFloatPointer1[2];
                 mTestFloatPointer1[3] = 1.0f / mTestFloatPointer1[3];
             }
+            if (test == it_mm_rcp_ps || test == it_mm_rcp_ss ||
+                test == it_mm_rsqrt_ps || test == it_mm_rsqrt_ss) {
+                if ((rand() & 3) == 0) {
+                    uint32_t r1 = rand() & 3;
+                    uint32_t r2 = rand() & 3;
+                    uint32_t r3 = rand() & 3;
+                    uint32_t r4 = rand() & 3;
+                    uint32_t r5 = rand() & 3;
+                    uint32_t r6 = rand() & 3;
+                    uint32_t r7 = rand() & 3;
+                    uint32_t r8 = rand() & 3;
+                    mTestFloatPointer1[r1] = 0.0f;
+                    mTestFloatPointer1[r2] = 0.0f;
+                    mTestFloatPointer1[r3] = 0.0f;
+                    mTestFloatPointer1[r4] = 0.0f;
+                    mTestFloatPointer1[r5] = -0.0f;
+                    mTestFloatPointer1[r6] = -0.0f;
+                    mTestFloatPointer1[r7] = -0.0f;
+                    mTestFloatPointer1[r8] = -0.0f;
+                }
+            }
             if (test == it_mm_cmpge_ps || test == it_mm_cmpge_ss ||
                 test == it_mm_cmple_ps || test == it_mm_cmple_ss ||
                 test == it_mm_cmpeq_ps || test == it_mm_cmpeq_ss) {
