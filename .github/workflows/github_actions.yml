@@ -88,6 +88,26 @@ jobs:
       - name: build artifact
         run: msbuild sse2neon.vcxproj -t:rebuild -property:Configuration=Release -property:Platform=ARM64
 
+      - name: upload artifact
+        uses: actions/upload-artifact@master
+        with:
+          name: msvc-arm64-artifact
+          path: ARM64
+
+  test_win_msvc:
+    runs-on: ubuntu-latest
+    container: linaro/wine-arm64
+    needs: host_win_msvc
+    steps:
+      - name: download artifact
+        uses: actions/download-artifact@master
+        with:
+          name: msvc-arm64-artifact
+
+      - name: Run tests
+        run: wine-arm64 cmd.exe /c 'Release\sse2neon.exe'
+
+
   coding_style:
     runs-on: ubuntu-20.04
     steps:
