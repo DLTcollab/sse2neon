@@ -2313,8 +2313,24 @@ FORCE_INLINE __m128 _mm_rcp_ss(__m128 a)
 FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
 {
     float32x4_t out = vrsqrteq_f32(vreinterpretq_f32_m128(in));
+
+    // Generate masks for detecting whether input has any 0.0f/-0.0f
+    // (which becomes positive/negative infinity by IEEE-754 arthimetic rules).
+    const uint32x4_t pos_inf = vdupq_n_u32(0x7F800000);
+    const uint32x4_t neg_inf = vdupq_n_u32(0xFF800000);
+    const uint32x4_t has_pos_zero =
+        vceqq_u32(pos_inf, vreinterpretq_u32_f32(out));
+    const uint32x4_t has_neg_zero =
+        vceqq_u32(neg_inf, vreinterpretq_u32_f32(out));
+
     out = vmulq_f32(
         out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+
+    // Set output vector element to infinity/negative-infinity if
+    // the corresponding input vector element is 0.0f/-0.0f.
+    out = vbslq_f32(has_pos_zero, (float32x4_t) pos_inf, out);
+    out = vbslq_f32(has_neg_zero, (float32x4_t) neg_inf, out);
+
     return vreinterpretq_m128_f32(out);
 }
 

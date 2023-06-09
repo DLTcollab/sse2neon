@@ -36,6 +36,30 @@ their equivalents are built utilizing a number of NEON intrinsics.
 For example, SSE intrinsic `_mm_loadu_si128` has a direct NEON mapping (`vld1q_s32`),
 but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instructions.
 
+### Floating-point compatibility
+
+Some conversions require several NEON intrinsics, which may produce inconsistent results
+compared to their SSE counterparts due to differences in the arithmetic rules of IEEE-754.
+
+Taking a possible conversion of `_mm_rsqrt_ps` as example:
+
+```c
+__m128 _mm_rsqrt_ps(__m128 in)
+{
+    float32x4_t out = vrsqrteq_f32(vreinterpretq_f32_m128(in));
+
+    out = vmulq_f32(
+        out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+
+    return vreinterpretq_m128_f32(out);
+}
+```
+
+The `_mm_rsqrt_ps` conversion will produce NaN if a source value is `0.0` (first INF for the
+reciprocal square root of `0.0`, then INF * `0.0` using `vmulq_f32`). In contrast,
+the SSE counterpart produces INF if a source value is `0.0`.
+As a result, additional treatments should be applied to ensure consistency between the conversion and its SSE counterpart.
+
 ## Usage
 
 - Put the file `sse2neon.h` in to your source code directory.
