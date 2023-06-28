@@ -5921,20 +5921,20 @@ result_t test_mm_sll_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     __m128i a, b, c;
 
-#define TEST_IMPL(IDX)                          \
-    uint16_t d##IDX[8];                         \
-    d##IDX[0] = (IDX & ~15) ? 0 : _a[0] << IDX; \
-    d##IDX[1] = (IDX & ~15) ? 0 : _a[1] << IDX; \
-    d##IDX[2] = (IDX & ~15) ? 0 : _a[2] << IDX; \
-    d##IDX[3] = (IDX & ~15) ? 0 : _a[3] << IDX; \
-    d##IDX[4] = (IDX & ~15) ? 0 : _a[4] << IDX; \
-    d##IDX[5] = (IDX & ~15) ? 0 : _a[5] << IDX; \
-    d##IDX[6] = (IDX & ~15) ? 0 : _a[6] << IDX; \
-    d##IDX[7] = (IDX & ~15) ? 0 : _a[7] << IDX; \
-                                                \
-    a = load_m128i(_a);                         \
-    b = _mm_set1_epi64x(IDX);                   \
-    c = _mm_sll_epi16(a, b);                    \
+#define TEST_IMPL(IDX)                         \
+    uint16_t d##IDX[8];                        \
+    d##IDX[0] = (IDX > 15) ? 0 : _a[0] << IDX; \
+    d##IDX[1] = (IDX > 15) ? 0 : _a[1] << IDX; \
+    d##IDX[2] = (IDX > 15) ? 0 : _a[2] << IDX; \
+    d##IDX[3] = (IDX > 15) ? 0 : _a[3] << IDX; \
+    d##IDX[4] = (IDX > 15) ? 0 : _a[4] << IDX; \
+    d##IDX[5] = (IDX > 15) ? 0 : _a[5] << IDX; \
+    d##IDX[6] = (IDX > 15) ? 0 : _a[6] << IDX; \
+    d##IDX[7] = (IDX > 15) ? 0 : _a[7] << IDX; \
+                                               \
+    a = load_m128i(_a);                        \
+    b = _mm_set1_epi64x(IDX);                  \
+    c = _mm_sll_epi16(a, b);                   \
     CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
 
     IMM_64_ITER
@@ -5948,16 +5948,16 @@ result_t test_mm_sll_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
     __m128i a, b, c;
 
-#define TEST_IMPL(IDX)                          \
-    uint32_t d##IDX[4];                         \
-    d##IDX[0] = (IDX & ~31) ? 0 : _a[0] << IDX; \
-    d##IDX[1] = (IDX & ~31) ? 0 : _a[1] << IDX; \
-    d##IDX[2] = (IDX & ~31) ? 0 : _a[2] << IDX; \
-    d##IDX[3] = (IDX & ~31) ? 0 : _a[3] << IDX; \
-                                                \
-    a = load_m128i(_a);                         \
-    b = _mm_set1_epi64x(IDX);                   \
-    c = _mm_sll_epi32(a, b);                    \
+#define TEST_IMPL(IDX)                         \
+    uint32_t d##IDX[4];                        \
+    d##IDX[0] = (IDX > 31) ? 0 : _a[0] << IDX; \
+    d##IDX[1] = (IDX > 31) ? 0 : _a[1] << IDX; \
+    d##IDX[2] = (IDX > 31) ? 0 : _a[2] << IDX; \
+    d##IDX[3] = (IDX > 31) ? 0 : _a[3] << IDX; \
+                                               \
+    a = load_m128i(_a);                        \
+    b = _mm_set1_epi64x(IDX);                  \
+    c = _mm_sll_epi32(a, b);                   \
     CHECK_RESULT(VALIDATE_INT32_M128(c, d##IDX))
 
     IMM_64_ITER
@@ -5990,19 +5990,19 @@ result_t test_mm_slli_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     __m128i a, c;
 
-#define TEST_IMPL(IDX)                          \
-    int16_t d##IDX[8];                          \
-    d##IDX[0] = (IDX & ~15) ? 0 : _a[0] << IDX; \
-    d##IDX[1] = (IDX & ~15) ? 0 : _a[1] << IDX; \
-    d##IDX[2] = (IDX & ~15) ? 0 : _a[2] << IDX; \
-    d##IDX[3] = (IDX & ~15) ? 0 : _a[3] << IDX; \
-    d##IDX[4] = (IDX & ~15) ? 0 : _a[4] << IDX; \
-    d##IDX[5] = (IDX & ~15) ? 0 : _a[5] << IDX; \
-    d##IDX[6] = (IDX & ~15) ? 0 : _a[6] << IDX; \
-    d##IDX[7] = (IDX & ~15) ? 0 : _a[7] << IDX; \
-                                                \
-    a = load_m128i(_a);                         \
-    c = _mm_slli_epi16(a, IDX);                 \
+#define TEST_IMPL(IDX)                         \
+    int16_t d##IDX[8];                         \
+    d##IDX[0] = (IDX > 15) ? 0 : _a[0] << IDX; \
+    d##IDX[1] = (IDX > 15) ? 0 : _a[1] << IDX; \
+    d##IDX[2] = (IDX > 15) ? 0 : _a[2] << IDX; \
+    d##IDX[3] = (IDX > 15) ? 0 : _a[3] << IDX; \
+    d##IDX[4] = (IDX > 15) ? 0 : _a[4] << IDX; \
+    d##IDX[5] = (IDX > 15) ? 0 : _a[5] << IDX; \
+    d##IDX[6] = (IDX > 15) ? 0 : _a[6] << IDX; \
+    d##IDX[7] = (IDX > 15) ? 0 : _a[7] << IDX; \
+                                               \
+    a = load_m128i(_a);                        \
+    c = _mm_slli_epi16(a, IDX);                \
     CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
 
     IMM_64_ITER
@@ -6405,7 +6405,7 @@ result_t test_mm_storel_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128i a = load_m128i(p);
     _mm_storel_epi64(&mem, a);
 
-    ASSERT_RETURN(((SIMDVec *) &mem)->m128_u64[0] == p[0]);
+    ASSERT_RETURN(((SIMDVec *) &mem)->m128_u64[0] == (uint64_t) p[0]);
     return TEST_SUCCESS;
 }
 
