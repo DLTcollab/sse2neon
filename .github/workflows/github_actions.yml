@@ -103,7 +103,10 @@ jobs:
         uses: actions/download-artifact@master
         with:
           name: msvc-arm64-artifact
-
+      - name: check files
+        run: ls Release
+      - name: check version
+        run: wine-arm64 --version
       - name: Run tests
         run: wine-arm64 cmd.exe /c 'Release\sse2neon.exe'
 
