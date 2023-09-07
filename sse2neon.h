@@ -8274,9 +8274,9 @@ FORCE_INLINE int _mm_cmpestrs(__m128i a,
                               int lb,
                               const int imm8)
 {
-    (void)a;
-    (void)b;
-    (void)lb;
+    (void) a;
+    (void) b;
+    (void) lb;
     SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);
     return la <= (bound - 1);
 }
@@ -8290,9 +8290,9 @@ FORCE_INLINE int _mm_cmpestrz(__m128i a,
                               int lb,
                               const int imm8)
 {
-    (void)a;
-    (void)b;
-    (void)la;
+    (void) a;
+    (void) b;
+    (void) la;
     SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);
     return lb <= (bound - 1);
 }
@@ -8374,7 +8374,7 @@ FORCE_INLINE int _mm_cmpistro(__m128i a, __m128i b, const int imm8)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpistrs
 FORCE_INLINE int _mm_cmpistrs(__m128i a, __m128i b, const int imm8)
 {
-    (void)b;
+    (void) b;
     SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);
     int la;
     SSE2NEON_CMPISTRX_LENGTH(a, la, imm8);
@@ -8386,7 +8386,7 @@ FORCE_INLINE int _mm_cmpistrs(__m128i a, __m128i b, const int imm8)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cmpistrz
 FORCE_INLINE int _mm_cmpistrz(__m128i a, __m128i b, const int imm8)
 {
-    (void)a;
+    (void) a;
     SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);
     int lb;
     SSE2NEON_CMPISTRX_LENGTH(b, lb, imm8);
