@@ -191,6 +191,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [ofxNDI](https://github.com/leadedge/ofxNDI) is an [openFrameworks](https://openframeworks.cc/) addon to allow sending and receiving images over a network using the [NewTek](https://en.wikipedia.org/wiki/NewTek) Network Device Protocol.
 * [OGRE](https://github.com/OGRECave/ogre) is a scene-oriented, flexible 3D engine written in C++ designed to make it easier and more intuitive for developers to produce games and demos utilising 3D hardware.
 * [Olive](https://github.com/olive-editor/olive) is a free non-linear video editor for Windows, macOS, and Linux.
+* [OpenColorIO](https://github.com/AcademySoftwareFoundation/OpenColorIO) a complete color management solution geared towards motion picture production with an emphasis on visual effects and computer animation.
 * [OpenXRay](https://github.com/OpenXRay/xray-16) is an improved version of the X-Ray engine, used in world famous S.T.A.L.K.E.R. game series by GSC Game World.
 * [parallel-n64](https://github.com/libretro/parallel-n64) is an optimized/rewritten Nintendo 64 emulator made specifically for [Libretro](https://www.libretro.com/).
 * [Pathfinder C++](https://github.com/floppyhammer/pathfinder-cpp) is a fast, practical, GPU-based rasterizer for fonts and vector graphics using Vulkan and C++.
