@@ -544,7 +544,7 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 
 // Function declaration
 // SSE
-FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE();
+FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE(void);
 FORCE_INLINE __m128 _mm_move_ss(__m128, __m128);
 FORCE_INLINE __m128 _mm_or_ps(__m128, __m128);
 FORCE_INLINE __m128 _mm_set_ps1(float);
@@ -560,7 +560,7 @@ FORCE_INLINE __m128i _mm_set_epi32(int, int, int, int);
 FORCE_INLINE __m128i _mm_set_epi64x(int64_t, int64_t);
 FORCE_INLINE __m128d _mm_set_pd(double, double);
 FORCE_INLINE __m128i _mm_set1_epi32(int);
-FORCE_INLINE __m128i _mm_setzero_si128();
+FORCE_INLINE __m128i _mm_setzero_si128(void);
 // SSE4.1
 FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
@@ -1758,7 +1758,7 @@ FORCE_INLINE void _mm_free(void *addr)
 }
 #endif
 
-FORCE_INLINE uint64_t _sse2neon_get_fpcr()
+FORCE_INLINE uint64_t _sse2neon_get_fpcr(void)
 {
     uint64_t value;
 #if defined(_MSC_VER)
@@ -1782,7 +1782,7 @@ FORCE_INLINE void _sse2neon_set_fpcr(uint64_t value)
 // The flush zero may contain any of the following flags: _MM_FLUSH_ZERO_ON or
 // _MM_FLUSH_ZERO_OFF
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_GET_FLUSH_ZERO_MODE
-FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode()
+FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode(void)
 {
     union {
         fpcr_bitfield field;
@@ -1806,7 +1806,7 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode()
 // The rounding mode may contain any of the following flags: _MM_ROUND_NEAREST,
 // _MM_ROUND_DOWN, _MM_ROUND_UP, _MM_ROUND_TOWARD_ZERO
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_GET_ROUNDING_MODE
-FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE()
+FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE(void)
 {
     union {
         fpcr_bitfield field;
@@ -2481,7 +2481,7 @@ FORCE_INLINE void _mm_setcsr(unsigned int a)
 // Get the unsigned 32-bit value of the MXCSR control and status register.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_getcsr
 // FIXME: _mm_getcsr() implementation supports reading the rounding mode only.
-FORCE_INLINE unsigned int _mm_getcsr()
+FORCE_INLINE unsigned int _mm_getcsr(void)
 {
     return _MM_GET_ROUNDING_MODE();
 }
@@ -4800,7 +4800,7 @@ FORCE_INLINE __m128i _mm_packus_epi16(const __m128i a, const __m128i b)
 // Arm cores. Experience with several databases has shown has shown an 'isb' is
 // a reasonable approximation.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_pause
-FORCE_INLINE void _mm_pause()
+FORCE_INLINE void _mm_pause(void)
 {
 #if defined(_MSC_VER)
     __isb(_ARM64_BARRIER_SY);
@@ -7636,10 +7636,10 @@ FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
 
 /* SSE4.2 */
 
-const static uint16_t ALIGN_STRUCT(16) _sse2neon_cmpestr_mask16b[8] = {
+static const uint16_t ALIGN_STRUCT(16) _sse2neon_cmpestr_mask16b[8] = {
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
 };
-const static uint8_t ALIGN_STRUCT(16) _sse2neon_cmpestr_mask8b[16] = {
+static const uint8_t ALIGN_STRUCT(16) _sse2neon_cmpestr_mask8b[16] = {
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
     0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80,
 };
@@ -8104,7 +8104,7 @@ FORCE_INLINE int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
 
 FORCE_INLINE int _sse2neon_clz(unsigned int x)
 {
-#if _MSC_VER
+#ifdef _MSC_VER
     unsigned long cnt = 0;
     if (_BitScanReverse(&cnt, x))
         return 31 - cnt;
@@ -8116,7 +8116,7 @@ FORCE_INLINE int _sse2neon_clz(unsigned int x)
 
 FORCE_INLINE int _sse2neon_ctz(unsigned int x)
 {
-#if _MSC_VER
+#ifdef _MSC_VER
     unsigned long cnt = 0;
     if (_BitScanForward(&cnt, x))
         return cnt;
@@ -8128,7 +8128,7 @@ FORCE_INLINE int _sse2neon_ctz(unsigned int x)
 
 FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 {
-#if _MSC_VER
+#ifdef _MSC_VER
     unsigned long cnt;
 #if defined(SSE2NEON_HAS_BITSCAN64)
     if (_BitScanForward64(&cnt, x))
@@ -9064,7 +9064,7 @@ FORCE_INLINE __m128i _mm_clmulepi64_si128(__m128i _a, __m128i _b, const int imm)
     }
 }
 
-FORCE_INLINE unsigned int _sse2neon_mm_get_denormals_zero_mode()
+FORCE_INLINE unsigned int _sse2neon_mm_get_denormals_zero_mode(void)
 {
     union {
         fpcr_bitfield field;
