@@ -5534,7 +5534,7 @@ FORCE_INLINE void _mm_storeu_si32(void *p, __m128i a)
 FORCE_INLINE void _mm_stream_pd(double *p, __m128d a)
 {
 #if __has_builtin(__builtin_nontemporal_store)
-    __builtin_nontemporal_store(a, (float32x4_t *) p);
+    __builtin_nontemporal_store(a, (__m128d *) p);
 #elif defined(__aarch64__) || defined(_M_ARM64)
     vst1q_f64(p, vreinterpretq_f64_m128d(a));
 #else
