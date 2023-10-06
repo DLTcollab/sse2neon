@@ -257,7 +257,7 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #define SSE2NEON_CACHELINE_SIZE 64
 #endif
 
-/* Rounding functions require either Aarch64 instructions or libm failback */
+/* Rounding functions require either Aarch64 instructions or libm fallback */
 #if !defined(__aarch64__) && !defined(_M_ARM64)
 #include <math.h>
 #endif
