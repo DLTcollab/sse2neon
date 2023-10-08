@@ -350,10 +350,27 @@ static inline double bankersRounding(double val)
     return ret;
 }
 
-static float ranf(void)
+// SplitMix64 PRNG by Sebastiano Vigna, see:
+// <https://xoshiro.di.unimi.it/splitmix64.c>
+static uint64_t state;  // the state of SplitMix64 PRNG
+const double TWOPOWER64 = pow(2, 64);
+
+#define SSE2NEON_INIT_RNG(seed) \
+    do {                        \
+        state = seed;           \
+    } while (0)
+
+static double next()
 {
-    uint32_t ir = rand() & 0x7FFF;
-    return (float) ir * (1.0f / 32768.0f);
+    uint64_t z = (state += 0x9e3779b97f4a7c15);
+    z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+    z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+    return z ^ (z >> 31);
+}
+
+static float ranf()
+{
+    return next() / TWOPOWER64;
 }
 
 static float ranf(float low, float high)
@@ -11796,7 +11813,7 @@ SSE2NEONTestImpl::SSE2NEONTestImpl(void)
     mTestFloatPointer2 = (float *) platformAlignedAlloc(sizeof(__m128));
     mTestIntPointer1 = (int32_t *) platformAlignedAlloc(sizeof(__m128i));
     mTestIntPointer2 = (int32_t *) platformAlignedAlloc(sizeof(__m128i));
-    srand(0);
+    SSE2NEON_INIT_RNG(123456);
     for (uint32_t i = 0; i < MAX_TEST_VALUE; i++) {
         mTestFloats[i] = ranf(-100000, 100000);
         mTestInts[i] = (int32_t) ranf(-100000, 100000);
