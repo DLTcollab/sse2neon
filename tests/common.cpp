@@ -274,7 +274,7 @@ result_t validateSingleFloatPair(float a, float b)
     const uint32_t *ua = (const uint32_t *) &a;
     const uint32_t *ub = (const uint32_t *) &b;
     // We do an integer (binary) compare rather than a
-    // floating point compare to take nands and infinities
+    // floating point compare to take NaNs and infinities
     // into account as well.
     return (*ua) == (*ub) ? TEST_SUCCESS : TEST_FAIL;
 }
@@ -284,7 +284,7 @@ result_t validateSingleDoublePair(double a, double b)
     const uint64_t *ua = (const uint64_t *) &a;
     const uint64_t *ub = (const uint64_t *) &b;
     // We do an integer (binary) compare rather than a
-    // floating point compare to take nands and infinities
+    // floating point compare to take NaNs and infinities
     // into account as well.
 
     if (std::isnan(a) && std::isnan(b)) {
