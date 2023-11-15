@@ -6446,10 +6446,10 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
 {
     int8x16_t tbl = vreinterpretq_s8_m128i(a);   // input a
     uint8x16_t idx = vreinterpretq_u8_m128i(b);  // input b
-    uint8x16_t idx_masked =
-        vandq_u8(idx, vdupq_n_u8(0x8F));  // avoid using meaningless bits
+    // uint8x16_t idx_masked =
+    //     vandq_u8(idx, vdupq_n_u8(0x8F));  // avoid using meaningless bits
 #if defined(__aarch64__) || defined(_M_ARM64)
-    return vreinterpretq_m128i_s8(vqtbl1q_s8(tbl, idx_masked));
+    return vreinterpretq_m128i_s8(vqtbl1q_s8(tbl, idx));
 #elif defined(__GNUC__)
     int8x16_t ret;
     // %e and %f represent the even and odd D registers
@@ -6458,14 +6458,14 @@ FORCE_INLINE __m128i _mm_shuffle_epi8(__m128i a, __m128i b)
         "vtbl.8  %e[ret], {%e[tbl], %f[tbl]}, %e[idx]\n"
         "vtbl.8  %f[ret], {%e[tbl], %f[tbl]}, %f[idx]\n"
         : [ret] "=&w"(ret)
-        : [tbl] "w"(tbl), [idx] "w"(idx_masked));
+        : [tbl] "w"(tbl), [idx] "w"(idx));
     return vreinterpretq_m128i_s8(ret);
 #else
     // use this line if testing on aarch64
     int8x8x2_t a_split = {vget_low_s8(tbl), vget_high_s8(tbl)};
     return vreinterpretq_m128i_s8(
-        vcombine_s8(vtbl2_s8(a_split, vget_low_u8(idx_masked)),
-                    vtbl2_s8(a_split, vget_high_u8(idx_masked))));
+        vcombine_s8(vtbl2_s8(a_split, vget_low_u8(idx)),
+                    vtbl2_s8(a_split, vget_high_u8(idx))));
 #endif
 }
 
