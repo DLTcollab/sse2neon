@@ -117,14 +117,36 @@ The following command enable `crypto` and `crc` features in the tests.
 $ make FEATURE=crypto+crc check
 ```
 
-You can specify GNU toolchain for cross compilation as well.
+For running check on certain CPU, setting the mode of FPU, etc.,
+you can also assign the desired options with `ARCH_CFLAGS` command.
+If `none` is assigned, the command acts as same as calling `make check`.
+For instance, to run tests on Cortex-A53 with enabling ARM VFPv4 extension and NEON:
+```
+$ make ARCH_CFLAGS="-mcpu=cortex-a53 -mfpu=neon-vfpv4" check
+```
+
+### Running tests on hosts other than ARM platform
+
+For running tests on hosts other than ARM platform,
+you can specify GNU toolchain for cross compilation with `CROSS_COMPILE` command.
 [QEMU](https://www.qemu.org/) should be installed in advance.
+
+For ARMv8-A running in 64-bit mode type:
 ```shell
 $ make CROSS_COMPILE=aarch64-linux-gnu- check # ARMv8-A
 ```
-or
+
+For ARMv7-A type:
 ```shell
 $ make CROSS_COMPILE=arm-linux-gnueabihf- check # ARMv7-A
+```
+
+For ARMv8-A running in 32-bit mode (A32 instruction set) type:
+```shell
+$ make \
+  CROSS_COMPILE=arm-linux-gnueabihf- \
+  ARCH_CFLAGS="-mcpu=cortex-a32 -mfpu=neon-fp-armv8" \
+  check 
 ```
 
 Check the details via [Test Suite for SSE2NEON](tests/README.md).

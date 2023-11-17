@@ -29,14 +29,24 @@ EXEC_WRAPPER = qemu-$(processor)
 endif
 
 # Follow platform-specific configurations
-ifeq ($(processor),$(filter $(processor),aarch64 arm64))
-    ARCH_CFLAGS = -march=armv8-a+fp+simd
-else ifeq ($(processor),$(filter $(processor),i386 x86_64))
-    ARCH_CFLAGS = -maes -mpclmul -mssse3 -msse4.2
-else ifeq ($(processor),$(filter $(processor),arm armv7 armv7l))
-    ARCH_CFLAGS = -mfpu=neon
-else
-    $(error Unsupported architecture)
+ARCH_CFLAGS ?=
+ARCH_CFLAGS_IS_SET =
+ifeq ($(ARCH_CFLAGS),)
+    ARCH_CFLAGS_IS_SET = true
+endif
+ifeq ($(ARCH_CFLAGS),none)
+    ARCH_CFLAGS_IS_SET = true
+endif
+ifdef ARCH_CFLAGS_IS_SET
+    ifeq ($(processor),$(filter $(processor),aarch64 arm64))
+        override ARCH_CFLAGS := -march=armv8-a+fp+simd
+    else ifeq ($(processor),$(filter $(processor),i386 x86_64))
+        override ARCH_CFLAGS := -maes -mpclmul -mssse3 -msse4.2
+    else ifeq ($(processor),$(filter $(processor),arm armv7 armv7l))
+        override ARCH_CFLAGS := -mfpu=neon
+    else
+        $(error Unsupported architecture)
+    endif
 endif
 
 FEATURE ?=

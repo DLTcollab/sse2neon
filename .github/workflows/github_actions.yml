@@ -55,7 +55,12 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        arch_with_features: [{arch: armv7, feature: none}, {arch: aarch64, feature: none}, {arch: aarch64, feature: crypto+crc}]
+        arch_with_features: [
+          {arch: armv7, feature: none, arch_cflags: none},
+          {arch: aarch64, feature: none, arch_cflags: none},
+          {arch: aarch64, feature: crypto+crc, arch_cflags: none},
+          {arch: armv7, feature: none, arch_cflags: '-mcpu=cortex-a32 -mfpu=neon-fp-armv8'}
+        ]
         cxx_compiler: [g++-10, clang++-11]
     steps:
       - name: checkout code
@@ -69,6 +74,7 @@ jobs:
           distro: ubuntu20.04
           env: |
             CXX: ${{ matrix.cxx_compiler }}
+            ARCH_CFLAGS: ${{ matrix.arch_with_features.arch_cflags }}
           install: |
             apt-get update -q -y
             apt-get install -q -y "${{ matrix.cxx_compiler }}" make
