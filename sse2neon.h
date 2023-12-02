@@ -7593,7 +7593,7 @@ FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
 // otherwise return 0.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=mm_test_mix_ones_zero
 // Note: Argument names may be wrong in the Intel intrinsics guide.
-#define _mm_test_mix_ones_zeros(a, b) _mm_testnzc_si128(a, b)
+#define _mm_test_mix_ones_zeros(a, mask) _mm_testnzc_si128(a, mask)
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and b,
 // and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute the
