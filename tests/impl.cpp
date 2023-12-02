@@ -9237,7 +9237,7 @@ result_t test_mm_test_mix_ones_zeros(const SSE2NEONTestImpl &impl,
     int32_t result = ((has_ones != 0) & (has_zeros != 0));
 
     int32_t ret = _mm_test_mix_ones_zeros(a, mask);
-    return result == ret ? 1 : 0;
+    return result == ret ? TEST_SUCCESS : TEST_FAIL;
 }
 
 result_t test_mm_testc_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
