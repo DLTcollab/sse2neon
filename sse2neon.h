@@ -7593,10 +7593,7 @@ FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
 // otherwise return 0.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=mm_test_mix_ones_zero
 // Note: Argument names may be wrong in the Intel intrinsics guide.
-FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i a, __m128i mask)
-{
-    return !(_mm_testz_si128(a, mask) | _mm_testc_si128(a, mask));
-}
+#define _mm_test_mix_ones_zeros(a, b) _mm_testnzc_si128(a, b)
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and b,
 // and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute the
@@ -7616,7 +7613,10 @@ FORCE_INLINE int _mm_testc_si128(__m128i a, __m128i b)
 // otherwise set CF to 0. Return 1 if both the ZF and CF values are zero,
 // otherwise return 0.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_testnzc_si128
-#define _mm_testnzc_si128(a, b) _mm_test_mix_ones_zeros(a, b)
+FORCE_INLINE int _mm_testnzc_si128(__m128i a, __m128i b)
+{
+    return !(_mm_test_all_zeros(a, b) | _mm_testc_si128(a, b));
+}
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and b,
 // and set ZF to 1 if the result is zero, otherwise set ZF to 0. Compute the
