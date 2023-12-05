@@ -9228,13 +9228,13 @@ result_t test_mm_test_mix_ones_zeros(const SSE2NEONTestImpl &impl,
     __m128i a = load_m128i(_a);
     __m128i mask = load_m128i(_mask);
 
-    int32_t has_ones = 0;
-    int32_t has_zeros = 0;
-    for (int i = 0; i < 4; i++) {
-        has_ones |= _a[i] & _mask[i];
-        has_zeros |= ~_a[i] & _mask[i];
+    int32_t ZF = 1;
+    int32_t CF = 1;
+    for(int i = 0; i < 4; i++) {
+        ZF &= ((_a[i] & _mask[i]) == 0);
+        CF &= ((~_a[i] & _mask[i]) == 0);
     }
-    int32_t result = ((has_ones != 0) & (has_zeros != 0));
+    int32_t result = (ZF == 0 && CF == 0);
 
     int32_t ret = _mm_test_mix_ones_zeros(a, mask);
     return result == ret ? TEST_SUCCESS : TEST_FAIL;
