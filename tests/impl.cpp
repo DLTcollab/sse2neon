@@ -9230,7 +9230,7 @@ result_t test_mm_test_mix_ones_zeros(const SSE2NEONTestImpl &impl,
 
     int32_t ZF = 1;
     int32_t CF = 1;
-    for(int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) {
         ZF &= ((_a[i] & _mask[i]) == 0);
         CF &= ((~_a[i] & _mask[i]) == 0);
     }
