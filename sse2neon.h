@@ -7592,14 +7592,22 @@ FORCE_INLINE int _mm_test_all_zeros(__m128i a, __m128i mask)
 // zero, otherwise set CF to 0. Return 1 if both the ZF and CF values are zero,
 // otherwise return 0.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=mm_test_mix_ones_zero
+// Note: Argument names may be wrong in the Intel intrinsics guide.
 FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i a, __m128i mask)
 {
-    uint64x2_t zf =
-        vandq_u64(vreinterpretq_u64_m128i(mask), vreinterpretq_u64_m128i(a));
-    uint64x2_t cf =
-        vbicq_u64(vreinterpretq_u64_m128i(mask), vreinterpretq_u64_m128i(a));
-    uint64x2_t result = vandq_u64(zf, cf);
-    return !(vgetq_lane_u64(result, 0) | vgetq_lane_u64(result, 1));
+    uint64x2_t v = vreinterpretq_u64_m128i(a);
+    uint64x2_t m = vreinterpretq_u64_m128i(mask);
+
+    // find ones (set-bits) and zeros (clear-bits) under clip mask
+    uint64x2_t ones = vandq_u64(m, v);
+    uint64x2_t zeros = vbicq_u64(m, v);
+
+    // If both 128-bit variables are populated (non-zero) then return 1.
+    // For comparision purposes, first compact each var down to 32-bits.
+    uint32x2_t reduced = vpmax_u32(vqmovn_u64(ones), vqmovn_u64(zeros));
+
+    // if folding minimum is non-zero then both vars must be non-zero
+    return (vget_lane_u32(vpmin_u32(reduced, reduced), 0) != 0);
 }
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and b,
