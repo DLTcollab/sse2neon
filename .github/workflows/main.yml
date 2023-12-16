@@ -1,9 +1,9 @@
-name: Github Actions
+name: GitHub Actions
 
 on: [push, pull_request]
 
 jobs:
-  host_x86:
+  host-x86:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -11,7 +11,7 @@ jobs:
         cxx_compiler: [g++-10, clang++-11]
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
       - name: build artifact
         env:
           CXX: ${{ matrix.cxx_compiler }}
@@ -20,7 +20,7 @@ jobs:
           make check
           sh .ci/cross-check.sh
 
-  host_win:
+  host-win:
     runs-on: windows-2022
     strategy:
       matrix:
@@ -42,7 +42,7 @@ jobs:
           mv llvm-mingw-* "$HOME/llvm-mingw"
           echo "$HOME/llvm-mingw/bin" >> $GITHUB_PATH
       - name: checkout code
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
       - name: build artifact
         env:
           CXX: ${{ matrix.arch }}-w64-mingw32-clang++
@@ -51,7 +51,7 @@ jobs:
         if: matrix.arch == 'x86_64'
         run: mingw32-make check
 
-  host_arm:
+  host-arm:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -64,7 +64,7 @@ jobs:
         cxx_compiler: [g++-10, clang++-11]
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
       - name: build artifact
         # The Github Action for non-x86 CPU
         # https://github.com/uraimo/run-on-arch-action
@@ -82,11 +82,11 @@ jobs:
           run: |
             make FEATURE=${{ matrix.arch_with_features.feature }} check
 
-  host_win_msvc:
+  host-win-msvc:
     runs-on: windows-2022
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v4
 
       - name: add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.1
@@ -100,10 +100,10 @@ jobs:
           name: msvc-arm64-artifact
           path: ARM64
 
-  test_win_msvc:
+  test-win-msvc:
     runs-on: ubuntu-latest
     container: linaro/wine-arm64
-    needs: host_win_msvc
+    needs: host-win-msvc
     steps:
       - name: download artifact
         uses: actions/download-artifact@master
@@ -114,11 +114,11 @@ jobs:
         run: wine-arm64 cmd.exe /c 'Release\sse2neon.exe'
 
 
-  coding_style:
+  coding-style:
     runs-on: ubuntu-20.04
     steps:
       - name: checkout code
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v4
       - name: style check
         run: |
             sudo apt-get install -q -y clang-format-12
