@@ -104,6 +104,10 @@
 #pragma message("Macro name collisions may happen with unsupported compilers.")
 #endif
 
+#if defined(__GNUC__) && __GNUC__ < 10
+#warning "GCC versions earlier than 10 are not supported."
+#endif
+
 /* C language does not allow initializing a variable with a function call. */
 #ifdef __cplusplus
 #define _sse2neon_const static const
@@ -130,7 +134,7 @@
 #endif
 
 #if !defined(__cplusplus)
-#error sse2neon only supports C++ compilation with this compiler
+#error SSE2NEON only supports C++ compilation with this compiler
 #endif
 
 #ifdef SSE2NEON_ALLOC_DEFINED
