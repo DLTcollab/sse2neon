@@ -1720,7 +1720,7 @@ FORCE_INLINE int64_t _mm_cvttss_si64(__m128 a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_div_ps
 FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
 {
-#if defined(__aarch64__) || defined(_M_ARM64)
+#if (defined(__aarch64__) || defined(_M_ARM64)) && !SSE2NEON_PRECISE_DIV
     return vreinterpretq_m128_f32(
         vdivq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 #else
@@ -2297,6 +2297,10 @@ FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
 {
     float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(in));
     recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
+#if SSE2NEON_PRECISE_DIV
+    // Additional Netwon-Raphson iteration for accuracy
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
+#endif
     return vreinterpretq_m128_f32(recip);
 }
 
@@ -2329,6 +2333,11 @@ FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
 
     out = vmulq_f32(
         out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+#if SSE2NEON_PRECISE_SQRT
+    // Additional Netwon-Raphson iteration for accuracy
+    out = vmulq_f32(
+        out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+#endif
 
     // Set output vector element to infinity/negative-infinity if
     // the corresponding input vector element is 0.0f/-0.0f.
@@ -2644,7 +2653,7 @@ FORCE_INLINE void _mm_lfence(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_sqrt_ps
 FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 {
-#if defined(__aarch64__) || defined(_M_ARM64)
+#if (defined(__aarch64__) || defined(_M_ARM64)) && !SSE2NEON_PRECISE_SQRT
     return vreinterpretq_m128_f32(vsqrtq_f32(vreinterpretq_f32_m128(in)));
 #else
     float32x4_t recip = vrsqrteq_f32(vreinterpretq_f32_m128(in));
