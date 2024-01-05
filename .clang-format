@@ -17,3 +17,6 @@ ForEachMacros:
   - SET_FOREACH
   - RB_FOREACH
 AlignEscapedNewlines: Left
+AttributeMacros:
+  - FORCE_INLINE
+  - ALIGN_STRUCT
