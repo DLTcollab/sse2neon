@@ -8500,12 +8500,47 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
     crc = __crc32cb(crc, v);
 #else
     crc ^= v;
-    for (int bit = 0; bit < 8; bit++) {
-        if (crc & 1)
-            crc = (crc >> 1) ^ UINT32_C(0x82f63b78);
-        else
-            crc = (crc >> 1);
-    }
+#if defined(__ARM_FEATURE_CRYPTO)
+    // Adapted from: https://mary.rs/lab/crc32/
+    // Barrent reduction
+    uint64x2_t orig =
+        vcombine_u64(vcreate_u64((uint64_t) (crc) << 24), vcreate_u64(0x0));
+    uint64x2_t tmp = orig;
+
+    // Polynomial P(x) of CRC32C
+    uint64_t p = 0x105EC76F1;
+    // Barrett Reduction (in bit-reflected form) constant mu_{64} = \lfloor
+    // 2^{64} / P(x) \rfloor = 0x11f91caf6
+    uint64_t mu = 0x1dea713f1;
+
+    // Multiply by mu_{64}
+    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu));
+    // Divide by 2^{64} (mask away the unnecessary bits)
+    tmp =
+        vandq_u64(tmp, vcombine_u64(vcreate_u64(0xFFFFFFFF), vcreate_u64(0x0)));
+    // Multiply by P(x) (shifted left by 1 for alignment reasons)
+    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(p));
+    // Subtract original from result
+    tmp = veorq_u64(tmp, orig);
+
+    // Extract the 'lower' (in bit-reflected sense) 32 bits
+    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 1);
+#else  // Fall back to the generic table lookup approach
+    // Adapted from: https://create.stephan-brumme.com/crc32/
+    // Apply half-byte comparision algorithm for the best ratio between
+    // performance and lookup table.
+
+    // The lookup table just needs to store every 16th entry
+    // of the standard look-up table.
+    static const uint32_t crc32_half_byte_tbl[] = {
+        0x00000000, 0x105ec76f, 0x20bd8ede, 0x30e349b1, 0x417b1dbc, 0x5125dad3,
+        0x61c69362, 0x7198540d, 0x82f63b78, 0x92a8fc17, 0xa24bb5a6, 0xb21572c9,
+        0xc38d26c4, 0xd3d3e1ab, 0xe330a81a, 0xf36e6f75,
+    };
+
+    crc = (crc >> 4) ^ crc32_half_byte_tbl[crc & 0x0F];
+    crc = (crc >> 4) ^ crc32_half_byte_tbl[crc & 0x0F];
+#endif
 #endif
     return crc;
 }

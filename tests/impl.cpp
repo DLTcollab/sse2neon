@@ -530,7 +530,7 @@ uint32_t canonical_crc32_u8(uint32_t crc, uint8_t v)
     crc ^= v;
     for (int bit = 0; bit < 8; bit++) {
         if (crc & 1)
-            crc = (crc >> 1) ^ uint32_t(0x82f63b78);
+            crc = (crc >> 1) ^ UINT32_C(0x82f63b78);
         else
             crc = (crc >> 1);
     }
