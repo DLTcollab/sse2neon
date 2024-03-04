@@ -2813,26 +2813,29 @@ result_t test_mm_sfence(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_shuffle_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+#if (__GNUC__ == 8) || (__GNUC__ == 9 && __GNUC_MINOR__ == 2)
+#error Using older gcc versions can lead to an operand mismatch error. This issue affects all versions prior to gcc 10.
+#else
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     __m64 a;
     __m64 d;
-
-#define TEST_IMPL(IDX)                                    \
-    a = load_m64(_a);                                     \
-    d = _mm_shuffle_pi16(a, IDX);                         \
-                                                          \
-    int16_t _d##IDX[4];                                   \
-    _d##IDX[0] = _a[IDX & 0x3];                           \
-    _d##IDX[1] = _a[(IDX >> 2) & 0x3];                    \
-    _d##IDX[2] = _a[(IDX >> 4) & 0x3];                    \
-    _d##IDX[3] = _a[(IDX >> 6) & 0x3];                    \
-    if (VALIDATE_INT16_M64(d, _d##IDX) != TEST_SUCCESS) { \
-        return TEST_FAIL;                                 \
+    int16_t _d[4];
+#define TEST_IMPL(IDX)                               \
+    a = load_m64(_a);                                \
+    d = _mm_shuffle_pi16(a, IDX);                    \
+                                                     \
+    _d[0] = _a[IDX & 0x3];                           \
+    _d[1] = _a[(IDX >> 2) & 0x3];                    \
+    _d[2] = _a[(IDX >> 4) & 0x3];                    \
+    _d[3] = _a[(IDX >> 6) & 0x3];                    \
+    if (VALIDATE_INT16_M64(d, _d) != TEST_SUCCESS) { \
+        return TEST_FAIL;                            \
     }
 
     IMM_256_ITER
 #undef TEST_IMPL
     return TEST_SUCCESS;
+#endif
 }
 
 // Note, NEON does not have a general purpose shuffled command like SSE.
@@ -5088,6 +5091,9 @@ result_t test_mm_maskmoveu_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_max_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+#if (__GNUC__ == 8) || (__GNUC__ == 9 && __GNUC_MINOR__ == 2)
+#error Using older gcc versions can lead to an operand mismatch error. This issue affects all versions prior to gcc 10.
+#else
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     const int16_t *_b = (const int16_t *) impl.mTestIntPointer2;
     int16_t d[8];
@@ -5105,10 +5111,14 @@ result_t test_mm_max_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     __m128i c = _mm_max_epi16(a, b);
     return VALIDATE_INT16_M128(c, d);
+#endif
 }
 
 result_t test_mm_max_epu8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+#if (__GNUC__ == 8) || (__GNUC__ == 9 && __GNUC_MINOR__ == 2)
+#error Using older gcc versions can lead to an operand mismatch error. This issue affects all versions prior to gcc 10.
+#else
     const int8_t *_a = (const int8_t *) impl.mTestIntPointer1;
     const int8_t *_b = (const int8_t *) impl.mTestIntPointer2;
     uint8_t d[16];
@@ -5149,6 +5159,7 @@ result_t test_mm_max_epu8(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128i b = load_m128i(_b);
     __m128i c = _mm_max_epu8(a, b);
     return VALIDATE_INT8_M128(c, d);
+#endif
 }
 
 result_t test_mm_max_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -5842,23 +5853,27 @@ result_t test_mm_setzero_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_shuffle_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+#if (__GNUC__ == 8) || (__GNUC__ == 9 && __GNUC_MINOR__ == 2)
+#error Using older gcc versions can lead to an operand mismatch error. This issue affects all versions prior to gcc 10.
+#else
     const int32_t *_a = impl.mTestIntPointer1;
     __m128i a, c;
+    int32_t _d[4];
 
-#define TEST_IMPL(IDX)                  \
-    int32_t d##IDX[4];                  \
-    d##IDX[0] = _a[((IDX) &0x3)];       \
-    d##IDX[1] = _a[((IDX >> 2) & 0x3)]; \
-    d##IDX[2] = _a[((IDX >> 4) & 0x3)]; \
-    d##IDX[3] = _a[((IDX >> 6) & 0x3)]; \
-                                        \
-    a = load_m128i(_a);                 \
-    c = _mm_shuffle_epi32(a, IDX);      \
-    CHECK_RESULT(VALIDATE_INT32_M128(c, d##IDX))
+#define TEST_IMPL(IDX)              \
+    _d[0] = _a[((IDX) &0x3)];       \
+    _d[1] = _a[((IDX >> 2) & 0x3)]; \
+    _d[2] = _a[((IDX >> 4) & 0x3)]; \
+    _d[3] = _a[((IDX >> 6) & 0x3)]; \
+                                    \
+    a = load_m128i(_a);             \
+    c = _mm_shuffle_epi32(a, IDX);  \
+    CHECK_RESULT(VALIDATE_INT32_M128(c, _d))
 
     IMM_256_ITER
 #undef TEST_IMPL
     return TEST_SUCCESS;
+#endif
 }
 
 result_t test_mm_shuffle_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -5883,60 +5898,68 @@ result_t test_mm_shuffle_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_shufflehi_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+#if (__GNUC__ == 8) || (__GNUC__ == 9 && __GNUC_MINOR__ == 2)
+#error Using older gcc versions can lead to an operand mismatch error. This issue affects all versions prior to gcc 10.
+#else
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     __m128i a, c;
 
-#define TEST_IMPL(IDX)                                                       \
-    int16_t d##IDX[8];                                                       \
-    d##IDX[0] = _a[0];                                                       \
-    d##IDX[1] = _a[1];                                                       \
-    d##IDX[2] = _a[2];                                                       \
-    d##IDX[3] = _a[3];                                                       \
-    d##IDX[4] = (int16_t) (((const int64_t *) _a)[1] >> ((IDX & 0x3) * 16)); \
-    d##IDX[5] =                                                              \
-        (int16_t) (((const int64_t *) _a)[1] >> (((IDX >> 2) & 0x3) * 16));  \
-    d##IDX[6] =                                                              \
-        (int16_t) (((const int64_t *) _a)[1] >> (((IDX >> 4) & 0x3) * 16));  \
-    d##IDX[7] =                                                              \
-        (int16_t) (((const int64_t *) _a)[1] >> (((IDX >> 6) & 0x3) * 16));  \
-                                                                             \
-    a = load_m128i(_a);                                                      \
-    c = _mm_shufflehi_epi16(a, IDX);                                         \
-                                                                             \
-    CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
+    int16_t _d[8];
+#define TEST_IMPL(IDX)                                                      \
+    _d[0] = _a[0];                                                          \
+    _d[1] = _a[1];                                                          \
+    _d[2] = _a[2];                                                          \
+    _d[3] = _a[3];                                                          \
+    _d[4] = (int16_t) (((const int64_t *) _a)[1] >> ((IDX & 0x3) * 16));    \
+    _d[5] =                                                                 \
+        (int16_t) (((const int64_t *) _a)[1] >> (((IDX >> 2) & 0x3) * 16)); \
+    _d[6] =                                                                 \
+        (int16_t) (((const int64_t *) _a)[1] >> (((IDX >> 4) & 0x3) * 16)); \
+    _d[7] =                                                                 \
+        (int16_t) (((const int64_t *) _a)[1] >> (((IDX >> 6) & 0x3) * 16)); \
+                                                                            \
+    a = load_m128i(_a);                                                     \
+    c = _mm_shufflehi_epi16(a, IDX);                                        \
+                                                                            \
+    CHECK_RESULT(VALIDATE_INT16_M128(c, _d))
 
     IMM_256_ITER
 #undef TEST_IMPL
     return TEST_SUCCESS;
+#endif
 }
 
 result_t test_mm_shufflelo_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+#if (__GNUC__ == 8) || (__GNUC__ == 9 && __GNUC_MINOR__ == 2)
+#error Using older gcc versions can lead to an operand mismatch error. This issue affects all versions prior to gcc 10.
+#else
     const int16_t *_a = (const int16_t *) impl.mTestIntPointer1;
     __m128i a, c;
+    int16_t _d[8];
 
-#define TEST_IMPL(IDX)                                                       \
-    int16_t d##IDX[8];                                                       \
-    d##IDX[0] = (int16_t) (((const int64_t *) _a)[0] >> ((IDX & 0x3) * 16)); \
-    d##IDX[1] =                                                              \
-        (int16_t) (((const int64_t *) _a)[0] >> (((IDX >> 2) & 0x3) * 16));  \
-    d##IDX[2] =                                                              \
-        (int16_t) (((const int64_t *) _a)[0] >> (((IDX >> 4) & 0x3) * 16));  \
-    d##IDX[3] =                                                              \
-        (int16_t) (((const int64_t *) _a)[0] >> (((IDX >> 6) & 0x3) * 16));  \
-    d##IDX[4] = _a[4];                                                       \
-    d##IDX[5] = _a[5];                                                       \
-    d##IDX[6] = _a[6];                                                       \
-    d##IDX[7] = _a[7];                                                       \
-                                                                             \
-    a = load_m128i(_a);                                                      \
-    c = _mm_shufflelo_epi16(a, IDX);                                         \
-                                                                             \
-    CHECK_RESULT(VALIDATE_INT16_M128(c, d##IDX))
+#define TEST_IMPL(IDX)                                                      \
+    _d[0] = (int16_t) (((const int64_t *) _a)[0] >> ((IDX & 0x3) * 16));    \
+    _d[1] =                                                                 \
+        (int16_t) (((const int64_t *) _a)[0] >> (((IDX >> 2) & 0x3) * 16)); \
+    _d[2] =                                                                 \
+        (int16_t) (((const int64_t *) _a)[0] >> (((IDX >> 4) & 0x3) * 16)); \
+    _d[3] =                                                                 \
+        (int16_t) (((const int64_t *) _a)[0] >> (((IDX >> 6) & 0x3) * 16)); \
+    _d[4] = _a[4];                                                          \
+    _d[5] = _a[5];                                                          \
+    _d[6] = _a[6];                                                          \
+    _d[7] = _a[7];                                                          \
+                                                                            \
+    a = load_m128i(_a);                                                     \
+    c = _mm_shufflelo_epi16(a, IDX);                                        \
+                                                                            \
+    CHECK_RESULT(VALIDATE_INT16_M128(c, _d))
 
     IMM_256_ITER
 #undef TEST_IMPL
     return TEST_SUCCESS;
+#endif
 }
 
 result_t test_mm_sll_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
