@@ -295,7 +295,7 @@ level, e.g.:
     }
 ```
 
-If the case bock does not break, then it is strongly recommended to add a
+If the case block does not break, then it is strongly recommended to add a
 comment containing "fallthrough" to indicate it.  Modern compilers can also
 be configured to require such comment (see gcc `-Wimplicit-fallthrough`).
 
