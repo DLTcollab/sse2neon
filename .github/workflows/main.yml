@@ -68,7 +68,7 @@ jobs:
       - name: build artifact
         # The Github Action for non-x86 CPU
         # https://github.com/uraimo/run-on-arch-action
-        uses: uraimo/run-on-arch-action@v2.6.0
+        uses: uraimo/run-on-arch-action@v2.7.1
         with:
           arch: ${{ matrix.arch_with_features.arch }}
           distro: ubuntu20.04
