@@ -60,6 +60,10 @@ reciprocal square root of `0.0`, then INF * `0.0` using `vmulq_f32`). In contras
 the SSE counterpart produces INF if a source value is `0.0`.
 As a result, additional treatments should be applied to ensure consistency between the conversion and its SSE counterpart.
 
+## Requirement
+
+Developers are advised to utilize sse2neon.h with GCC version 10 or higher, or Clang version 11 or higher. While sse2neon.h might be compatible with earlier versions, certain vector operation errors have been identified in those versions. For further details, refer to the discussion in issue [#622](https://github.com/DLTcollab/sse2neon/issues/622).
+
 ## Usage
 
 - Put the file `sse2neon.h` in to your source code directory.
