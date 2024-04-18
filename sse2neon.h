@@ -241,7 +241,9 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #pragma GCC push_options
 #endif
 #else
-#error "Unsupported target. Must be either ARMv7-A+NEON or ARMv8-A."
+#error \
+    "Unsupported target. Must be either ARMv7-A+NEON or ARMv8-A \
+(you could try setting target explicitly with -march or -mcpu)"
 #endif
 #endif
 
