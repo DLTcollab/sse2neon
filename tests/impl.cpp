@@ -28,6 +28,19 @@
 /* run the 1st parameter */
 #define IIF_1(t, ...) t
 
+// Some intrinsics operate on unaligned data types.
+#if defined(__GNUC__) || defined(__clang__)
+#define ALIGN_STRUCT(x) __attribute__((aligned(x)))
+#elif defined(_MSC_VER)
+#ifndef ALIGN_STRUCT
+#define ALIGN_STRUCT(x) __declspec(align(x))
+#endif
+#endif
+
+typedef int16_t ALIGN_STRUCT(1) unaligned_int16_t;
+typedef int32_t ALIGN_STRUCT(1) unaligned_int32_t;
+typedef int64_t ALIGN_STRUCT(1) unaligned_int64_t;
+
 // This program a set of unit tests to ensure that each SSE call provide the
 // output we expect.  If this fires an assert, then something didn't match up.
 //
@@ -49,6 +62,10 @@ public:
     int32_t *mTestIntPointer2;
     float mTestFloats[MAX_TEST_VALUE];
     int32_t mTestInts[MAX_TEST_VALUE];
+    int8_t mTestUnalignedInts[32] = {
+        0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+        16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+    };
 
     virtual ~SSE2NEONTestImpl(void)
     {
@@ -2141,7 +2158,8 @@ result_t test_mm_loadu_si16(const SSE2NEONTestImpl &impl, uint32_t iter)
 #if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ <= 10)
     return TEST_UNIMPL;
 #else
-    const int16_t *addr = (const int16_t *) impl.mTestIntPointer1;
+    const unaligned_int16_t *addr =
+        (const unaligned_int16_t *) (impl.mTestUnalignedInts + 1);
 
     __m128i ret = _mm_loadu_si16((const void *) addr);
 
@@ -2157,7 +2175,8 @@ result_t test_mm_loadu_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
 #if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ < 9)
     return TEST_UNIMPL;
 #else
-    const int64_t *addr = (const int64_t *) impl.mTestIntPointer1;
+    const unaligned_int64_t *addr =
+        (const unaligned_int64_t *) (impl.mTestUnalignedInts + 1);
 
     __m128i ret = _mm_loadu_si64((const void *) addr);
 
@@ -5024,7 +5043,8 @@ result_t test_mm_loadu_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_loadu_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
+    const unaligned_int32_t *_a =
+        (const unaligned_int32_t *) (impl.mTestUnalignedInts + 1);
     __m128i c = _mm_loadu_si128((const __m128i *) _a);
     return VALIDATE_INT32_M128(c, _a);
 }
@@ -5037,7 +5057,8 @@ result_t test_mm_loadu_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
 #if (defined(__GNUC__) && !defined(__clang__)) && (__GNUC__ <= 10)
     return TEST_UNIMPL;
 #else
-    const int32_t *addr = (const int32_t *) impl.mTestIntPointer1;
+    const unaligned_int32_t *addr =
+        (const unaligned_int32_t *) (impl.mTestUnalignedInts + 1);
 
     __m128i ret = _mm_loadu_si32((const void *) addr);
 
