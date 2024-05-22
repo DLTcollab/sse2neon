@@ -180,7 +180,7 @@
     }
 
 /* Compiler barrier */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
 #define SSE2NEON_BARRIER() _ReadWriteBarrier()
 #else
 #define SSE2NEON_BARRIER()                     \
@@ -858,7 +858,7 @@ FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 {
     poly64_t a = vget_lane_p64(vreinterpret_p64_u64(_a), 0);
     poly64_t b = vget_lane_p64(vreinterpret_p64_u64(_b), 0);
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     __n64 a1 = {a}, b1 = {b};
     return vreinterpretq_u64_p128(vmull_p64(a1, b1));
 #else
@@ -1769,7 +1769,7 @@ FORCE_INLINE void _mm_free(void *addr)
 FORCE_INLINE uint64_t _sse2neon_get_fpcr(void)
 {
     uint64_t value;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     value = _ReadStatusReg(ARM64_FPCR);
 #else
     __asm__ __volatile__("mrs %0, FPCR" : "=r"(value)); /* read */
@@ -1779,7 +1779,7 @@ FORCE_INLINE uint64_t _sse2neon_get_fpcr(void)
 
 FORCE_INLINE void _sse2neon_set_fpcr(uint64_t value)
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     _WriteStatusReg(ARM64_FPCR, value);
 #else
     __asm__ __volatile__("msr FPCR, %0" ::"r"(value));  /* write */
@@ -2248,7 +2248,7 @@ FORCE_INLINE __m128 _mm_or_ps(__m128 a, __m128 b)
 FORCE_INLINE void _mm_prefetch(char const *p, int i)
 {
     (void) i;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     switch (i) {
     case _MM_HINT_NTA:
         __prefetch2(p, 1);
@@ -4819,7 +4819,7 @@ FORCE_INLINE __m128i _mm_packus_epi16(const __m128i a, const __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_pause
 FORCE_INLINE void _mm_pause(void)
 {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     __isb(_ARM64_BARRIER_SY);
 #else
     __asm__ __volatile__("isb\n");
@@ -5715,7 +5715,7 @@ FORCE_INLINE __m128d _mm_undefined_pd(void)
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
     __m128d a;
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     a = _mm_setzero_pd();
 #endif
     return a;
@@ -8129,7 +8129,7 @@ FORCE_INLINE int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
 
 FORCE_INLINE int _sse2neon_clz(unsigned int x)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
     unsigned long cnt = 0;
     if (_BitScanReverse(&cnt, x))
         return 31 - cnt;
@@ -8141,7 +8141,7 @@ FORCE_INLINE int _sse2neon_clz(unsigned int x)
 
 FORCE_INLINE int _sse2neon_ctz(unsigned int x)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
     unsigned long cnt = 0;
     if (_BitScanForward(&cnt, x))
         return cnt;
@@ -9057,7 +9057,7 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
     // AESE does ShiftRows and SubBytes on A
     uint8x16_t u8 = vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0));
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) || !defined(__clang__)
     uint8x16_t dest = {
         // Undo ShiftRows step from AESE and extract X1 and X3
         u8[0x4], u8[0x1], u8[0xE], u8[0xB],  // SubBytes(X1)
@@ -9244,7 +9244,7 @@ FORCE_INLINE uint64_t _rdtsc(void)
      * bits wide and it is attributed with the flag 'cap_user_time_short'
      * is true.
      */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__clang__)
     val = _ReadStatusReg(ARM64_SYSREG(3, 3, 14, 0, 2));
 #else
     __asm__ __volatile__("mrs %0, cntvct_el0" : "=r"(val));
