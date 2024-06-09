@@ -1653,7 +1653,7 @@ result_t test_mm_cvtps_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_cvtps_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
-    int32_t d[2];
+    int32_t d[2] = {};
 
     switch (iter & 0x3) {
     case 0:
@@ -1799,7 +1799,7 @@ result_t test_mm_cvtss_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
 
-    int32_t d0;
+    int32_t d0 = 0;
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -1829,7 +1829,7 @@ result_t test_mm_cvtss_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
 
-    int64_t d0;
+    int64_t d0 = 0;
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
@@ -2757,7 +2757,7 @@ result_t test_mm_set_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t iter)
     result_t res_toward_zero, res_to_neg_inf, res_to_pos_inf, res_nearest;
 
     __m128 a = load_m128(_a);
-    __m128 b, c;
+    __m128 b = _mm_setzero_ps(), c = _mm_setzero_ps();
 
     _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
     b = _mm_round_ps(a, _MM_FROUND_CUR_DIRECTION);
@@ -3093,7 +3093,7 @@ result_t test_mm_storeu_si16(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_UNIMPL;
 #else
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
-    __m128i b;
+    __m128i b = _mm_setzero_si128();
     __m128i a = load_m128i(_a);
     _mm_storeu_si16(&b, a);
     int16_t *_b = (int16_t *) &b;
@@ -3112,7 +3112,7 @@ result_t test_mm_storeu_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_UNIMPL;
 #else
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
-    __m128i b;
+    __m128i b = _mm_setzero_si128();
     __m128i a = load_m128i(_a);
     _mm_storeu_si64(&b, a);
     int64_t *_b = (int64_t *) &b;
@@ -4447,7 +4447,7 @@ result_t test_mm_cvtepi32_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
-    int32_t d[2];
+    int32_t d[2] = {};
 
     switch (iter & 0x3) {
     case 0:
@@ -4492,7 +4492,7 @@ result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_cvtpd_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
-    int32_t d[2];
+    int32_t d[2] = {};
 
     switch (iter & 0x3) {
     case 0:
@@ -4640,7 +4640,7 @@ result_t test_mm_cvtsd_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_cvtsd_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
-    int64_t d;
+    int64_t d = 0;
 
     switch (iter & 0x3) {
     case 0:
@@ -4895,7 +4895,7 @@ result_t test_mm_extract_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     uint16_t *_a = (uint16_t *) impl.mTestIntPointer1;
     const int idx = iter & 0x7;
     __m128i a = load_m128i(_a);
-    int c;
+    int c = 0;
     switch (idx) {
     case 0:
         c = _mm_extract_epi16(a, 0);
@@ -6135,7 +6135,7 @@ result_t test_mm_slli_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     }
 
     __m128i a = load_m128i(_a);
-    __m128i ret;
+    __m128i ret = _mm_setzero_si128();
     switch (iter % 5) {
     case 0:
         ret = _mm_slli_si128(a, 0);
@@ -6380,7 +6380,7 @@ result_t test_mm_srli_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     }
 
     __m128i a = load_m128i(_a);
-    __m128i ret;
+    __m128i ret = _mm_setzero_si128();
     switch (iter % 5) {
     case 0:
         ret = _mm_srli_si128(a, 0);
@@ -6536,7 +6536,7 @@ result_t test_mm_storeu_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_UNIMPL;
 #else
     const int32_t *_a = (const int32_t *) impl.mTestIntPointer1;
-    __m128i b;
+    __m128i b = _mm_setzero_si128();
     __m128i a = load_m128i(_a);
     _mm_storeu_si32(&b, a);
     int32_t *_b = (int32_t *) &b;
@@ -7380,7 +7380,7 @@ result_t test_mm_alignr_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     __m128i a = load_m128i(_a);
     __m128i b = load_m128i(_b);
-    __m128i ret;
+    __m128i ret = _mm_setzero_si128();
     switch (iter % 5) {
     case 0:
         ret = _mm_alignr_epi8(a, b, 0);
@@ -7429,7 +7429,8 @@ result_t test_mm_alignr_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     __m64 a = load_m64(_a);
     __m64 b = load_m64(_b);
-    __m64 ret;
+    uint8_t zeros[] = {0, 0, 0, 0, 0, 0, 0, 0};
+    __m64 ret = load_m64(zeros);
     switch (iter % 3) {
     case 0:
         ret = _mm_alignr_pi8(a, b, 0);
@@ -8955,7 +8956,7 @@ result_t test_mm_packus_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_round_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (double *) impl.mTestFloatPointer1;
-    double d[2];
+    double d[2] = {};
     __m128d ret;
 
     __m128d a = load_m128d(_a);
@@ -9020,7 +9021,7 @@ result_t test_mm_round_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
-    float f[4];
+    float f[4] = {};
     __m128 ret;
 
     __m128 a = load_m128(_a);
@@ -9102,7 +9103,7 @@ result_t test_mm_round_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (double *) impl.mTestFloatPointer1;
     const double *_b = (double *) impl.mTestFloatPointer2;
-    double d[2];
+    double d[2] = {};
     __m128d ret;
 
     __m128d a = load_m128d(_a);
@@ -11826,7 +11827,7 @@ result_t test_mm_set_denormals_zero_mode(const SSE2NEONTestImpl &impl,
     float denormal = FLT_MIN / factor;
     float denormals[4] = {denormal, denormal, denormal, denormal};
     float factors[4] = {factor, factor, factor, factor};
-    __m128 ret;
+    __m128 ret = _mm_setzero_ps();
 
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     ret = _mm_mul_ps(load_m128(denormals), load_m128(factors));
