@@ -106,6 +106,17 @@
 #pragma message("Macro name collisions may happen with unsupported compilers.")
 #endif
 
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma push_macro("FORCE_INLINE_OPTNONE")
+#define FORCE_INLINE_OPTNONE static inline __attribute__((optimize("O0")))
+#elif defined(__clang__)
+#pragma push_macro("FORCE_INLINE_OPTNONE")
+#define FORCE_INLINE_OPTNONE static inline __attribute__((optnone))
+#else
+#define FORCE_INLINE_OPTNONE FORCE_INLINE
+#endif
+
 #if !defined(__clang__) && defined(__GNUC__) && __GNUC__ < 10
 #warning "GCC versions earlier than 10 are not supported."
 #endif
@@ -579,8 +590,8 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
 FORCE_INLINE __m128d _mm_floor_pd(__m128d);
 FORCE_INLINE __m128 _mm_floor_ps(__m128);
-FORCE_INLINE __m128d _mm_round_pd(__m128d, int);
-FORCE_INLINE __m128 _mm_round_ps(__m128, int);
+FORCE_INLINE_OPTNONE __m128d _mm_round_pd(__m128d, int);
+FORCE_INLINE_OPTNONE __m128 _mm_round_ps(__m128, int);
 // SSE4.2
 FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t, uint8_t);
 
@@ -2162,7 +2173,7 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 // Multiply packed single-precision (32-bit) floating-point elements in a and b,
 // and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_mul_ps
-FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
+FORCE_INLINE_OPTNONE __m128 _mm_mul_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_f32(
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
@@ -3843,7 +3854,7 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 // Convert packed double-precision (64-bit) floating-point elements in a to
 // packed 32-bit integers, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtpd_epi32
-FORCE_INLINE __m128i _mm_cvtpd_epi32(__m128d a)
+FORCE_INLINE_OPTNONE __m128i _mm_cvtpd_epi32(__m128d a)
 {
 // vrnd32xq_f64 not supported on clang
 #if defined(__ARM_FEATURE_FRINT) && !defined(__clang__)
@@ -3862,7 +3873,7 @@ FORCE_INLINE __m128i _mm_cvtpd_epi32(__m128d a)
 // Convert packed double-precision (64-bit) floating-point elements in a to
 // packed 32-bit integers, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtpd_pi32
-FORCE_INLINE __m64 _mm_cvtpd_pi32(__m128d a)
+FORCE_INLINE_OPTNONE __m64 _mm_cvtpd_pi32(__m128d a)
 {
     __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
     double d0 = ((double *) &rnd)[0];
@@ -7421,7 +7432,7 @@ FORCE_INLINE __m128i _mm_packus_epi32(__m128i a, __m128i b)
 // the rounding parameter, and store the results as packed double-precision
 // floating-point elements in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_round_pd
-FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
+FORCE_INLINE_OPTNONE __m128d _mm_round_pd(__m128d a, int rounding)
 {
 #if defined(__aarch64__) || defined(_M_ARM64)
     switch (rounding) {
@@ -7490,7 +7501,7 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 // the rounding parameter, and store the results as packed single-precision
 // floating-point elements in dst.
 // software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_ps
-FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
+FORCE_INLINE_OPTNONE __m128 _mm_round_ps(__m128 a, int rounding)
 {
 #if (defined(__aarch64__) || defined(_M_ARM64)) || \
     defined(__ARM_FEATURE_DIRECTED_ROUNDING)
@@ -9280,6 +9291,7 @@ FORCE_INLINE uint64_t _rdtsc(void)
 #if defined(__GNUC__) || defined(__clang__)
 #pragma pop_macro("ALIGN_STRUCT")
 #pragma pop_macro("FORCE_INLINE")
+#pragma pop_macro("FORCE_INLINE_OPTNONE")
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
