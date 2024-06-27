@@ -7636,7 +7636,7 @@ FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i a, __m128i mask)
     uint64x2_t zeros = vbicq_u64(m, v);
 
     // If both 128-bit variables are populated (non-zero) then return 1.
-    // For comparision purposes, first compact each var down to 32-bits.
+    // For comparison purposes, first compact each var down to 32-bits.
     uint32x2_t reduced = vpmax_u32(vqmovn_u64(ones), vqmovn_u64(zeros));
 
     // if folding minimum is non-zero then both vars must be non-zero
@@ -8545,7 +8545,7 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
     crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 1);
 #else  // Fall back to the generic table lookup approach
     // Adapted from: https://create.stephan-brumme.com/crc32/
-    // Apply half-byte comparision algorithm for the best ratio between
+    // Apply half-byte comparison algorithm for the best ratio between
     // performance and lookup table.
 
     // The lookup table just needs to store every 16th entry
@@ -8712,9 +8712,9 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 #define SSE2NEON_AES_B2W(b0, b1, b2, b3)                 \
     (((uint32_t) (b3) << 24) | ((uint32_t) (b2) << 16) | \
      ((uint32_t) (b1) << 8) | (uint32_t) (b0))
-// muliplying 'x' by 2 in GF(2^8)
+// multiplying 'x' by 2 in GF(2^8)
 #define SSE2NEON_AES_F2(x) ((x << 1) ^ (((x >> 7) & 1) * 0x011b /* WPOLY */))
-// muliplying 'x' by 3 in GF(2^8)
+// multiplying 'x' by 3 in GF(2^8)
 #define SSE2NEON_AES_F3(x) (SSE2NEON_AES_F2(x) ^ x)
 #define SSE2NEON_AES_U0(p) \
     SSE2NEON_AES_B2W(SSE2NEON_AES_F2(p), p, p, SSE2NEON_AES_F3(p))
@@ -8799,7 +8799,7 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
     v ^= (uint8x16_t) vrev32q_u16((uint16x8_t) w);
 
     w = (v << 1) ^ (uint8x16_t) (((int8x16_t) v >> 7) &
-                                 0x1b);  // muliplying 'v' by 2 in GF(2^8)
+                                 0x1b);  // multiplying 'v' by 2 in GF(2^8)
     w ^= (uint8x16_t) vrev32q_u16((uint16x8_t) v);
     w ^= vqtbl1q_u8(v ^ w, vld1q_u8(ror32by8));
 
