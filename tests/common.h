@@ -64,8 +64,31 @@ enum result_t {
 };
 extern int32_t NaN;
 extern int64_t NaN64;
-#define ALL_BIT_1_32 (*(float *) &NaN)
-#define ALL_BIT_1_64 (*(double *) &NaN64)
+
+typedef union bit64_union_t {
+    double f64;
+    int64_t i64;
+    uint64_t u64;
+} bit64_union_t;
+typedef union bit32_union_t {
+    float f32;
+    int32_t i32;
+    uint32_t u32;
+} bit32_union_t;
+static inline float generate_all_ones_float()
+{
+    bit32_union_t u;
+    u.i32 = UINT32_MAX;
+    return u.f32;
+}
+static inline double generate_all_ones_double()
+{
+    bit64_union_t u;
+    u.i64 = UINT64_MAX;
+    return u.f64;
+}
+#define ALL_BIT_1_32 generate_all_ones_float()
+#define ALL_BIT_1_64 generate_all_ones_double()
 
 template <typename T>
 result_t validate128(T a, T b)

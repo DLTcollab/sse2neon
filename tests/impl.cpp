@@ -431,7 +431,7 @@ template <class T>
 __m128i load_m128i(const T *p)
 {
     __m128 a = _mm_loadu_ps((const float *) p);
-    __m128i ia = *(const __m128i *) &a;
+    __m128i ia = _mm_castps_si128(a);
     return ia;
 }
 
@@ -461,7 +461,7 @@ result_t do_mm_store_ps(float *p, float x, float y, float z, float w)
 result_t do_mm_store_ps(int32_t *p, int32_t x, int32_t y, int32_t z, int32_t w)
 {
     __m128i a = _mm_set_epi32(x, y, z, w);
-    _mm_store_ps((float *) p, *(const __m128 *) &a);
+    _mm_store_ps((float *) p, _mm_castsi128_ps(a));
     ASSERT_RETURN(p[0] == w);
     ASSERT_RETURN(p[1] == z);
     ASSERT_RETURN(p[2] == y);
@@ -850,7 +850,7 @@ result_t test_mm_and_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     r[2] = ia[2] & ib[2];
     r[3] = ia[3] & ib[3];
     __m128i ret = do_mm_set_epi32(r[3], r[2], r[1], r[0]);
-    result_t res = VALIDATE_INT32_M128(*(const __m128i *) &c, r);
+    result_t res = VALIDATE_INT32_M128(_mm_castps_si128(c), r);
     if (res) {
         res = VALIDATE_INT32_M128(ret, r);
     }
@@ -879,7 +879,7 @@ result_t test_mm_andnot_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     r[3] = ~ia[3] & ib[3];
     __m128i ret = do_mm_set_epi32(r[3], r[2], r[1], r[0]);
     result_t res = TEST_FAIL;
-    res = VALIDATE_INT32_M128(*(const __m128i *) &c, r);
+    res = VALIDATE_INT32_M128(_mm_castps_si128(c), r);
     if (res) {
         res = VALIDATE_INT32_M128(ret, r);
     }
@@ -938,7 +938,7 @@ result_t test_mm_cmpeq_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     result[3] = _a[3] == _b[3] ? -1 : 0;
 
     __m128 ret = _mm_cmpeq_ps(a, b);
-    __m128i iret = *(const __m128i *) &ret;
+    __m128i iret = _mm_castps_si128(ret);
     return VALIDATE_INT32_M128(iret, result);
 }
 
@@ -973,7 +973,7 @@ result_t test_mm_cmpge_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     result[3] = _a[3] >= _b[3] ? -1 : 0;
 
     __m128 ret = _mm_cmpge_ps(a, b);
-    __m128i iret = *(const __m128i *) &ret;
+    __m128i iret = _mm_castps_si128(ret);
     return VALIDATE_INT32_M128(iret, result);
 }
 
@@ -1008,7 +1008,7 @@ result_t test_mm_cmpgt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     result[3] = _a[3] > _b[3] ? -1 : 0;
 
     __m128 ret = _mm_cmpgt_ps(a, b);
-    __m128i iret = *(const __m128i *) &ret;
+    __m128i iret = _mm_castps_si128(ret);
     return VALIDATE_INT32_M128(iret, result);
 }
 
@@ -1043,7 +1043,7 @@ result_t test_mm_cmple_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     result[3] = _a[3] <= _b[3] ? -1 : 0;
 
     __m128 ret = _mm_cmple_ps(a, b);
-    __m128i iret = *(const __m128i *) &ret;
+    __m128i iret = _mm_castps_si128(ret);
     return VALIDATE_INT32_M128(iret, result);
 }
 
@@ -1078,7 +1078,7 @@ result_t test_mm_cmplt_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     result[3] = _a[3] < _b[3] ? -1 : 0;
 
     __m128 ret = _mm_cmplt_ps(a, b);
-    __m128i iret = *(const __m128i *) &ret;
+    __m128i iret = _mm_castps_si128(ret);
     return VALIDATE_INT32_M128(iret, result);
 }
 
@@ -1114,7 +1114,7 @@ result_t test_mm_cmpneq_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     result[3] = _a[3] != _b[3] ? -1 : 0;
 
     __m128 ret = _mm_cmpneq_ps(a, b);
-    __m128i iret = *(const __m128i *) &ret;
+    __m128i iret = _mm_castps_si128(ret);
     return VALIDATE_INT32_M128(iret, result);
 }
 
@@ -2519,7 +2519,7 @@ result_t test_mm_or_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     r[2] = ia[2] | ib[2];
     r[3] = ia[3] | ib[3];
     __m128i ret = do_mm_set_epi32(r[3], r[2], r[1], r[0]);
-    result_t res = VALIDATE_INT32_M128(*(const __m128i *) &c, r);
+    result_t res = VALIDATE_INT32_M128(_mm_castps_si128(c), r);
     if (res) {
         res = VALIDATE_INT32_M128(ret, r);
     }
@@ -2980,7 +2980,7 @@ result_t test_mm_store_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     int32_t z = impl.mTestInts[iter + 2];
     int32_t w = impl.mTestInts[iter + 3];
     __m128i a = _mm_set_epi32(x, y, z, w);
-    _mm_store_ps((float *) p, *(const __m128 *) &a);
+    _mm_store_ps((float *) p, _mm_castsi128_ps(a));
     ASSERT_RETURN(p[0] == w);
     ASSERT_RETURN(p[1] == z);
     ASSERT_RETURN(p[2] == y);
@@ -3256,17 +3256,17 @@ result_t test_mm_xor_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int32_t *_a = (const int32_t *) impl.mTestFloatPointer1;
     const int32_t *_b = (const int32_t *) impl.mTestFloatPointer2;
 
-    int32_t d0 = _a[0] ^ _b[0];
-    int32_t d1 = _a[1] ^ _b[1];
-    int32_t d2 = _a[2] ^ _b[2];
-    int32_t d3 = _a[3] ^ _b[3];
+    bit32_union_t d0, d1, d2, d3;
+    d0.i32 = _a[0] ^ _b[0];
+    d1.i32 = _a[1] ^ _b[1];
+    d2.i32 = _a[2] ^ _b[2];
+    d3.i32 = _a[3] ^ _b[3];
 
     __m128 a = load_m128(_a);
     __m128 b = load_m128(_b);
     __m128 c = _mm_xor_ps(a, b);
 
-    return validateFloat(c, *((float *) &d0), *((float *) &d1),
-                         *((float *) &d2), *((float *) &d3));
+    return validateFloat(c, d0.f32, d1.f32, d2.f32, d3.f32);
 }
 
 /* SSE2 */
@@ -3553,14 +3553,15 @@ result_t test_mm_and_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int64_t *_a = (const int64_t *) impl.mTestFloatPointer1;
     const int64_t *_b = (const int64_t *) impl.mTestFloatPointer2;
 
-    int64_t d0 = _a[0] & _b[0];
-    int64_t d1 = _a[1] & _b[1];
+    bit64_union_t d0, d1;
+    d0.i64 = _a[0] & _b[0];
+    d1.i64 = _a[1] & _b[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_and_pd(a, b);
 
-    return validateDouble(c, *((double *) &d0), *((double *) &d1));
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_and_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -3569,8 +3570,8 @@ result_t test_mm_and_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int32_t *_b = impl.mTestIntPointer2;
     __m128i a = load_m128i(_a);
     __m128i b = load_m128i(_b);
-    __m128 fc = _mm_and_ps(*(const __m128 *) &a, *(const __m128 *) &b);
-    __m128i c = *(const __m128i *) &fc;
+    __m128 fc = _mm_and_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b));
+    __m128i c = _mm_castps_si128(fc);
     // now for the assertion...
     const uint32_t *ia = (const uint32_t *) &a;
     const uint32_t *ib = (const uint32_t *) &b;
@@ -3603,7 +3604,7 @@ result_t test_mm_andnot_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     const uint64_t *ib = (const uint64_t *) &b;
     uint64_t r0 = ~ia[0] & ib[0];
     uint64_t r1 = ~ia[1] & ib[1];
-    return validateUInt64(*(const __m128i *) &c, r0, r1);
+    return validateUInt64(_mm_castpd_si128(c), r0, r1);
 }
 
 result_t test_mm_andnot_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -3612,8 +3613,8 @@ result_t test_mm_andnot_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int32_t *_b = impl.mTestIntPointer2;
     __m128i a = load_m128i(_a);
     __m128i b = load_m128i(_b);
-    __m128 fc = _mm_andnot_ps(*(const __m128 *) &a, *(const __m128 *) &b);
-    __m128i c = *(const __m128i *) &fc;
+    __m128 fc = _mm_andnot_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b));
+    __m128i c = _mm_castps_si128(fc);
     // now for the assertion...
     const uint32_t *ia = (const uint32_t *) &a;
     const uint32_t *ib = (const uint32_t *) &b;
@@ -3832,55 +3833,59 @@ result_t test_mm_cmpeq_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] == _b[0]) ? 0xffffffffffffffff : 0;
-    uint64_t d1 = (_a[1] == _b[1]) ? 0xffffffffffffffff : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] == _b[0]) ? UINT64_MAX : 0;
+    d1.u64 = (_a[1] == _b[1]) ? UINT64_MAX : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpeq_pd(a, b);
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpeq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    const uint64_t d0 = (_a[0] == _b[0]) ? ~UINT64_C(0) : 0;
-    const uint64_t d1 = ((const uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] == _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((const uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpeq_sd(a, b);
 
-    return validateDouble(c, *(const double *) &d0, *(const double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpge_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = (_a[1] >= _b[1]) ? ~UINT64_C(0) : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = (_a[1] >= _b[1]) ? ~UINT64_C(0) : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpge_pd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpge_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpge_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpgt_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -3954,56 +3959,60 @@ result_t test_mm_cmpgt_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = (_a[1] > _b[1]) ? ~UINT64_C(0) : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = (_a[1] > _b[1]) ? ~UINT64_C(0) : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpgt_pd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpgt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpgt_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmple_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = (_a[1] <= _b[1]) ? ~UINT64_C(0) : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = (_a[1] <= _b[1]) ? ~UINT64_C(0) : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmple_pd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmple_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmple_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmplt_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -4076,171 +4085,180 @@ result_t test_mm_cmplt_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-
-    int64_t f0 = (_a[0] < _b[0]) ? ~UINT64_C(0) : UINT64_C(0);
-    int64_t f1 = (_a[1] < _b[1]) ? ~UINT64_C(0) : UINT64_C(0);
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] < _b[0]) ? ~UINT64_C(0) : UINT64_C(0);
+    d1.u64 = (_a[1] < _b[1]) ? ~UINT64_C(0) : UINT64_C(0);
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmplt_pd(a, b);
 
-    return validateDouble(c, *(double *) &f0, *(double *) &f1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmplt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = (_a[0] < _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] < _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmplt_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpneq_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-
-    int64_t f0 = (_a[0] != _b[0]) ? ~UINT64_C(0) : UINT64_C(0);
-    int64_t f1 = (_a[1] != _b[1]) ? ~UINT64_C(0) : UINT64_C(0);
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] != _b[0]) ? ~UINT64_C(0) : UINT64_C(0);
+    d1.u64 = (_a[1] != _b[1]) ? ~UINT64_C(0) : UINT64_C(0);
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpneq_pd(a, b);
 
-    return validateDouble(c, *(double *) &f0, *(double *) &f1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpneq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-
-    int64_t f0 = (_a[0] != _b[0]) ? ~UINT64_C(0) : UINT64_C(0);
-    int64_t f1 = ((int64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = (_a[0] != _b[0]) ? ~UINT64_C(0) : UINT64_C(0);
+    d1.u64 = ((int64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpneq_sd(a, b);
 
-    return validateDouble(c, *(double *) &f0, *(double *) &f1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpnge_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = !(_a[1] >= _b[1]) ? ~UINT64_C(0) : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = !(_a[1] >= _b[1]) ? ~UINT64_C(0) : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpnge_pd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpnge_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] >= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpnge_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpngt_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = !(_a[1] > _b[1]) ? ~UINT64_C(0) : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = !(_a[1] > _b[1]) ? ~UINT64_C(0) : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpngt_pd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpngt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] > _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpngt_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpnle_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = !(_a[1] <= _b[1]) ? ~UINT64_C(0) : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = !(_a[1] <= _b[1]) ? ~UINT64_C(0) : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpnle_pd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpnle_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] <= _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpnle_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpnlt_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     const double *_b = (const double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] < _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = !(_a[1] < _b[1]) ? ~UINT64_C(0) : 0;
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] < _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = !(_a[1] < _b[1]) ? ~UINT64_C(0) : 0;
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpnlt_pd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpnlt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     double *_a = (double *) impl.mTestFloatPointer1;
     double *_b = (double *) impl.mTestFloatPointer2;
-    uint64_t d0 = !(_a[0] < _b[0]) ? ~UINT64_C(0) : 0;
-    uint64_t d1 = ((uint64_t *) _a)[1];
+    bit64_union_t d0, d1;
+    d0.u64 = !(_a[0] < _b[0]) ? ~UINT64_C(0) : 0;
+    d1.u64 = ((uint64_t *) _a)[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_cmpnlt_sd(a, b);
 
-    return validateDouble(c, *(double *) &d0, *(double *) &d1);
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_cmpord_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -5505,14 +5523,15 @@ result_t test_mm_or_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int64_t *_a = (const int64_t *) impl.mTestFloatPointer1;
     const int64_t *_b = (const int64_t *) impl.mTestFloatPointer2;
 
-    int64_t d0 = _a[0] | _b[0];
-    int64_t d1 = _a[1] | _b[1];
+    bit64_union_t d0, d1;
+    d0.i64 = _a[0] | _b[0];
+    d1.i64 = _a[1] | _b[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_or_pd(a, b);
 
-    return validateDouble(c, *((double *) &d0), *((double *) &d1));
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_or_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -5521,8 +5540,8 @@ result_t test_mm_or_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int32_t *_b = impl.mTestIntPointer2;
     __m128i a = load_m128i(_a);
     __m128i b = load_m128i(_b);
-    __m128 fc = _mm_or_ps(*(const __m128 *) &a, *(const __m128 *) &b);
-    __m128i c = *(const __m128i *) &fc;
+    __m128 fc = _mm_or_ps(_mm_castsi128_ps(a), _mm_castsi128_ps(b));
+    __m128i c = _mm_castps_si128(fc);
     // now for the assertion...
     const uint32_t *ia = (const uint32_t *) &a;
     const uint32_t *ib = (const uint32_t *) &b;
@@ -7093,14 +7112,15 @@ result_t test_mm_xor_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int64_t *_a = (const int64_t *) impl.mTestFloatPointer1;
     const int64_t *_b = (const int64_t *) impl.mTestFloatPointer2;
 
-    int64_t d0 = _a[0] ^ _b[0];
-    int64_t d1 = _a[1] ^ _b[1];
+    bit64_union_t d0, d1;
+    d0.i64 = _a[0] ^ _b[0];
+    d1.i64 = _a[1] ^ _b[1];
 
     __m128d a = load_m128d(_a);
     __m128d b = load_m128d(_b);
     __m128d c = _mm_xor_pd(a, b);
 
-    return validateDouble(c, *((double *) &d0), *((double *) &d1));
+    return validateDouble(c, d0.f64, d1.f64);
 }
 
 result_t test_mm_xor_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -8095,7 +8115,9 @@ result_t test_mm_blendv_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     for (int i = 0; i < 2; i++) {
         // signed shift right would return a result which is either all 1's from
         // negative numbers or all 0's from positive numbers
-        if ((*(const int64_t *) (_mask + i)) >> 63) {
+        bit64_union_t m;
+        m.f64 = _mask[i];
+        if (m.i64 >> 63) {
             _c[i] = _b[i];
         } else {
             _c[i] = _a[i];
