@@ -64,8 +64,44 @@ enum result_t {
 };
 extern int32_t NaN;
 extern int64_t NaN64;
-#define ALL_BIT_1_32 (*(float *) &NaN)
-#define ALL_BIT_1_64 (*(double *) &NaN64)
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma push_macro("OPTNONE")
+#define OPTNONE __attribute__((optimize("O0")))
+#elif defined(__clang__)
+#pragma push_macro("OPTNONE")
+#define OPTNONE __attribute__((optnone))
+#else
+#define OPTNONE
+#endif
+
+#include <string.h>
+static inline double sse2neon_tool_recast_f64(uint64_t u64)
+{
+    double f64;
+    memcpy(&f64, &u64, sizeof(uint64_t));
+    return f64;
+}
+static inline int64_t sse2neon_tool_recast_i64(double f64)
+{
+    int64_t i64;
+    memcpy(&i64, &f64, sizeof(int64_t));
+    return i64;
+}
+static inline float sse2neon_tool_recast_f32(uint32_t u32)
+{
+    float f32;
+    memcpy(&f32, &u32, sizeof(uint32_t));
+    return f32;
+}
+static inline float sse2neon_tool_recast_f32(int32_t i32)
+{
+    float f32;
+    memcpy(&f32, &i32, sizeof(int32_t));
+    return f32;
+}
+#define ALL_BIT_1_32 sse2neon_tool_recast_f32(UINT32_MAX)
+#define ALL_BIT_1_64 sse2neon_tool_recast_f64(UINT64_MAX)
 
 template <typename T>
 result_t validate128(T a, T b)
