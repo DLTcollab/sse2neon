@@ -2751,7 +2751,7 @@ result_t test_mm_set_ps1(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateFloat(ret, a, a, a, a);
 }
 
-result_t test_mm_set_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_set_rounding_mode(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
     result_t res_toward_zero, res_to_neg_inf, res_to_pos_inf, res_nearest;
@@ -4444,7 +4444,7 @@ result_t test_mm_cvtepi32_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateFloat(ret, trun[0], trun[1], trun[2], trun[3]);
 }
 
-result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     int32_t d[2] = {};
@@ -8425,7 +8425,7 @@ result_t test_mm_cvtepu8_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
     MM_DP_PD_TEST_CASE_WITH(0x22);   \
     MM_DP_PD_TEST_CASE_WITH(0x23);
 
-result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     GENERATE_MM_DP_PD_TEST_CASES
     return TEST_SUCCESS;
@@ -8460,7 +8460,7 @@ result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     MM_DP_PS_TEST_CASE_WITH(0x23);   \
     MM_DP_PS_TEST_CASE_WITH(0xB5);
 
-result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     GENERATE_MM_DP_PS_TEST_CASES
     return TEST_SUCCESS;
@@ -11819,8 +11819,8 @@ result_t test_mm_popcnt_u64(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_SUCCESS;
 }
 
-result_t test_mm_set_denormals_zero_mode(const SSE2NEONTestImpl &impl,
-                                         uint32_t iter)
+OPTNONE result_t test_mm_set_denormals_zero_mode(const SSE2NEONTestImpl &impl,
+                                                 uint32_t iter)
 {
     result_t res_set_denormals_zero_on, res_set_denormals_zero_off;
     float factor = 2;

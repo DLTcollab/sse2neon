@@ -2444,7 +2444,7 @@ FORCE_INLINE __m128 _mm_set_ps1(float _w)
 // the following flags: _MM_ROUND_NEAREST, _MM_ROUND_DOWN, _MM_ROUND_UP,
 // _MM_ROUND_TOWARD_ZERO
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_SET_ROUNDING_MODE
-FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
+FORCE_INLINE_OPTNONE void _MM_SET_ROUNDING_MODE(int rounding)
 {
     union {
         fpcr_bitfield field;
@@ -4158,7 +4158,7 @@ FORCE_INLINE __m128i _mm_cvttpd_epi32(__m128d a)
 // Convert packed double-precision (64-bit) floating-point elements in a to
 // packed 32-bit integers with truncation, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvttpd_pi32
-FORCE_INLINE __m64 _mm_cvttpd_pi32(__m128d a)
+FORCE_INLINE_OPTNONE __m64 _mm_cvttpd_pi32(__m128d a)
 {
     double a0 = ((double *) &a)[0];
     double a1 = ((double *) &a)[1];
@@ -9219,7 +9219,7 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 #endif
 }
 
-FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
+FORCE_INLINE_OPTNONE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
 {
     // AArch32 Advanced SIMD arithmetic always uses the Flush-to-zero setting,
     // regardless of the value of the FZ bit.

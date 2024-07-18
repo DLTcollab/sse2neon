@@ -67,6 +67,16 @@ extern int64_t NaN64;
 #define ALL_BIT_1_32 (*(float *) &NaN)
 #define ALL_BIT_1_64 (*(double *) &NaN64)
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma push_macro("OPTNONE")
+#define OPTNONE __attribute__((optimize("O0")))
+#elif defined(__clang__)
+#pragma push_macro("OPTNONE")
+#define OPTNONE __attribute__((optnone))
+#else
+#define OPTNONE
+#endif
+
 template <typename T>
 result_t validate128(T a, T b)
 {
