@@ -5877,7 +5877,7 @@ result_t test_mm_shuffle_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     int32_t _d[4];
 
 #define TEST_IMPL(IDX)              \
-    _d[0] = _a[((IDX) &0x3)];       \
+    _d[0] = _a[((IDX) & 0x3)];      \
     _d[1] = _a[((IDX >> 2) & 0x3)]; \
     _d[2] = _a[((IDX >> 4) & 0x3)]; \
     _d[3] = _a[((IDX >> 6) & 0x3)]; \
@@ -8384,22 +8384,24 @@ result_t test_mm_cvtepu8_epi64(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateInt64(ret, i0, i1);
 }
 
-#define MM_DP_PD_TEST_CASE_WITH(imm8)                                \
-    do {                                                             \
-        const double *_a = (const double *) impl.mTestFloatPointer1; \
-        const double *_b = (const double *) impl.mTestFloatPointer2; \
-        const int imm = imm8;                                        \
-        double d[2];                                                 \
-        double sum = 0;                                              \
-        for (size_t i = 0; i < 2; i++)                               \
-            sum += ((imm) & (1 << (i + 4))) ? _a[i] * _b[i] : 0;     \
-        for (size_t i = 0; i < 2; i++)                               \
-            d[i] = (imm & (1 << i)) ? sum : 0;                       \
-        __m128d a = load_m128d(_a);                                  \
-        __m128d b = load_m128d(_b);                                  \
-        __m128d ret = _mm_dp_pd(a, b, imm);                          \
-        if (validateDouble(ret, d[0], d[1]) != TEST_SUCCESS)         \
-            return TEST_FAIL;                                        \
+#define MM_DP_PD_TEST_CASE_WITH(imm8)                            \
+    do {                                                         \
+        const double _a[] = {impl.mTestFloatPointer1[0],         \
+                             impl.mTestFloatPointer1[1]};        \
+        const double _b[] = {impl.mTestFloatPointer2[0],         \
+                             impl.mTestFloatPointer2[1]};        \
+        const int imm = imm8;                                    \
+        double d[2] = {0};                                       \
+        double sum = 0;                                          \
+        for (size_t i = 0; i < 2; i++)                           \
+            sum += ((imm) & (1 << (i + 4))) ? _a[i] * _b[i] : 0; \
+        for (size_t i = 0; i < 2; i++)                           \
+            d[i] = (imm & (1 << i)) ? sum : 0;                   \
+        __m128d a = load_m128d(_a);                              \
+        __m128d b = load_m128d(_b);                              \
+        __m128d ret = _mm_dp_pd(a, b, imm);                      \
+        if (validateDouble(ret, d[0], d[1]) != TEST_SUCCESS)     \
+            return TEST_FAIL;                                    \
     } while (0)
 
 #define GENERATE_MM_DP_PD_TEST_CASES \
