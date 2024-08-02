@@ -4206,7 +4206,7 @@ FORCE_INLINE __m128d _mm_cvtss_sd(__m128d a, __m128 b)
 // Convert packed double-precision (64-bit) floating-point elements in a to
 // packed 32-bit integers with truncation, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvttpd_epi32
-FORCE_INLINE __m128i _mm_cvttpd_epi32(__m128d a)
+FORCE_INLINE_OPTNONE __m128i _mm_cvttpd_epi32(__m128d a)
 {
     double a0, a1;
     a0 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
@@ -9377,7 +9377,7 @@ FORCE_INLINE_OPTNONE void _sse2neon_mm_set_denormals_zero_mode(
 
 // Return the current 64-bit value of the processor's time-stamp counter.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=rdtsc
-FORCE_INLINE uint64_t _rdtsc(void)
+FORCE_INLINE_OPTNONE uint64_t _rdtsc(void)
 {
 #if defined(__aarch64__) || defined(_M_ARM64)
     uint64_t val;

@@ -57,7 +57,7 @@ ARCH_CFLAGS := $(ARCH_CFLAGS)+$(subst $(COMMA),+,$(FEATURE))
 endif
 endif
 
-CXXFLAGS += -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -std=gnu++14
+CXXFLAGS += -Wall -Wcast-qual -I. $(ARCH_CFLAGS) -O2 -std=gnu++14
 LDFLAGS	+= -lm
 OBJS = \
     tests/binding.o \
@@ -77,7 +77,7 @@ $(EXEC): $(OBJS)
 
 check: tests/main
 ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
-	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+	$(CC) $(ARCH_CFLAGS) -c -O2 sse2neon.h
 endif
 	$(EXEC_WRAPPER) $^
 
