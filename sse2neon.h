@@ -2187,7 +2187,7 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
 // Multiply packed single-precision (32-bit) floating-point elements in a and b,
 // and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_mul_ps
-FORCE_INLINE_OPTNONE __m128 _mm_mul_ps(__m128 a, __m128 b)
+FORCE_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
 {
     return vreinterpretq_m128_f32(
         vmulq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
