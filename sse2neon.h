@@ -106,20 +106,14 @@
 #pragma message("Macro name collisions may happen with unsupported compilers.")
 #endif
 
-
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma push_macro("FORCE_INLINE_OPTNONE")
-#define FORCE_INLINE_OPTNONE static inline __attribute__((optimize("O0")))
-#elif defined(__clang__)
-#pragma push_macro("FORCE_INLINE_OPTNONE")
-#define FORCE_INLINE_OPTNONE static inline __attribute__((optnone))
-#else
-#define FORCE_INLINE_OPTNONE FORCE_INLINE
-#endif
-
 #if !defined(__clang__) && defined(__GNUC__) && __GNUC__ < 10
 #warning "GCC versions earlier than 10 are not supported."
 #endif
+
+#ifdef __OPTIMIZE__
+#warning "Optimization may cause potential errors in sse2neon. see #648"
+#endif
+
 
 /* C language does not allow initializing a variable with a function call. */
 #ifdef __cplusplus
@@ -604,8 +598,8 @@ FORCE_INLINE __m128d _mm_ceil_pd(__m128d);
 FORCE_INLINE __m128 _mm_ceil_ps(__m128);
 FORCE_INLINE __m128d _mm_floor_pd(__m128d);
 FORCE_INLINE __m128 _mm_floor_ps(__m128);
-FORCE_INLINE_OPTNONE __m128d _mm_round_pd(__m128d, int);
-FORCE_INLINE_OPTNONE __m128 _mm_round_ps(__m128, int);
+FORCE_INLINE __m128d _mm_round_pd(__m128d, int);
+FORCE_INLINE __m128 _mm_round_ps(__m128, int);
 // SSE4.2
 FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t, uint8_t);
 
@@ -2458,7 +2452,7 @@ FORCE_INLINE __m128 _mm_set_ps1(float _w)
 // the following flags: _MM_ROUND_NEAREST, _MM_ROUND_DOWN, _MM_ROUND_UP,
 // _MM_ROUND_TOWARD_ZERO
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_SET_ROUNDING_MODE
-FORCE_INLINE_OPTNONE void _MM_SET_ROUNDING_MODE(int rounding)
+FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
 {
     union {
         fpcr_bitfield field;
@@ -3899,7 +3893,7 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 // Convert packed double-precision (64-bit) floating-point elements in a to
 // packed 32-bit integers, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtpd_epi32
-FORCE_INLINE_OPTNONE __m128i _mm_cvtpd_epi32(__m128d a)
+FORCE_INLINE __m128i _mm_cvtpd_epi32(__m128d a)
 {
 // vrnd32xq_f64 not supported on clang
 #if defined(__ARM_FEATURE_FRINT) && !defined(__clang__)
@@ -3921,7 +3915,7 @@ FORCE_INLINE_OPTNONE __m128i _mm_cvtpd_epi32(__m128d a)
 // Convert packed double-precision (64-bit) floating-point elements in a to
 // packed 32-bit integers, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtpd_pi32
-FORCE_INLINE_OPTNONE __m64 _mm_cvtpd_pi32(__m128d a)
+FORCE_INLINE __m64 _mm_cvtpd_pi32(__m128d a)
 {
     __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
     double d0, d1;
@@ -4217,7 +4211,7 @@ FORCE_INLINE __m128i _mm_cvttpd_epi32(__m128d a)
 // Convert packed double-precision (64-bit) floating-point elements in a to
 // packed 32-bit integers with truncation, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvttpd_pi32
-FORCE_INLINE_OPTNONE __m64 _mm_cvttpd_pi32(__m128d a)
+FORCE_INLINE __m64 _mm_cvttpd_pi32(__m128d a)
 {
     double a0, a1;
     a0 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
@@ -7559,7 +7553,7 @@ FORCE_INLINE __m128i _mm_packus_epi32(__m128i a, __m128i b)
 // the rounding parameter, and store the results as packed double-precision
 // floating-point elements in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_round_pd
-FORCE_INLINE_OPTNONE __m128d _mm_round_pd(__m128d a, int rounding)
+FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 {
 #if defined(__aarch64__) || defined(_M_ARM64)
     switch (rounding) {
@@ -7628,7 +7622,7 @@ FORCE_INLINE_OPTNONE __m128d _mm_round_pd(__m128d a, int rounding)
 // the rounding parameter, and store the results as packed single-precision
 // floating-point elements in dst.
 // software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_ps
-FORCE_INLINE_OPTNONE __m128 _mm_round_ps(__m128 a, int rounding)
+FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 {
 #if (defined(__aarch64__) || defined(_M_ARM64)) || \
     defined(__ARM_FEATURE_DIRECTED_ROUNDING)
@@ -9346,7 +9340,7 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 #endif
 }
 
-FORCE_INLINE_OPTNONE void _sse2neon_mm_set_denormals_zero_mode(
+FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(
     unsigned int flag)
 {
     // AArch32 Advanced SIMD arithmetic always uses the Flush-to-zero setting,
@@ -9419,7 +9413,6 @@ FORCE_INLINE uint64_t _rdtsc(void)
 #if defined(__GNUC__) || defined(__clang__)
 #pragma pop_macro("ALIGN_STRUCT")
 #pragma pop_macro("FORCE_INLINE")
-#pragma pop_macro("FORCE_INLINE_OPTNONE")
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)

@@ -155,6 +155,10 @@ $ make \
 
 Check the details via [Test Suite for SSE2NEON](tests/README.md).
 
+### Optimization
+
+Misbehavior may exist when turning on optimization options. Developers should be aware of possible errors.
+
 ## Adoptions
 Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
 * [Aaru Data Preservation Suite](https://www.aaru.app/) is a fully-featured software package to preserve all storage media from the very old to the cutting edge, as well as to give detailed information about any supported image file (whether from Aaru or not) and to extract the files from those images.
