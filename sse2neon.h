@@ -111,9 +111,9 @@
 #endif
 
 #ifdef __OPTIMIZE__
-#warning "Optimization may cause potential errors in sse2neon. see #648"
+#warning \
+    "Report any potential compiler optimization issues when using SSE2NEON. See the 'Optimization' section at https://github.com/DLTcollab/sse2neon."
 #endif
-
 
 /* C language does not allow initializing a variable with a function call. */
 #ifdef __cplusplus
@@ -122,6 +122,7 @@
 #define _sse2neon_const const
 #endif
 
+#include <fenv.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1840,25 +1841,20 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_GET_ROUNDING_MODE
 FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE(void)
 {
-    union {
-        fpcr_bitfield field;
-#if defined(__aarch64__) || defined(_M_ARM64)
-        uint64_t value;
-#else
-        uint32_t value;
-#endif
-    } r;
-
-#if defined(__aarch64__) || defined(_M_ARM64)
-    r.value = _sse2neon_get_fpcr();
-#else
-    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
-#endif
-
-    if (r.field.bit22) {
-        return r.field.bit23 ? _MM_ROUND_TOWARD_ZERO : _MM_ROUND_UP;
-    } else {
-        return r.field.bit23 ? _MM_ROUND_DOWN : _MM_ROUND_NEAREST;
+    switch (fegetround()) {
+    case FE_TONEAREST:
+        return _MM_ROUND_NEAREST;
+    case FE_DOWNWARD:
+        return _MM_ROUND_DOWN;
+    case FE_UPWARD:
+        return _MM_ROUND_UP;
+    case FE_TOWARDZERO:
+        return _MM_ROUND_TOWARD_ZERO;
+    default:
+        // fegetround() must return _MM_ROUND_NEAREST, _MM_ROUND_DOWN,
+        // _MM_ROUND_UP, _MM_ROUND_TOWARD_ZERO on success. all the other error
+        // cases we treat them as FE_TOWARDZERO (truncate).
+        return _MM_ROUND_TOWARD_ZERO;
     }
 }
 
@@ -2454,44 +2450,26 @@ FORCE_INLINE __m128 _mm_set_ps1(float _w)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_SET_ROUNDING_MODE
 FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
 {
-    union {
-        fpcr_bitfield field;
-#if defined(__aarch64__) || defined(_M_ARM64)
-        uint64_t value;
-#else
-        uint32_t value;
-#endif
-    } r;
-
-#if defined(__aarch64__) || defined(_M_ARM64)
-    r.value = _sse2neon_get_fpcr();
-#else
-    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
-#endif
-
     switch (rounding) {
-    case _MM_ROUND_TOWARD_ZERO:
-        r.field.bit22 = 1;
-        r.field.bit23 = 1;
+    case _MM_ROUND_NEAREST:
+        rounding = FE_TONEAREST;
         break;
     case _MM_ROUND_DOWN:
-        r.field.bit22 = 0;
-        r.field.bit23 = 1;
+        rounding = FE_DOWNWARD;
         break;
     case _MM_ROUND_UP:
-        r.field.bit22 = 1;
-        r.field.bit23 = 0;
+        rounding = FE_UPWARD;
         break;
-    default:  //_MM_ROUND_NEAREST
-        r.field.bit22 = 0;
-        r.field.bit23 = 0;
+    case _MM_ROUND_TOWARD_ZERO:
+        rounding = FE_TOWARDZERO;
+        break;
+    default:
+        // rounding must be _MM_ROUND_NEAREST, _MM_ROUND_DOWN, _MM_ROUND_UP,
+        // _MM_ROUND_TOWARD_ZERO. all the other invalid values we treat them as
+        // FE_TOWARDZERO (truncate).
+        rounding = FE_TOWARDZERO;
     }
-
-#if defined(__aarch64__) || defined(_M_ARM64)
-    _sse2neon_set_fpcr(r.value);
-#else
-    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r));        /* write */
-#endif
+    fesetround(rounding);
 }
 
 // Copy single-precision (32-bit) floating-point element a to the lower element
@@ -9340,8 +9318,7 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 #endif
 }
 
-FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(
-    unsigned int flag)
+FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
 {
     // AArch32 Advanced SIMD arithmetic always uses the Flush-to-zero setting,
     // regardless of the value of the FZ bit.

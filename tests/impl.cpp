@@ -4793,7 +4793,8 @@ result_t test_mm_cvttpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateInt32(ret, d0, d1, 0, 0);
 }
 
-OPTNONE result_t test_mm_cvttpd_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_cvttpd_pi32(const SSE2NEONTestImpl &impl,
+                                     uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
 
