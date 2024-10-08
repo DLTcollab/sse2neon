@@ -4485,7 +4485,7 @@ OPTNONE result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl,
     return validateInt32(ret, d[0], d[1], 0, 0);
 }
 
-result_t test_mm_cvtpd_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_cvtpd_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
     int32_t d[2] = {};
@@ -4793,7 +4793,8 @@ result_t test_mm_cvttpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateInt32(ret, d0, d1, 0, 0);
 }
 
-result_t test_mm_cvttpd_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_cvttpd_pi32(const SSE2NEONTestImpl &impl,
+                                     uint32_t iter)
 {
     const double *_a = (const double *) impl.mTestFloatPointer1;
 
@@ -8950,7 +8951,7 @@ result_t test_mm_packus_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     return VALIDATE_UINT16_M128(c, d);
 }
 
-result_t test_mm_round_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_round_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *_a = (double *) impl.mTestFloatPointer1;
     double d[2] = {};
@@ -9015,7 +9016,7 @@ result_t test_mm_round_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateDouble(ret, d[0], d[1]);
 }
 
-result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_round_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const float *_a = impl.mTestFloatPointer1;
     float f[4] = {};

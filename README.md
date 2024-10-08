@@ -155,6 +155,15 @@ $ make \
 
 Check the details via [Test Suite for SSE2NEON](tests/README.md).
 
+### Optimization
+
+The SSE2NEON project is designed with performance-sensitive scenarios in mind, and as such, optimization options (e.g. `O1`, `O2`) can lead to misbehavior under specific circumstances. For example, frequent changes to the rounding mode or repeated calls to `_MM_SET_DENORMALS_ZERO_MODE()` may introduce unintended behavior.
+
+Enforcing no optimizations for specific intrinsics could solve these boundary cases but may negatively impact general performance. Therefore, we have decided to prioritize performance and shift the responsibility for handling such edge cases to developers.
+
+It is important to be aware of these potential pitfalls when enabling optimizations and ensure that your code accounts for these scenarios if necessary.
+
+
 ## Adoptions
 Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
 * [Aaru Data Preservation Suite](https://www.aaru.app/) is a fully-featured software package to preserve all storage media from the very old to the cutting edge, as well as to give detailed information about any supported image file (whether from Aaru or not) and to extract the files from those images.
