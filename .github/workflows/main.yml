@@ -68,7 +68,7 @@ jobs:
       - name: build artifact
         # The Github Action for non-x86 CPU
         # https://github.com/uraimo/run-on-arch-action
-        uses: uraimo/run-on-arch-action@v2.7.1
+        uses: uraimo/run-on-arch-action@v2
         with:
           arch: ${{ matrix.arch_with_features.arch }}
           distro: ubuntu20.04
@@ -89,7 +89,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
 
       - name: build artifact
         run: msbuild sse2neon.vcxproj -t:rebuild -property:Configuration=Release -property:Platform=ARM64
