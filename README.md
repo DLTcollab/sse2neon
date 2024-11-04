@@ -102,6 +102,7 @@ Considering the balance between correctness and performance, `sse2neon` recogniz
 * `SSE2NEON_PRECISE_DIV`: Enable precise implementation of `_mm_rcp_ps` and `_mm_div_ps` by additional Netwon-Raphson iteration for accuracy.
 * `SSE2NEON_PRECISE_SQRT`: Enable precise implementation of `_mm_sqrt_ps` and `_mm_rsqrt_ps` by additional Netwon-Raphson iteration for accuracy.
 * `SSE2NEON_PRECISE_DP`: Enable precise implementation of `_mm_dp_pd`. When the conditional bit is not set, the corresponding multiplication would not be executed.
+* `SSE2NEON_SUPPRESS_WARNINGS`: Set this macro to disable the warning which is emitted by default when optimizations are enabled.
 
 The above are turned off by default, and you should define the corresponding macro(s) as `1` before including `sse2neon.h` if you need the precise implementations.
 

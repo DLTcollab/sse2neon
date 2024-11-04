@@ -110,7 +110,7 @@
 #warning "GCC versions earlier than 10 are not supported."
 #endif
 
-#ifdef __OPTIMIZE__
+#if defined(__OPTIMIZE__) && !defined(SSE2NEON_SUPPRESS_WARNINGS)
 #warning \
     "Report any potential compiler optimization issues when using SSE2NEON. See the 'Optimization' section at https://github.com/DLTcollab/sse2neon."
 #endif
