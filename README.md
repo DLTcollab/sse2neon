@@ -200,6 +200,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [Exudyn](https://github.com/jgerstmayr/EXUDYN) is a C++ based Python library for efficient simulation of flexible multibody dynamics systems.
 * [FoundationDB](https://www.foundationdb.org) is a distributed database designed to handle large volumes of structured data across clusters of commodity servers.
 * [fsrc](https://github.com/elsamuko/fsrc) is capable of searching large codebases for text snippets.
+* [GDAL](https://gdal.org) is a translator library for raster and vector geospatial data formats that comes with a variety of useful command line utilities for data translation and processing.
 * [gmmlib](https://github.com/intel/gmmlib) is the Intel Graphics Memory Management Library that provides device specific and buffer management for the Intel Graphics Compute Runtime for OpenCL and the Intel Media Driver for VAAPI.
 * [HISE](https://github.com/christophhart/HISE) is a cross-platform open source audio application for building virtual instruments, emphasizing on sampling, but includes some basic synthesis features for making hybrid instruments as well as audio effects.
 * [iqtree2](https://github.com/iqtree/iqtree2) is an efficient and versatile stochastic implementation to infer phylogenetic trees by maximum likelihood.
