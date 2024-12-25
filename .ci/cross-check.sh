@@ -14,9 +14,9 @@ fi
 set -x
 
 make clean
-export PATH=gcc-arm-${GCC_REL}-x86_64-aarch64-none-linux-gnu/bin:$PATH
+export PATH=arm-gnu-toolchain-${GCC_REL}-x86_64-aarch64-none-linux-gnu/bin:$PATH
 make CROSS_COMPILE=aarch64-none-linux-gnu- check || exit 1 # ARMv8-A
 
 make clean
-export PATH=gcc-arm-${GCC_REL}-x86_64-arm-none-linux-gnueabihf/bin:$PATH
+export PATH=arm-gnu-toolchain-${GCC_REL}-x86_64-arm-none-linux-gnueabihf/bin:$PATH
 make CROSS_COMPILE=arm-none-linux-gnueabihf- check || exit 1 # ARMv7-A

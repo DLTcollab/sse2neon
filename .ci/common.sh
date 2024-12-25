@@ -1,4 +1,4 @@
-GCC_REL=11.2-2022.02
+GCC_REL=14.2.rel1
 ARM_MIRROR=https://github.com/DLTcollab/toolchain-arm/raw/main
 
 SOURCES=$(find $(git rev-parse --show-toplevel) | egrep "\.(cpp|h)\$" | egrep -v "gcc-arm-${GCC_REL}-x86_64-aarch64-none-linux-gnu|gcc-arm-${GCC_REL}-x86_64-arm-none-linux-gnueabihf")

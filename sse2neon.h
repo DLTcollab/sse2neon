@@ -1816,7 +1816,7 @@ FORCE_INLINE void _sse2neon_set_fpcr(uint64_t value)
 #if defined(_MSC_VER) && !defined(__clang__)
     _WriteStatusReg(ARM64_FPCR, value);
 #else
-    __asm__ __volatile__("msr FPCR, %0" ::"r"(value));  /* write */
+    __asm__ __volatile__("msr FPCR, %0" ::"r"(value)); /* write */
 #endif
 }
 
@@ -2431,7 +2431,7 @@ FORCE_INLINE void _sse2neon_mm_set_flush_zero_mode(unsigned int flag)
 #if defined(__aarch64__) || defined(_M_ARM64)
     _sse2neon_set_fpcr(r.value);
 #else
-    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r));        /* write */
+    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r)); /* write */
 #endif
 }
 
@@ -4977,11 +4977,11 @@ FORCE_INLINE __m128i _mm_set_epi8(signed char b15,
                                   signed char b1,
                                   signed char b0)
 {
-    int8_t ALIGN_STRUCT(16)
-        data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
-                    (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
-                    (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
-                    (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
+    int8_t ALIGN_STRUCT(16) data[16] = {
+        (int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
+        (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
+        (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
+        (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
     return (__m128i) vld1q_s8(data);
 }
 
@@ -5112,11 +5112,11 @@ FORCE_INLINE __m128i _mm_setr_epi8(signed char b0,
                                    signed char b14,
                                    signed char b15)
 {
-    int8_t ALIGN_STRUCT(16)
-        data[16] = {(int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
-                    (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
-                    (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
-                    (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
+    int8_t ALIGN_STRUCT(16) data[16] = {
+        (int8_t) b0,  (int8_t) b1,  (int8_t) b2,  (int8_t) b3,
+        (int8_t) b4,  (int8_t) b5,  (int8_t) b6,  (int8_t) b7,
+        (int8_t) b8,  (int8_t) b9,  (int8_t) b10, (int8_t) b11,
+        (int8_t) b12, (int8_t) b13, (int8_t) b14, (int8_t) b15};
     return (__m128i) vld1q_s8(data);
 }
 
@@ -6269,7 +6269,7 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
             uint8x8_t tmp_low;                                              \
             uint8x8_t tmp_high;                                             \
             if ((imm) >= 8) {                                               \
-                const int idx = (imm) -8;                                   \
+                const int idx = (imm) - 8;                                  \
                 tmp_low = vreinterpret_u8_m64(_a);                          \
                 tmp_high = vdup_n_u8(0);                                    \
                 ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
@@ -6790,14 +6790,14 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
     _sse2neon_define2(                                                  \
         __m128i, a, b,                                                  \
         const uint16_t _mask[8] =                                       \
-            _sse2neon_init(((imm) & (1 << 0)) ? (uint16_t) -1 : 0x0,    \
-                           ((imm) & (1 << 1)) ? (uint16_t) -1 : 0x0,    \
-                           ((imm) & (1 << 2)) ? (uint16_t) -1 : 0x0,    \
-                           ((imm) & (1 << 3)) ? (uint16_t) -1 : 0x0,    \
-                           ((imm) & (1 << 4)) ? (uint16_t) -1 : 0x0,    \
-                           ((imm) & (1 << 5)) ? (uint16_t) -1 : 0x0,    \
-                           ((imm) & (1 << 6)) ? (uint16_t) -1 : 0x0,    \
-                           ((imm) & (1 << 7)) ? (uint16_t) -1 : 0x0);   \
+            _sse2neon_init(((imm) & (1 << 0)) ? (uint16_t) - 1 : 0x0,   \
+                           ((imm) & (1 << 1)) ? (uint16_t) - 1 : 0x0,   \
+                           ((imm) & (1 << 2)) ? (uint16_t) - 1 : 0x0,   \
+                           ((imm) & (1 << 3)) ? (uint16_t) - 1 : 0x0,   \
+                           ((imm) & (1 << 4)) ? (uint16_t) - 1 : 0x0,   \
+                           ((imm) & (1 << 5)) ? (uint16_t) - 1 : 0x0,   \
+                           ((imm) & (1 << 6)) ? (uint16_t) - 1 : 0x0,   \
+                           ((imm) & (1 << 7)) ? (uint16_t) - 1 : 0x0);  \
         uint16x8_t _mask_vec = vld1q_u16(_mask);                        \
         uint16x8_t __a = vreinterpretq_u16_m128i(_a);                   \
         uint16x8_t __b = vreinterpretq_u16_m128i(_b); _sse2neon_return( \
@@ -6822,11 +6822,11 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_blend_ps
 FORCE_INLINE __m128 _mm_blend_ps(__m128 _a, __m128 _b, const char imm8)
 {
-    const uint32_t ALIGN_STRUCT(16)
-        data[4] = {((imm8) & (1 << 0)) ? UINT32_MAX : 0,
-                   ((imm8) & (1 << 1)) ? UINT32_MAX : 0,
-                   ((imm8) & (1 << 2)) ? UINT32_MAX : 0,
-                   ((imm8) & (1 << 3)) ? UINT32_MAX : 0};
+    const uint32_t
+        ALIGN_STRUCT(16) data[4] = {((imm8) & (1 << 0)) ? UINT32_MAX : 0,
+                                    ((imm8) & (1 << 1)) ? UINT32_MAX : 0,
+                                    ((imm8) & (1 << 2)) ? UINT32_MAX : 0,
+                                    ((imm8) & (1 << 3)) ? UINT32_MAX : 0};
     uint32x4_t mask = vld1q_u32(data);
     float32x4_t a = vreinterpretq_f32_m128(_a);
     float32x4_t b = vreinterpretq_f32_m128(_b);
@@ -9351,7 +9351,7 @@ FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
 #if defined(__aarch64__) || defined(_M_ARM64)
     _sse2neon_set_fpcr(r.value);
 #else
-    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r));        /* write */
+    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r)); /* write */
 #endif
 }
 
