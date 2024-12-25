@@ -29,7 +29,7 @@ jobs:
           - armv7
           - aarch64
     env:
-      LLVM_MINGW_URL: https://github.com/mstorsjo/llvm-mingw/releases/download/20220906/llvm-mingw-20220906-ucrt-x86_64.zip
+      LLVM_MINGW_URL: https://github.com/mstorsjo/llvm-mingw/releases/download/20241217/llvm-mingw-20241217-msvcrt-x86_64.zip
     defaults:
       run:
         shell: bash

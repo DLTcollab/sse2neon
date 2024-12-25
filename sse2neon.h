@@ -140,10 +140,8 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double f64)
     return i64;
 }
 
-#if defined(_WIN32)
-/* Definitions for _mm_{malloc,free} are provided by <malloc.h>
- * from both MinGW-w64 and MSVC.
- */
+#if defined(_WIN32) && !defined(__MINGW32__)
+/* Definitions for _mm_{malloc,free} are provided by <malloc.h> from MSVC. */
 #define SSE2NEON_ALLOC_DEFINED
 #endif
 
@@ -1796,7 +1794,11 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
 #if !defined(SSE2NEON_ALLOC_DEFINED)
 FORCE_INLINE void _mm_free(void *addr)
 {
+#if defined(_WIN32)
+    _aligned_free(addr);
+#else
     free(addr);
+#endif
 }
 #endif
 
@@ -1979,8 +1981,14 @@ FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
         return malloc(size);
     if (align == 2 || (sizeof(void *) == 8 && align == 4))
         align = sizeof(void *);
+#if defined(_WIN32)
+    ptr = _aligned_malloc(size, align);
+    if (ptr)
+        return ptr;
+#else
     if (!posix_memalign(&ptr, align, size))
         return ptr;
+#endif
     return NULL;
 }
 #endif
