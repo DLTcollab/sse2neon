@@ -4,11 +4,11 @@ on: [push, pull_request]
 
 jobs:
   host-x86:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         arch: [x86_64]
-        cxx_compiler: [g++-10, clang++-11]
+        cxx_compiler: [g++, clang++]
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
         run: mingw32-make check
 
   host-arm:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         arch_with_features: [
@@ -61,7 +61,7 @@ jobs:
           {arch: aarch64, feature: crypto+crc, arch_cflags: none},
           {arch: armv7, feature: none, arch_cflags: '-mcpu=cortex-a32 -mfpu=neon-fp-armv8'}
         ]
-        cxx_compiler: [g++-10, clang++-11]
+        cxx_compiler: [g++, clang++-15]
     steps:
       - name: checkout code
         uses: actions/checkout@v4
@@ -71,14 +71,15 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: ${{ matrix.arch_with_features.arch }}
-          distro: ubuntu20.04
+          distro: ubuntu22.04
+          # Speed up builds by storing container images in a GitHub package registry.
+          githubToken: ${{ github.token }}
           env: |
             CXX: ${{ matrix.cxx_compiler }}
             ARCH_CFLAGS: ${{ matrix.arch_with_features.arch_cflags }}
           install: |
             apt-get update -q -y
-            apt-get install -q -y "${{ matrix.cxx_compiler }}" make
-            apt-get install -q -y gcc
+            apt-get install -q -y gcc "${{ matrix.cxx_compiler }}" make
           run: |
             make FEATURE=${{ matrix.arch_with_features.feature }} check
 
@@ -101,7 +102,7 @@ jobs:
           path: ARM64
 
   test-win-msvc:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container: linaro/wine-arm64
     needs: host-win-msvc
     steps:
@@ -115,12 +116,12 @@ jobs:
 
 
   coding-style:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - name: checkout code
         uses: actions/checkout@v4
       - name: style check
         run: |
-            sudo apt-get install -q -y clang-format-12
+            sudo apt-get install -q -y clang-format-18
             sh .ci/check-format.sh
         shell: bash

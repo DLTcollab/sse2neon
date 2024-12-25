@@ -5878,7 +5878,7 @@ result_t test_mm_shuffle_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     int32_t _d[4];
 
 #define TEST_IMPL(IDX)              \
-    _d[0] = _a[((IDX) &0x3)];       \
+    _d[0] = _a[((IDX) & 0x3)];      \
     _d[1] = _a[((IDX >> 2) & 0x3)]; \
     _d[2] = _a[((IDX >> 4) & 0x3)]; \
     _d[3] = _a[((IDX >> 6) & 0x3)]; \

@@ -18,9 +18,9 @@ set -x
 sudo apt-get install -y curl xz-utils
 
 curl -L \
-    ${ARM_MIRROR}/gcc-arm-${GCC_REL}-x86_64-arm-none-linux-gnueabihf.tar.xz \
+    ${ARM_MIRROR}/arm-gnu-toolchain-${GCC_REL}-x86_64-arm-none-linux-gnueabihf.tar.xz \
     | tar -Jx || exit 1
 
 curl -L \
-    ${ARM_MIRROR}/gcc-arm-${GCC_REL}-x86_64-aarch64-none-linux-gnu.tar.xz \
+    ${ARM_MIRROR}/arm-gnu-toolchain-${GCC_REL}-x86_64-aarch64-none-linux-gnu.tar.xz \
     | tar -Jx || exit 1
