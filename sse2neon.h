@@ -51,6 +51,7 @@
 //   Cuda Chen <clh960524@gmail.com>
 //   Aymen Qader <aymen.qader@arm.com>
 //   Anthony Roberts <anthony.roberts@linaro.org>
+//   Sean Luchen <seanluchen@google.com>
 
 /* Tunable configurations */
 
