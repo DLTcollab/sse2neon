@@ -1977,20 +1977,18 @@ FORCE_INLINE __m128i _mm_loadu_si64(const void *p)
 #if !defined(SSE2NEON_ALLOC_DEFINED)
 FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
 {
+#if defined(_WIN32)
+    return _aligned_malloc(size, align);
+#else
     void *ptr;
     if (align == 1)
         return malloc(size);
     if (align == 2 || (sizeof(void *) == 8 && align == 4))
         align = sizeof(void *);
-#if defined(_WIN32)
-    ptr = _aligned_malloc(size, align);
-    if (ptr)
-        return ptr;
-#else
     if (!posix_memalign(&ptr, align, size))
         return ptr;
-#endif
     return NULL;
+#endif
 }
 #endif
 
