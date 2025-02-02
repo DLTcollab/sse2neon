@@ -128,17 +128,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-FORCE_INLINE double sse2neon_recast_u64_f64(uint64_t u64)
+FORCE_INLINE double sse2neon_recast_u64_f64(uint64_t val)
 {
-    double f64;
-    memcpy(&f64, &u64, sizeof(uint64_t));
-    return f64;
+    double tmp;
+    memcpy(&tmp, &val, sizeof(uint64_t));
+    return tmp;
 }
-FORCE_INLINE int64_t sse2neon_recast_f64_s64(double f64)
+FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 {
-    int64_t i64;
-    memcpy(&i64, &f64, sizeof(uint64_t));
-    return i64;
+    int64_t tmp;
+    memcpy(&tmp, &val, sizeof(uint64_t));
+    return tmp;
 }
 
 #if defined(_WIN32) && !defined(__MINGW32__)
@@ -7765,9 +7765,9 @@ FORCE_INLINE int _mm_test_mix_ones_zeros(__m128i a, __m128i mask)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_testc_si128
 FORCE_INLINE int _mm_testc_si128(__m128i a, __m128i b)
 {
-    int64x2_t s64 =
+    int64x2_t s64_vec =
         vbicq_s64(vreinterpretq_s64_m128i(b), vreinterpretq_s64_m128i(a));
-    return !(vgetq_lane_s64(s64, 0) | vgetq_lane_s64(s64, 1));
+    return !(vgetq_lane_s64(s64_vec, 0) | vgetq_lane_s64(s64_vec, 1));
 }
 
 // Compute the bitwise AND of 128 bits (representing integer data) in a and b,
@@ -7785,9 +7785,9 @@ FORCE_INLINE int _mm_testc_si128(__m128i a, __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_testz_si128
 FORCE_INLINE int _mm_testz_si128(__m128i a, __m128i b)
 {
-    int64x2_t s64 =
+    int64x2_t s64_vec =
         vandq_s64(vreinterpretq_s64_m128i(a), vreinterpretq_s64_m128i(b));
-    return !(vgetq_lane_s64(s64, 0) | vgetq_lane_s64(s64, 1));
+    return !(vgetq_lane_s64(s64_vec, 0) | vgetq_lane_s64(s64_vec, 1));
 }
 
 /* SSE4.2 */
