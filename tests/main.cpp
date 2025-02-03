@@ -32,7 +32,8 @@ int main(int /*argc*/, const char ** /*argv*/)
         "Ignored: %d\n"
         "Coverage rate: %.2f%%\n",
         passCount, failedCount, ignoreCount,
-        (float) passCount / (passCount + failedCount + ignoreCount) * 100);
+        (float) passCount / (float) (passCount + failedCount + ignoreCount) *
+            100);
 
     return failedCount ? -1 : 0;
 }
