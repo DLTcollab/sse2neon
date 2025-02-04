@@ -5346,7 +5346,7 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
         if (_sse2neon_unlikely(imm == 0)) ret = vreinterpretq_s8_m128i(_a); \
         else if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);      \
         else ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(_a),      \
-                            ((imm <= 0 || imm > 15) ? 0 : (16 - (imm))));     \
+                            ((imm <= 0 || imm > 15) ? 0 : (16 - (imm))));   \
         _sse2neon_return(vreinterpretq_m128i_s8(ret));)
 
 // Compute the square root of packed double-precision (64-bit) floating-point
