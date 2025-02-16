@@ -2543,8 +2543,8 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
 #ifdef _sse2neon_shuffle
 #define _mm_shuffle_pi16(a, imm)                                       \
     vreinterpret_m64_s16(vshuffle_s16(                                 \
-        vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), (imm & 0x3), \
-        ((imm >> 2) & 0x3), ((imm >> 4) & 0x3), ((imm >> 6) & 0x3)))
+        vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), ((imm) & 0x3), \
+        (((imm) >> 2) & 0x3), (((imm) >> 4) & 0x3), (((imm) >> 6) & 0x3)))
 #else
 #define _mm_shuffle_pi16(a, imm)                                              \
     _sse2neon_define1(                                                        \
@@ -5226,12 +5226,12 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
 #define _mm_shuffle_pd(a, b, imm8)                                            \
     vreinterpretq_m128d_s64(                                                  \
         vshuffleq_s64(vreinterpretq_s64_m128d(a), vreinterpretq_s64_m128d(b), \
-                      imm8 & 0x1, ((imm8 & 0x2) >> 1) + 2))
+                      (imm8) & 0x1, (((imm8) & 0x2) >> 1) + 2))
 #else
 #define _mm_shuffle_pd(a, b, imm8)                                     \
     _mm_castsi128_pd(_mm_set_epi64x(                                   \
-        vgetq_lane_s64(vreinterpretq_s64_m128d(b), (imm8 & 0x2) >> 1), \
-        vgetq_lane_s64(vreinterpretq_s64_m128d(a), imm8 & 0x1)))
+        vgetq_lane_s64(vreinterpretq_s64_m128d(b), ((imm8) & 0x2) >> 1), \
+        vgetq_lane_s64(vreinterpretq_s64_m128d(a), (imm8) & 0x1)))
 #endif
 
 // FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a,
@@ -5343,10 +5343,10 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
 #define _mm_slli_si128(a, imm)                                              \
     _sse2neon_define1(                                                      \
         __m128i, a, int8x16_t ret;                                          \
-        if (_sse2neon_unlikely(imm == 0)) ret = vreinterpretq_s8_m128i(_a); \
+        if (_sse2neon_unlikely((imm) == 0)) ret = vreinterpretq_s8_m128i(_a); \
         else if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);      \
         else ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(_a),      \
-                            ((imm <= 0 || imm > 15) ? 0 : (16 - (imm))));   \
+                            (((imm) <= 0 || (imm) > 15) ? 0 : (16 - (imm)))); \
         _sse2neon_return(vreinterpretq_m128i_s8(ret));)
 
 // Compute the square root of packed double-precision (64-bit) floating-point
@@ -5515,7 +5515,7 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
         __m128i, a, int8x16_t ret;                                     \
         if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);      \
         else ret = vextq_s8(vreinterpretq_s8_m128i(_a), vdupq_n_s8(0), \
-                            (imm > 15 ? 0 : imm));                     \
+                            ((imm) > 15 ? 0 : (imm)));                 \
         _sse2neon_return(vreinterpretq_m128i_s8(ret));)
 
 // Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
@@ -6242,11 +6242,11 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
         __m128i ret;                                                          \
         if (_sse2neon_unlikely((imm) & ~31))                                  \
             ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));                      \
-        else if (imm >= 16)                                                   \
-            ret = _mm_srli_si128(a, imm >= 16 ? imm - 16 : 0);                \
+        else if ((imm) >= 16)                                                 \
+            ret = _mm_srli_si128(a, (imm) >= 16 ? (imm) - 16 : 0);            \
         else                                                                  \
             ret =                                                             \
-                vreinterpretq_m128i_u8(vextq_u8(_b, _a, imm < 16 ? imm : 0)); \
+                vreinterpretq_m128i_u8(vextq_u8(_b, _a, (imm) < 16 ? (imm) : 0)); \
         ret;                                                                  \
     })
 
@@ -6258,9 +6258,9 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
         if (_sse2neon_unlikely((imm) & ~31)) ret =                          \
             vreinterpretq_m128i_u8(vdupq_n_u8(0));                          \
         else if (imm >= 16) ret =                                           \
-            _mm_srli_si128(_a, imm >= 16 ? imm - 16 : 0);                   \
+            _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);               \
         else ret =                                                          \
-            vreinterpretq_m128i_u8(vextq_u8(__b, __a, imm < 16 ? imm : 0)); \
+            vreinterpretq_m128i_u8(vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0)); \
         _sse2neon_return(ret);)
 
 #endif
@@ -7291,11 +7291,11 @@ FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
     _sse2neon_define2(                                                       \
         __m128, a, b,                                                        \
         float32x4_t tmp1 =                                                   \
-            vsetq_lane_f32(vgetq_lane_f32(_b, (imm8 >> 6) & 0x3),            \
+            vsetq_lane_f32(vgetq_lane_f32(_b, ((imm8) >> 6) & 0x3),            \
                            vreinterpretq_f32_m128(_a), 0);                   \
         float32x4_t tmp2 =                                                   \
             vsetq_lane_f32(vgetq_lane_f32(tmp1, 0),                          \
-                           vreinterpretq_f32_m128(_a), ((imm8 >> 4) & 0x3)); \
+                           vreinterpretq_f32_m128(_a), (((imm8) >> 4) & 0x3)); \
         const uint32_t data[4] =                                             \
             _sse2neon_init(((imm8) & (1 << 0)) ? UINT32_MAX : 0,             \
                            ((imm8) & (1 << 1)) ? UINT32_MAX : 0,             \
