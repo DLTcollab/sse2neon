@@ -293,6 +293,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [C/C++ on NVIDIA Grace](https://nvidia.github.io/grace-cpu-benchmarking-guide/developer/languages/c-c++.html)
 * [Tune graphics-intensive games for Apple silicon](https://developer.apple.com/games/pathway/)
 * [Benchmarking and Testing of Qualcomm Snapdragon System-on-Chip for JPL Space Applications and Missions](https://ieeexplore.ieee.org/abstract/document/9843518)
+* [Spotlight: Petrobras Speeds Up Linear Solvers for Reservoir Simulation Using NVIDIA Grace CPU](https://developer.nvidia.com/blog/spotlight-petrobras-accelerates-linear-solvers-for-reservoir-simulation-using-nvidia-grace-cpu/)
 
 ## Licensing
 
