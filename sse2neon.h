@@ -2541,8 +2541,8 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
 // in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_shuffle_pi16
 #ifdef _sse2neon_shuffle
-#define _mm_shuffle_pi16(a, imm)                                       \
-    vreinterpret_m64_s16(vshuffle_s16(                                 \
+#define _mm_shuffle_pi16(a, imm)                                         \
+    vreinterpret_m64_s16(vshuffle_s16(                                   \
         vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), ((imm) & 0x3), \
         (((imm) >> 2) & 0x3), (((imm) >> 4) & 0x3), (((imm) >> 6) & 0x3)))
 #else
@@ -5228,8 +5228,8 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
         vshuffleq_s64(vreinterpretq_s64_m128d(a), vreinterpretq_s64_m128d(b), \
                       (imm8) & 0x1, (((imm8) & 0x2) >> 1) + 2))
 #else
-#define _mm_shuffle_pd(a, b, imm8)                                     \
-    _mm_castsi128_pd(_mm_set_epi64x(                                   \
+#define _mm_shuffle_pd(a, b, imm8)                                       \
+    _mm_castsi128_pd(_mm_set_epi64x(                                     \
         vgetq_lane_s64(vreinterpretq_s64_m128d(b), ((imm8) & 0x2) >> 1), \
         vgetq_lane_s64(vreinterpretq_s64_m128d(a), (imm8) & 0x1)))
 #endif
@@ -5340,12 +5340,12 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
 // Shift a left by imm8 bytes while shifting in zeros, and store the results in
 // dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_slli_si128
-#define _mm_slli_si128(a, imm)                                              \
-    _sse2neon_define1(                                                      \
-        __m128i, a, int8x16_t ret;                                          \
+#define _mm_slli_si128(a, imm)                                                \
+    _sse2neon_define1(                                                        \
+        __m128i, a, int8x16_t ret;                                            \
         if (_sse2neon_unlikely((imm) == 0)) ret = vreinterpretq_s8_m128i(_a); \
-        else if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);      \
-        else ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(_a),      \
+        else if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);        \
+        else ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(_a),        \
                             (((imm) <= 0 || (imm) > 15) ? 0 : (16 - (imm)))); \
         _sse2neon_return(vreinterpretq_m128i_s8(ret));)
 
@@ -6235,31 +6235,31 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 // the result right by imm8 bytes, and store the low 16 bytes in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_alignr_epi8
 #if defined(__GNUC__) && !defined(__clang__)
-#define _mm_alignr_epi8(a, b, imm)                                            \
-    __extension__({                                                           \
-        uint8x16_t _a = vreinterpretq_u8_m128i(a);                            \
-        uint8x16_t _b = vreinterpretq_u8_m128i(b);                            \
-        __m128i ret;                                                          \
-        if (_sse2neon_unlikely((imm) & ~31))                                  \
-            ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));                      \
-        else if ((imm) >= 16)                                                 \
-            ret = _mm_srli_si128(a, (imm) >= 16 ? (imm) - 16 : 0);            \
-        else                                                                  \
-            ret =                                                             \
+#define _mm_alignr_epi8(a, b, imm)                                                \
+    __extension__({                                                               \
+        uint8x16_t _a = vreinterpretq_u8_m128i(a);                                \
+        uint8x16_t _b = vreinterpretq_u8_m128i(b);                                \
+        __m128i ret;                                                              \
+        if (_sse2neon_unlikely((imm) & ~31))                                      \
+            ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));                          \
+        else if ((imm) >= 16)                                                     \
+            ret = _mm_srli_si128(a, (imm) >= 16 ? (imm) - 16 : 0);                \
+        else                                                                      \
+            ret =                                                                 \
                 vreinterpretq_m128i_u8(vextq_u8(_b, _a, (imm) < 16 ? (imm) : 0)); \
-        ret;                                                                  \
+        ret;                                                                      \
     })
 
 #else
-#define _mm_alignr_epi8(a, b, imm)                                          \
-    _sse2neon_define2(                                                      \
-        __m128i, a, b, uint8x16_t __a = vreinterpretq_u8_m128i(_a);         \
-        uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;           \
-        if (_sse2neon_unlikely((imm) & ~31)) ret =                          \
-            vreinterpretq_m128i_u8(vdupq_n_u8(0));                          \
-        else if ((imm) >= 16) ret =                                           \
-            _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);               \
-        else ret =                                                          \
+#define _mm_alignr_epi8(a, b, imm)                                              \
+    _sse2neon_define2(                                                          \
+        __m128i, a, b, uint8x16_t __a = vreinterpretq_u8_m128i(_a);             \
+        uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;               \
+        if (_sse2neon_unlikely((imm) & ~31)) ret =                              \
+            vreinterpretq_m128i_u8(vdupq_n_u8(0));                              \
+        else if ((imm) >= 16) ret =                                             \
+            _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);                   \
+        else ret =                                                              \
             vreinterpretq_m128i_u8(vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0)); \
         _sse2neon_return(ret);)
 
@@ -7287,24 +7287,24 @@ FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
 // element from b into tmp using the control in imm8. Store tmp to dst using
 // the mask in imm8 (elements are zeroed out when the corresponding bit is set).
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=insert_ps
-#define _mm_insert_ps(a, b, imm8)                                            \
-    _sse2neon_define2(                                                       \
-        __m128, a, b,                                                        \
-        float32x4_t tmp1 =                                                   \
+#define _mm_insert_ps(a, b, imm8)                                              \
+    _sse2neon_define2(                                                         \
+        __m128, a, b,                                                          \
+        float32x4_t tmp1 =                                                     \
             vsetq_lane_f32(vgetq_lane_f32(_b, ((imm8) >> 6) & 0x3),            \
-                           vreinterpretq_f32_m128(_a), 0);                   \
-        float32x4_t tmp2 =                                                   \
-            vsetq_lane_f32(vgetq_lane_f32(tmp1, 0),                          \
+                           vreinterpretq_f32_m128(_a), 0);                     \
+        float32x4_t tmp2 =                                                     \
+            vsetq_lane_f32(vgetq_lane_f32(tmp1, 0),                            \
                            vreinterpretq_f32_m128(_a), (((imm8) >> 4) & 0x3)); \
-        const uint32_t data[4] =                                             \
-            _sse2neon_init(((imm8) & (1 << 0)) ? UINT32_MAX : 0,             \
-                           ((imm8) & (1 << 1)) ? UINT32_MAX : 0,             \
-                           ((imm8) & (1 << 2)) ? UINT32_MAX : 0,             \
-                           ((imm8) & (1 << 3)) ? UINT32_MAX : 0);            \
-        uint32x4_t mask = vld1q_u32(data);                                   \
-        float32x4_t all_zeros = vdupq_n_f32(0);                              \
-                                                                             \
-        _sse2neon_return(vreinterpretq_m128_f32(                             \
+        const uint32_t data[4] =                                               \
+            _sse2neon_init(((imm8) & (1 << 0)) ? UINT32_MAX : 0,               \
+                           ((imm8) & (1 << 1)) ? UINT32_MAX : 0,               \
+                           ((imm8) & (1 << 2)) ? UINT32_MAX : 0,               \
+                           ((imm8) & (1 << 3)) ? UINT32_MAX : 0);              \
+        uint32x4_t mask = vld1q_u32(data);                                     \
+        float32x4_t all_zeros = vdupq_n_f32(0);                                \
+                                                                               \
+        _sse2neon_return(vreinterpretq_m128_f32(                               \
             vbslq_f32(mask, all_zeros, vreinterpretq_f32_m128(tmp2))));)
 
 // Compare packed signed 32-bit integers in a and b, and store packed maximum
@@ -8347,7 +8347,7 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 #define SSE2NEON_CMPSTR_GENERATE_INDEX(r2, bound, imm8)            \
     return (r2 == 0) ? bound                                       \
                      : (((imm8) & 0x40) ? (31 - _sse2neon_clz(r2)) \
-                                      : _sse2neon_ctz(r2))
+                                        : _sse2neon_ctz(r2))
 
 #define SSE2NEON_CMPSTR_GENERATE_MASK(dst)                                     \
     __m128i dst = vreinterpretq_m128i_u8(vdupq_n_u8(0));                       \
