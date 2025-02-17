@@ -1009,8 +1009,8 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 //   __m128i _mm_shuffle_epi32_default(__m128i a,
 //                                     __constrange(0, 255) int imm) {
 //       __m128i ret;
-//       ret[0] = a[imm        & 0x3];   ret[1] = a[(imm >> 2) & 0x3];
-//       ret[2] = a[(imm >> 4) & 0x03];  ret[3] = a[(imm >> 6) & 0x03];
+//       ret[0] = a[(imm)        & 0x3];   ret[1] = a[((imm) >> 2) & 0x3];
+//       ret[2] = a[((imm) >> 4) & 0x03];  ret[3] = a[((imm) >> 6) & 0x03];
 //       return ret;
 //   }
 #define _mm_shuffle_epi32_default(a, imm)                                   \
@@ -1125,8 +1125,8 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 //   __m128 _mm_shuffle_ps_default(__m128 a, __m128 b,
 //                                 __constrange(0, 255) int imm) {
 //       __m128 ret;
-//       ret[0] = a[imm        & 0x3];   ret[1] = a[(imm >> 2) & 0x3];
-//       ret[2] = b[(imm >> 4) & 0x03];  ret[3] = b[(imm >> 6) & 0x03];
+//       ret[0] = a[(imm)        & 0x3];   ret[1] = a[((imm) >> 2) & 0x3];
+//       ret[2] = b[((imm) >> 4) & 0x03];  ret[3] = b[((imm) >> 6) & 0x03];
 //       return ret;
 //   }
 //
@@ -6257,7 +6257,7 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
         uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;           \
         if (_sse2neon_unlikely((imm) & ~31)) ret =                          \
             vreinterpretq_m128i_u8(vdupq_n_u8(0));                          \
-        else if (imm >= 16) ret =                                           \
+        else if ((imm) >= 16) ret =                                           \
             _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);               \
         else ret =                                                          \
             vreinterpretq_m128i_u8(vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0)); \
@@ -6830,10 +6830,10 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
 FORCE_INLINE __m128 _mm_blend_ps(__m128 _a, __m128 _b, const char imm8)
 {
     const uint32_t
-        ALIGN_STRUCT(16) data[4] = {((imm8) & (1 << 0)) ? UINT32_MAX : 0,
-                                    ((imm8) & (1 << 1)) ? UINT32_MAX : 0,
-                                    ((imm8) & (1 << 2)) ? UINT32_MAX : 0,
-                                    ((imm8) & (1 << 3)) ? UINT32_MAX : 0};
+        ALIGN_STRUCT(16) data[4] = {(imm8 & (1 << 0)) ? UINT32_MAX : 0,
+                                    (imm8 & (1 << 1)) ? UINT32_MAX : 0,
+                                    (imm8 & (1 << 2)) ? UINT32_MAX : 0,
+                                    (imm8 & (1 << 3)) ? UINT32_MAX : 0};
     uint32x4_t mask = vld1q_u32(data);
     float32x4_t a = vreinterpretq_f32_m128(_a);
     float32x4_t b = vreinterpretq_f32_m128(_b);
@@ -8323,7 +8323,7 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 #define SSE2NEON_MIN(x, y) (x) < (y) ? (x) : (y)
 
 #define SSE2NEON_CMPSTR_SET_UPPER(var, imm) \
-    const int var = (imm & 0x01) ? 8 : 16
+    const int var = ((imm) & 0x01) ? 8 : 16
 
 #define SSE2NEON_CMPESTRX_LEN_PAIR(a, b, la, lb) \
     int tmp1 = la ^ (la >> 31);                  \
@@ -8338,20 +8338,20 @@ FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 // As the only difference of PCMPESTR* and PCMPISTR* is the way to calculate the
 // length of string, we use SSE2NEON_CMP{I,E}STRX_GET_LEN to get the length of
 // string a and b.
-#define SSE2NEON_COMP_AGG(a, b, la, lb, imm8, IE)                       \
-    SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);                             \
-    SSE2NEON_##IE##_LEN_PAIR(a, b, la, lb);                             \
-    uint16_t r2 = (_sse2neon_cmpfunc_table[imm8 & 0x0f])(a, la, b, lb); \
+#define SSE2NEON_COMP_AGG(a, b, la, lb, imm8, IE)                         \
+    SSE2NEON_CMPSTR_SET_UPPER(bound, imm8);                               \
+    SSE2NEON_##IE##_LEN_PAIR(a, b, la, lb);                               \
+    uint16_t r2 = (_sse2neon_cmpfunc_table[(imm8) & 0x0f])(a, la, b, lb); \
     r2 = _sse2neon_sido_negative(r2, lb, imm8, bound)
 
-#define SSE2NEON_CMPSTR_GENERATE_INDEX(r2, bound, imm8)          \
-    return (r2 == 0) ? bound                                     \
-                     : ((imm8 & 0x40) ? (31 - _sse2neon_clz(r2)) \
+#define SSE2NEON_CMPSTR_GENERATE_INDEX(r2, bound, imm8)            \
+    return (r2 == 0) ? bound                                       \
+                     : (((imm8) & 0x40) ? (31 - _sse2neon_clz(r2)) \
                                       : _sse2neon_ctz(r2))
 
 #define SSE2NEON_CMPSTR_GENERATE_MASK(dst)                                     \
     __m128i dst = vreinterpretq_m128i_u8(vdupq_n_u8(0));                       \
-    if (imm8 & 0x40) {                                                         \
+    if ((imm8) & 0x40) {                                                       \
         if (bound == 8) {                                                      \
             uint16x8_t tmp = vtstq_u16(vdupq_n_u16(r2),                        \
                                        vld1q_u16(_sse2neon_cmpestr_mask16b));  \
@@ -8474,7 +8474,7 @@ FORCE_INLINE int _mm_cmpestrz(__m128i a,
 
 #define SSE2NEON_CMPISTRX_LENGTH(str, len, imm8)                         \
     do {                                                                 \
-        if (imm8 & 0x01) {                                               \
+        if ((imm8) & 0x01) {                                             \
             uint16x8_t equal_mask_##str =                                \
                 vceqq_u16(vreinterpretq_u16_m128i(str), vdupq_n_u16(0)); \
             uint8x8_t res_##str = vshrn_n_u16(equal_mask_##str, 4);      \
