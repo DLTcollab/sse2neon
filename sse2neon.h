@@ -6235,32 +6235,32 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 // the result right by imm8 bytes, and store the low 16 bytes in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_alignr_epi8
 #if defined(__GNUC__) && !defined(__clang__)
-#define _mm_alignr_epi8(a, b, imm)                                                \
-    __extension__({                                                               \
-        uint8x16_t _a = vreinterpretq_u8_m128i(a);                                \
-        uint8x16_t _b = vreinterpretq_u8_m128i(b);                                \
-        __m128i ret;                                                              \
-        if (_sse2neon_unlikely((imm) & ~31))                                      \
-            ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));                          \
-        else if ((imm) >= 16)                                                     \
-            ret = _mm_srli_si128(a, (imm) >= 16 ? (imm) - 16 : 0);                \
-        else                                                                      \
-            ret =                                                                 \
-                vreinterpretq_m128i_u8(vextq_u8(_b, _a, (imm) < 16 ? (imm) : 0)); \
-        ret;                                                                      \
+#define _mm_alignr_epi8(a, b, imm)                                 \
+    __extension__({                                                \
+        uint8x16_t _a = vreinterpretq_u8_m128i(a);                 \
+        uint8x16_t _b = vreinterpretq_u8_m128i(b);                 \
+        __m128i ret;                                               \
+        if (_sse2neon_unlikely((imm) & ~31))                       \
+            ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));           \
+        else if ((imm) >= 16)                                      \
+            ret = _mm_srli_si128(a, (imm) >= 16 ? (imm) - 16 : 0); \
+        else                                                       \
+            ret = vreinterpretq_m128i_u8(                          \
+                vextq_u8(_b, _a, (imm) < 16 ? (imm) : 0));         \
+        ret;                                                       \
     })
 
 #else
-#define _mm_alignr_epi8(a, b, imm)                                              \
-    _sse2neon_define2(                                                          \
-        __m128i, a, b, uint8x16_t __a = vreinterpretq_u8_m128i(_a);             \
-        uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;               \
-        if (_sse2neon_unlikely((imm) & ~31)) ret =                              \
-            vreinterpretq_m128i_u8(vdupq_n_u8(0));                              \
-        else if ((imm) >= 16) ret =                                             \
-            _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);                   \
-        else ret =                                                              \
-            vreinterpretq_m128i_u8(vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0)); \
+#define _mm_alignr_epi8(a, b, imm)                                  \
+    _sse2neon_define2(                                              \
+        __m128i, a, b, uint8x16_t __a = vreinterpretq_u8_m128i(_a); \
+        uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;   \
+        if (_sse2neon_unlikely((imm) & ~31)) ret =                  \
+            vreinterpretq_m128i_u8(vdupq_n_u8(0));                  \
+        else if ((imm) >= 16) ret =                                 \
+            _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);       \
+        else ret = vreinterpretq_m128i_u8(                          \
+            vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0));            \
         _sse2neon_return(ret);)
 
 #endif
@@ -6829,11 +6829,9 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_blend_ps
 FORCE_INLINE __m128 _mm_blend_ps(__m128 _a, __m128 _b, const char imm8)
 {
-    const uint32_t
-        ALIGN_STRUCT(16) data[4] = {(imm8 & (1 << 0)) ? UINT32_MAX : 0,
-                                    (imm8 & (1 << 1)) ? UINT32_MAX : 0,
-                                    (imm8 & (1 << 2)) ? UINT32_MAX : 0,
-                                    (imm8 & (1 << 3)) ? UINT32_MAX : 0};
+    const uint32_t ALIGN_STRUCT(16) data[4] = {
+        (imm8 & (1 << 0)) ? UINT32_MAX : 0, (imm8 & (1 << 1)) ? UINT32_MAX : 0,
+        (imm8 & (1 << 2)) ? UINT32_MAX : 0, (imm8 & (1 << 3)) ? UINT32_MAX : 0};
     uint32x4_t mask = vld1q_u32(data);
     float32x4_t a = vreinterpretq_f32_m128(_a);
     float32x4_t b = vreinterpretq_f32_m128(_b);
