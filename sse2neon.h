@@ -728,6 +728,13 @@ FORCE_INLINE uint16_t _sse2neon_vaddvq_u16(uint16x8_t a)
  */
 
 /* Constants for use with _mm_prefetch. */
+#if defined(_M_ARM64EC)
+/* winnt.h already defines these constants as macros, so undefine them first. */
+#undef _MM_HINT_NTA
+#undef _MM_HINT_T0
+#undef _MM_HINT_T1
+#undef _MM_HINT_T2
+#endif
 enum _mm_hint {
     _MM_HINT_NTA = 0, /* load data to L1 and L2 cache, mark it as NTA */
     _MM_HINT_T0 = 1,  /* load data to L1 and L2 cache */
