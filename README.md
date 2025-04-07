@@ -79,7 +79,7 @@ Developers are advised to utilize sse2neon.h with GCC version 10 or higher, or C
 ```C
 #include "sse2neon.h"
 ```
-
+- If you target Windows Arm64EC, pass `/D_DISABLE_SOFTINTRIN_=1` to MSVC or add `#define _DISABLE_SOFTINTRIN_ 1` in before `#include` any Windows header files to disable implicit inclusion of SSE header files.
 - Explicitly specify platform-specific options to gcc/clang compilers.
   * On ARMv8-A 64-bit targets, you should specify the following compiler option: (Remove `crypto` and/or `crc` if your architecture does not support cryptographic and/or CRC32 extensions)
   ```shell
