@@ -217,6 +217,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [libmatoya](https://github.com/matoya/libmatoya) is a cross-platform application development library, providing various features such as common cryptography tasks.
 * [Loosejaw](https://github.com/TheHolyDiver/Loosejaw) provides deep hybrid CPU/GPU digital signal processing.
 * [Madronalib](https://github.com/madronalabs/madronalib) enables efficient audio DSP on SIMD processors with readable and brief C++ code.
+* [MaxMath](https://github.com/MrUnbelievable92/MaxMath) is an extensive SIMD math library available to Unity developers.
 * [minimap2](https://github.com/lh3/minimap2) is a versatile sequence alignment program that aligns DNA or mRNA sequences against a large reference database.
 * [mixed-fem](https://github.com/tytrusty/mixed-fem) is an open source reference implementation of Mixed Variational Finite Elements for Implicit Simulation of Deformables.
 * [MMseqs2](https://github.com/soedinglab/MMseqs2) (Many-against-Many sequence searching) is a software suite to search and cluster huge protein and nucleotide sequence sets.
