@@ -547,6 +547,15 @@ static inline uint16_t saturate_u16(uint32_t a)
     return static_cast<uint16_t>(a);
 }
 
+static inline int8_t saturate_i8(int32_t a)
+{
+    if (a > INT8_MAX)
+        return INT8_MAX;
+    if (a < INT8_MIN)
+        return INT8_MIN;
+    return static_cast<int8_t>(a);
+}
+
 uint32_t canonical_crc32_u8(uint32_t crc, uint8_t v)
 {
     crc ^= v;
@@ -3487,20 +3496,17 @@ result_t test_mm_adds_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
     const int8_t *_a = reinterpret_cast<const int8_t *>(impl.mTestIntPointer1);
     const int8_t *_b = reinterpret_cast<const int8_t *>(impl.mTestIntPointer2);
 
-    int16_t d[16];
+    int8_t d[16];
     for (int i = 0; i < 16; i++) {
-        d[i] = static_cast<int16_t>(_a[i]) + static_cast<int16_t>(_b[i]);
-        if (d[i] > 127)
-            d[i] = 127;
-        if (d[i] < -128)
-            d[i] = -128;
+        d[i] = saturate_i8(static_cast<int16_t>(_a[i]) +
+                           static_cast<int16_t>(_b[i]));
     }
 
     __m128i a = load_m128i(_a);
     __m128i b = load_m128i(_b);
     __m128i c = _mm_adds_epi8(a, b);
 
-    return VALIDATE_INT8_M128(c, (int8_t) d);
+    return VALIDATE_INT8_M128(c, d);
 }
 
 result_t test_mm_adds_epu16(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -6989,20 +6995,13 @@ result_t test_mm_subs_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_subs_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    int16_t max = 127;
-    int16_t min = -128;
     const int8_t *_a = reinterpret_cast<const int8_t *>(impl.mTestIntPointer1);
     const int8_t *_b = reinterpret_cast<const int8_t *>(impl.mTestIntPointer2);
 
     int8_t d[16];
     for (int i = 0; i < 16; i++) {
-        int16_t res = static_cast<int16_t>(_a[i]) - static_cast<int16_t>(_b[i]);
-        if (res > max)
-            d[i] = static_cast<int8_t>(max);
-        else if (res < min)
-            d[i] = static_cast<int8_t>(min);
-        else
-            d[i] = static_cast<int8_t>(res);
+        d[i] = saturate_i8(static_cast<int16_t>(_a[i]) -
+                           static_cast<int16_t>(_b[i]));
     }
 
     __m128i a = load_m128i(_a);
