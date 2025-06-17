@@ -2412,10 +2412,8 @@ FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
 
     // Set output vector element to infinity/negative-infinity if
     // the corresponding input vector element is 0.0f/-0.0f.
-    out = vbslq_f32(has_pos_zero,
-                    _sse2neon_reinterpret_cast(float32x4_t, pos_inf), out);
-    out = vbslq_f32(has_neg_zero,
-                    _sse2neon_reinterpret_cast(float32x4_t, neg_inf), out);
+    out = vbslq_f32(has_pos_zero, vreinterpretq_f32_u32(pos_inf), out);
+    out = vbslq_f32(has_neg_zero, vreinterpretq_f32_u32(neg_inf), out);
 
     return vreinterpretq_m128_f32(out);
 }
@@ -3142,8 +3140,7 @@ FORCE_INLINE __m128i _mm_andnot_si128(__m128i a, __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_avg_epu16
 FORCE_INLINE __m128i _mm_avg_epu16(__m128i a, __m128i b)
 {
-    return _sse2neon_reinterpret_cast(
-        __m128i,
+    return vreinterpretq_m128i_u16(
         vrhaddq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
 }
 
@@ -4965,9 +4962,8 @@ FORCE_INLINE void _mm_pause(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_sad_epu8
 FORCE_INLINE __m128i _mm_sad_epu8(__m128i a, __m128i b)
 {
-    uint16x8_t t =
-        vpaddlq_u8(vabdq_u8(_sse2neon_reinterpret_cast(uint8x16_t, a),
-                            _sse2neon_reinterpret_cast(uint8x16_t, b)));
+    uint16x8_t t = vpaddlq_u8(
+        vabdq_u8(vreinterpretq_u8_m128i(a), vreinterpretq_u8_m128i(b)));
     return vreinterpretq_m128i_u64(vpaddlq_u32(vpaddlq_u16(t)));
 }
 
@@ -5037,7 +5033,7 @@ FORCE_INLINE __m128i _mm_set_epi8(signed char b15,
         _sse2neon_static_cast(int8_t, b10), _sse2neon_static_cast(int8_t, b11),
         _sse2neon_static_cast(int8_t, b12), _sse2neon_static_cast(int8_t, b13),
         _sse2neon_static_cast(int8_t, b14), _sse2neon_static_cast(int8_t, b15)};
-    return _sse2neon_reinterpret_cast(__m128i, vld1q_s8(data));
+    return vreinterpretq_m128i_s8(vld1q_s8(data));
 }
 
 // Set packed double-precision (64-bit) floating-point elements in dst with the
@@ -5179,7 +5175,7 @@ FORCE_INLINE __m128i _mm_setr_epi8(signed char b0,
         _sse2neon_static_cast(int8_t, b10), _sse2neon_static_cast(int8_t, b11),
         _sse2neon_static_cast(int8_t, b12), _sse2neon_static_cast(int8_t, b13),
         _sse2neon_static_cast(int8_t, b14), _sse2neon_static_cast(int8_t, b15)};
-    return _sse2neon_reinterpret_cast(__m128i, vld1q_s8(data));
+    return vreinterpretq_m128i_s8(vld1q_s8(data));
 }
 
 // Set packed double-precision (64-bit) floating-point elements in dst with the
@@ -5447,7 +5443,7 @@ FORCE_INLINE __m128i _mm_sra_epi16(__m128i a, __m128i count)
     if (_sse2neon_unlikely(c & ~15))
         return _mm_cmplt_epi16(a, _mm_setzero_si128());
     return vreinterpretq_m128i_s16(
-        vshlq_s16(_sse2neon_reinterpret_cast(int16x8_t, a),
+        vshlq_s16(vreinterpretq_s16_m128i(a),
                   vdupq_n_s16(_sse2neon_static_cast(int16_t, -c))));
 }
 
@@ -5460,7 +5456,7 @@ FORCE_INLINE __m128i _mm_sra_epi32(__m128i a, __m128i count)
     if (_sse2neon_unlikely(c & ~31))
         return _mm_cmplt_epi32(a, _mm_setzero_si128());
     return vreinterpretq_m128i_s32(
-        vshlq_s32(_sse2neon_reinterpret_cast(int32x4_t, a),
+        vshlq_s32(vreinterpretq_s32_m128i(a),
                   vdupq_n_s32(_sse2neon_static_cast(int, -c))));
 }
 
@@ -5471,9 +5467,8 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 {
     const int16_t count =
         (imm & ~15) ? 15 : _sse2neon_static_cast(int16_t, imm);
-    return _sse2neon_reinterpret_cast(
-        __m128i, vshlq_s16(_sse2neon_reinterpret_cast(int16x8_t, a),
-                           vdupq_n_s16(-count)));
+    return vreinterpretq_m128i_s16(
+        vshlq_s16(vreinterpretq_s16_m128i(a), vdupq_n_s16(-count)));
 }
 
 // Shift packed 32-bit integers in a right by imm8 while shifting in sign bits,
@@ -8940,8 +8935,7 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
         _sse2neon_reinterpret_cast(
             uint8x16_t,
             ((_sse2neon_reinterpret_cast(int8x16_t, v) >> 7) & 0x1b));
-    w ^= _sse2neon_reinterpret_cast(
-        uint8x16_t, vrev32q_u16(_sse2neon_reinterpret_cast(uint16x8_t, v)));
+    w ^= vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(v)));
     w ^= vqtbl1q_u8(v ^ w, vld1q_u8(ror32by8));
 
     /* add round key */
@@ -9032,22 +9026,15 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
 
     // inverse mix columns
     // multiplying 'v' by 4 in GF(2^8)
-    w = (v << 1) ^
-        _sse2neon_reinterpret_cast(
-            uint8x16_t, (_sse2neon_reinterpret_cast(int8x16_t, v) >> 7) & 0x1b);
-    w = (w << 1) ^
-        _sse2neon_reinterpret_cast(
-            uint8x16_t, (_sse2neon_reinterpret_cast(int8x16_t, w) >> 7) & 0x1b);
+    w = (v << 1) ^ vreinterpretq_u8_s8((vreinterpretq_s8_u8(v) >> 7) & 0x1b);
+    w = (w << 1) ^ vreinterpretq_u8_s8((vreinterpretq_s8_u8(w) >> 7) & 0x1b);
     v ^= w;
-    v ^= _sse2neon_reinterpret_cast(
-        uint8x16_t, vrev32q_u16(_sse2neon_reinterpret_cast(uint16x8_t, w)));
+    v ^= vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(w)));
 
     w = (v << 1) ^
-        _sse2neon_reinterpret_cast(
-            uint8x16_t, (_sse2neon_reinterpret_cast(int8x16_t, v) >> 7) &
+        vreinterpretq_u8_s8((vreinterpretq_s8_u8(v) >> 7) &
                             0x1b);  // multiplying 'v' by 2 in GF(2^8)
-    w ^= _sse2neon_reinterpret_cast(
-        uint8x16_t, vrev32q_u16(_sse2neon_reinterpret_cast(uint16x8_t, v)));
+    w ^= vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(v)));
     w ^= vqtbl1q_u8(v ^ w, vld1q_u8(ror32by8));
 
     // add round key
@@ -9185,22 +9172,14 @@ FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
     uint8x16_t w;
 
     // multiplying 'v' by 4 in GF(2^8)
-    w = (v << 1) ^
-        _sse2neon_reinterpret_cast(
-            uint8x16_t, (_sse2neon_reinterpret_cast(int8x16_t, v) >> 7) & 0x1b);
-    w = (w << 1) ^
-        _sse2neon_reinterpret_cast(
-            uint8x16_t, (_sse2neon_reinterpret_cast(int8x16_t, w) >> 7) & 0x1b);
+    w = (v << 1) ^ vreinterpretq_u8_s8((vreinterpretq_s8_u8(v) >> 7) & 0x1b);
+    w = (w << 1) ^ vreinterpretq_u8_s8((vreinterpretq_s8_u8(w) >> 7) & 0x1b);
     v ^= w;
-    v ^= _sse2neon_reinterpret_cast(
-        uint8x16_t, vrev32q_u16(_sse2neon_reinterpret_cast(uint16x8_t, w)));
+    v ^= vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(w)));
 
     // multiplying 'v' by 2 in GF(2^8)
-    w = (v << 1) ^
-        _sse2neon_reinterpret_cast(
-            uint8x16_t, (_sse2neon_reinterpret_cast(int8x16_t, v) >> 7) & 0x1b);
-    w ^= _sse2neon_reinterpret_cast(
-        uint8x16_t, vrev32q_u16(_sse2neon_reinterpret_cast(uint16x8_t, v)));
+    w = (v << 1) ^ vreinterpretq_u8_s8((vreinterpretq_s8_u8(v) >> 7) & 0x1b);
+    w ^= vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(v)));
     w ^= vqtbl1q_u8(v ^ w, vld1q_u8(ror32by8));
     return vreinterpretq_m128i_u8(w);
 
