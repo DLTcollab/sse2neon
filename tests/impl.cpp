@@ -1355,7 +1355,7 @@ result_t test_mm_comieq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comieq_ss correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const float *_a = impl.mTestFloatPointer1;
@@ -1403,7 +1403,7 @@ result_t test_mm_comile_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comile_ss correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const float *_a = impl.mTestFloatPointer1;
@@ -1424,7 +1424,7 @@ result_t test_mm_comilt_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comilt_ss correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const float *_a = impl.mTestFloatPointer1;
@@ -1446,7 +1446,7 @@ result_t test_mm_comineq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comineq_ss correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const float *_a = impl.mTestFloatPointer1;
@@ -1972,7 +1972,8 @@ result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
     // test when GCC fix this bug.
     // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98495 for more
     // information
-#if defined(__clang__) || defined(_MSC_VER)
+#if defined(__clang__) || defined(_MSC_VER) || \
+    (!defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 11))
     uint64_t *_a = (uint64_t *) impl.mTestIntPointer1;
     const int idx = iter & 0x3;
 
@@ -4279,7 +4280,7 @@ result_t test_mm_comieq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comieq_sd correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const double *_a = (const double *) impl.mTestFloatPointer1;
@@ -4329,7 +4330,7 @@ result_t test_mm_comile_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comile_sd correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const double *_a = (const double *) impl.mTestFloatPointer1;
@@ -4351,7 +4352,7 @@ result_t test_mm_comilt_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comilt_sd correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const double *_a = (const double *) impl.mTestFloatPointer1;
@@ -4373,7 +4374,7 @@ result_t test_mm_comineq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
     // The GCC does not implement _mm_comineq_sd correctly.
     // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98612 for more
     // information.
-#if defined(__GNUC__) && !defined(__clang__)
+#if defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 13)
     return TEST_UNIMPL;
 #else
     const double *_a = (const double *) impl.mTestFloatPointer1;
