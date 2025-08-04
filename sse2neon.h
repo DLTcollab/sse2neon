@@ -4652,38 +4652,26 @@ FORCE_INLINE __m128d _mm_move_sd(__m128d a, __m128d b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_movemask_epi8
 FORCE_INLINE int _mm_movemask_epi8(__m128i a)
 {
-    // Use increasingly wide shifts+adds to collect the sign bits
-    // together.
-    // Since the widening shifts would be rather confusing to follow in little
-    // endian, everything will be illustrated in big endian order instead. This
-    // has a different result - the bits would actually be reversed on a big
-    // endian machine.
+    // Note: Everything will be illustrated in big-endian order.
 
     // Starting input (only half the elements are shown):
-    // 89 ff 1d c0 00 10 99 33
+    // 11111111 11111111 00000000 11111111 00000000 00000000 11111111 00000000
+    // ff       ff       00       ff       00       00       ff       00
     uint8x16_t input = vreinterpretq_u8_m128i(a);
 
-    // Shift out everything but the sign bits with an unsigned shift right.
-    //
-    // Bytes of the vector::
-    // 89 ff 1d c0 00 10 99 33
-    // \  \  \  \  \  \  \  \    high_bits = (uint16x4_t)(input >> 7)
-    //  |  |  |  |  |  |  |  |
-    // 01 01 00 01 00 00 01 00
-    //
-    // Bits of first important lane(s):
-    // 10001001 (89)
-    // \______
-    //        |
-    // 00000001 (01)
-    uint16x8_t high_bits = vreinterpretq_u16_u8(vshrq_n_u8(input, 7));
+    // Right-shift each 8-bit element by 7,
+    // effectively extracting the MSB into the LSB.
+    // (ff becomes a 01 | 11111111 becomes a 00000001)
+    uint8x16_t msbs = vshrq_n_u8(input, 7);
 
-    // Merge the even lanes together with a 16-bit unsigned shift right + add.
-    // 'xx' represents garbage data which will be ignored in the final result.
-    // In the important bytes, the add functions like a binary OR.
+    // Reinterpret 16x8-bit elements as 2x64-bit elements.
+    // (In our example, we only handle 1x64-bit element)
+    uint64x2_t bits = vreinterpretq_u64_u8(msbs);
+
+    // The bits B are shifted to the right by C and merged with A.
     //
     // 01 01 00 01 00 00 01 00
-    //  \_ |  \_ |  \_ |  \_ |   paired16 = (uint32x4_t)(input + (input >> 7))
+    //  \_ |  \_ |  \_ |  \_ |   bits = (uint64x1_t)(bits + (bits >> 7))
     //    \|    \|    \|    \|
     // xx 03 xx 01 xx 00 xx 02
     //
@@ -4691,13 +4679,9 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
     //        \_______ |
     //                \|
     // xxxxxxxx xxxxxx11 (xx 03)
-    uint32x4_t paired16 =
-        vreinterpretq_u32_u16(vsraq_n_u16(high_bits, high_bits, 7));
-
-    // Repeat with a wider 32-bit shift + add.
+    bits = vsraq_n_u64(bits, bits, 7);
     // xx 03 xx 01 xx 00 xx 02
-    //     \____ |     \____ |  paired32 = (uint64x1_t)(paired16 + (paired16 >>
-    //     14))
+    //     \____ |     \____ |   bits = (uint64x1_t)(bits + (bits >> 14))
     //          \|          \|
     // xx xx xx 0d xx xx xx 02
     //
@@ -4705,13 +4689,9 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
     //        \\_____ ||
     //         '----.\||
     // xxxxxxxx xxxx1101 (xx 0d)
-    uint64x2_t paired32 =
-        vreinterpretq_u64_u32(vsraq_n_u32(paired16, paired16, 14));
-
-    // Last, an even wider 64-bit shift + add to get our result in the low 8 bit
-    // lanes. xx xx xx 0d xx xx xx 02
-    //            \_________ |   paired64 = (uint8x8_t)(paired32 + (paired32 >>
-    //            28))
+    bits = vsraq_n_u64(bits, bits, 14);
+    // xx xx xx 0d xx xx xx 02
+    //            \_________ |   bits = (uint64x1_t)(bits + (bits >> 28))
     //                      \|
     // xx xx xx xx xx xx xx d2
     //
@@ -4719,15 +4699,16 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
     //     \   \___ |  |
     //      '---.  \|  |
     // xxxxxxxx 11010010 (xx d2)
-    uint8x16_t paired64 =
-        vreinterpretq_u8_u64(vsraq_n_u64(paired32, paired32, 28));
+    bits = vsraq_n_u64(bits, bits, 28);
 
-    // Extract the low 8 bits from each 64-bit lane with 2 8-bit extracts.
-    // xx xx xx xx xx xx xx d2
-    //                      ||  return paired64[0]
-    //                      d2
-    // Note: Little endian would return the correct value 4b (01001011) instead.
-    return vgetq_lane_u8(paired64, 0) | ((int) vgetq_lane_u8(paired64, 8) << 8);
+    // Reinterpret 2x64-bit elements as 16x8-bit elements.
+    uint8x16_t output = vreinterpretq_u8_u64(bits);
+
+    // Note: Little-endian would return the correct value 4b (01001011) instead.
+    int low = vgetq_lane_u8(output, 0);   // xxxxxxxx
+    int high = vgetq_lane_u8(output, 8);  // 11010010
+
+    return (high << 8) | low;  // 0000000 0000000 11010010 xxxxxxxx
 }
 
 // Set each bit of mask dst based on the most significant bit of the
