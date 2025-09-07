@@ -2168,13 +2168,13 @@ FORCE_INLINE int _mm_movemask_pi8(__m64 a)
     uint8x8_t tmp = vshr_n_u8(input, 7);
     return vaddv_u8(vshl_u8(tmp, vld1_s8(shift)));
 #else
-    // Refer the implementation of `_mm_movemask_epi8`
-    uint16x4_t high_bits = vreinterpret_u16_u8(vshr_n_u8(input, 7));
-    uint32x2_t paired16 =
-        vreinterpret_u32_u16(vsra_n_u16(high_bits, high_bits, 7));
-    uint8x8_t paired32 =
-        vreinterpret_u8_u32(vsra_n_u32(paired16, paired16, 14));
-    return vget_lane_u8(paired32, 0) | ((int) vget_lane_u8(paired32, 4) << 4);
+    // Note: Uses the same method as _mm_movemask_epi8.
+    uint8x8_t msbs = vshr_n_u8(input, 7);
+    uint32x2_t bits = vreinterpret_u32_u8(msbs);
+    bits = vsra_n_u32(bits, bits, 7);
+    bits = vsra_n_u32(bits, bits, 14);
+    uint8x8_t output = vreinterpret_u8_u32(bits);
+    return (vget_lane_u8(output, 4) << 4) | vget_lane_u8(output, 0);
 #endif
 }
 
@@ -2189,15 +2189,12 @@ FORCE_INLINE int _mm_movemask_ps(__m128 a)
     uint32x4_t tmp = vshrq_n_u32(input, 31);
     return vaddvq_u32(vshlq_u32(tmp, vld1q_s32(shift)));
 #else
-    // Uses the exact same method as _mm_movemask_epi8, see that for details.
-    // Shift out everything but the sign bits with a 32-bit unsigned shift
-    // right.
-    uint64x2_t high_bits = vreinterpretq_u64_u32(vshrq_n_u32(input, 31));
-    // Merge the two pairs together with a 64-bit unsigned shift right + add.
-    uint8x16_t paired =
-        vreinterpretq_u8_u64(vsraq_n_u64(high_bits, high_bits, 31));
-    // Extract the result.
-    return vgetq_lane_u8(paired, 0) | (vgetq_lane_u8(paired, 8) << 2);
+    // Note: Uses the same method as _mm_movemask_epi8.
+    uint32x4_t msbs = vshrq_n_u32(input, 31);
+    uint64x2_t bits = vreinterpretq_u64_u32(msbs);
+    bits = vsraq_n_u64(bits, bits, 31);
+    uint8x16_t output = vreinterpretq_u8_u64(bits);
+    return (vgetq_lane_u8(output, 8) << 2) | vgetq_lane_u8(output, 0);
 #endif
 }
 
