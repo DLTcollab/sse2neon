@@ -9,7 +9,7 @@ int64_t NaN64 = ~0;
 
 result_t validateInt64(__m128i a, int64_t i0, int64_t i1)
 {
-    const int64_t *t = (const int64_t *) &a;
+    const int64_t *t = reinterpret_cast<const int64_t *>(&a);
     ASSERT_RETURN(t[0] == i0);
     ASSERT_RETURN(t[1] == i1);
     return TEST_SUCCESS;
@@ -17,14 +17,14 @@ result_t validateInt64(__m128i a, int64_t i0, int64_t i1)
 
 result_t validateInt64(__m64 a, int64_t i0)
 {
-    const int64_t *t = (const int64_t *) &a;
+    const int64_t *t = reinterpret_cast<const int64_t *>(&a);
     ASSERT_RETURN(t[0] == i0);
     return TEST_SUCCESS;
 }
 
 result_t validateUInt64(__m128i a, uint64_t u0, uint64_t u1)
 {
-    const uint64_t *t = (const uint64_t *) &a;
+    const uint64_t *t = reinterpret_cast<const uint64_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     return TEST_SUCCESS;
@@ -32,7 +32,7 @@ result_t validateUInt64(__m128i a, uint64_t u0, uint64_t u1)
 
 result_t validateUInt64(__m64 a, uint64_t u0)
 {
-    const uint64_t *t = (const uint64_t *) &a;
+    const uint64_t *t = reinterpret_cast<const uint64_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     return TEST_SUCCESS;
 }
@@ -43,7 +43,7 @@ result_t validateInt32(__m128i a,
                        int32_t i2,
                        int32_t i3)
 {
-    const int32_t *t = (const int32_t *) &a;
+    const int32_t *t = reinterpret_cast<const int32_t *>(&a);
     ASSERT_RETURN(t[0] == i0);
     ASSERT_RETURN(t[1] == i1);
     ASSERT_RETURN(t[2] == i2);
@@ -57,7 +57,7 @@ result_t validateUInt32(__m128i a,
                         uint32_t u2,
                         uint32_t u3)
 {
-    const uint32_t *t = (const uint32_t *) &a;
+    const uint32_t *t = reinterpret_cast<const uint32_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     ASSERT_RETURN(t[2] == u2);
@@ -67,7 +67,7 @@ result_t validateUInt32(__m128i a,
 
 result_t validateUInt32(__m64 a, uint32_t u0, uint32_t u1)
 {
-    const uint32_t *t = (const uint32_t *) &a;
+    const uint32_t *t = reinterpret_cast<const uint32_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     return TEST_SUCCESS;
@@ -83,7 +83,7 @@ result_t validateInt16(__m128i a,
                        int16_t i6,
                        int16_t i7)
 {
-    const int16_t *t = (const int16_t *) &a;
+    const int16_t *t = reinterpret_cast<const int16_t *>(&a);
     ASSERT_RETURN(t[0] == i0);
     ASSERT_RETURN(t[1] == i1);
     ASSERT_RETURN(t[2] == i2);
@@ -97,7 +97,7 @@ result_t validateInt16(__m128i a,
 
 result_t validateInt16(__m64 a, int16_t i0, int16_t i1, int16_t i2, int16_t i3)
 {
-    const int16_t *t = (const int16_t *) &a;
+    const int16_t *t = reinterpret_cast<const int16_t *>(&a);
     ASSERT_RETURN(t[0] == i0);
     ASSERT_RETURN(t[1] == i1);
     ASSERT_RETURN(t[2] == i2);
@@ -115,7 +115,7 @@ result_t validateUInt16(__m128i a,
                         uint16_t u6,
                         uint16_t u7)
 {
-    const uint16_t *t = (const uint16_t *) &a;
+    const uint16_t *t = reinterpret_cast<const uint16_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     ASSERT_RETURN(t[2] == u2);
@@ -129,7 +129,7 @@ result_t validateUInt16(__m128i a,
 
 result_t validateInt32(__m64 a, int32_t u0, int32_t u1)
 {
-    const int32_t *t = (const int32_t *) &a;
+    const int32_t *t = reinterpret_cast<const int32_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     return TEST_SUCCESS;
@@ -141,7 +141,7 @@ result_t validateUInt16(__m64 a,
                         uint16_t u2,
                         uint16_t u3)
 {
-    const uint16_t *t = (const uint16_t *) &a;
+    const uint16_t *t = reinterpret_cast<const uint16_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     ASSERT_RETURN(t[2] == u2);
@@ -167,7 +167,7 @@ result_t validateInt8(__m128i a,
                       int8_t i14,
                       int8_t i15)
 {
-    const int8_t *t = (const int8_t *) &a;
+    const int8_t *t = reinterpret_cast<const int8_t *>(&a);
     ASSERT_RETURN(t[0] == i0);
     ASSERT_RETURN(t[1] == i1);
     ASSERT_RETURN(t[2] == i2);
@@ -197,7 +197,7 @@ result_t validateInt8(__m64 a,
                       int8_t i6,
                       int8_t i7)
 {
-    const int8_t *t = (const int8_t *) &a;
+    const int8_t *t = reinterpret_cast<const int8_t *>(&a);
     ASSERT_RETURN(t[0] == i0);
     ASSERT_RETURN(t[1] == i1);
     ASSERT_RETURN(t[2] == i2);
@@ -227,7 +227,7 @@ result_t validateUInt8(__m128i a,
                        uint8_t u14,
                        uint8_t u15)
 {
-    const uint8_t *t = (const uint8_t *) &a;
+    const uint8_t *t = reinterpret_cast<const uint8_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     ASSERT_RETURN(t[2] == u2);
@@ -257,7 +257,7 @@ result_t validateUInt8(__m64 a,
                        uint8_t u6,
                        uint8_t u7)
 {
-    const uint8_t *t = (const uint8_t *) &a;
+    const uint8_t *t = reinterpret_cast<const uint8_t *>(&a);
     ASSERT_RETURN(t[0] == u0);
     ASSERT_RETURN(t[1] == u1);
     ASSERT_RETURN(t[2] == u2);
@@ -271,8 +271,8 @@ result_t validateUInt8(__m64 a,
 
 result_t validateSingleFloatPair(float a, float b)
 {
-    const uint32_t *ua = (const uint32_t *) &a;
-    const uint32_t *ub = (const uint32_t *) &b;
+    const uint32_t *ua = reinterpret_cast<const uint32_t *>(&a);
+    const uint32_t *ub = reinterpret_cast<const uint32_t *>(&b);
     // We do an integer (binary) compare rather than a
     // floating point compare to take NaNs and infinities
     // into account as well.
@@ -281,8 +281,8 @@ result_t validateSingleFloatPair(float a, float b)
 
 result_t validateSingleDoublePair(double a, double b)
 {
-    const uint64_t *ua = (const uint64_t *) &a;
-    const uint64_t *ub = (const uint64_t *) &b;
+    const uint64_t *ua = reinterpret_cast<const uint64_t *>(&a);
+    const uint64_t *ub = reinterpret_cast<const uint64_t *>(&b);
     // We do an integer (binary) compare rather than a
     // floating point compare to take NaNs and infinities
     // into account as well.
@@ -296,7 +296,7 @@ result_t validateSingleDoublePair(double a, double b)
 
 result_t validateFloat(__m128 a, float f0, float f1, float f2, float f3)
 {
-    const float *t = (const float *) &a;
+    const float *t = reinterpret_cast<const float *>(&a);
     ASSERT_RETURN(validateSingleFloatPair(t[0], f0));
     ASSERT_RETURN(validateSingleFloatPair(t[1], f1));
     ASSERT_RETURN(validateSingleFloatPair(t[2], f2));
@@ -311,7 +311,7 @@ result_t validateFloatEpsilon(__m128 a,
                               float f3,
                               float epsilon)
 {
-    const float *t = (const float *) &a;
+    const float *t = reinterpret_cast<const float *>(&a);
     float df0 = fabsf(t[0] - f0);
     float df1 = fabsf(t[1] - f1);
     float df2 = fabsf(t[2] - f2);
@@ -351,7 +351,7 @@ result_t validateFloatError(__m128 a,
                             float f3,
                             float err)
 {
-    const float *t = (const float *) &a;
+    const float *t = reinterpret_cast<const float *>(&a);
     float df0 = fabsf((t[0] - f0) / f0);
     float df1 = fabsf((t[1] - f1) / f1);
     float df2 = fabsf((t[2] - f2) / f2);
@@ -386,7 +386,7 @@ result_t validateFloatError(__m128 a,
 
 result_t validateDouble(__m128d a, double d0, double d1)
 {
-    const double *t = (const double *) &a;
+    const double *t = reinterpret_cast<const double *>(&a);
     ASSERT_RETURN(validateSingleDoublePair(t[0], d0));
     ASSERT_RETURN(validateSingleDoublePair(t[1], d1));
     return TEST_SUCCESS;
@@ -394,7 +394,7 @@ result_t validateDouble(__m128d a, double d0, double d1)
 
 result_t validateFloatError(__m128d a, double d0, double d1, double err)
 {
-    const double *t = (const double *) &a;
+    const double *t = reinterpret_cast<const double *>(&a);
     double td0 = fabs((t[0] - d0) / d0);
     double td1 = fabs((t[1] - d1) / d1);
 
