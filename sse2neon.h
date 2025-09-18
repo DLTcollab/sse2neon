@@ -1864,7 +1864,8 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_GET_ROUNDING_MODE
 FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE(void)
 {
-    switch (fegetround()) {
+    const int mask = FE_TONEAREST | FE_DOWNWARD | FE_UPWARD | FE_TOWARDZERO;
+    switch (fegetround() & mask) {
     case FE_TONEAREST:
         return _MM_ROUND_NEAREST;
     case FE_DOWNWARD:
