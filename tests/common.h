@@ -107,8 +107,8 @@ static inline float sse2neon_tool_recast_f32(int32_t i32)
 template <typename T>
 result_t validate128(T a, T b)
 {
-    const int32_t *t1 = (const int32_t *) &a;
-    const int32_t *t2 = (const int32_t *) &b;
+    const int32_t *t1 = reinterpret_cast<const int32_t *>(&a);
+    const int32_t *t2 = reinterpret_cast<const int32_t *>(&b);
 
     ASSERT_RETURN(t1[0] == t2[0]);
     ASSERT_RETURN(t1[1] == t2[1]);
