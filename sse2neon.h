@@ -7537,15 +7537,17 @@ FORCE_INLINE __m128i _mm_packus_epi32(__m128i a, __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_round_pd
 FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 {
+    rounding &= ~(_MM_FROUND_RAISE_EXC | _MM_FROUND_NO_EXC);
+
 #if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
     switch (rounding) {
-    case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_NEAREST_INT:
         return vreinterpretq_m128d_f64(vrndnq_f64(vreinterpretq_f64_m128d(a)));
-    case (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_NEG_INF:
         return _mm_floor_pd(a);
-    case (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_POS_INF:
         return _mm_ceil_pd(a);
-    case (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_ZERO:
         return vreinterpretq_m128d_f64(vrndq_f64(vreinterpretq_f64_m128d(a)));
     default:  //_MM_FROUND_CUR_DIRECTION
         return vreinterpretq_m128d_f64(vrndiq_f64(vreinterpretq_f64_m128d(a)));
@@ -7553,7 +7555,7 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 #else
     double *v_double = (double *) &a;
 
-    if (rounding == (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) ||
+    if (rounding == _MM_FROUND_TO_NEAREST_INT ||
         (rounding == _MM_FROUND_CUR_DIRECTION &&
          _MM_GET_ROUNDING_MODE() == _MM_ROUND_NEAREST)) {
         double res[2], tmp;
@@ -7586,11 +7588,11 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
             res[i] = (v_double[i] < 0) ? -res[i] : res[i];
         }
         return _mm_set_pd(res[1], res[0]);
-    } else if (rounding == (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) ||
+    } else if (rounding == _MM_FROUND_TO_NEG_INF ||
                (rounding == _MM_FROUND_CUR_DIRECTION &&
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_DOWN)) {
         return _mm_floor_pd(a);
-    } else if (rounding == (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) ||
+    } else if (rounding == _MM_FROUND_TO_POS_INF ||
                (rounding == _MM_FROUND_CUR_DIRECTION &&
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_UP)) {
         return _mm_ceil_pd(a);
@@ -7606,16 +7608,18 @@ FORCE_INLINE __m128d _mm_round_pd(__m128d a, int rounding)
 // software.intel.com/sites/landingpage/IntrinsicsGuide/#text=_mm_round_ps
 FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 {
+    rounding &= ~(_MM_FROUND_RAISE_EXC | _MM_FROUND_NO_EXC);
+
 #if (defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)) || \
     defined(__ARM_FEATURE_DIRECTED_ROUNDING)
     switch (rounding) {
-    case (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_NEAREST_INT:
         return vreinterpretq_m128_f32(vrndnq_f32(vreinterpretq_f32_m128(a)));
-    case (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_NEG_INF:
         return _mm_floor_ps(a);
-    case (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_POS_INF:
         return _mm_ceil_ps(a);
-    case (_MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC):
+    case _MM_FROUND_TO_ZERO:
         return vreinterpretq_m128_f32(vrndq_f32(vreinterpretq_f32_m128(a)));
     default:  //_MM_FROUND_CUR_DIRECTION
         return vreinterpretq_m128_f32(vrndiq_f32(vreinterpretq_f32_m128(a)));
@@ -7623,7 +7627,7 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
 #else
     float *v_float = (float *) &a;
 
-    if (rounding == (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) ||
+    if (rounding == _MM_FROUND_TO_NEAREST_INT ||
         (rounding == _MM_FROUND_CUR_DIRECTION &&
          _MM_GET_ROUNDING_MODE() == _MM_ROUND_NEAREST)) {
         uint32x4_t signmask = vdupq_n_u32(0x80000000);
@@ -7644,11 +7648,11 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
             vceqq_f32(delta, half); /* delta == +/- 0.5 */
         return vreinterpretq_m128_f32(
             vcvtq_f32_s32(vbslq_s32(is_delta_half, r_even, r_normal)));
-    } else if (rounding == (_MM_FROUND_TO_NEG_INF | _MM_FROUND_NO_EXC) ||
+    } else if (rounding == _MM_FROUND_TO_NEG_INF ||
                (rounding == _MM_FROUND_CUR_DIRECTION &&
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_DOWN)) {
         return _mm_floor_ps(a);
-    } else if (rounding == (_MM_FROUND_TO_POS_INF | _MM_FROUND_NO_EXC) ||
+    } else if (rounding == _MM_FROUND_TO_POS_INF ||
                (rounding == _MM_FROUND_CUR_DIRECTION &&
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_UP)) {
         return _mm_ceil_ps(a);
