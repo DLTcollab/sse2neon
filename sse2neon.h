@@ -9309,15 +9309,15 @@ FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 {
     // AESE does ShiftRows and SubBytes on A
-    uint8x16_t u8 = vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0));
+    uint8x16_t sb = vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0));
 
 #if !defined(_MSC_VER) || defined(__clang__)
     uint8x16_t dest = {
         // Undo ShiftRows step from AESE and extract X1 and X3
-        u8[0x4], u8[0x1], u8[0xE], u8[0xB],  // SubBytes(X1)
-        u8[0x1], u8[0xE], u8[0xB], u8[0x4],  // ROT(SubBytes(X1))
-        u8[0xC], u8[0x9], u8[0x6], u8[0x3],  // SubBytes(X3)
-        u8[0x9], u8[0x6], u8[0x3], u8[0xC],  // ROT(SubBytes(X3))
+        sb[0x4], sb[0x1], sb[0xE], sb[0xB],  // SubBytes(X1)
+        sb[0x1], sb[0xE], sb[0xB], sb[0x4],  // ROT(SubBytes(X1))
+        sb[0xC], sb[0x9], sb[0x6], sb[0x3],  // SubBytes(X3)
+        sb[0x9], sb[0x6], sb[0x3], sb[0xC],  // ROT(SubBytes(X3))
     };
     uint32x4_t r = {0, (unsigned) rcon, 0, (unsigned) rcon};
     return vreinterpretq_m128i_u8(dest) ^ vreinterpretq_m128i_u32(r);
@@ -9328,20 +9328,20 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 
     // As per the Windows ARM64 ABI, it is always little endian, so this works
     __n128 dest{
-        ((uint64_t) u8.n128_u8[0x4] << 0) | ((uint64_t) u8.n128_u8[0x1] << 8) |
-            ((uint64_t) u8.n128_u8[0xE] << 16) |
-            ((uint64_t) u8.n128_u8[0xB] << 24) |
-            ((uint64_t) u8.n128_u8[0x1] << 32) |
-            ((uint64_t) u8.n128_u8[0xE] << 40) |
-            ((uint64_t) u8.n128_u8[0xB] << 48) |
-            ((uint64_t) u8.n128_u8[0x4] << 56),
-        ((uint64_t) u8.n128_u8[0xC] << 0) | ((uint64_t) u8.n128_u8[0x9] << 8) |
-            ((uint64_t) u8.n128_u8[0x6] << 16) |
-            ((uint64_t) u8.n128_u8[0x3] << 24) |
-            ((uint64_t) u8.n128_u8[0x9] << 32) |
-            ((uint64_t) u8.n128_u8[0x6] << 40) |
-            ((uint64_t) u8.n128_u8[0x3] << 48) |
-            ((uint64_t) u8.n128_u8[0xC] << 56)};
+        ((uint64_t) sb.n128_u8[0x4] << 0) | ((uint64_t) sb.n128_u8[0x1] << 8) |
+            ((uint64_t) sb.n128_u8[0xE] << 16) |
+            ((uint64_t) sb.n128_u8[0xB] << 24) |
+            ((uint64_t) sb.n128_u8[0x1] << 32) |
+            ((uint64_t) sb.n128_u8[0xE] << 40) |
+            ((uint64_t) sb.n128_u8[0xB] << 48) |
+            ((uint64_t) sb.n128_u8[0x4] << 56),
+        ((uint64_t) sb.n128_u8[0xC] << 0) | ((uint64_t) sb.n128_u8[0x9] << 8) |
+            ((uint64_t) sb.n128_u8[0x6] << 16) |
+            ((uint64_t) sb.n128_u8[0x3] << 24) |
+            ((uint64_t) sb.n128_u8[0x9] << 32) |
+            ((uint64_t) sb.n128_u8[0x6] << 40) |
+            ((uint64_t) sb.n128_u8[0x3] << 48) |
+            ((uint64_t) sb.n128_u8[0xC] << 56)};
 
     dest.n128_u32[1] = dest.n128_u32[1] ^ rcon;
     dest.n128_u32[3] = dest.n128_u32[3] ^ rcon;
