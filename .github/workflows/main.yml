@@ -1,6 +1,13 @@
 name: GitHub Actions
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   host-x86:
@@ -8,10 +15,14 @@ jobs:
     strategy:
       matrix:
         arch: [x86_64]
-        cxx_compiler: [g++, clang++]
+        cxx_compiler: [g++, clang++-18]
     steps:
       - name: checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+      - name: install build dependencies
+        run: |
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y clang-18
       - name: build artifact
         env:
           CXX: ${{ matrix.cxx_compiler }}
@@ -29,7 +40,7 @@ jobs:
           - armv7
           - aarch64
     env:
-      LLVM_MINGW_URL: https://github.com/mstorsjo/llvm-mingw/releases/download/20241217/llvm-mingw-20241217-msvcrt-x86_64.zip
+      LLVM_MINGW_URL: https://github.com/mstorsjo/llvm-mingw/releases/download/20251118/llvm-mingw-20251118-msvcrt-x86_64.zip
     defaults:
       run:
         shell: bash
@@ -42,7 +53,7 @@ jobs:
           mv llvm-mingw-* "$HOME/llvm-mingw"
           echo "$HOME/llvm-mingw/bin" >> $GITHUB_PATH
       - name: checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: build artifact
         env:
           CXX: ${{ matrix.arch }}-w64-mingw32-clang++
@@ -61,25 +72,27 @@ jobs:
           {arch: aarch64, feature: crypto+crc, arch_cflags: none},
           {arch: armv7, feature: none, arch_cflags: '-mcpu=cortex-a32 -mfpu=neon-fp-armv8'}
         ]
-        cxx_compiler: [g++, clang++-15]
+        cxx_compiler: [g++, clang++-18]
     steps:
       - name: checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: build artifact
         # The Github Action for non-x86 CPU
         # https://github.com/uraimo/run-on-arch-action
-        uses: uraimo/run-on-arch-action@v2
+        uses: uraimo/run-on-arch-action@v3
         with:
           arch: ${{ matrix.arch_with_features.arch }}
-          distro: ubuntu22.04
+          distro: ubuntu24.04
           # Speed up builds by storing container images in a GitHub package registry.
           githubToken: ${{ github.token }}
           env: |
             CXX: ${{ matrix.cxx_compiler }}
             ARCH_CFLAGS: ${{ matrix.arch_with_features.arch_cflags }}
           install: |
-            apt-get update -q -y
-            apt-get install -q -y gcc "${{ matrix.cxx_compiler }}" make
+            rm -rf /var/lib/apt/lists/*
+            apt-get -o Acquire::Retries=5 update
+            apt-get -o Acquire::Retries=5 -o Dpkg::Use-Pty=0 install -y --no-install-recommends clang-18 gcc g++ make
+            apt-get clean && rm -rf /var/lib/apt/lists/*
           run: |
             make FEATURE=${{ matrix.arch_with_features.feature }} check
 
@@ -87,7 +100,7 @@ jobs:
     runs-on: windows-2022
     steps:
       - name: checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
@@ -96,7 +109,7 @@ jobs:
         run: msbuild sse2neon.vcxproj -t:rebuild -property:Configuration=Release -property:Platform=ARM64
 
       - name: upload artifact
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@v5
         with:
           name: msvc-arm64-artifact
           path: ARM64
@@ -107,7 +120,7 @@ jobs:
     needs: host-win-msvc
     steps:
       - name: download artifact
-        uses: actions/download-artifact@master
+        uses: actions/download-artifact@v6
         with:
           name: msvc-arm64-artifact
 
@@ -119,7 +132,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: style check
         run: |
             sudo apt-get install -q -y clang-format-18
