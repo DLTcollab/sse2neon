@@ -9122,43 +9122,151 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 #endif
 }
 
+FORCE_INLINE uint8x16_t _sse2neon_vqtbl1q_u8(uint8x16_t t, uint8x16_t idx)
+{
+#if defined(__aarch64__)
+    return vqtbl1q_u8(t, idx);
+#else
+    // Split 'idx' into two D registers.
+    uint8x8_t idx_low = vget_low_u8(idx);
+    uint8x8_t idx_high = vget_high_u8(idx);
+
+    uint8x8x2_t tbl = {
+        vget_low_u8(t),
+        vget_high_u8(t),
+    };
+
+    // Perform Lookup using vtbl2_u8.
+    // Perform lookup for the first 8 bytes of the result.
+    uint8x8_t ret_low = vtbl2_u8(tbl, idx_low);
+    // Perform lookup for the second 8 bytes of the result.
+    uint8x8_t ret_high = vtbl2_u8(tbl, idx_high);
+
+    // Combine the retults.
+    return vcombine_u8(ret_low, ret_high);
+#endif
+}
+
+FORCE_INLINE uint8x16_t _sse2neon_vqtbl4q_u8(uint8x16x4_t t, uint8x16_t idx)
+{
+#if defined(__aarch64__)
+    return vqtbl4q_u8(t, idx);
+#else
+    // Split 'idx' into two D registers.
+    uint8x8_t idx_lo = vget_low_u8(idx);
+    uint8x8_t idx_hi = vget_high_u8(idx);
+
+    uint8x8x4_t tbl_chunk_0 = {
+        vget_low_u8(t.val[0]),
+        vget_high_u8(t.val[0]),
+        vget_low_u8(t.val[1]),
+        vget_high_u8(t.val[1]),
+    };
+
+    uint8x8x4_t tbl_chunk_1 = {
+        vget_low_u8(t.val[2]),
+        vget_high_u8(t.val[2]),
+        vget_low_u8(t.val[3]),
+        vget_high_u8(t.val[3]),
+    };
+
+    // Shift indices down by 32 so index 32 becomes 0 for the new table.
+    uint8x16_t idx_minus_32 = vsubq_u8(idx, vdupq_n_u8(32));
+    uint8x8_t idx_lo_mod = vget_low_u8(idx_minus_32);
+    uint8x8_t idx_hi_mod = vget_high_u8(idx_minus_32);
+
+    // Pass 1: Use vtbl4_u8 (VTBL).
+    // NOTE: VTBL produces 0 of the indices are larger than 31.
+    uint8x8_t ret_lo = vtbl4_u8(tbl_chunk_0, idx_lo);
+    uint8x8_t ret_hi = vtbl4_u8(tbl_chunk_0, idx_hi);
+
+    // Use vtbx4_u8 (VTBX).
+    // It takes the result of Pass 1 as the accumulator.
+    ret_lo = vtbx4_u8(ret_lo, tbl_chunk_1, idx_lo_mod);
+    ret_hi = vtbx4_u8(ret_hi, tbl_chunk_1, idx_hi_mod);
+
+    // Combine the results
+    return vcombine_u8(ret_lo, ret_hi);
+#endif
+}
+
+FORCE_INLINE uint8x16_t _sse2neon_vqtbx4q_u8(uint8x16_t acc,
+                                             uint8x16x4_t t,
+                                             uint8x16_t idx)
+{
+#if defined(__aarch64__)
+    return vqtbx4q_u8(acc, t, idx);
+#else
+    // Split 'acc' into two D registers.
+    uint8x8_t ret_low = vget_low_u8(acc);
+    uint8x8_t ret_high = vget_high_u8(acc);
+    // Split 'idx' into two D registers.
+    uint8x8_t idx_low = vget_low_u8(idx);
+    uint8x8_t idx_high = vget_high_u8(idx);
+
+    uint8x8x4_t tbl_chunk_0 = {
+        vget_low_u8(t.val[0]),
+        vget_high_u8(t.val[0]),
+        vget_low_u8(t.val[1]),
+        vget_high_u8(t.val[1]),
+    };
+
+    uint8x8x4_t tbl_chunk_1 = {
+        vget_low_u8(t.val[2]),
+        vget_high_u8(t.val[2]),
+        vget_low_u8(t.val[3]),
+        vget_high_u8(t.val[3]),
+    };
+
+    // Adjust indices: We want to map index 32 to index 0 of this new table.
+    // To do so, we subtract 32 from all indices.
+    // NOTE: If the original index is smaller than 32,
+    // the adjusted index wraps to a huge number (larger than 31).
+    // As vtbx4_u8 (VTBX in assembly) sees such number, it preserves
+    // the result from Pass 1. Safe!
+    // Taking index 5 as example, it will become 5 - 32 = 229 (> 31).
+    uint8x16_t idx_minus_32 = vsubq_u8(idx, vdupq_n_u8(32));
+    uint8x8_t idx_low_mod = vget_low_u8(idx_minus_32);
+    uint8x8_t idx_high_mod = vget_high_u8(idx_minus_32);
+
+    // Perform vtbx4_u8 in the first chunk.
+    ret_low = vtbx4_u8(ret_low, tbl_chunk_0, idx_low);
+    ret_high = vtbx4_u8(ret_high, tbl_chunk_0, idx_high);
+
+    // Perform vtbx4_u8 on the second chunk.
+    ret_low = vtbx4_u8(ret_low, tbl_chunk_1, idx_low_mod);
+    ret_high = vtbx4_u8(ret_high, tbl_chunk_1, idx_high_mod);
+
+    // Combine the results.
+    return vcombine_u8(ret_low, ret_high);
+#endif
+}
+
 // Perform the last round of an AES decryption flow on data (state) in a using
 // the round key in RoundKey, and store the result in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdeclast_si128
 FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 {
-#if defined(__aarch64__)
     static const uint8_t inv_shift_rows[] = {
         0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
         0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
     };
 
     uint8x16_t v;
-    uint8x16_t w = vreinterpretq_u8_m128i(a);
-
-    // inverse shift rows
-    w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
+    uint8x16_t w = vreinterpretq_u8_m128i(a);  // inverse shift rows
+    w = _sse2neon_vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
 
     // inverse sub bytes
-    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_rsbox), w);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0xc0), w - 0xc0);
+    v = _sse2neon_vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_rsbox), w);
+    v = _sse2neon_vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x40),
+                             w - 0x40);
+    v = _sse2neon_vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x80),
+                             w - 0x80);
+    v = _sse2neon_vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0xc0),
+                             w - 0xc0);
 
     // add round key
     return vreinterpretq_m128i_u8(v) ^ RoundKey;
-
-#else /* ARMv7-A NEON implementation */
-    /* FIXME: optimized for NEON */
-    uint8_t v[4][4];
-    uint8_t *_a = (uint8_t *) &a;
-    for (int i = 0; i < 16; ++i) {
-        v[((i / 4) + (i % 4)) % 4][i % 4] = _sse2neon_rsbox[_a[i]];
-    }
-
-    return _mm_xor_si128(vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v)),
-                         RoundKey);
-#endif
 }
 
 // Perform the InvMixColumns transformation on a and store the result in dst.
