@@ -66,14 +66,31 @@ OBJS = \
     tests/main.o
 deps := $(OBJS:%.o=%.o.d)
 
+# Floating-point edge case test objects
+FP_EDGE_OBJS = \
+    tests/fp_edge_cases.o \
+    tests/common.o \
+    tests/binding.o
+fp_edge_deps := $(FP_EDGE_OBJS:%.o=%.o.d)
+
 .SUFFIXES: .o .cpp
 .cpp.o:
 	$(CXX) -o $@ $(CXXFLAGS) -c -MMD -MF $@.d $<
 
 EXEC = tests/main
+FP_EDGE_EXEC = tests/fp_edge_cases
 
 $(EXEC): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
+
+$(FP_EDGE_EXEC): $(FP_EDGE_OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+fp_edge_cases: $(FP_EDGE_EXEC)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+endif
+	$(EXEC_WRAPPER) $^
 
 check: tests/main
 ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
@@ -95,8 +112,10 @@ indent:
 	fi
 	$(CLANG_FORMAT) -i sse2neon.h tests/*.cpp tests/*.h
 
-.PHONY: clean check format
+.PHONY: clean check format fp_edge_cases
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
+	$(RM) $(FP_EDGE_OBJS) $(FP_EDGE_EXEC) $(fp_edge_deps)
 
 -include $(deps)
+-include $(fp_edge_deps)
