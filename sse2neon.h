@@ -9067,33 +9067,78 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
     // add round key
     return vreinterpretq_m128i_u8(w) ^ RoundKey;
 
-#else /* ARMv7-A NEON implementation */
-    /* FIXME: optimized for NEON */
-    uint8_t i, e, f, g, h, v[4][4];
-    uint8_t *_a = (uint8_t *) &a;
-    for (i = 0; i < 16; ++i) {
-        v[((i / 4) + (i % 4)) % 4][i % 4] = _sse2neon_rsbox[_a[i]];
-    }
+#else /* ARMv7-A implementation using inverse T-tables */
+    // GF(2^8) multiplication helpers for InvMixColumns coefficients
+#define SSE2NEON_AES_DEC_B2W(b0, b1, b2, b3)             \
+    (((uint32_t) (b3) << 24) | ((uint32_t) (b2) << 16) | \
+     ((uint32_t) (b1) << 8) | (uint32_t) (b0))
+    // xtime: multiply by 2 in GF(2^8), using 0x011b to clear bit 8
+#define SSE2NEON_AES_DEC_X2(x) ((x << 1) ^ (((x >> 7) & 1) * 0x011b))
+    // multiply by 4 in GF(2^8)
+#define SSE2NEON_AES_DEC_X4(x) SSE2NEON_AES_DEC_X2(SSE2NEON_AES_DEC_X2(x))
+    // multiply by 8 in GF(2^8)
+#define SSE2NEON_AES_DEC_X8(x) SSE2NEON_AES_DEC_X2(SSE2NEON_AES_DEC_X4(x))
+    // InvMixColumns coefficients: 0x09, 0x0b, 0x0d, 0x0e
+#define SSE2NEON_AES_DEC_F9(x) (SSE2NEON_AES_DEC_X8(x) ^ (x))
+#define SSE2NEON_AES_DEC_FB(x) \
+    (SSE2NEON_AES_DEC_X8(x) ^ SSE2NEON_AES_DEC_X2(x) ^ (x))
+#define SSE2NEON_AES_DEC_FD(x) \
+    (SSE2NEON_AES_DEC_X8(x) ^ SSE2NEON_AES_DEC_X4(x) ^ (x))
+#define SSE2NEON_AES_DEC_FE(x) \
+    (SSE2NEON_AES_DEC_X8(x) ^ SSE2NEON_AES_DEC_X4(x) ^ SSE2NEON_AES_DEC_X2(x))
+    // Inverse T-table generators combining InvSubBytes + InvMixColumns
+#define SSE2NEON_AES_DEC_V0(p)                                           \
+    SSE2NEON_AES_DEC_B2W(SSE2NEON_AES_DEC_FE(p), SSE2NEON_AES_DEC_F9(p), \
+                         SSE2NEON_AES_DEC_FD(p), SSE2NEON_AES_DEC_FB(p))
+#define SSE2NEON_AES_DEC_V1(p)                                           \
+    SSE2NEON_AES_DEC_B2W(SSE2NEON_AES_DEC_FB(p), SSE2NEON_AES_DEC_FE(p), \
+                         SSE2NEON_AES_DEC_F9(p), SSE2NEON_AES_DEC_FD(p))
+#define SSE2NEON_AES_DEC_V2(p)                                           \
+    SSE2NEON_AES_DEC_B2W(SSE2NEON_AES_DEC_FD(p), SSE2NEON_AES_DEC_FB(p), \
+                         SSE2NEON_AES_DEC_FE(p), SSE2NEON_AES_DEC_F9(p))
+#define SSE2NEON_AES_DEC_V3(p)                                           \
+    SSE2NEON_AES_DEC_B2W(SSE2NEON_AES_DEC_F9(p), SSE2NEON_AES_DEC_FD(p), \
+                         SSE2NEON_AES_DEC_FB(p), SSE2NEON_AES_DEC_FE(p))
 
-    // inverse mix columns
-    for (i = 0; i < 4; ++i) {
-        e = v[i][0];
-        f = v[i][1];
-        g = v[i][2];
-        h = v[i][3];
+    // Inverse T-tables: combine InvShiftRows + InvSubBytes + InvMixColumns
+    // Each table entry is the InvMixColumns result for that S-box output
+    static const uint32_t ALIGN_STRUCT(16) aes_inv_table[4][256] = {
+        SSE2NEON_AES_RSBOX(SSE2NEON_AES_DEC_V0),
+        SSE2NEON_AES_RSBOX(SSE2NEON_AES_DEC_V1),
+        SSE2NEON_AES_RSBOX(SSE2NEON_AES_DEC_V2),
+        SSE2NEON_AES_RSBOX(SSE2NEON_AES_DEC_V3),
+    };
+#undef SSE2NEON_AES_DEC_B2W
+#undef SSE2NEON_AES_DEC_X2
+#undef SSE2NEON_AES_DEC_X4
+#undef SSE2NEON_AES_DEC_X8
+#undef SSE2NEON_AES_DEC_F9
+#undef SSE2NEON_AES_DEC_FB
+#undef SSE2NEON_AES_DEC_FD
+#undef SSE2NEON_AES_DEC_FE
+#undef SSE2NEON_AES_DEC_V0
+#undef SSE2NEON_AES_DEC_V1
+#undef SSE2NEON_AES_DEC_V2
+#undef SSE2NEON_AES_DEC_V3
 
-        v[i][0] = SSE2NEON_MULTIPLY(e, 0x0e) ^ SSE2NEON_MULTIPLY(f, 0x0b) ^
-                  SSE2NEON_MULTIPLY(g, 0x0d) ^ SSE2NEON_MULTIPLY(h, 0x09);
-        v[i][1] = SSE2NEON_MULTIPLY(e, 0x09) ^ SSE2NEON_MULTIPLY(f, 0x0e) ^
-                  SSE2NEON_MULTIPLY(g, 0x0b) ^ SSE2NEON_MULTIPLY(h, 0x0d);
-        v[i][2] = SSE2NEON_MULTIPLY(e, 0x0d) ^ SSE2NEON_MULTIPLY(f, 0x09) ^
-                  SSE2NEON_MULTIPLY(g, 0x0e) ^ SSE2NEON_MULTIPLY(h, 0x0b);
-        v[i][3] = SSE2NEON_MULTIPLY(e, 0x0b) ^ SSE2NEON_MULTIPLY(f, 0x0d) ^
-                  SSE2NEON_MULTIPLY(g, 0x09) ^ SSE2NEON_MULTIPLY(h, 0x0e);
-    }
+    uint32_t x0 = _mm_cvtsi128_si32(a);
+    uint32_t x1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0x55));
+    uint32_t x2 = _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0xAA));
+    uint32_t x3 = _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0xFF));
 
-    return _mm_xor_si128(vreinterpretq_m128i_u8(vld1q_u8((uint8_t *) v)),
-                         RoundKey);
+    // InvShiftRows is integrated into table indexing:
+    // Row 0: no shift, Row 1: right by 1, Row 2: right by 2, Row 3: right by 3
+    __m128i out = _mm_set_epi32(
+        (aes_inv_table[0][x3 & 0xff] ^ aes_inv_table[1][(x2 >> 8) & 0xff] ^
+         aes_inv_table[2][(x1 >> 16) & 0xff] ^ aes_inv_table[3][x0 >> 24]),
+        (aes_inv_table[0][x2 & 0xff] ^ aes_inv_table[1][(x1 >> 8) & 0xff] ^
+         aes_inv_table[2][(x0 >> 16) & 0xff] ^ aes_inv_table[3][x3 >> 24]),
+        (aes_inv_table[0][x1 & 0xff] ^ aes_inv_table[1][(x0 >> 8) & 0xff] ^
+         aes_inv_table[2][(x3 >> 16) & 0xff] ^ aes_inv_table[3][x2 >> 24]),
+        (aes_inv_table[0][x0 & 0xff] ^ aes_inv_table[1][(x3 >> 8) & 0xff] ^
+         aes_inv_table[2][(x2 >> 16) & 0xff] ^ aes_inv_table[3][x1 >> 24]));
+
+    return _mm_xor_si128(out, RoundKey);
 #endif
 }
 
