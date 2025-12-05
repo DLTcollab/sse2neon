@@ -130,11 +130,17 @@ jobs:
 
   coding-style:
     runs-on: ubuntu-24.04
+    env:
+      CLANG_FORMAT_VERSION: 20
     steps:
       - name: checkout code
         uses: actions/checkout@v6
-      - name: style check
+      - name: install clang-format
         run: |
-            sudo apt-get install -q -y clang-format-18
-            sh .ci/check-format.sh
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+          sudo add-apt-repository -y "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-$CLANG_FORMAT_VERSION main"
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y clang-format-$CLANG_FORMAT_VERSION
+      - name: style check
+        run: sh .ci/check-format.sh
         shell: bash

@@ -206,10 +206,7 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 #define _sse2neon_return(ret) return ret
 #endif
 
-#define _sse2neon_init(...) \
-    {                       \
-        __VA_ARGS__         \
-    }
+#define _sse2neon_init(...) {__VA_ARGS__}
 
 /* Compiler barrier */
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -8265,8 +8262,8 @@ static uint16_t _sse2neon_cmp_word_equal_each(__m128i a,
 
 #define SSE2NEON_AGGREGATE_EQUAL_ORDER_IMPL(size, number_of_lanes, data_type)  \
     static uint16_t                                                            \
-        _sse2neon_aggregate_equal_ordered_##size##x##number_of_lanes(          \
-            int bound, int la, int lb, __m128i mtx[16])                        \
+    _sse2neon_aggregate_equal_ordered_##size##x##number_of_lanes(              \
+        int bound, int la, int lb, __m128i mtx[16])                            \
     {                                                                          \
         uint16_t res = 0;                                                      \
         uint16_t m1 = _sse2neon_static_cast(                                   \
@@ -8372,8 +8369,7 @@ FORCE_INLINE uint16_t _sse2neon_sido_negative(int res,
         break;
     }
 
-    return _sse2neon_static_cast(uint16_t,
-                                 res & ((bound == 8) ? 0xFF : 0xFFFF));
+    return _sse2neon_static_cast(uint16_t, res &((bound == 8) ? 0xFF : 0xFFFF));
 }
 
 FORCE_INLINE int _sse2neon_clz(unsigned int x)

@@ -81,10 +81,19 @@ ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 endif
 	$(EXEC_WRAPPER) $^
 
+CLANG_FORMAT ?= $(shell command -v clang-format-20 2>/dev/null || \
+    (command -v clang-format >/dev/null 2>&1 && \
+     [ "$$(clang-format --version | sed 's/.*version \([0-9]*\).*/\1/')" -ge 20 ] 2>/dev/null && \
+     echo clang-format))
+
 indent:
 	@echo "Formatting files with clang-format.."
-	@if ! hash clang-format-18; then echo "clang-format-18 is required to indent"; fi
-	clang-format-18 -i sse2neon.h tests/*.cpp tests/*.h
+	@if [ -z "$(CLANG_FORMAT)" ]; then \
+	    echo "clang-format version 20+ is required"; \
+	    echo "Install clang-format-20 or ensure 'clang-format --version' reports 20+"; \
+	    exit 1; \
+	fi
+	$(CLANG_FORMAT) -i sse2neon.h tests/*.cpp tests/*.h
 
 .PHONY: clean check format
 clean:
