@@ -227,6 +227,7 @@ Here is a partial list of open source projects that have adopted `sse2neon` for 
 * [nanors](https://github.com/sleepybishop/nanors) is a tiny, performant implementation of [Reed-Solomon codes](https://en.wikipedia.org/wiki/Reed%E2%80%93Solomon_error_correction), capable of reaching multi-gigabit speeds on a single core.
 * [niimath](https://github.com/rordenlab/niimath) is a general image calculator with superior performance.
 * [NVIDIA GameWorks](https://developer.nvidia.com/gameworks-source-github) has been already used in a lot of games. These repositories are public on GitHub.
+* [NVIDIA MathLib](https://github.com/NVIDIA-RTX/MathLib) is a cross-platform header-only SSE/AVX/NEON-accelerated math library, designed for computer graphics.
 * [Nx Meta Platform Open Source Components](https://github.com/networkoptix/nx_open) are used to build all Powered-by-Nx products including Nx Witness Video Management System (VMS).
 * [ofxNDI](https://github.com/leadedge/ofxNDI) is an [openFrameworks](https://openframeworks.cc/) addon to allow sending and receiving images over a network using the [NewTek](https://en.wikipedia.org/wiki/NewTek) Network Device Protocol.
 * [OGRE](https://github.com/OGRECave/ogre) is a scene-oriented, flexible 3D engine written in C++ designed to make it easier and more intuitive for developers to produce games and demos utilising 3D hardware.
