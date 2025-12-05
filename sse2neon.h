@@ -9247,6 +9247,7 @@ FORCE_INLINE uint8x16_t _sse2neon_vqtbx4q_u8(uint8x16_t acc,
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdeclast_si128
 FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 {
+#if defined(__aarch64__)
     static const uint8_t inv_shift_rows[] = {
         0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
         0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
@@ -9254,19 +9255,40 @@ FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);  // inverse shift rows
-    w = _sse2neon_vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
+    w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
 
     // inverse sub bytes
-    v = _sse2neon_vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_rsbox), w);
-    v = _sse2neon_vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x40),
-                             w - 0x40);
-    v = _sse2neon_vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x80),
-                             w - 0x80);
-    v = _sse2neon_vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0xc0),
-                             w - 0xc0);
+    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_rsbox), w);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x40), w - 0x40);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x80), w - 0x80);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0xc0), w - 0xc0);
 
     // add round key
     return vreinterpretq_m128i_u8(v) ^ RoundKey;
+
+#else /* ARMv7-A implementation */
+    // Inverse shift rows indices: 0,13,10,7,4,1,14,11,8,5,2,15,12,9,6,3
+    uint8_t v[16] = {
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 0)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 13)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 10)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 7)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 4)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 1)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 14)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 11)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 8)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 5)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 2)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 15)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 12)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 9)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 6)],
+        _sse2neon_rsbox[vgetq_lane_u8(vreinterpretq_u8_m128i(a), 3)],
+    };
+
+    return _mm_xor_si128(vreinterpretq_m128i_u8(vld1q_u8(v)), RoundKey);
+#endif
 }
 
 // Perform the InvMixColumns transformation on a and store the result in dst.
