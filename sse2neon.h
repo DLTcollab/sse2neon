@@ -244,8 +244,10 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #endif
 }
 
-/* Architecture-specific build options */
-/* FIXME: #pragma GCC push_options is only available on GCC */
+/* Architecture-specific build options.
+ * Note: #pragma GCC push_options is GCC-specific; Clang is explicitly excluded
+ * via !defined(__clang__) checks below.
+ */
 #if defined(__GNUC__)
 #if defined(__arm__) && __ARM_ARCH == 7
 /* According to ARM C Language Extensions Architecture specification,
@@ -271,6 +273,7 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #endif
 #if !defined(__clang__) && !defined(_MSC_VER)
 #pragma GCC push_options
+#pragma GCC target("fpu=neon-fp-armv8")
 #endif
 #else
 #error \
