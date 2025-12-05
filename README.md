@@ -99,8 +99,8 @@ Developers are advised to utilize sse2neon.h with GCC version 10 or higher, or C
 Though floating-point operations in NEON use the IEEE single-precision format, NEON does not fully comply to the IEEE standard when inputs or results are denormal or NaN values for minimizing power consumption as well as maximizing performance.
 Considering the balance between correctness and performance, `sse2neon` recognizes the following compile-time configurations:
 * `SSE2NEON_PRECISE_MINMAX`: Enable precise implementation of `_mm_min_{ps,pd}` and `_mm_max_{ps,pd}`. If you need consistent results such as handling with NaN values, enable it.
-* `SSE2NEON_PRECISE_DIV`: Enable precise implementation of `_mm_rcp_ps` and `_mm_div_ps` by additional Netwon-Raphson iteration for accuracy.
-* `SSE2NEON_PRECISE_SQRT`: Enable precise implementation of `_mm_sqrt_ps` and `_mm_rsqrt_ps` by additional Netwon-Raphson iteration for accuracy.
+* `SSE2NEON_PRECISE_DIV`: Enable precise implementation of `_mm_rcp_ps` and `_mm_div_ps` by additional Newton-Raphson iteration for accuracy.
+* `SSE2NEON_PRECISE_SQRT`: Enable precise implementation of `_mm_sqrt_ps` and `_mm_rsqrt_ps` by additional Newton-Raphson iteration for accuracy.
 * `SSE2NEON_PRECISE_DP`: Enable precise implementation of `_mm_dp_pd`. When the conditional bit is not set, the corresponding multiplication would not be executed.
 * `SSE2NEON_SUPPRESS_WARNINGS`: Set this macro to disable the warning which is emitted by default when optimizations are enabled.
 
