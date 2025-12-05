@@ -55,23 +55,96 @@
 
 /* Tunable configurations */
 
-/* Enable precise implementation of math operations
- * This would slow down the computation a bit, but gives consistent result with
- * x86 SSE. (e.g. would solve a hole or NaN pixel in the rendering result)
+/* PRECISION FLAGS
+ *
+ * These flags control the precision/performance trade-off for operations where
+ * NEON behavior diverges from x86 SSE. Default is 0 (performance over
+ * precision). Set to 1 before including this header for x86-compatible
+ * behavior.
+ *
+ * Example:
+ *   #define SSE2NEON_PRECISE_MINMAX 1  // Enable before include
+ *   #include "sse2neon.h"
+ *
+ * Recommended configurations:
+ *   - Performance: No flags (default)
+ *   - Balanced:    SSE2NEON_PRECISE_MINMAX=1, SSE2NEON_PRECISE_SQRT=1
+ *                  (ARMv7: also consider SSE2NEON_PRECISE_DIV=1 for division)
+ *   - Exact:       All flags set to 1
  */
-/* _mm_min|max_ps|ss|pd|sd */
+
+/* SSE2NEON_PRECISE_MINMAX
+ * Affects: _mm_min_ps, _mm_max_ps, _mm_min_ss, _mm_max_ss,
+ *          _mm_min_pd, _mm_max_pd, _mm_min_sd, _mm_max_sd
+ *
+ * Issue: NEON fmin/fmax propagate NaN differently than SSE. When one operand
+ *        is NaN, SSE returns the second operand while NEON may return NaN.
+ *
+ * Default (0): Fast NEON min/max, potential NaN divergence
+ * Enabled (1): Additional comparison to match x86 NaN handling
+ *
+ * Symptoms when disabled: NaN "holes" in rendered images, unexpected NaN
+ * propagation in signal processing
+ */
 #ifndef SSE2NEON_PRECISE_MINMAX
 #define SSE2NEON_PRECISE_MINMAX (0)
 #endif
-/* _mm_rcp_ps */
+
+/* SSE2NEON_PRECISE_DIV
+ * Affects: _mm_rcp_ps, _mm_rcp_ss (all architectures)
+ *          _mm_div_ps, _mm_div_ss (ARMv7 only, ARMv8 uses native vdivq_f32)
+ *
+ * Issue: NEON reciprocal estimate (vrecpe) has ~11-bit precision. SSE's rcpps
+ *        provides ~12-bit precision. For division on ARMv7, we use reciprocal
+ *        approximation since there's no native divide instruction.
+ *
+ * Default (0): Single Newton-Raphson refinement (~12-bit precision)
+ * Enabled (1): Two N-R refinements (~24-bit precision)
+ *
+ * Note on reciprocals: Enabling this flag makes _mm_rcp_ps MORE accurate than
+ * SSE's specified ~12-bit precision. This improves ARMv7 division accuracy but
+ * may differ from code expecting SSE's coarser reciprocal approximation.
+ *
+ * WARNING: This flag improves numerical precision only. It does NOT fix
+ * IEEE-754 corner-case divergence (NaN propagation, signed zero, infinity
+ * handling). ARMv7 division behavior will still differ from x86 SSE for these
+ * edge cases.
+ *
+ * Symptoms when disabled: Slight precision differences in division-heavy code
+ */
 #ifndef SSE2NEON_PRECISE_DIV
 #define SSE2NEON_PRECISE_DIV (0)
 #endif
-/* _mm_sqrt_ps and _mm_rsqrt_ps */
+
+/* SSE2NEON_PRECISE_SQRT
+ * Affects: _mm_sqrt_ps, _mm_sqrt_ss, _mm_rsqrt_ps, _mm_rsqrt_ss
+ *
+ * Issue: NEON reciprocal square root estimate (vrsqrte) has lower precision
+ *        than x86 SSE's rsqrtps/sqrtps.
+ *
+ * Default (0): Single Newton-Raphson refinement
+ * Enabled (1): Two N-R refinements for improved precision
+ *
+ * Symptoms when disabled: Precision loss in physics simulations, graphics
+ * normalization, or iterative algorithms
+ */
 #ifndef SSE2NEON_PRECISE_SQRT
 #define SSE2NEON_PRECISE_SQRT (0)
 #endif
-/* _mm_dp_pd */
+
+/* SSE2NEON_PRECISE_DP
+ * Affects: _mm_dp_ps, _mm_dp_pd
+ *
+ * Issue: The dot product mask parameter controls which elements participate.
+ *        When an element is masked out, x86 multiplies by 0.0 while NEON
+ *        skips the multiply entirely.
+ *
+ * Default (0): Skip masked elements (faster, but 0.0 * NaN = NaN divergence)
+ * Enabled (1): Multiply masked elements by 0.0 (matches x86 NaN propagation)
+ *
+ * Symptoms when disabled: Different results when dot product inputs contain
+ * NaN in masked-out lanes
+ */
 #ifndef SSE2NEON_PRECISE_DP
 #define SSE2NEON_PRECISE_DP (0)
 #endif
@@ -1827,7 +1900,8 @@ FORCE_INLINE int64_t _mm_cvttss_si64(__m128 a)
 // packed elements in b, and store the results in dst.
 // Due to ARMv7-A NEON's lack of a precise division intrinsic, we implement
 // division by multiplying a by b's reciprocal before using the Newton-Raphson
-// method to approximate the results.
+// method to approximate the results. Use SSE2NEON_PRECISE_DIV for improved
+// precision on ARMv7.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_div_ps
 FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
 {
@@ -1839,8 +1913,10 @@ FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
     float32x4_t _b = vreinterpretq_f32_m128(b);
     float32x4_t recip = vrecpeq_f32(_b);
     recip = vmulq_f32(recip, vrecpsq_f32(recip, _b));
+#if SSE2NEON_PRECISE_DIV
     // Additional Newton-Raphson iteration for accuracy
     recip = vmulq_f32(recip, vrecpsq_f32(recip, _b));
+#endif
     return vreinterpretq_m128_f32(vmulq_f32(_a, recip));
 #endif
 }
