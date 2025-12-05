@@ -863,11 +863,16 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2200(__m128 a, __m128 b)
 
 FORCE_INLINE __m128 _mm_shuffle_ps_3202(__m128 a, __m128 b)
 {
-    float32_t a0 = vgetq_lane_f32(vreinterpretq_f32_m128(a), 0);
-    float32x2_t a22 =
-        vdup_lane_f32(vget_high_f32(vreinterpretq_f32_m128(a)), 0);
-    float32x2_t a02 = vset_lane_f32(a0, a22, 1); /* TODO: use vzip ?*/
-    float32x2_t b32 = vget_high_f32(vreinterpretq_f32_m128(b));
+    float32x4_t _a = vreinterpretq_f32_m128(a);
+    float32x4_t _b = vreinterpretq_f32_m128(b);
+    /* vtrn interleaves elements: trn1({a[2],a[3]}, {a[0],a[1]}) = {a[2], a[0]}
+     */
+#if defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)
+    float32x2_t a02 = vtrn1_f32(vget_high_f32(_a), vget_low_f32(_a));
+#else
+    float32x2_t a02 = vtrn_f32(vget_high_f32(_a), vget_low_f32(_a)).val[0];
+#endif
+    float32x2_t b32 = vget_high_f32(_b);
     return vreinterpretq_m128_f32(vcombine_f32(a02, b32));
 }
 
