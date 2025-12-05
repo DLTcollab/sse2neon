@@ -1501,19 +1501,19 @@ result_t test_mm_cvt_ps2pi(const SSE2NEONTestImpl &impl, uint32_t iter)
         switch (iter & 0x3) {
         case 0:
             _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-            d[idx] = static_cast<int32_t>(bankersRounding(_a[idx]));
+            d[idx] = sse2neon_saturate_cast_int32(bankersRounding(_a[idx]));
             break;
         case 1:
             _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-            d[idx] = static_cast<int32_t>(floorf(_a[idx]));
+            d[idx] = sse2neon_saturate_cast_int32(floorf(_a[idx]));
             break;
         case 2:
             _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-            d[idx] = static_cast<int32_t>(ceilf(_a[idx]));
+            d[idx] = sse2neon_saturate_cast_int32(ceilf(_a[idx]));
             break;
         case 3:
             _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-            d[idx] = static_cast<int32_t>(_a[idx]);
+            d[idx] = sse2neon_saturate_cast_int32(_a[idx]);
             break;
         }
     }
@@ -1548,19 +1548,19 @@ result_t test_mm_cvt_ss2si(const SSE2NEONTestImpl &impl, uint32_t iter)
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d0 = static_cast<int32_t>(bankersRounding(_a[0]));
+        d0 = sse2neon_saturate_cast_int32(bankersRounding(_a[0]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d0 = static_cast<int32_t>(floorf(_a[0]));
+        d0 = sse2neon_saturate_cast_int32(floorf(_a[0]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d0 = static_cast<int32_t>(ceilf(_a[0]));
+        d0 = sse2neon_saturate_cast_int32(ceilf(_a[0]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d0 = static_cast<int32_t>(_a[0]);
+        d0 = sse2neon_saturate_cast_int32(_a[0]);
         break;
     }
 
@@ -1683,23 +1683,23 @@ result_t test_mm_cvtps_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d[0] = static_cast<int32_t>(bankersRounding(_a[0]));
-        d[1] = static_cast<int32_t>(bankersRounding(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(bankersRounding(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(bankersRounding(_a[1]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d[0] = static_cast<int32_t>(floorf(_a[0]));
-        d[1] = static_cast<int32_t>(floorf(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(floorf(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(floorf(_a[1]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d[0] = static_cast<int32_t>(ceilf(_a[0]));
-        d[1] = static_cast<int32_t>(ceilf(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(ceilf(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(ceilf(_a[1]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d[0] = static_cast<int32_t>(_a[0]);
-        d[1] = static_cast<int32_t>(_a[1]);
+        d[0] = sse2neon_saturate_cast_int32(_a[0]);
+        d[1] = sse2neon_saturate_cast_int32(_a[1]);
         break;
     }
 
@@ -1831,19 +1831,19 @@ result_t test_mm_cvtss_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d0 = static_cast<int32_t>(bankersRounding(_a[0]));
+        d0 = sse2neon_saturate_cast_int32(bankersRounding(_a[0]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d0 = static_cast<int32_t>(floorf(_a[0]));
+        d0 = sse2neon_saturate_cast_int32(floorf(_a[0]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d0 = static_cast<int32_t>(ceilf(_a[0]));
+        d0 = sse2neon_saturate_cast_int32(ceilf(_a[0]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d0 = static_cast<int32_t>(_a[0]);
+        d0 = sse2neon_saturate_cast_int32(_a[0]);
         break;
     }
 
@@ -1861,19 +1861,19 @@ result_t test_mm_cvtss_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d0 = static_cast<int64_t>(bankersRounding(_a[0]));
+        d0 = sse2neon_saturate_cast_int64(bankersRounding(_a[0]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d0 = static_cast<int64_t>(floorf(_a[0]));
+        d0 = sse2neon_saturate_cast_int64(floorf(_a[0]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d0 = static_cast<int64_t>(ceilf(_a[0]));
+        d0 = sse2neon_saturate_cast_int64(ceilf(_a[0]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d0 = static_cast<int64_t>(_a[0]);
+        d0 = sse2neon_saturate_cast_int64(_a[0]);
         break;
     }
 
@@ -1888,8 +1888,8 @@ result_t test_mm_cvtt_ps2pi(const SSE2NEONTestImpl &impl, uint32_t iter)
     const float *_a = impl.mTestFloatPointer1;
     int32_t d[2];
 
-    d[0] = static_cast<int32_t>(_a[0]);
-    d[1] = static_cast<int32_t>(_a[1]);
+    d[0] = sse2neon_saturate_cast_int32(_a[0]);
+    d[1] = sse2neon_saturate_cast_int32(_a[1]);
 
     __m128 a = load_m128(_a);
     __m64 ret = _mm_cvtt_ps2pi(a);
@@ -1904,7 +1904,8 @@ result_t test_mm_cvtt_ss2si(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     int ret = _mm_cvtt_ss2si(a);
 
-    return ret == static_cast<int32_t>(_a[0]) ? TEST_SUCCESS : TEST_FAIL;
+    return ret == sse2neon_saturate_cast_int32(_a[0]) ? TEST_SUCCESS
+                                                      : TEST_FAIL;
 }
 
 result_t test_mm_cvttps_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -1912,8 +1913,8 @@ result_t test_mm_cvttps_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     const float *_a = impl.mTestFloatPointer1;
     int32_t d[2];
 
-    d[0] = static_cast<int32_t>(_a[0]);
-    d[1] = static_cast<int32_t>(_a[1]);
+    d[0] = sse2neon_saturate_cast_int32(_a[0]);
+    d[1] = sse2neon_saturate_cast_int32(_a[1]);
 
     __m128 a = load_m128(_a);
     __m64 ret = _mm_cvttps_pi32(a);
@@ -1928,7 +1929,8 @@ result_t test_mm_cvttss_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     int ret = _mm_cvttss_si32(a);
 
-    return ret == static_cast<int32_t>(_a[0]) ? TEST_SUCCESS : TEST_FAIL;
+    return ret == sse2neon_saturate_cast_int32(_a[0]) ? TEST_SUCCESS
+                                                      : TEST_FAIL;
 }
 
 result_t test_mm_cvttss_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -1938,7 +1940,8 @@ result_t test_mm_cvttss_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     int64_t ret = _mm_cvttss_si64(a);
 
-    return ret == static_cast<int64_t>(_a[0]) ? TEST_SUCCESS : TEST_FAIL;
+    return ret == sse2neon_saturate_cast_int64(_a[0]) ? TEST_SUCCESS
+                                                      : TEST_FAIL;
 }
 
 result_t test_mm_div_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -4557,36 +4560,25 @@ OPTNONE result_t test_mm_cvtpd_epi32(const SSE2NEONTestImpl &impl,
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d[0] = static_cast<int32_t>(bankersRounding(_a[0]));
-        d[1] = static_cast<int32_t>(bankersRounding(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(bankersRounding(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(bankersRounding(_a[1]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d[0] = static_cast<int32_t>(floor(_a[0]));
-        d[1] = static_cast<int32_t>(floor(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(floor(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(floor(_a[1]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d[0] = static_cast<int32_t>(ceil(_a[0]));
-        d[1] = static_cast<int32_t>(ceil(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(ceil(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(ceil(_a[1]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d[0] = static_cast<int32_t>(_a[0]);
-        d[1] = static_cast<int32_t>(_a[1]);
+        d[0] = sse2neon_saturate_cast_int32(_a[0]);
+        d[1] = sse2neon_saturate_cast_int32(_a[1]);
         break;
     }
-
-#if defined(__ARM_FEATURE_FRINT) && !defined(__clang__)
-    /* Floats that cannot fit into 32-bits should instead return
-     * indefinite integer value (INT32_MIN). This behaviour is
-     * currently only emulated when using the round-to-integral
-     * instructions. */
-    for (int i = 0; i < 2; i++) {
-        if (_a[i] > (float) INT32_MAX || _a[i] < (float) INT32_MIN)
-            d[i] = INT32_MIN;
-    }
-#endif
 
     __m128d a = load_m128d(_a);
     __m128i ret = _mm_cvtpd_epi32(a);
@@ -4603,23 +4595,23 @@ OPTNONE result_t test_mm_cvtpd_pi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d[0] = static_cast<int32_t>(bankersRounding(_a[0]));
-        d[1] = static_cast<int32_t>(bankersRounding(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(bankersRounding(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(bankersRounding(_a[1]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d[0] = static_cast<int32_t>(floor(_a[0]));
-        d[1] = static_cast<int32_t>(floor(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(floor(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(floor(_a[1]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d[0] = static_cast<int32_t>(ceil(_a[0]));
-        d[1] = static_cast<int32_t>(ceil(_a[1]));
+        d[0] = sse2neon_saturate_cast_int32(ceil(_a[0]));
+        d[1] = sse2neon_saturate_cast_int32(ceil(_a[1]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d[0] = static_cast<int32_t>(_a[0]);
-        d[1] = static_cast<int32_t>(_a[1]);
+        d[0] = sse2neon_saturate_cast_int32(_a[0]);
+        d[1] = sse2neon_saturate_cast_int32(_a[1]);
         break;
     }
 
@@ -4663,25 +4655,25 @@ result_t test_mm_cvtps_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
         for (uint32_t i = 0; i < 4; i++) {
-            d[i] = static_cast<int32_t>(bankersRounding(_a[i]));
+            d[i] = sse2neon_saturate_cast_int32(bankersRounding(_a[i]));
         }
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
         for (uint32_t i = 0; i < 4; i++) {
-            d[i] = static_cast<int32_t>(floorf(_a[i]));
+            d[i] = sse2neon_saturate_cast_int32(floorf(_a[i]));
         }
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
         for (uint32_t i = 0; i < 4; i++) {
-            d[i] = static_cast<int32_t>(ceilf(_a[i]));
+            d[i] = sse2neon_saturate_cast_int32(ceilf(_a[i]));
         }
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
         for (uint32_t i = 0; i < 4; i++) {
-            d[i] = static_cast<int32_t>(_a[i]);
+            d[i] = sse2neon_saturate_cast_int32(_a[i]);
         }
         break;
     }
@@ -4724,19 +4716,19 @@ result_t test_mm_cvtsd_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d = static_cast<int32_t>(bankersRounding(_a[0]));
+        d = sse2neon_saturate_cast_int32(bankersRounding(_a[0]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d = static_cast<int32_t>(floor(_a[0]));
+        d = sse2neon_saturate_cast_int32(floor(_a[0]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d = static_cast<int32_t>(ceil(_a[0]));
+        d = sse2neon_saturate_cast_int32(ceil(_a[0]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d = static_cast<int32_t>(_a[0]);
+        d = sse2neon_saturate_cast_int32(_a[0]);
         break;
     }
 
@@ -4755,19 +4747,19 @@ result_t test_mm_cvtsd_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     switch (iter & 0x3) {
     case 0:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
-        d = static_cast<int64_t>(bankersRounding(_a[0]));
+        d = sse2neon_saturate_cast_int64(bankersRounding(_a[0]));
         break;
     case 1:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-        d = static_cast<int64_t>(floor(_a[0]));
+        d = sse2neon_saturate_cast_int64(floor(_a[0]));
         break;
     case 2:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_UP);
-        d = static_cast<int64_t>(ceil(_a[0]));
+        d = sse2neon_saturate_cast_int64(ceil(_a[0]));
         break;
     case 3:
         _MM_SET_ROUNDING_MODE(_MM_ROUND_TOWARD_ZERO);
-        d = static_cast<int64_t>(_a[0]);
+        d = sse2neon_saturate_cast_int64(_a[0]);
         break;
     }
 
@@ -4909,8 +4901,8 @@ result_t test_mm_cvttpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
         reinterpret_cast<const double *>(impl.mTestFloatPointer1);
 
     __m128d a = load_m128d(_a);
-    int32_t d0 = static_cast<int32_t>(_a[0]);
-    int32_t d1 = static_cast<int32_t>(_a[1]);
+    int32_t d0 = sse2neon_saturate_cast_int32(_a[0]);
+    int32_t d1 = sse2neon_saturate_cast_int32(_a[1]);
 
     __m128i ret = _mm_cvttpd_epi32(a);
     return validateInt32(ret, d0, d1, 0, 0);
@@ -4923,8 +4915,8 @@ OPTNONE result_t test_mm_cvttpd_pi32(const SSE2NEONTestImpl &impl,
         reinterpret_cast<const double *>(impl.mTestFloatPointer1);
 
     __m128d a = load_m128d(_a);
-    int32_t d0 = static_cast<int32_t>(_a[0]);
-    int32_t d1 = static_cast<int32_t>(_a[1]);
+    int32_t d0 = sse2neon_saturate_cast_int32(_a[0]);
+    int32_t d1 = sse2neon_saturate_cast_int32(_a[1]);
 
     __m64 ret = _mm_cvttpd_pi32(a);
     return validateInt32(ret, d0, d1);
@@ -4951,7 +4943,8 @@ result_t test_mm_cvttsd_si32(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d a = _mm_load_sd(_a);
     int32_t ret = _mm_cvttsd_si32(a);
 
-    return ret == static_cast<int32_t>(_a[0]) ? TEST_SUCCESS : TEST_FAIL;
+    return ret == sse2neon_saturate_cast_int32(_a[0]) ? TEST_SUCCESS
+                                                      : TEST_FAIL;
 }
 
 result_t test_mm_cvttsd_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -4962,7 +4955,8 @@ result_t test_mm_cvttsd_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d a = _mm_load_sd(_a);
     int64_t ret = _mm_cvttsd_si64(a);
 
-    return ret == static_cast<int64_t>(_a[0]) ? TEST_SUCCESS : TEST_FAIL;
+    return ret == sse2neon_saturate_cast_int64(_a[0]) ? TEST_SUCCESS
+                                                      : TEST_FAIL;
 }
 
 result_t test_mm_cvttsd_si64x(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -4977,7 +4971,8 @@ result_t test_mm_cvttsd_si64x(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128d a = _mm_load_sd(_a);
     int64_t ret = _mm_cvttsd_si64x(a);
 
-    return ret == static_cast<int64_t>(_a[0]) ? TEST_SUCCESS : TEST_FAIL;
+    return ret == sse2neon_saturate_cast_int64(_a[0]) ? TEST_SUCCESS
+                                                      : TEST_FAIL;
 #endif
 }
 

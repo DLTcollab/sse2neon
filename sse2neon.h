@@ -711,6 +711,87 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #define vreinterpretq_nth_u8_m128i(x, n) \
     (_sse2neon_reinterpret_cast(SIMDVec *, &x)->m128_u8[n])
 
+/* Portable infinity check using IEEE 754 bit representation.
+ * Infinity has all exponent bits set and zero mantissa bits.
+ * This avoids dependency on math.h INFINITY macro or compiler builtins.
+ */
+FORCE_INLINE int _sse2neon_isinf_f32(float v)
+{
+    union {
+        float f;
+        uint32_t u;
+    } u = {v};
+    /* Mask out sign bit, check if remaining bits equal infinity pattern */
+    return (u.u & 0x7FFFFFFF) == 0x7F800000;
+}
+
+FORCE_INLINE int _sse2neon_isinf_f64(double v)
+{
+    union {
+        double d;
+        uint64_t u;
+    } u = {v};
+    return (u.u & 0x7FFFFFFFFFFFFFFFULL) == 0x7FF0000000000000ULL;
+}
+
+/* Safe float/double to integer conversion with x86 SSE semantics.
+ * x86 SSE returns the "integer indefinite" value (0x80000000 for int32,
+ * 0x8000000000000000 for int64) for all out-of-range conversions including
+ * NaN, infinity, and values exceeding the representable range.
+ * ARM NEON differs by saturating to INT_MAX/INT_MIN for overflows and
+ * returning 0 for NaN, so we need these helpers to ensure x86 compatibility.
+ */
+FORCE_INLINE int32_t _sse2neon_cvtd_s32(double v)
+{
+    /* Check for NaN or infinity first */
+    if (v != v || _sse2neon_isinf_f64(v))
+        return INT32_MIN;
+    /* INT32_MAX is exactly representable as double (2147483647.0) */
+    if (v >= _sse2neon_static_cast(double, INT32_MAX) + 1.0)
+        return INT32_MIN;
+    if (v < _sse2neon_static_cast(double, INT32_MIN))
+        return INT32_MIN;
+    return _sse2neon_static_cast(int32_t, v);
+}
+
+FORCE_INLINE int32_t _sse2neon_cvtf_s32(float v)
+{
+    if (v != v || _sse2neon_isinf_f32(v))
+        return INT32_MIN;
+    /* (float)INT32_MAX rounds up to 2147483648.0f, which is out of range.
+     * Use the double representation for accurate comparison. */
+    if (v >= _sse2neon_static_cast(double, INT32_MAX) + 1.0)
+        return INT32_MIN;
+    if (v < _sse2neon_static_cast(double, INT32_MIN))
+        return INT32_MIN;
+    return _sse2neon_static_cast(int32_t, v);
+}
+
+FORCE_INLINE int64_t _sse2neon_cvtd_s64(double v)
+{
+    if (v != v || _sse2neon_isinf_f64(v))
+        return INT64_MIN;
+    /* (double)INT64_MAX rounds up to 2^63 which is out of range.
+     * Any double >= 2^63 is out of range for int64. */
+    if (v >= _sse2neon_static_cast(double, INT64_MAX))
+        return INT64_MIN;
+    if (v < _sse2neon_static_cast(double, INT64_MIN))
+        return INT64_MIN;
+    return _sse2neon_static_cast(int64_t, v);
+}
+
+FORCE_INLINE int64_t _sse2neon_cvtf_s64(float v)
+{
+    if (v != v || _sse2neon_isinf_f32(v))
+        return INT64_MIN;
+    /* (float)INT64_MAX rounds up significantly beyond INT64_MAX */
+    if (v >= _sse2neon_static_cast(float, INT64_MAX))
+        return INT64_MIN;
+    if (v < _sse2neon_static_cast(float, INT64_MIN))
+        return INT64_MIN;
+    return _sse2neon_static_cast(int64_t, v);
+}
+
 /* SSE macros */
 #define _MM_GET_FLUSH_ZERO_MODE _sse2neon_mm_get_flush_zero_mode
 #define _MM_SET_FLUSH_ZERO_MODE _sse2neon_mm_set_flush_zero_mode
@@ -4065,22 +4146,13 @@ FORCE_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtpd_epi32
 FORCE_INLINE __m128i _mm_cvtpd_epi32(__m128d a)
 {
-// vrnd32xq_f64 not supported on clang
-#if defined(__ARM_FEATURE_FRINT) && !defined(__clang__)
-    float64x2_t rounded = vrnd32xq_f64(vreinterpretq_f64_m128d(a));
-    int64x2_t integers = vcvtq_s64_f64(rounded);
-    return vreinterpretq_m128i_s32(
-        vcombine_s32(vmovn_s64(integers), vdup_n_s32(0)));
-#else
     __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
     double d0, d1;
     d0 = sse2neon_recast_u64_f64(
         vgetq_lane_u64(vreinterpretq_u64_m128d(rnd), 0));
     d1 = sse2neon_recast_u64_f64(
         vgetq_lane_u64(vreinterpretq_u64_m128d(rnd), 1));
-    return _mm_set_epi32(0, 0, _sse2neon_static_cast(int32_t, d1),
-                         _sse2neon_static_cast(int32_t, d0));
-#endif
+    return _mm_set_epi32(0, 0, _sse2neon_cvtd_s32(d1), _sse2neon_cvtd_s32(d0));
 }
 
 // Convert packed double-precision (64-bit) floating-point elements in a to
@@ -4094,8 +4166,10 @@ FORCE_INLINE __m64 _mm_cvtpd_pi32(__m128d a)
         vgetq_lane_u64(vreinterpretq_u64_m128d(rnd), 0));
     d1 = sse2neon_recast_u64_f64(
         vgetq_lane_u64(vreinterpretq_u64_m128d(rnd), 1));
-    int32_t ALIGN_STRUCT(16) data[2] = {_sse2neon_static_cast(int32_t, d0),
-                                        _sse2neon_static_cast(int32_t, d1)};
+    int32_t ALIGN_STRUCT(16) data[2] = {
+        _sse2neon_cvtd_s32(d0),
+        _sse2neon_cvtd_s32(d1),
+    };
     return vreinterpret_m64_s32(vld1_s32(data));
 }
 
@@ -4229,15 +4303,10 @@ FORCE_INLINE double _mm_cvtsd_f64(__m128d a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtsd_si32
 FORCE_INLINE int32_t _mm_cvtsd_si32(__m128d a)
 {
-#if SSE2NEON_ARCH_AARCH64
-    return _sse2neon_static_cast(
-        int32_t, vgetq_lane_f64(vrndiq_f64(vreinterpretq_f64_m128d(a)), 0));
-#else
     __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
     double ret = sse2neon_recast_u64_f64(
         vgetq_lane_u64(vreinterpretq_u64_m128d(rnd), 0));
-    return _sse2neon_static_cast(int32_t, ret);
-#endif
+    return _sse2neon_cvtd_s32(ret);
 }
 
 // Convert the lower double-precision (64-bit) floating-point element in a to a
@@ -4245,15 +4314,10 @@ FORCE_INLINE int32_t _mm_cvtsd_si32(__m128d a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvtsd_si64
 FORCE_INLINE int64_t _mm_cvtsd_si64(__m128d a)
 {
-#if SSE2NEON_ARCH_AARCH64
-    return _sse2neon_static_cast(
-        int64_t, vgetq_lane_f64(vrndiq_f64(vreinterpretq_f64_m128d(a)), 0));
-#else
     __m128d rnd = _mm_round_pd(a, _MM_FROUND_CUR_DIRECTION);
     double ret = sse2neon_recast_u64_f64(
         vgetq_lane_u64(vreinterpretq_u64_m128d(rnd), 0));
-    return _sse2neon_static_cast(int64_t, ret);
-#endif
+    return _sse2neon_cvtd_s64(ret);
 }
 
 // Convert the lower double-precision (64-bit) floating-point element in a to a
@@ -4387,8 +4451,7 @@ FORCE_INLINE __m128i _mm_cvttpd_epi32(__m128d a)
     double a0, a1;
     a0 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
     a1 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 1));
-    return _mm_set_epi32(0, 0, _sse2neon_static_cast(int32_t, a1),
-                         _sse2neon_static_cast(int32_t, a0));
+    return _mm_set_epi32(0, 0, _sse2neon_cvtd_s32(a1), _sse2neon_cvtd_s32(a0));
 }
 
 // Convert packed double-precision (64-bit) floating-point elements in a to
@@ -4399,8 +4462,8 @@ FORCE_INLINE __m64 _mm_cvttpd_pi32(__m128d a)
     double a0, a1;
     a0 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
     a1 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 1));
-    int32_t ALIGN_STRUCT(16) data[2] = {_sse2neon_static_cast(int32_t, a0),
-                                        _sse2neon_static_cast(int32_t, a1)};
+    int32_t ALIGN_STRUCT(16) data[2] = {_sse2neon_cvtd_s32(a0),
+                                        _sse2neon_cvtd_s32(a1)};
     return vreinterpret_m64_s32(vld1_s32(data));
 }
 
@@ -4419,7 +4482,7 @@ FORCE_INLINE int32_t _mm_cvttsd_si32(__m128d a)
 {
     double _a =
         sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
-    return _sse2neon_static_cast(int32_t, _a);
+    return _sse2neon_cvtd_s32(_a);
 }
 
 // Convert the lower double-precision (64-bit) floating-point element in a to a
@@ -4427,13 +4490,9 @@ FORCE_INLINE int32_t _mm_cvttsd_si32(__m128d a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvttsd_si64
 FORCE_INLINE int64_t _mm_cvttsd_si64(__m128d a)
 {
-#if SSE2NEON_ARCH_AARCH64
-    return vgetq_lane_s64(vcvtq_s64_f64(vreinterpretq_f64_m128d(a)), 0);
-#else
     double _a =
         sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
-    return _sse2neon_static_cast(int64_t, _a);
-#endif
+    return _sse2neon_cvtd_s64(_a);
 }
 
 // Convert the lower double-precision (64-bit) floating-point element in a to a
