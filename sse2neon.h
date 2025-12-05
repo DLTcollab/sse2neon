@@ -4868,10 +4868,9 @@ FORCE_INLINE __m64 _mm_mul_su32(__m64 a, __m64 b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_mulhi_epi16
 FORCE_INLINE __m128i _mm_mulhi_epi16(__m128i a, __m128i b)
 {
-    /* FIXME: issue with large values because of result saturation */
-    // int16x8_t ret = vqdmulhq_s16(vreinterpretq_s16_m128i(a),
-    // vreinterpretq_s16_m128i(b)); /* =2*a*b */ return
-    // vreinterpretq_m128i_s16(vshrq_n_s16(ret, 1));
+    // vmull_s16 is used instead of vqdmulhq_s16 to avoid saturation issues
+    // with large values (e.g., -32768 * -32768). vmull_s16 produces full 32-bit
+    // products without saturation.
     int16x4_t a3210 = vget_low_s16(vreinterpretq_s16_m128i(a));
     int16x4_t b3210 = vget_low_s16(vreinterpretq_s16_m128i(b));
     int32x4_t ab3210 = vmull_s16(a3210, b3210); /* 3333222211110000 */
