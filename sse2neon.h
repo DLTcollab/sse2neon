@@ -1835,11 +1835,13 @@ FORCE_INLINE __m128 _mm_div_ps(__m128 a, __m128 b)
     return vreinterpretq_m128_f32(
         vdivq_f32(vreinterpretq_f32_m128(a), vreinterpretq_f32_m128(b)));
 #else
-    float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(b));
-    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(b)));
-    // Additional Netwon-Raphson iteration for accuracy
-    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(b)));
-    return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(a), recip));
+    float32x4_t _a = vreinterpretq_f32_m128(a);
+    float32x4_t _b = vreinterpretq_f32_m128(b);
+    float32x4_t recip = vrecpeq_f32(_b);
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, _b));
+    // Additional Newton-Raphson iteration for accuracy
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, _b));
+    return vreinterpretq_m128_f32(vmulq_f32(_a, recip));
 #endif
 }
 
@@ -2412,11 +2414,12 @@ FORCE_INLINE void _mm_prefetch(char const *p, int i)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_rcp_ps
 FORCE_INLINE __m128 _mm_rcp_ps(__m128 in)
 {
-    float32x4_t recip = vrecpeq_f32(vreinterpretq_f32_m128(in));
-    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
+    float32x4_t _in = vreinterpretq_f32_m128(in);
+    float32x4_t recip = vrecpeq_f32(_in);
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, _in));
 #if SSE2NEON_PRECISE_DIV
-    // Additional Netwon-Raphson iteration for accuracy
-    recip = vmulq_f32(recip, vrecpsq_f32(recip, vreinterpretq_f32_m128(in)));
+    // Additional Newton-Raphson iteration for accuracy
+    recip = vmulq_f32(recip, vrecpsq_f32(recip, _in));
 #endif
     return vreinterpretq_m128_f32(recip);
 }
@@ -2437,7 +2440,8 @@ FORCE_INLINE __m128 _mm_rcp_ss(__m128 a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_rsqrt_ps
 FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
 {
-    float32x4_t out = vrsqrteq_f32(vreinterpretq_f32_m128(in));
+    float32x4_t _in = vreinterpretq_f32_m128(in);
+    float32x4_t out = vrsqrteq_f32(_in);
 
     // Generate masks for detecting whether input has any 0.0f/-0.0f
     // (which becomes positive/negative infinity by IEEE-754 arithmetic rules).
@@ -2448,12 +2452,10 @@ FORCE_INLINE __m128 _mm_rsqrt_ps(__m128 in)
     const uint32x4_t has_neg_zero =
         vceqq_u32(neg_inf, vreinterpretq_u32_f32(out));
 
-    out = vmulq_f32(
-        out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+    out = vmulq_f32(out, vrsqrtsq_f32(vmulq_f32(_in, out), out));
 #if SSE2NEON_PRECISE_SQRT
-    // Additional Netwon-Raphson iteration for accuracy
-    out = vmulq_f32(
-        out, vrsqrtsq_f32(vmulq_f32(vreinterpretq_f32_m128(in), out), out));
+    // Additional Newton-Raphson iteration for accuracy
+    out = vmulq_f32(out, vrsqrtsq_f32(vmulq_f32(_in, out), out));
 #endif
 
     // Set output vector element to infinity/negative-infinity if
@@ -2775,7 +2777,8 @@ FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
 #if SSE2NEON_ARCH_AARCH64 && !SSE2NEON_PRECISE_SQRT
     return vreinterpretq_m128_f32(vsqrtq_f32(vreinterpretq_f32_m128(in)));
 #else
-    float32x4_t recip = vrsqrteq_f32(vreinterpretq_f32_m128(in));
+    float32x4_t _in = vreinterpretq_f32_m128(in);
+    float32x4_t recip = vrsqrteq_f32(_in);
 
     // Test for vrsqrteq_f32(0) -> positive infinity case.
     // Change to zero, so that s * 1/sqrt(s) result is zero too.
@@ -2785,16 +2788,12 @@ FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
     recip = vreinterpretq_f32_u32(
         vandq_u32(vmvnq_u32(div_by_zero), vreinterpretq_u32_f32(recip)));
 
-    recip = vmulq_f32(
-        vrsqrtsq_f32(vmulq_f32(recip, recip), vreinterpretq_f32_m128(in)),
-        recip);
-    // Additional Netwon-Raphson iteration for accuracy
-    recip = vmulq_f32(
-        vrsqrtsq_f32(vmulq_f32(recip, recip), vreinterpretq_f32_m128(in)),
-        recip);
+    recip = vmulq_f32(vrsqrtsq_f32(vmulq_f32(recip, recip), _in), recip);
+    // Additional Newton-Raphson iteration for accuracy
+    recip = vmulq_f32(vrsqrtsq_f32(vmulq_f32(recip, recip), _in), recip);
 
     // sqrt(s) = s * 1/sqrt(s)
-    return vreinterpretq_m128_f32(vmulq_f32(vreinterpretq_f32_m128(in), recip));
+    return vreinterpretq_m128_f32(vmulq_f32(_in, recip));
 #endif
 }
 
@@ -7514,45 +7513,40 @@ FORCE_INLINE __m128i _mm_min_epu32(__m128i a, __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_minpos_epu16
 FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
 {
-    __m128i dst;
     uint16_t min, idx = 0;
 #if SSE2NEON_ARCH_AARCH64
+    uint16x8_t _a = vreinterpretq_u16_m128i(a);
     // Find the minimum value
-    min = vminvq_u16(vreinterpretq_u16_m128i(a));
+    min = vminvq_u16(_a);
 
     // Get the index of the minimum value
     static const uint16_t idxv[] = {0, 1, 2, 3, 4, 5, 6, 7};
     uint16x8_t minv = vdupq_n_u16(min);
-    uint16x8_t cmeq = vceqq_u16(minv, vreinterpretq_u16_m128i(a));
+    uint16x8_t cmeq = vceqq_u16(minv, _a);
     idx = vminvq_u16(vornq_u16(vld1q_u16(idxv), cmeq));
 #else
+    uint16x8_t _a = vreinterpretq_u16_m128i(a);
     // Find the minimum value
-    __m64 tmp;
-    tmp = vreinterpret_m64_u16(
-        vmin_u16(vget_low_u16(vreinterpretq_u16_m128i(a)),
-                 vget_high_u16(vreinterpretq_u16_m128i(a))));
-    tmp = vreinterpret_m64_u16(
-        vpmin_u16(vreinterpret_u16_m64(tmp), vreinterpret_u16_m64(tmp)));
-    tmp = vreinterpret_m64_u16(
-        vpmin_u16(vreinterpret_u16_m64(tmp), vreinterpret_u16_m64(tmp)));
-    min = vget_lane_u16(vreinterpret_u16_m64(tmp), 0);
+    uint16x4_t tmp = vmin_u16(vget_low_u16(_a), vget_high_u16(_a));
+    tmp = vpmin_u16(tmp, tmp);
+    tmp = vpmin_u16(tmp, tmp);
+    min = vget_lane_u16(tmp, 0);
     // Get the index of the minimum value
     int i;
     for (i = 0; i < 8; i++) {
-        if (min == vgetq_lane_u16(vreinterpretq_u16_m128i(a), 0)) {
+        if (min == vgetq_lane_u16(_a, 0)) {
             idx = (uint16_t) i;
             break;
         }
-        a = _mm_srli_si128(a, 2);
+        _a = vreinterpretq_u16_s8(
+            vextq_s8(vreinterpretq_s8_u16(_a), vreinterpretq_s8_u16(_a), 2));
     }
 #endif
     // Generate result
-    dst = _mm_setzero_si128();
-    dst = vreinterpretq_m128i_u16(
-        vsetq_lane_u16(min, vreinterpretq_u16_m128i(dst), 0));
-    dst = vreinterpretq_m128i_u16(
-        vsetq_lane_u16(idx, vreinterpretq_u16_m128i(dst), 1));
-    return dst;
+    uint16x8_t result = vdupq_n_u16(0);
+    result = vsetq_lane_u16(min, result, 0);
+    result = vsetq_lane_u16(idx, result, 1);
+    return vreinterpretq_m128i_u16(result);
 }
 
 // Compute the sum of absolute differences (SADs) of quadruplets of unsigned
