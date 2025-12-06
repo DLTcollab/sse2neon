@@ -26,7 +26,9 @@ Header file | Extension |
 `sse2neon` supports SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, and AES extensions.
 
 Some SSE intrinsics map directly to a single NEON intrinsic (e.g., `_mm_loadu_si128` → `vld1q_s32`),
-while others require multiple NEON instructions (e.g., `_mm_maddubs_epi16` uses 13+ instructions).
+while others require multiple NEON instructions (e.g., `_mm_maddubs_epi16` uses 13 instructions).
+
+See [perf-tier.md](perf-tier.md) for detailed performance tier classification of all intrinsics.
 
 ### Floating-point Compatibility
 
