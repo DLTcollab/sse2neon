@@ -4459,12 +4459,46 @@ FORCE_INLINE __m128i _mm_cvttpd_epi32(__m128d a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_cvttpd_pi32
 FORCE_INLINE __m64 _mm_cvttpd_pi32(__m128d a)
 {
+#if SSE2NEON_ARCH_AARCH64
+    /* Vectorized AArch64 path - branchless, no memory round-trip */
+    float64x2_t f = vreinterpretq_f64_m128d(a);
+
+    /* Convert f64 to i64 with truncation toward zero.
+     * Out-of-range values produce undefined results, but we mask them below.
+     */
+    int64x2_t i64 = vcvtq_s64_f64(f);
+
+    /* Detect values outside INT32 range: >= 2147483648.0 or < -2147483648.0
+     * x86 returns INT32_MIN (0x80000000) for these cases.
+     */
+    float64x2_t max_f = vdupq_n_f64(2147483648.0); /* INT32_MAX + 1 */
+    float64x2_t min_f = vdupq_n_f64(-2147483648.0);
+    uint64x2_t overflow = vorrq_u64(vcgeq_f64(f, max_f), vcltq_f64(f, min_f));
+
+    /* Detect NaN: a value is NaN if it's not equal to itself.
+     * Use XOR with all-ones since vmvnq_u64 doesn't exist. */
+    uint64x2_t eq_self = vceqq_f64(f, f);
+    uint64x2_t is_nan = veorq_u64(eq_self, vdupq_n_u64(UINT64_MAX));
+
+    /* Combine: any overflow or NaN should produce INT32_MIN */
+    uint64x2_t need_indefinite = vorrq_u64(overflow, is_nan);
+
+    /* Narrow i64 to i32 (simple truncation of upper 32 bits) */
+    int32x2_t i32 = vmovn_s64(i64);
+
+    /* Blend: select INT32_MIN where needed, otherwise use converted value */
+    uint32x2_t mask32 = vmovn_u64(need_indefinite);
+    int32x2_t indefinite = vdup_n_s32(INT32_MIN);
+    return vreinterpret_m64_s32(vbsl_s32(mask32, indefinite, i32));
+#else
+    /* Scalar fallback for ARMv7 (no f64 SIMD support) */
     double a0, a1;
     a0 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
     a1 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 1));
     int32_t ALIGN_STRUCT(16) data[2] = {_sse2neon_cvtd_s32(a0),
                                         _sse2neon_cvtd_s32(a1)};
     return vreinterpret_m64_s32(vld1_s32(data));
+#endif
 }
 
 // Convert packed single-precision (32-bit) floating-point elements in a to
