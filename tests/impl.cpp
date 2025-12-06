@@ -9849,6 +9849,9 @@ result_t test_mm_testz_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 #define IMM_UBYTE_EACH_LEAST_MASKED_NEGATIVE                            \
     (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_LEAST_SIGNIFICANT | \
      _SIDD_MASKED_NEGATIVE_POLARITY)
+#define IMM_UBYTE_EACH_LEAST_MASKED_POSITIVE                            \
+    (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_LEAST_SIGNIFICANT | \
+     _SIDD_MASKED_POSITIVE_POLARITY)
 #define IMM_UBYTE_EACH_MOST \
     (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_MOST_SIGNIFICANT)
 #define IMM_UBYTE_EACH_MOST_NEGATIVE                                   \
@@ -9865,6 +9868,9 @@ result_t test_mm_testz_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 #define IMM_UBYTE_ANY_LEAST_MASKED_NEGATIVE                            \
     (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | \
      _SIDD_MASKED_NEGATIVE_POLARITY)
+#define IMM_UBYTE_ANY_LEAST_MASKED_POSITIVE                            \
+    (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_LEAST_SIGNIFICANT | \
+     _SIDD_MASKED_POSITIVE_POLARITY)
 #define IMM_UBYTE_ANY_MOST \
     (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_MOST_SIGNIFICANT)
 #define IMM_UBYTE_ANY_MOST_NEGATIVE                                   \
@@ -9988,6 +9994,9 @@ result_t test_mm_testz_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 #define IMM_UWORD_EACH_LEAST_MASKED_NEGATIVE                            \
     (_SIDD_UWORD_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_LEAST_SIGNIFICANT | \
      _SIDD_MASKED_NEGATIVE_POLARITY)
+#define IMM_UWORD_EACH_LEAST_MASKED_POSITIVE                            \
+    (_SIDD_UWORD_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_LEAST_SIGNIFICANT | \
+     _SIDD_MASKED_POSITIVE_POLARITY)
 #define IMM_UWORD_EACH_MOST_MASKED_NEGATIVE                            \
     (_SIDD_UWORD_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_MOST_SIGNIFICANT | \
      _SIDD_MASKED_NEGATIVE_POLARITY)
@@ -10385,7 +10394,7 @@ result_t test_mm_cmpestrc(const SSE2NEONTestImpl &impl, uint32_t iter)
     return TEST_SUCCESS;
 }
 
-#define TEST_MM_CMPESTRI_UBYTE_DATA_LEN 4
+#define TEST_MM_CMPESTRI_UBYTE_DATA_LEN 5
 static test_mm_cmpestri_ubyte_data_t
     test_mm_cmpestri_ubyte_data[TEST_MM_CMPESTRI_UBYTE_DATA_LEN] = {
         {{23, 89, 255, 0, 90, 45, 67, 12, 1, 56, 200, 141, 3, 4, 2, 76},
@@ -10414,6 +10423,19 @@ static test_mm_cmpestri_ubyte_data_t
          15,
          IMM_UBYTE_ORDERED_LEAST,
          6},
+        /* MASKED_POSITIVE_POLARITY test: a={1,2,3,4,...}, b={1,2,99,4,...}
+         * la=16, lb=4. EQUAL_EACH compares element-wise for valid positions:
+         *   b[0]=1==a[0]=1 (match), b[1]=2==a[1]=2 (match),
+         *   b[2]=99!=a[2]=3 (no match), b[3]=4==a[3]=4 (match).
+         * IntRes1 = 0b1011 (bits 0,1,3 set for matches).
+         * MASKED_POSITIVE keeps bits < lb=4, zeros bits >= 4.
+         * IntRes2 = 0b1011. First set bit is at index 0. */
+        {{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+         {1, 2, 99, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+         16,
+         4,
+         IMM_UBYTE_EACH_LEAST_MASKED_POSITIVE,
+         0},
 };
 
 #define TEST_MM_CMPESTRI_SBYTE_DATA_LEN 4
@@ -10445,7 +10467,7 @@ static test_mm_cmpestri_sbyte_data_t
          3},
 };
 
-#define TEST_MM_CMPESTRI_UWORD_DATA_LEN 4
+#define TEST_MM_CMPESTRI_UWORD_DATA_LEN 5
 static test_mm_cmpestri_uword_data_t
     test_mm_cmpestri_uword_data[TEST_MM_CMPESTRI_UWORD_DATA_LEN] = {
         {{45, 65535, 0, 87, 1000, 10, 45, 26},
@@ -10472,6 +10494,18 @@ static test_mm_cmpestri_uword_data_t
          8,
          IMM_UWORD_ORDERED_LEAST,
          3},
+        /* MASKED_POSITIVE_POLARITY test for UWORD:
+         * a={100,200,300,400}, b={100,200,999,400,500,600,700,800}
+         * lb=3, so only first 3 elements of b are considered.
+         * EQUAL_EACH: b[0]==a[0], b[1]==a[1], b[2]!=a[2]. Result: 0b011.
+         * MASKED_POSITIVE keeps bits < lb=3, zeros bits >= 3.
+         * Result: 0b011. First set bit at index 0. */
+        {{100, 200, 300, 400, 500, 600, 700, 800},
+         {100, 200, 999, 400, 500, 600, 700, 800},
+         8,
+         3,
+         IMM_UWORD_EACH_LEAST_MASKED_POSITIVE,
+         0},
 };
 
 #define TEST_MM_CMPESTRI_SWORD_DATA_LEN 4
@@ -10507,7 +10541,8 @@ static test_mm_cmpestri_sword_data_t
     _(UBYTE_ANY_LEAST_NEGATIVE, __VA_ARGS__) \
     _(UBYTE_EACH_LEAST, __VA_ARGS__)         \
     _(UBYTE_RANGES_LEAST, __VA_ARGS__)       \
-    _(UBYTE_ORDERED_LEAST, __VA_ARGS__)
+    _(UBYTE_ORDERED_LEAST, __VA_ARGS__)      \
+    _(UBYTE_EACH_LEAST_MASKED_POSITIVE, __VA_ARGS__)
 
 #define MM_CMPESTRI_SBYTE_TEST_CASES(_, ...) \
     _(SBYTE_EACH_LEAST, __VA_ARGS__)         \
@@ -10519,7 +10554,8 @@ static test_mm_cmpestri_sword_data_t
     _(UWORD_EACH_LEAST, __VA_ARGS__)         \
     _(UWORD_ANY_LEAST, __VA_ARGS__)          \
     _(UWORD_RANGES_LEAST, __VA_ARGS__)       \
-    _(UWORD_ORDERED_LEAST, __VA_ARGS__)
+    _(UWORD_ORDERED_LEAST, __VA_ARGS__)      \
+    _(UWORD_EACH_LEAST_MASKED_POSITIVE, __VA_ARGS__)
 
 #define MM_CMPESTRI_SWORD_TEST_CASES(_, ...) \
     _(SWORD_RANGES_MOST, __VA_ARGS__)        \
@@ -10575,6 +10611,9 @@ typedef struct {
 #define IMM_UBYTE_EACH_UNIT_NEGATIVE                            \
     (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK | \
      _SIDD_NEGATIVE_POLARITY)
+#define IMM_UBYTE_EACH_UNIT_MASKED_POSITIVE                     \
+    (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK | \
+     _SIDD_MASKED_POSITIVE_POLARITY)
 #define IMM_UBYTE_ANY_UNIT \
     (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_UNIT_MASK)
 #define IMM_UBYTE_ANY_BIT \
@@ -10586,6 +10625,9 @@ typedef struct {
 
 #define IMM_SBYTE_EACH_UNIT \
     (_SIDD_SBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK)
+#define IMM_SBYTE_EACH_UNIT_MASKED_POSITIVE                     \
+    (_SIDD_SBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK | \
+     _SIDD_MASKED_POSITIVE_POLARITY)
 #define IMM_SBYTE_EACH_BIT_MASKED_NEGATIVE                     \
     (_SIDD_SBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_BIT_MASK | \
      _SIDD_MASKED_NEGATIVE_POLARITY)
@@ -10603,6 +10645,9 @@ typedef struct {
     (_SIDD_UWORD_OPS | _SIDD_CMP_RANGES | _SIDD_UNIT_MASK)
 #define IMM_UWORD_EACH_UNIT \
     (_SIDD_UWORD_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK)
+#define IMM_UWORD_EACH_UNIT_MASKED_POSITIVE                     \
+    (_SIDD_UWORD_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK | \
+     _SIDD_MASKED_POSITIVE_POLARITY)
 #define IMM_UWORD_ANY_UNIT \
     (_SIDD_UWORD_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_UNIT_MASK)
 #define IMM_UWORD_ANY_BIT \
@@ -10619,138 +10664,195 @@ typedef struct {
     (_SIDD_SWORD_OPS | _SIDD_CMP_RANGES | _SIDD_BIT_MASK)
 #define IMM_SWORD_EACH_UNIT \
     (_SIDD_SWORD_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK)
+#define IMM_SWORD_EACH_UNIT_MASKED_POSITIVE                     \
+    (_SIDD_SWORD_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_UNIT_MASK | \
+     _SIDD_MASKED_POSITIVE_POLARITY)
 #define IMM_SWORD_ANY_UNIT \
     (_SIDD_SWORD_OPS | _SIDD_CMP_EQUAL_ANY | _SIDD_UNIT_MASK)
 #define IMM_SWORD_ORDERED_UNIT \
     (_SIDD_SWORD_OPS | _SIDD_CMP_EQUAL_ORDERED | _SIDD_UNIT_MASK)
 
-#define TEST_MM_CMPESTRM_UBYTE_DATA_LEN 4
+#define TEST_MM_CMPESTRM_UBYTE_DATA_LEN 5
 static test_mm_cmpestrm_ubyte_data_t
     test_mm_cmpestrm_ubyte_data[TEST_MM_CMPESTRM_UBYTE_DATA_LEN] = {
-        {{85, 115, 101, 70, 108, 97, 116, 65, 115, 115, 101, 109, 98, 108, 101,
-          114},
-         {85, 115, 105, 110, 103, 65, 110, 65, 115, 115, 101, 109, 98, 108, 101,
-          114},
-         16,
-         16,
-         IMM_UBYTE_EACH_UNIT_NEGATIVE,
-         {0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-        {{97, 101, 105, 111, 117, 121},
-         {89, 111, 117, 32, 68, 114, 105, 118, 101, 32, 77, 101, 32, 77, 97,
-          100},
-         6,
-         16,
-         IMM_UBYTE_ANY_UNIT,
-         {0, 255, 255, 0, 0, 0, 255, 0, 255, 0, 0, 255, 0, 0, 255, 0}},
-        {{97, 122, 65, 90},
-         {73, 39, 109, 32, 104, 101, 114, 101, 32, 98, 101, 99, 97, 117, 115,
-          101},
-         4,
-         16,
-         IMM_UBYTE_RANGES_UNIT,
-         {255, 0, 255, 0, 255, 255, 255, 255, 0, 255, 255, 255, 255, 255, 255,
-          255}},
-        {{87, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-         {87, 104, 101, 110, 87, 101, 87, 105, 108, 108, 66, 101, 87, 101, 100,
-          33},
-         2,
-         16,
-         IMM_UBYTE_ORDERED_UNIT,
-         {0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0}},
+        {
+            {85, 115, 101, 70, 108, 97, 116, 65, 115, 115, 101, 109, 98, 108,
+             101, 114},
+            {85, 115, 105, 110, 103, 65, 110, 65, 115, 115, 101, 109, 98, 108,
+             101, 114},
+            16,
+            16,
+            IMM_UBYTE_EACH_UNIT_NEGATIVE,
+            {0, 0, 255, 255, 255, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {97, 101, 105, 111, 117, 121},
+            {89, 111, 117, 32, 68, 114, 105, 118, 101, 32, 77, 101, 32, 77, 97,
+             100},
+            6,
+            16,
+            IMM_UBYTE_ANY_UNIT,
+            {0, 255, 255, 0, 0, 0, 255, 0, 255, 0, 0, 255, 0, 0, 255, 0},
+        },
+        {
+            {97, 122, 65, 90},
+            {73, 39, 109, 32, 104, 101, 114, 101, 32, 98, 101, 99, 97, 117, 115,
+             101},
+            4,
+            16,
+            IMM_UBYTE_RANGES_UNIT,
+            {255, 0, 255, 0, 255, 255, 255, 255, 0, 255, 255, 255, 255, 255,
+             255, 255},
+        },
+        {
+            {87, 101, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            {87, 104, 101, 110, 87, 101, 87, 105, 108, 108, 66, 101, 87, 101,
+             100, 33},
+            2,
+            16,
+            IMM_UBYTE_ORDERED_UNIT,
+            {0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0},
+        },
+        /* MASKED_POSITIVE_POLARITY test for mask output:
+         * a={1,2,3,...}, b={1,2,99,4,...}, la=16, lb=5
+         * EQUAL_EACH compares element-wise for positions 0 to lb-1:
+         *   b[0]=1==a[0]=1 → match, b[1]=2==a[1]=2 → match,
+         *   b[2]=99!=a[2]=3 → no match, b[3]=4==a[3]=4 → match,
+         *   b[4]=5==a[4]=5 → match
+         * IntRes1 = 0b11011 (positions 0,1,3,4 match).
+         * MASKED_POSITIVE keeps bits < lb=5, zeros bits >= 5.
+         * IntRes2 = 0b11011 (no change since lb=5 covers all set bits).
+         * With UNIT_MASK, output byte[i] = 0xFF if bit i is set.
+         * Expected: {255,255,0,255,255, 0,0,0,0,0,0,0,0,0,0,0} */
+        {
+            {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+            {1, 2, 99, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16},
+            16,
+            5,
+            IMM_UBYTE_EACH_UNIT_MASKED_POSITIVE,
+            {255, 255, 0, 255, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
 };
 
 #define TEST_MM_CMPESTRM_SBYTE_DATA_LEN 4
 static test_mm_cmpestrm_sbyte_data_t
     test_mm_cmpestrm_sbyte_data[TEST_MM_CMPESTRM_SBYTE_DATA_LEN] = {
-        {{-127, -127, 34, 88, 0, 1, -1, 78, 90, 9, 23, 34, 3, -128, 127, 0},
-         {0, -127, 34, 88, 12, 43, -128, 78, 8, 9, 43, 32, 7, 126, 115, 0},
-         16,
-         16,
-         IMM_SBYTE_EACH_UNIT,
-         {0, -1, -1, -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, -1}},
-        {{0, 32, 7, 115, -128, 44, 33},
-         {0, -127, 34, 88, 12, 43, -128, 78, 8, 9, 43, 32, 7, 126, 115, 0},
-         7,
-         10,
-         IMM_SBYTE_ANY_UNIT_MASKED_NEGATIVE,
-         {0, -1, -1, -1, -1, -1, 0, -1, -1, -1, 0, 0, 0, 0, 0, 0}},
-        {{-128, -80, -90, 10, 33},
-         {-126, -93, -80, -77, -56, -23, -10, -1, 0, 3, 10, 12, 13, 33, 34, 56},
-         5,
-         16,
-         IMM_SBYTE_RANGES_UNIT,
-         {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0}},
-        {{104, 9, -12},
-         {0, 0, 87, 104, 9, -12, 89, -117, 9, 10, -11, 87, -114, 104, 9, -61},
-         3,
-         16,
-         IMM_SBYTE_ORDERED_UNIT,
-         {0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+        {
+            {-127, -127, 34, 88, 0, 1, -1, 78, 90, 9, 23, 34, 3, -128, 127, 0},
+            {0, -127, 34, 88, 12, 43, -128, 78, 8, 9, 43, 32, 7, 126, 115, 0},
+            16,
+            16,
+            IMM_SBYTE_EACH_UNIT,
+            {0, -1, -1, -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 0, 0, -1},
+        },
+        {
+            {0, 32, 7, 115, -128, 44, 33},
+            {0, -127, 34, 88, 12, 43, -128, 78, 8, 9, 43, 32, 7, 126, 115, 0},
+            7,
+            10,
+            IMM_SBYTE_ANY_UNIT_MASKED_NEGATIVE,
+            {0, -1, -1, -1, -1, -1, 0, -1, -1, -1, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {-128, -80, -90, 10, 33},
+            {-126, -93, -80, -77, -56, -23, -10, -1, 0, 3, 10, 12, 13, 33, 34,
+             56},
+            5,
+            16,
+            IMM_SBYTE_RANGES_UNIT,
+            {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0},
+        },
+        {
+            {104, 9, -12},
+            {0, 0, 87, 104, 9, -12, 89, -117, 9, 10, -11, 87, -114, 104, 9,
+             -61},
+            3,
+            16,
+            IMM_SBYTE_ORDERED_UNIT,
+            {0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
 };
 
 #define TEST_MM_CMPESTRM_UWORD_DATA_LEN 4
 static test_mm_cmpestrm_uword_data_t
     test_mm_cmpestrm_uword_data[TEST_MM_CMPESTRM_UWORD_DATA_LEN] = {
-        {{1, 5, 13, 19, 22},
-         {12, 60000, 5, 1, 100, 1000, 34, 20},
-         5,
-         8,
-         IMM_UWORD_RANGES_UNIT,
-         {0, 0, 65535, 65535, 0, 0, 0, 0}},
-        {{65535, 12, 7, 9876, 3456, 12345, 10, 98},
-         {65535, 0, 10, 9876, 3456, 0, 13, 32},
-         8,
-         8,
-         IMM_UWORD_EACH_UNIT,
-         {65535, 0, 0, 65535, 65535, 0, 0, 0}},
-        {{100, 0},
-         {12345, 6766, 234, 0, 1, 34, 89, 100},
-         2,
-         8,
-         IMM_UWORD_ANY_BIT,
-         {136, 0, 0, 0, 0, 0, 0, 0}},
-        {{123, 67, 890},
-         {123, 67, 890, 8900, 4, 0, 123, 67},
-         3,
-         8,
-         IMM_UWORD_ORDERED_UNIT,
-         {65535, 0, 0, 0, 0, 0, 65535, 0}},
+        {
+            {1, 5, 13, 19, 22},
+            {12, 60000, 5, 1, 100, 1000, 34, 20},
+            5,
+            8,
+            IMM_UWORD_RANGES_UNIT,
+            {0, 0, 65535, 65535, 0, 0, 0, 0},
+        },
+        {
+            {65535, 12, 7, 9876, 3456, 12345, 10, 98},
+            {65535, 0, 10, 9876, 3456, 0, 13, 32},
+            8,
+            8,
+            IMM_UWORD_EACH_UNIT,
+            {65535, 0, 0, 65535, 65535, 0, 0, 0},
+        },
+        {
+            {100, 0},
+            {12345, 6766, 234, 0, 1, 34, 89, 100},
+            2,
+            8,
+            IMM_UWORD_ANY_BIT,
+            {136, 0, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {123, 67, 890},
+            {123, 67, 890, 8900, 4, 0, 123, 67},
+            3,
+            8,
+            IMM_UWORD_ORDERED_UNIT,
+            {65535, 0, 0, 0, 0, 0, 65535, 0},
+        },
 };
 
 #define TEST_MM_CMPESTRM_SWORD_DATA_LEN 4
 static test_mm_cmpestrm_sword_data_t
     test_mm_cmpestrm_sword_data[TEST_MM_CMPESTRM_SWORD_DATA_LEN] = {
-        {{13, 6, 5, 4, 3, 2, 1, 3},
-         {-7, 16, 5, 4, -1, 6, 1, 3},
-         10,
-         10,
-         IMM_SWORD_RANGES_UNIT,
-         {0, 0, 0, 0, 0, 0, -1, -1}},
-        {{85, 115, 101, 70, 108, 97, 116, 65},
-         {85, 115, 105, 110, 103, 65, 110, 65},
-         8,
-         8,
-         IMM_SWORD_EACH_UNIT,
-         {-1, -1, 0, 0, 0, 0, 0, -1}},
-        {{-32768, 10000, 10, -13},
-         {-32767, 32767, -32768, 90, 0, -13, 23, 45},
-         4,
-         8,
-         IMM_SWORD_ANY_UNIT,
-         {0, 0, -1, 0, 0, -1, 0, 0}},
-        {{10, 20, -10, 60},
-         {0, 0, 0, 10, 20, -10, 60, 10},
-         4,
-         8,
-         IMM_SWORD_ORDERED_UNIT,
-         {0, 0, 0, -1, 0, 0, 0, -1}},
+        {
+            {13, 6, 5, 4, 3, 2, 1, 3},
+            {-7, 16, 5, 4, -1, 6, 1, 3},
+            10,
+            10,
+            IMM_SWORD_RANGES_UNIT,
+            {0, 0, 0, 0, 0, 0, -1, -1},
+        },
+        {
+            {85, 115, 101, 70, 108, 97, 116, 65},
+            {85, 115, 105, 110, 103, 65, 110, 65},
+            8,
+            8,
+            IMM_SWORD_EACH_UNIT,
+            {-1, -1, 0, 0, 0, 0, 0, -1},
+        },
+        {
+            {-32768, 10000, 10, -13},
+            {-32767, 32767, -32768, 90, 0, -13, 23, 45},
+            4,
+            8,
+            IMM_SWORD_ANY_UNIT,
+            {0, 0, -1, 0, 0, -1, 0, 0},
+        },
+        {
+            {10, 20, -10, 60},
+            {0, 0, 0, 10, 20, -10, 60, 10},
+            4,
+            8,
+            IMM_SWORD_ORDERED_UNIT,
+            {0, 0, 0, -1, 0, 0, 0, -1},
+        },
 };
 
 #define MM_CMPESTRM_UBYTE_TEST_CASES(_, ...) \
     _(UBYTE_EACH_UNIT_NEGATIVE, __VA_ARGS__) \
     _(UBYTE_ANY_UNIT, __VA_ARGS__)           \
     _(UBYTE_RANGES_UNIT, __VA_ARGS__)        \
-    _(UBYTE_ORDERED_UNIT, __VA_ARGS__)
+    _(UBYTE_ORDERED_UNIT, __VA_ARGS__)       \
+    _(UBYTE_EACH_UNIT_MASKED_POSITIVE, __VA_ARGS__)
 
 #define MM_CMPESTRM_SBYTE_TEST_CASES(_, ...)       \
     _(SBYTE_EACH_UNIT, __VA_ARGS__)                \
@@ -11591,87 +11693,119 @@ typedef struct {
 #define TEST_MM_CMPISTRM_UBYTE_DATA_LEN 4
 static test_mm_cmpistrm_ubyte_data_t
     test_mm_cmpistrm_ubyte_data[TEST_MM_CMPISTRM_UBYTE_DATA_LEN] = {
-        {{88, 89, 90, 91, 92, 93, 0},
-         {78, 88, 99, 127, 92, 93, 0},
-         IMM_UBYTE_EACH_UNIT,
-         {0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
-          255}},
-        {{30, 41, 52, 63, 74, 85, 0},
-         {30, 42, 51, 63, 74, 85, 0},
-         IMM_UBYTE_ANY_BIT,
-         {57, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-        {{34, 32, 21, 16, 7, 0},
-         {34, 33, 32, 31, 30, 29, 10, 6, 0},
-         IMM_UBYTE_RANGES_UNIT,
-         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-        {{33, 21, 123, 89, 76, 56, 0},
-         {33, 21, 124, 33, 21, 123, 89, 76, 56, 33, 21, 123, 89, 76, 56, 22},
-         IMM_UBYTE_ORDERED_UNIT,
-         {0, 0, 0, 255, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0}},
+        {
+            {88, 89, 90, 91, 92, 93, 0},
+            {78, 88, 99, 127, 92, 93, 0},
+            IMM_UBYTE_EACH_UNIT,
+            {0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
+             255},
+        },
+        {
+            {30, 41, 52, 63, 74, 85, 0},
+            {30, 42, 51, 63, 74, 85, 0},
+            IMM_UBYTE_ANY_BIT,
+            {57, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {34, 32, 21, 16, 7, 0},
+            {34, 33, 32, 31, 30, 29, 10, 6, 0},
+            IMM_UBYTE_RANGES_UNIT,
+            {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {33, 21, 123, 89, 76, 56, 0},
+            {33, 21, 124, 33, 21, 123, 89, 76, 56, 33, 21, 123, 89, 76, 56, 22},
+            IMM_UBYTE_ORDERED_UNIT,
+            {0, 0, 0, 255, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0},
+        },
 };
 
 #define TEST_MM_CMPISTRM_SBYTE_DATA_LEN 4
 static test_mm_cmpistrm_sbyte_data_t
     test_mm_cmpistrm_sbyte_data[TEST_MM_CMPISTRM_SBYTE_DATA_LEN] = {
-        {{-11, -90, -128, 127, 66, 45, 23, 32, 99, 10, 0},
-         {-10, -90, -124, 33, 66, 45, 23, 22, 99, 100, 0},
-         IMM_SBYTE_EACH_BIT_MASKED_NEGATIVE,
-         {-115, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-        {{13, 14, 55, 1, 32, 100, 101, 102, 103, 97, 23, 21, 45, 54, 55, 56},
-         {22, 109, 87, 45, 1, 103, 22, 102, 43, 87, 78, 56, 65, 55, 44, 33},
-         IMM_SBYTE_ANY_UNIT,
-         {0, 0, 0, -1, -1, -1, 0, -1, 0, 0, 0, -1, 0, -1, 0, 0}},
-        {{-31, -28, -9, 10, 45, 67, 88, 0},
-         {-30, -32, -33, -44, 93, 44, 9, 89, 0},
-         IMM_SBYTE_RANGES_UNIT,
-         {-1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
-        {{34, -10, 78, -99, -100, 100, 0},
-         {34, 123, 88, 4, 34, -10, 78, -99, -100, 100, 34, -10, 78, -99, -100,
-          -100},
-         IMM_SBYTE_ORDERED_UNIT,
-         {0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}},
+        {
+            {-11, -90, -128, 127, 66, 45, 23, 32, 99, 10, 0},
+            {-10, -90, -124, 33, 66, 45, 23, 22, 99, 100, 0},
+            IMM_SBYTE_EACH_BIT_MASKED_NEGATIVE,
+            {-115, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {13, 14, 55, 1, 32, 100, 101, 102, 103, 97, 23, 21, 45, 54, 55, 56},
+            {22, 109, 87, 45, 1, 103, 22, 102, 43, 87, 78, 56, 65, 55, 44, 33},
+            IMM_SBYTE_ANY_UNIT,
+            {0, 0, 0, -1, -1, -1, 0, -1, 0, 0, 0, -1, 0, -1, 0, 0},
+        },
+        {
+            {-31, -28, -9, 10, 45, 67, 88, 0},
+            {-30, -32, -33, -44, 93, 44, 9, 89, 0},
+            IMM_SBYTE_RANGES_UNIT,
+            {-1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {34, -10, 78, -99, -100, 100, 0},
+            {34, 123, 88, 4, 34, -10, 78, -99, -100, 100, 34, -10, 78, -99,
+             -100, -100},
+            IMM_SBYTE_ORDERED_UNIT,
+            {0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        },
 };
 
 #define TEST_MM_CMPISTRM_UWORD_DATA_LEN 4
 static test_mm_cmpistrm_uword_data_t
     test_mm_cmpistrm_uword_data[TEST_MM_CMPISTRM_UWORD_DATA_LEN] = {
-        {{1024, 2048, 4096, 5000, 0},
-         {1023, 1000, 2047, 1596, 5566, 5666, 4477, 9487},
-         IMM_UWORD_RANGES_UNIT,
-         {0, 0, 65535, 65535, 0, 0, 65535, 0}},
-        {{1, 2, 345, 7788, 10000, 0},
-         {2, 1, 345, 7788, 10000, 0},
-         IMM_UWORD_EACH_UNIT,
-         {0, 0, 65535, 65535, 65535, 65535, 65535, 65535}},
-        {{100, 0},
-         {12345, 6766, 234, 0, 1, 34, 89, 100},
-         IMM_UWORD_ANY_UNIT,
-         {0, 0, 0, 0, 0, 0, 0, 0}},
-        {{34, 122, 9000, 0},
-         {34, 122, 9000, 34, 122, 9000, 34, 122},
-         IMM_UWORD_ORDERED_UNIT_NEGATIVE,
-         {0, 65535, 65535, 0, 65535, 65535, 0, 65535}},
+        {
+            {1024, 2048, 4096, 5000, 0},
+            {1023, 1000, 2047, 1596, 5566, 5666, 4477, 9487},
+            IMM_UWORD_RANGES_UNIT,
+            {0, 0, 65535, 65535, 0, 0, 65535, 0},
+        },
+        {
+            {1, 2, 345, 7788, 10000, 0},
+            {2, 1, 345, 7788, 10000, 0},
+            IMM_UWORD_EACH_UNIT,
+            {0, 0, 65535, 65535, 65535, 65535, 65535, 65535},
+        },
+        {
+            {100, 0},
+            {12345, 6766, 234, 0, 1, 34, 89, 100},
+            IMM_UWORD_ANY_UNIT,
+            {0, 0, 0, 0, 0, 0, 0, 0},
+        },
+        {
+            {34, 122, 9000, 0},
+            {34, 122, 9000, 34, 122, 9000, 34, 122},
+            IMM_UWORD_ORDERED_UNIT_NEGATIVE,
+            {0, 65535, 65535, 0, 65535, 65535, 0, 65535},
+        },
 };
 
 #define TEST_MM_CMPISTRM_SWORD_DATA_LEN 4
 static test_mm_cmpistrm_sword_data_t
     test_mm_cmpistrm_sword_data[TEST_MM_CMPISTRM_SWORD_DATA_LEN] = {
-        {{-39, -10, 17, 89, 998, 1000, 1234, 4566},
-         {-40, -52, -39, -29, 100, 1024, 4565, 4600},
-         IMM_SWORD_RANGES_BIT,
-         {0, 0, -1, -1, 0, 0, -1, 0}},
-        {{345, -1900, -10000, -30000, 50, 6789, 0},
-         {103, -1901, -10000, 32767, 50, 6780, 0},
-         IMM_SWORD_EACH_UNIT,
-         {0, 0, -1, 0, -1, 0, -1, -1}},
-        {{677, 10001, 1001, 23, 0},
-         {345, 677, 10001, 1003, 1001, 32, 23, 677},
-         IMM_SWORD_ANY_UNIT,
-         {0, -1, -1, 0, -1, 0, -1, -1}},
-        {{1024, -2288, 3752, -4096, 0},
-         {1024, 1024, -2288, 3752, -4096, 1024, -2288, 3752},
-         IMM_SWORD_ORDERED_UNIT,
-         {0, -1, 0, 0, 0, -1, 0, 0}},
+        {
+            {-39, -10, 17, 89, 998, 1000, 1234, 4566},
+            {-40, -52, -39, -29, 100, 1024, 4565, 4600},
+            IMM_SWORD_RANGES_BIT,
+            {0, 0, -1, -1, 0, 0, -1, 0},
+        },
+        {
+            {345, -1900, -10000, -30000, 50, 6789, 0},
+            {103, -1901, -10000, 32767, 50, 6780, 0},
+            IMM_SWORD_EACH_UNIT,
+            {0, 0, -1, 0, -1, 0, -1, -1},
+        },
+        {
+            {677, 10001, 1001, 23, 0},
+            {345, 677, 10001, 1003, 1001, 32, 23, 677},
+            IMM_SWORD_ANY_UNIT,
+            {0, -1, -1, 0, -1, 0, -1, -1},
+        },
+        {
+            {1024, -2288, 3752, -4096, 0},
+            {1024, 1024, -2288, 3752, -4096, 1024, -2288, 3752},
+            IMM_SWORD_ORDERED_UNIT,
+            {0, -1, 0, 0, 0, -1, 0, 0},
+        },
 };
 
 #define MM_CMPISTRM_UBYTE_TEST_CASES(_, ...) \
