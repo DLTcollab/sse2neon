@@ -3,6 +3,7 @@
 Generate performance documentation for SSE2NEON.
 """
 
+import argparse
 import json
 import subprocess
 import sys
@@ -29,6 +30,7 @@ python3 scripts/analyze-tiers.py              # AArch64 analysis (default)
 python3 scripts/analyze-tiers.py --no-unifdef # Raw file (all architectures)
 python3 scripts/analyze-tiers.py --json       # JSON output
 python3 scripts/analyze-tiers.py --tier 4     # Filter by tier
+python3 scripts/analyze-tiers.py --weighted   # Instruction-weighted counts
 ```
 
 ---
@@ -36,12 +38,25 @@ python3 scripts/analyze-tiers.py --tier 4     # Filter by tier
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Generate performance documentation')
+    parser.add_argument('--clang-ast', action='store_true',
+                        help='Use Clang AST for precise T2+ analysis')
+    parser.add_argument('--asm', '--assembly', action='store_true', dest='assembly',
+                        help='Use assembly generation for T4 analysis (most accurate)')
+    parser.add_argument('--weighted', action='store_true',
+                        help='Use weighted instruction counts (ARM Cortex-A72 costs)')
+    args = parser.parse_args()
+
     # Run analyze_tiers.py and get JSON output
     script_dir = Path(__file__).parent
-    result = subprocess.run(
-        [sys.executable, str(script_dir / 'analyze-tiers.py'), '--json'],
-        capture_output=True, text=True
-    )
+    cmd = [sys.executable, str(script_dir / 'analyze-tiers.py'), '--json']
+    if args.clang_ast:
+        cmd.append('--clang-ast')
+    if args.assembly:
+        cmd.append('--asm')
+    if args.weighted:
+        cmd.append('--weighted')
+    result = subprocess.run(cmd, capture_output=True, text=True)
 
     if result.returncode != 0:
         print(f"Error: {result.stderr}", file=sys.stderr)
@@ -86,7 +101,13 @@ def main():
     print('| T1 | 1-2 | 1-3 | Direct NEON mapping, near-native performance |')
     print('| T2 | 3-5 | 4-8 | Few NEON operations, slight overhead |')
     print('| T3 | 6-10 | 8-15 | Moderate emulation, noticeable overhead |')
-    print('| T4 | 10+ | 15-50+ | Complex/algorithmic, significant overhead |')
+    print('| T4 | 10+ or special | 15-50+ | Complex/algorithmic, significant overhead |')
+    print()
+    print('> **Note**: T4 classification uses multi-factor analysis beyond raw NEON counts:')
+    print('> - Table lookups (e.g., `_mm_shuffle_epi8`) are T4 due to algorithmic complexity')
+    print('> - Pure scalar fallbacks (e.g., `_mm_crc32_u16` without HW CRC) are T4')
+    print('> - Loop-based implementations are T4 regardless of instruction count')
+    print('> - Mixed scalar+NEON with high effective cost may be promoted to T4')
     print()
 
     # Hot intrinsics to watch
