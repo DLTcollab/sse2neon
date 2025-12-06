@@ -37,7 +37,7 @@ Cycle estimates based on ARM Cortex-A72 (ARMv8-A) Software Optimization Guide.
 | Direct Mappings (T1) | 368 (80.9%) |
 | Moderate Emulation (T2-T3) | 78 (17.1%) |
 | Complex Emulation (T4) | 9 (2.0%) |
-| Avg NEON Ops/Intrinsic | 1.81 |
+| Avg NEON Ops/Intrinsic | 1.80 |
 
 ### Performance Tiers
 
@@ -64,7 +64,7 @@ algorithms when porting performance-critical code.
 | `_mm_mpsadbw_epu8` | 22 | SAD computation, very expensive |
 | `_mm_rsqrt_ps` | 13 | Newton-Raphson refinement |
 | `_mm_sqrt_ps` | 13 | Newton-Raphson refinement |
-| `_mm_dp_ps` | 11 |  |
+| `_mm_dp_ps` | 9 |  |
 | `_mm_minpos_epu16` | 9 | Horizontal minimum search |
 | `_mm_dp_pd` | 4 |  |
 | `_mm_shuffle_epi8` | 3 |  |
