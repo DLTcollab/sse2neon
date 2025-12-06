@@ -8598,6 +8598,9 @@ FORCE_INLINE uint16_t _sse2neon_sido_negative(int res,
     case _SIDD_NEGATIVE_POLARITY:
         res ^= 0xffffffff;
         break;
+    case _SIDD_MASKED_POSITIVE_POLARITY:
+        res &= (1 << lb) - 1;
+        break;
     case _SIDD_MASKED_NEGATIVE_POLARITY:
         res ^= (1 << lb) - 1;
         break;
