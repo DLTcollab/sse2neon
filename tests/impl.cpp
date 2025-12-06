@@ -4911,12 +4911,79 @@ result_t test_mm_cvttpd_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
 OPTNONE result_t test_mm_cvttpd_pi32(const SSE2NEONTestImpl &impl,
                                      uint32_t iter)
 {
-    const double *_a =
-        reinterpret_cast<const double *>(impl.mTestFloatPointer1);
+    double v0, v1;
 
-    __m128d a = load_m128d(_a);
-    int32_t d0 = sse2neon_saturate_cast_int32(_a[0]);
-    int32_t d1 = sse2neon_saturate_cast_int32(_a[1]);
+    /* Test edge cases for specific iterations, random values otherwise */
+    switch (iter) {
+    case 0: /* NaN in first element */
+        v0 = std::nan("");
+        v1 = 42.0;
+        break;
+    case 1: /* NaN in second element */
+        v0 = -123.5;
+        v1 = std::nan("");
+        break;
+    case 2: /* Both NaN */
+        v0 = std::nan("");
+        v1 = std::nan("");
+        break;
+    case 3: /* Positive infinity */
+        v0 = INFINITY;
+        v1 = 0.0;
+        break;
+    case 4: /* Negative infinity */
+        v0 = -INFINITY;
+        v1 = 100.0;
+        break;
+    case 5: /* Both infinity */
+        v0 = INFINITY;
+        v1 = -INFINITY;
+        break;
+    case 6: /* Overflow: value > INT32_MAX */
+        v0 = 2147483648.0;
+        v1 = 0.0;
+        break;
+    case 7: /* Overflow: value < INT32_MIN */
+        v0 = -2147483649.0;
+        v1 = 0.0;
+        break;
+    case 8: /* Large overflow */
+        v0 = 1.0e10;
+        v1 = -1.0e10;
+        break;
+    case 9: /* Boundary: exactly INT32_MAX */
+        v0 = 2147483647.0;
+        v1 = -2147483648.0;
+        break;
+    case 10: /* Near boundary */
+        v0 = 2147483646.0;
+        v1 = -2147483647.0;
+        break;
+    case 11: /* Truncation toward zero */
+        v0 = 1.9;
+        v1 = -1.9;
+        break;
+    case 12: /* Mixed: NaN and overflow */
+        v0 = std::nan("");
+        v1 = 2147483648.0;
+        break;
+    case 13: /* Mixed: infinity and overflow */
+        v0 = -INFINITY;
+        v1 = 3000000000.0;
+        break;
+    default: {
+        /* Use random test values from the test framework */
+        const double *_a =
+            reinterpret_cast<const double *>(impl.mTestFloatPointer1);
+        v0 = _a[0];
+        v1 = _a[1];
+        break;
+    }
+    }
+
+    __m128d a = _mm_set_pd(v1, v0);
+    int32_t d0 = sse2neon_saturate_cast_int32(v0);
+    int32_t d1 = sse2neon_saturate_cast_int32(v1);
 
     __m64 ret = _mm_cvttpd_pi32(a);
     return validateInt32(ret, d0, d1);
