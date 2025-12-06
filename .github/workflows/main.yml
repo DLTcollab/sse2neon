@@ -146,19 +146,29 @@ jobs:
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
         run: make SANITIZE=${{ matrix.sanitizer }} check
 
-  coding-style:
+  static-analysis:
     runs-on: ubuntu-24.04
     env:
-      CLANG_FORMAT_VERSION: 20
+      LLVM_VERSION: 20
     steps:
       - name: checkout code
         uses: actions/checkout@v6
-      - name: install clang-format
+      - name: install clang tools
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
-          sudo add-apt-repository -y "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-$CLANG_FORMAT_VERSION main"
+          sudo add-apt-repository -y "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-$LLVM_VERSION main"
           sudo apt-get update -q -y
-          sudo apt-get install -q -y clang-format-$CLANG_FORMAT_VERSION
+          sudo apt-get install -q -y clang-format-$LLVM_VERSION clang-tidy-$LLVM_VERSION \
+            gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
       - name: style check
         run: sh .ci/check-format.sh
         shell: bash
+      - name: clang-tidy
+        run: |
+          clang-tidy-$LLVM_VERSION sse2neon.h \
+            --warnings-as-errors='' \
+            -- -x c++ -std=gnu++14 -I. \
+            --target=aarch64-linux-gnu \
+            --gcc-toolchain=/usr \
+            -isystem /usr/aarch64-linux-gnu/include \
+            -march=armv8-a+simd+crypto+crc
