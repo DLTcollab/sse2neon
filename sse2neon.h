@@ -7405,38 +7405,55 @@ FORCE_INLINE __m128d _mm_dp_pd(__m128d a, __m128d b, const int imm)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_dp_ps
 FORCE_INLINE __m128 _mm_dp_ps(__m128 a, __m128 b, const int imm)
 {
-    float32x4_t elementwise_prod = _mm_mul_ps(a, b);
+    /* Early exit: no input selected or no output lanes */
+    if ((imm & 0xF0) == 0 || (imm & 0x0F) == 0)
+        return _mm_setzero_ps();
+
+    float32x4_t prod = vreinterpretq_f32_m128(_mm_mul_ps(a, b));
 
 #if SSE2NEON_ARCH_AARCH64
-    /* shortcuts */
-    if (imm == 0xFF) {
-        return _mm_set1_ps(vaddvq_f32(elementwise_prod));
+    /* Fast path: all elements, broadcast to all lanes */
+    if (imm == 0xFF)
+        return _mm_set1_ps(vaddvq_f32(prod));
+
+    /* Fast path: 3-element dot product (x,y,z), broadcast to all lanes */
+    if (imm == 0x7F) {
+        prod = vsetq_lane_f32(0.0f, prod, 3);
+        return _mm_set1_ps(vaddvq_f32(prod));
     }
 
-    if ((imm & 0x0F) == 0x0F) {
-        if (!(imm & (1 << 4)))
-            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 0);
-        if (!(imm & (1 << 5)))
-            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 1);
-        if (!(imm & (1 << 6)))
-            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 2);
-        if (!(imm & (1 << 7)))
-            elementwise_prod = vsetq_lane_f32(0.0f, elementwise_prod, 3);
+    /* Vectorized generic path: apply input mask, sum, apply output mask */
+    const uint32_t input_mask[4] = {
+        (imm & (1 << 4)) ? ~UINT32_C(0) : UINT32_C(0),
+        (imm & (1 << 5)) ? ~UINT32_C(0) : UINT32_C(0),
+        (imm & (1 << 6)) ? ~UINT32_C(0) : UINT32_C(0),
+        (imm & (1 << 7)) ? ~UINT32_C(0) : UINT32_C(0),
+    };
+    prod = vreinterpretq_f32_u32(
+        vandq_u32(vreinterpretq_u32_f32(prod), vld1q_u32(input_mask)));
 
-        return _mm_set1_ps(vaddvq_f32(elementwise_prod));
-    }
-#endif
+    float32x4_t sum = vdupq_n_f32(vaddvq_f32(prod));
 
+    const uint32_t output_mask[4] = {
+        (imm & 0x1) ? ~UINT32_C(0) : UINT32_C(0),
+        (imm & 0x2) ? ~UINT32_C(0) : UINT32_C(0),
+        (imm & 0x4) ? ~UINT32_C(0) : UINT32_C(0),
+        (imm & 0x8) ? ~UINT32_C(0) : UINT32_C(0),
+    };
+    return vreinterpretq_m128_f32(vreinterpretq_f32_u32(
+        vandq_u32(vreinterpretq_u32_f32(sum), vld1q_u32(output_mask))));
+#else
+    /* ARMv7: scalar fallback (no vaddvq_f32) */
     float s = 0.0f;
 
     if (imm & (1 << 4))
-        s += vgetq_lane_f32(elementwise_prod, 0);
+        s += vgetq_lane_f32(prod, 0);
     if (imm & (1 << 5))
-        s += vgetq_lane_f32(elementwise_prod, 1);
+        s += vgetq_lane_f32(prod, 1);
     if (imm & (1 << 6))
-        s += vgetq_lane_f32(elementwise_prod, 2);
+        s += vgetq_lane_f32(prod, 2);
     if (imm & (1 << 7))
-        s += vgetq_lane_f32(elementwise_prod, 3);
+        s += vgetq_lane_f32(prod, 3);
 
     const float32_t res[4] = {
         (imm & 0x1) ? s : 0.0f,
@@ -7445,6 +7462,7 @@ FORCE_INLINE __m128 _mm_dp_ps(__m128 a, __m128 b, const int imm)
         (imm & 0x8) ? s : 0.0f,
     };
     return vreinterpretq_m128_f32(vld1q_f32(res));
+#endif
 }
 
 // Extract a 32-bit integer from a, selected with imm8, and store the result in

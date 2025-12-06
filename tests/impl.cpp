@@ -8801,14 +8801,55 @@ OPTNONE result_t test_mm_dp_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
             return TEST_FAIL;                                                 \
     } while (0)
 
-#define GENERATE_MM_DP_PS_TEST_CASES \
-    MM_DP_PS_TEST_CASE_WITH(0xFF);   \
-    MM_DP_PS_TEST_CASE_WITH(0x7F);   \
-    MM_DP_PS_TEST_CASE_WITH(0x9F);   \
-    MM_DP_PS_TEST_CASE_WITH(0x2F);   \
-    MM_DP_PS_TEST_CASE_WITH(0x0F);   \
-    MM_DP_PS_TEST_CASE_WITH(0x23);   \
-    MM_DP_PS_TEST_CASE_WITH(0xB5);
+// Test cases organized by category for comprehensive coverage:
+// - Fast path cases (0xFF, 0x7F)
+// - Single input lane cases (0x1*, 0x2*, 0x4*, 0x8*)
+// - Single output lane cases (0xF1, 0xF2, 0xF4, 0xF8)
+// - Mixed input/output patterns
+// - Edge cases (0x00, 0x0F, 0xF0)
+#define GENERATE_MM_DP_PS_TEST_CASES     \
+    /* Fast paths */                     \
+    MM_DP_PS_TEST_CASE_WITH(0xFF);       \
+    MM_DP_PS_TEST_CASE_WITH(0x7F);       \
+    /* All inputs, single output lane */ \
+    MM_DP_PS_TEST_CASE_WITH(0xF1);       \
+    MM_DP_PS_TEST_CASE_WITH(0xF2);       \
+    MM_DP_PS_TEST_CASE_WITH(0xF4);       \
+    MM_DP_PS_TEST_CASE_WITH(0xF8);       \
+    /* Single input lane, all outputs */ \
+    MM_DP_PS_TEST_CASE_WITH(0x1F);       \
+    MM_DP_PS_TEST_CASE_WITH(0x2F);       \
+    MM_DP_PS_TEST_CASE_WITH(0x4F);       \
+    MM_DP_PS_TEST_CASE_WITH(0x8F);       \
+    /* Two input lanes */                \
+    MM_DP_PS_TEST_CASE_WITH(0x3F);       \
+    MM_DP_PS_TEST_CASE_WITH(0x5F);       \
+    MM_DP_PS_TEST_CASE_WITH(0x6F);       \
+    MM_DP_PS_TEST_CASE_WITH(0x9F);       \
+    MM_DP_PS_TEST_CASE_WITH(0xAF);       \
+    MM_DP_PS_TEST_CASE_WITH(0xCF);       \
+    /* Three input lanes (not 0x7F) */   \
+    MM_DP_PS_TEST_CASE_WITH(0xBF);       \
+    MM_DP_PS_TEST_CASE_WITH(0xDF);       \
+    MM_DP_PS_TEST_CASE_WITH(0xEF);       \
+    /* Mixed input/output patterns */    \
+    MM_DP_PS_TEST_CASE_WITH(0x23);       \
+    MM_DP_PS_TEST_CASE_WITH(0x31);       \
+    MM_DP_PS_TEST_CASE_WITH(0x42);       \
+    MM_DP_PS_TEST_CASE_WITH(0x54);       \
+    MM_DP_PS_TEST_CASE_WITH(0x68);       \
+    MM_DP_PS_TEST_CASE_WITH(0x71);       \
+    MM_DP_PS_TEST_CASE_WITH(0x8C);       \
+    MM_DP_PS_TEST_CASE_WITH(0x99);       \
+    MM_DP_PS_TEST_CASE_WITH(0xA5);       \
+    MM_DP_PS_TEST_CASE_WITH(0xB5);       \
+    MM_DP_PS_TEST_CASE_WITH(0xC3);       \
+    MM_DP_PS_TEST_CASE_WITH(0xD2);       \
+    MM_DP_PS_TEST_CASE_WITH(0xE1);       \
+    /* Edge cases */                     \
+    MM_DP_PS_TEST_CASE_WITH(0x00);       \
+    MM_DP_PS_TEST_CASE_WITH(0x0F);       \
+    MM_DP_PS_TEST_CASE_WITH(0xF0);
 
 OPTNONE result_t test_mm_dp_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
