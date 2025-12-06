@@ -8322,7 +8322,6 @@ static uint16_t _sse2neon_aggregate_equal_any_8x16(int la,
                                                    int lb,
                                                    __m128i mtx[16])
 {
-    uint16_t res = 0;
     int m = (1 << la) - 1;
     uint8x8_t vec_mask = vld1_u8(_sse2neon_cmpestr_mask8b);
     uint8x8_t t_lo =
@@ -8330,36 +8329,81 @@ static uint16_t _sse2neon_aggregate_equal_any_8x16(int la,
     uint8x8_t t_hi =
         vtst_u8(vdup_n_u8(_sse2neon_static_cast(uint8_t, m >> 8)), vec_mask);
     uint8x16_t vec = vcombine_u8(t_lo, t_hi);
-    for (int j = 0; j < lb; j++) {
-        mtx[j] = vreinterpretq_m128i_u8(
-            vandq_u8(vec, vreinterpretq_u8_m128i(mtx[j])));
-        mtx[j] = vreinterpretq_m128i_u8(
-            vshrq_n_u8(vreinterpretq_u8_m128i(mtx[j]), 7));
-        uint16_t tmp =
-            _sse2neon_vaddvq_u8(vreinterpretq_u8_m128i(mtx[j])) ? 1 : 0;
-        res |= (tmp << j);
+
+    /* Process all 16 rows in parallel.
+     * For each row j, check if any element in mtx[j] (masked by vec) is
+     * non-zero. Result bit j = 1 if row j has any match.
+     *
+     * Key optimization: Process all rows, then mask by lb at the end.
+     * This allows full SIMD utilization without loop-carried dependencies.
+     */
+#if SSE2NEON_ARCH_AARCH64
+    /* AArch64: Use vmaxvq for horizontal max (equivalent to OR for 0/1) */
+#define SSE2NEON_UMAXV_MATCH(i)                                           \
+    ((vmaxvq_u8(vandq_u8(vec, vreinterpretq_u8_m128i(mtx[i]))) ? 1U : 0U) \
+     << (i))
+    uint16_t res = SSE2NEON_UMAXV_MATCH(0) | SSE2NEON_UMAXV_MATCH(1) |
+                   SSE2NEON_UMAXV_MATCH(2) | SSE2NEON_UMAXV_MATCH(3) |
+                   SSE2NEON_UMAXV_MATCH(4) | SSE2NEON_UMAXV_MATCH(5) |
+                   SSE2NEON_UMAXV_MATCH(6) | SSE2NEON_UMAXV_MATCH(7) |
+                   SSE2NEON_UMAXV_MATCH(8) | SSE2NEON_UMAXV_MATCH(9) |
+                   SSE2NEON_UMAXV_MATCH(10) | SSE2NEON_UMAXV_MATCH(11) |
+                   SSE2NEON_UMAXV_MATCH(12) | SSE2NEON_UMAXV_MATCH(13) |
+                   SSE2NEON_UMAXV_MATCH(14) | SSE2NEON_UMAXV_MATCH(15);
+#undef SSE2NEON_UMAXV_MATCH
+#else
+    /* ARMv7: Use pairwise max for horizontal reduction */
+    uint16_t res = 0;
+    for (int j = 0; j < 16; j++) {
+        uint8x16_t masked = vandq_u8(vec, vreinterpretq_u8_m128i(mtx[j]));
+        /* Fold 16 bytes to 8 using pairwise max */
+        uint8x8_t fold = vpmax_u8(vget_low_u8(masked), vget_high_u8(masked));
+        fold = vpmax_u8(fold, fold);
+        fold = vpmax_u8(fold, fold);
+        fold = vpmax_u8(fold, fold);
+        res |= (vget_lane_u8(fold, 0) ? 1 : 0) << j;
     }
-    return res;
+#endif
+    /* Mask result to valid range based on lb */
+    return res & _sse2neon_static_cast(uint16_t, (1 << lb) - 1);
 }
 
 static uint16_t _sse2neon_aggregate_equal_any_16x8(int la,
                                                    int lb,
                                                    __m128i mtx[16])
 {
-    uint16_t res = 0;
     uint16_t m = _sse2neon_static_cast(uint16_t, 1 << la) - 1;
     uint16x8_t vec =
         vtstq_u16(vdupq_n_u16(m), vld1q_u16(_sse2neon_cmpestr_mask16b));
-    for (int j = 0; j < lb; j++) {
-        mtx[j] = vreinterpretq_m128i_u16(
-            vandq_u16(vec, vreinterpretq_u16_m128i(mtx[j])));
-        mtx[j] = vreinterpretq_m128i_u16(
-            vshrq_n_u16(vreinterpretq_u16_m128i(mtx[j]), 15));
-        uint16_t tmp =
-            _sse2neon_vaddvq_u16(vreinterpretq_u16_m128i(mtx[j])) ? 1 : 0;
-        res |= (tmp << j);
+
+    /* Process all 8 rows in parallel for 16-bit word mode.
+     * Result bit j = 1 if any element in row j matches.
+     */
+#if SSE2NEON_ARCH_AARCH64
+    /* AArch64: Use vmaxvq for horizontal max */
+#define SSE2NEON_UMAXV_MATCH16(i)                                            \
+    ((vmaxvq_u16(vandq_u16(vec, vreinterpretq_u16_m128i(mtx[i]))) ? 1U : 0U) \
+     << (i))
+    uint16_t res = SSE2NEON_UMAXV_MATCH16(0) | SSE2NEON_UMAXV_MATCH16(1) |
+                   SSE2NEON_UMAXV_MATCH16(2) | SSE2NEON_UMAXV_MATCH16(3) |
+                   SSE2NEON_UMAXV_MATCH16(4) | SSE2NEON_UMAXV_MATCH16(5) |
+                   SSE2NEON_UMAXV_MATCH16(6) | SSE2NEON_UMAXV_MATCH16(7);
+#undef SSE2NEON_UMAXV_MATCH16
+#else
+    /* ARMv7: Use pairwise max for horizontal reduction */
+    uint16_t res = 0;
+    for (int j = 0; j < 8; j++) {
+        uint16x8_t masked = vandq_u16(vec, vreinterpretq_u16_m128i(mtx[j]));
+        /* Fold 8 u16 to 4 using pairwise max */
+        uint16x4_t fold =
+            vpmax_u16(vget_low_u16(masked), vget_high_u16(masked));
+        fold = vpmax_u16(fold, fold);
+        fold = vpmax_u16(fold, fold);
+        res |= (vget_lane_u16(fold, 0) ? 1 : 0) << j;
     }
-    return res;
+#endif
+    /* Mask result to valid range based on lb */
+    return res & _sse2neon_static_cast(uint16_t, (1 << lb) - 1);
 }
 
 /* clang-format off */
