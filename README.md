@@ -5,13 +5,10 @@ A C/C++ header file that converts Intel SSE intrinsics to Arm/Aarch64 NEON intri
 
 ## Introduction
 
-`sse2neon` is a translator of Intel SSE (Streaming SIMD Extensions) intrinsics
-to [Arm NEON](https://developer.arm.com/architectures/instruction-sets/simd-isas/neon),
-shortening the time needed to get an Arm working program that then can be used to
-extract profiles and to identify hot paths in the code.
-The header file `sse2neon.h` contains several of the functions provided by Intel
-intrinsic headers such as `<xmmintrin.h>`, only implemented with NEON-based counterparts
-to produce the exact semantics of the intrinsics.
+`sse2neon` translates Intel SSE (Streaming SIMD Extensions) intrinsics to [Arm NEON](https://developer.arm.com/architectures/instruction-sets/simd-isas/neon),
+enabling rapid porting of x86 SIMD code to Arm platforms.
+The header file `sse2neon.h` provides NEON-based implementations of functions from Intel intrinsic headers (e.g., `<xmmintrin.h>`),
+preserving the original semantics.
 
 ## Mapping and Coverage
 
@@ -26,22 +23,16 @@ Header file | Extension |
 `<nmmintrin.h>` | SSE4.2 |
 `<wmmintrin.h>` | AES  |
 
-`sse2neon` aims to support SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2 and AES extension.
+`sse2neon` supports SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, and AES extensions.
 
-In order to deliver NEON-equivalent intrinsics for all SSE intrinsics used widely,
-please be aware that some SSE intrinsics exist a direct mapping with a concrete
-NEON-equivalent intrinsic. Others, unfortunately, lack a 1:1 mapping, meaning that
-their equivalents are built utilizing a number of NEON intrinsics.
+Some SSE intrinsics map directly to a single NEON intrinsic (e.g., `_mm_loadu_si128` → `vld1q_s32`),
+while others require multiple NEON instructions (e.g., `_mm_maddubs_epi16` uses 13+ instructions).
 
-For example, SSE intrinsic `_mm_loadu_si128` has a direct NEON mapping (`vld1q_s32`),
-but SSE intrinsic `_mm_maddubs_epi16` has to be implemented with 13+ NEON instructions.
+### Floating-point Compatibility
 
-### Floating-point compatibility
+Some conversions produce different results than SSE due to IEEE-754 handling differences.
 
-Some conversions require several NEON intrinsics, which may produce inconsistent results
-compared to their SSE counterparts due to differences in the arithmetic rules of IEEE-754.
-
-Taking a possible conversion of `_mm_rsqrt_ps` as example:
+For example, `_mm_rsqrt_ps`:
 
 ```c
 __m128 _mm_rsqrt_ps(__m128 in)
@@ -55,118 +46,97 @@ __m128 _mm_rsqrt_ps(__m128 in)
 }
 ```
 
-The `_mm_rsqrt_ps` conversion will produce NaN if a source value is `0.0` (first INF for the
-reciprocal square root of `0.0`, then INF * `0.0` using `vmulq_f32`). In contrast,
-the SSE counterpart produces INF if a source value is `0.0`.
-As a result, additional treatments should be applied to ensure consistency between the conversion and its SSE counterpart.
+This NEON conversion returns NaN for input `0.0` because rsqrt(0) = INF, and the subsequent INF × 0 = NaN.
+The SSE intrinsic returns INF instead.
+Enable the compile-time precision flags below when exact SSE compatibility is required.
 
-## Requirement
+## Requirements
 
-Developers are advised to utilize sse2neon.h with GCC version 10 or higher, or Clang version 11 or higher. While sse2neon.h might be compatible with earlier versions, certain vector operation errors have been identified in those versions. For further details, refer to the discussion in issue [#622](https://github.com/DLTcollab/sse2neon/issues/622).
+Use GCC 10+ or Clang 11+.
+Earlier compiler versions contain bugs in vector instruction generation that cause incorrect assembly output for certain NEON intrinsics (e.g., `rev16`, `rev32` with invalid operand combinations).
 
 ## Usage
 
-- Put the file `sse2neon.h` in to your source code directory.
+1. Copy `sse2neon.h` into your source directory.
 
-- Locate the following SSE header files included in the code:
-```C
-#include <xmmintrin.h>
-#include <emmintrin.h>
-```
-  {p,t,s,n,w}mmintrin.h could be replaceable as well.
+2. Replace SSE headers with sse2neon:
+   ```C
+   // Before
+   #include <xmmintrin.h>
+   #include <emmintrin.h>
 
-- Replace them with:
-```C
-#include "sse2neon.h"
-```
-- If you target Windows Arm64EC, pass `/D_DISABLE_SOFTINTRIN_=1` to MSVC or add `#define _DISABLE_SOFTINTRIN_ 1` in before `#include` any Windows header files to disable implicit inclusion of SSE header files.
-- Explicitly specify platform-specific options to gcc/clang compilers.
-  * On ARMv8-A 64-bit targets, you should specify the following compiler option: (Remove `crypto` and/or `crc` if your architecture does not support cryptographic and/or CRC32 extensions)
-  ```shell
-  -march=armv8-a+fp+simd+crypto+crc
-  ```
-  * On ARMv8-A 32-bit targets, you should specify the following compiler option:
-  ```shell
-  -mfpu=neon-fp-armv8
-  ```
-  * On ARMv7-A targets, you need to append the following compiler option:
-  ```shell
-  -mfpu=neon
-  ```
+   // After
+   #include "sse2neon.h"
+   ```
+   This also replaces `{p,t,s,n,w}mmintrin.h`.
+
+3. Add the appropriate compiler flags:
+   | Target | Compiler Flag |
+   |--------|---------------|
+   | ARMv8-A AArch64 | `-march=armv8-a+fp+simd+crypto+crc` |
+   | ARMv8-A AArch32 | `-mfpu=neon-fp-armv8` |
+   | ARMv7-A | `-mfpu=neon` |
+
+   Remove `+crypto` and/or `+crc` if unsupported by your target.
+
+4. For Windows Arm64EC, define `_DISABLE_SOFTINTRIN_=1` before including any Windows headers.
 
 ## Compile-time Configurations
 
-Though floating-point operations in NEON use the IEEE single-precision format, NEON does not fully comply to the IEEE standard when inputs or results are denormal or NaN values for minimizing power consumption as well as maximizing performance.
-Considering the balance between correctness and performance, `sse2neon` recognizes the following compile-time configurations:
-* `SSE2NEON_PRECISE_MINMAX`: Enable precise implementation of `_mm_min_{ps,pd}` and `_mm_max_{ps,pd}`. If you need consistent results such as handling with NaN values, enable it.
-* `SSE2NEON_PRECISE_DIV`: Enable precise implementation of `_mm_rcp_ps` and `_mm_div_ps` by additional Newton-Raphson iteration for accuracy.
-* `SSE2NEON_PRECISE_SQRT`: Enable precise implementation of `_mm_sqrt_ps` and `_mm_rsqrt_ps` by additional Newton-Raphson iteration for accuracy.
-* `SSE2NEON_PRECISE_DP`: Enable precise implementation of `_mm_dp_pd`. When the conditional bit is not set, the corresponding multiplication would not be executed.
-* `SSE2NEON_SUPPRESS_WARNINGS`: Set this macro to disable the warning which is emitted by default when optimizations are enabled.
+NEON trades IEEE-754 compliance for performance when handling denormals and NaNs.
+Define these macros as `1` before including `sse2neon.h` to enable precise (but slower) implementations:
 
-The above are turned off by default, and you should define the corresponding macro(s) as `1` before including `sse2neon.h` if you need the precise implementations.
+| Macro | Effect |
+|-------|--------|
+| `SSE2NEON_PRECISE_MINMAX` | Correct NaN handling in `_mm_min_{ps,pd}` and `_mm_max_{ps,pd}` |
+| `SSE2NEON_PRECISE_DIV` | Extra Newton-Raphson iteration for `_mm_rcp_ps` and `_mm_div_ps` |
+| `SSE2NEON_PRECISE_SQRT` | Extra Newton-Raphson iteration for `_mm_sqrt_ps` and `_mm_rsqrt_ps` |
+| `SSE2NEON_PRECISE_DP` | Conditional multiplication in `_mm_dp_pd` |
+| `SSE2NEON_SUPPRESS_WARNINGS` | Disable optimization-enabled warnings |
+
+All flags are disabled by default to maximize performance.
 
 ## Run Built-in Test Suite
 
-`sse2neon` provides a unified interface for developing test cases. These test
-cases are located in `tests` directory, and the input data is specified at
-runtime. Use the following commands to perform test cases:
+Test cases are in the `tests` directory with runtime-specified input data.
+
 ```shell
-$ make check
+# Basic test run
+make check
+
+# Enable crypto and CRC features
+make FEATURE=crypto+crc check
+
+# Target specific CPU
+make ARCH_CFLAGS="-mcpu=cortex-a53 -mfpu=neon-vfpv4" check
 ```
 
-For running check with enabling features, you can use assign the features with `FEATURE` command.
-If `none` is assigned, then the command will be the same as simply calling `make check`.
-The following command enable `crypto` and `crc` features in the tests.
-```
-$ make FEATURE=crypto+crc check
-```
+### Cross-compilation Testing
 
-For running check on certain CPU, setting the mode of FPU, etc.,
-you can also assign the desired options with `ARCH_CFLAGS` command.
-If `none` is assigned, the command acts as same as calling `make check`.
-For instance, to run tests on Cortex-A53 with enabling ARM VFPv4 extension and NEON:
-```
-$ make ARCH_CFLAGS="-mcpu=cortex-a53 -mfpu=neon-vfpv4" check
-```
+Requires [QEMU](https://www.qemu.org/) for non-Arm hosts.
 
-### Running tests on hosts other than ARM platform
-
-For running tests on hosts other than ARM platform,
-you can specify GNU toolchain for cross compilation with `CROSS_COMPILE` command.
-[QEMU](https://www.qemu.org/) should be installed in advance.
-
-For ARMv8-A running in 64-bit mode type:
 ```shell
-$ make CROSS_COMPILE=aarch64-linux-gnu- check # ARMv8-A
+# ARMv8-A AArch64
+make CROSS_COMPILE=aarch64-linux-gnu- check
+
+# ARMv7-A
+make CROSS_COMPILE=arm-linux-gnueabihf- check
+
+# ARMv8-A AArch32
+make CROSS_COMPILE=arm-linux-gnueabihf- \
+     ARCH_CFLAGS="-mcpu=cortex-a32 -mfpu=neon-fp-armv8" check
 ```
 
-For ARMv7-A type:
-```shell
-$ make CROSS_COMPILE=arm-linux-gnueabihf- check # ARMv7-A
-```
+See [tests/README.md](tests/README.md) for details.
 
-For ARMv8-A running in 32-bit mode (A32 instruction set) type:
-```shell
-$ make \
-  CROSS_COMPILE=arm-linux-gnueabihf- \
-  ARCH_CFLAGS="-mcpu=cortex-a32 -mfpu=neon-fp-armv8" \
-  check 
-```
+### Optimization Caveats
 
-Check the details via [Test Suite for SSE2NEON](tests/README.md).
-
-### Optimization
-
-The SSE2NEON project is designed with performance-sensitive scenarios in mind, and as such, optimization options (e.g. `O1`, `O2`) can lead to misbehavior under specific circumstances. For example, frequent changes to the rounding mode or repeated calls to `_MM_SET_DENORMALS_ZERO_MODE()` may introduce unintended behavior.
-
-Enforcing no optimizations for specific intrinsics could solve these boundary cases but may negatively impact general performance. Therefore, we have decided to prioritize performance and shift the responsibility for handling such edge cases to developers.
-
-It is important to be aware of these potential pitfalls when enabling optimizations and ensure that your code accounts for these scenarios if necessary.
-
+Compiler optimizations (`-O1`, `-O2`, etc.) may cause unexpected behavior with frequent rounding mode changes or repeated `_MM_SET_DENORMALS_ZERO_MODE()` calls.
+The project prioritizes performance over these edge cases—developers should handle them explicitly when needed.
 
 ## Adoptions
-Here is a partial list of open source projects that have adopted `sse2neon` for Arm/Aarch64 support.
+
+Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [Aaru Data Preservation Suite](https://www.aaru.app/) is a fully-featured software package to preserve all storage media from the very old to the cutting edge, as well as to give detailed information about any supported image file (whether from Aaru or not) and to extract the files from those images.
 * [aether-game-utils](https://github.com/johnhues/aether-game-utils) is a collection of cross platform utilities for quickly creating small game prototypes in C++.
 * [ALE](https://github.com/sc932/ALE), aka Assembly Likelihood Evaluation, is a tool for evaluating accuracy of assemblies without the need of a reference genome.
