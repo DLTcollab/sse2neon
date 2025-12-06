@@ -5,8 +5,9 @@
 
 set -e
 
-# Generate fresh report (includes header)
-python3 scripts/gen-perf-report.py > perf-tier-generated.md
+# Generate fresh report with Clang AST + Cortex-A72 weighted analysis
+# Requires: libclang-dev, pip install clang
+python3 scripts/gen-perf-report.py --clang-ast --weighted > perf-tier-generated.md
 
 # Direct comparison - gen-perf-report.py now outputs the complete file
 if diff -q perf-tier.md perf-tier-generated.md > /dev/null 2>&1; then
@@ -17,10 +18,10 @@ else
     echo "perf-tier.md is out of sync with sse2neon.h"
     echo ""
     echo "To regenerate:"
-    echo "  python3 scripts/gen-perf-report.py > perf-tier.md"
+    echo "  python3 scripts/gen-perf-report.py --clang-ast --weighted > perf-tier.md"
     echo ""
     echo "For detailed analysis:"
-    echo "  python3 scripts/analyze-tiers.py --markdown"
+    echo "  python3 scripts/analyze-tiers.py --clang-ast --weighted --markdown"
     rm -f perf-tier-generated.md
     exit 1
 fi
