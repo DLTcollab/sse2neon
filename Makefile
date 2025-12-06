@@ -57,8 +57,19 @@ ARCH_CFLAGS := $(ARCH_CFLAGS)+$(subst $(COMMA),+,$(FEATURE))
 endif
 endif
 
-CXXFLAGS += -Wall -Wcast-qual -Wold-style-cast -Wconversion -I. $(ARCH_CFLAGS) -std=gnu++14
-LDFLAGS	+= -lm
+# Sanitizer support: SANITIZE=undefined for UBSan, SANITIZE=address for ASan
+SANITIZE ?=
+ifneq ($(SANITIZE),)
+SANITIZE_FLAGS = -fsanitize=$(SANITIZE) -fno-omit-frame-pointer
+# Add -fwrapv for well-defined signed overflow behavior (wraparound)
+# This matches common expectations for integer overflow in SIMD code
+SANITIZE_FLAGS += -fwrapv
+else
+SANITIZE_FLAGS =
+endif
+
+CXXFLAGS += -Wall -Wcast-qual -Wold-style-cast -Wconversion -I. $(ARCH_CFLAGS) -std=gnu++14 $(SANITIZE_FLAGS)
+LDFLAGS  += -lm $(SANITIZE_FLAGS)
 OBJS = \
     tests/binding.o \
     tests/common.o \
@@ -67,26 +78,26 @@ OBJS = \
 deps := $(OBJS:%.o=%.o.d)
 
 # Floating-point edge case test objects
-FP_EDGE_OBJS = \
-    tests/fp_edge_cases.o \
+FLOATPOINT_OBJS = \
+    tests/floatpoint.o \
     tests/common.o \
     tests/binding.o
-fp_edge_deps := $(FP_EDGE_OBJS:%.o=%.o.d)
+floatpoint_deps := $(FLOATPOINT_OBJS:%.o=%.o.d)
 
 .SUFFIXES: .o .cpp
 .cpp.o:
 	$(CXX) -o $@ $(CXXFLAGS) -c -MMD -MF $@.d $<
 
 EXEC = tests/main
-FP_EDGE_EXEC = tests/fp_edge_cases
+FLOATPOINT_EXEC = tests/floatpoint
 
 $(EXEC): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
-$(FP_EDGE_EXEC): $(FP_EDGE_OBJS)
+$(FLOATPOINT_EXEC): $(FLOATPOINT_OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
-fp_edge_cases: $(FP_EDGE_EXEC)
+floatpoint: $(FLOATPOINT_EXEC)
 ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
 endif
@@ -112,10 +123,14 @@ indent:
 	fi
 	$(CLANG_FORMAT) -i sse2neon.h tests/*.cpp tests/*.h
 
-.PHONY: clean check format fp_edge_cases
+# Convenience target for running tests with UBSan
+check-ubsan: clean
+	$(MAKE) SANITIZE=undefined check
+
+.PHONY: clean check check-ubsan format floatpoint
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
-	$(RM) $(FP_EDGE_OBJS) $(FP_EDGE_EXEC) $(fp_edge_deps)
+	$(RM) $(FLOATPOINT_OBJS) $(FLOATPOINT_EXEC) $(floatpoint_deps)
 
 -include $(deps)
--include $(fp_edge_deps)
+-include $(floatpoint_deps)

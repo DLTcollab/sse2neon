@@ -127,6 +127,24 @@ jobs:
       - name: Run tests
         run: wine-arm64 cmd.exe /c 'Release\sse2neon.exe'
 
+  sanitizers:
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        sanitizer: [undefined]
+        cxx_compiler: [g++, clang++-18]
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: install build dependencies
+        run: |
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y clang-18
+      - name: build and test with sanitizer
+        env:
+          CXX: ${{ matrix.cxx_compiler }}
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: make SANITIZE=${{ matrix.sanitizer }} check
 
   coding-style:
     runs-on: ubuntu-24.04

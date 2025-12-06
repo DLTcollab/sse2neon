@@ -1,5 +1,7 @@
 #ifndef SSE2NEONCOMMON_H
 #define SSE2NEONCOMMON_H
+#include <climits>
+#include <cmath>
 #include <cstdint>
 #if (defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)) || \
     defined(__arm__)
@@ -52,9 +54,10 @@ typedef union ALIGN_STRUCT(16) SIMDVec {
 #endif
 #endif
 
-#define ASSERT_RETURN(x) \
-    if (!(x))            \
-        return TEST_FAIL;
+#define ASSERT_RETURN(x)  \
+    if (!(x)) {           \
+        return TEST_FAIL; \
+    }
 
 namespace SSE2NEON
 {
@@ -77,32 +80,86 @@ extern int64_t NaN64;
 #endif
 
 #include <string.h>
+
 static inline double sse2neon_tool_recast_f64(uint64_t u64)
 {
     double f64;
     memcpy(&f64, &u64, sizeof(uint64_t));
     return f64;
 }
+
 static inline int64_t sse2neon_tool_recast_i64(double f64)
 {
     int64_t i64;
     memcpy(&i64, &f64, sizeof(int64_t));
     return i64;
 }
+
 static inline float sse2neon_tool_recast_f32(uint32_t u32)
 {
     float f32;
     memcpy(&f32, &u32, sizeof(uint32_t));
     return f32;
 }
+
 static inline float sse2neon_tool_recast_f32(int32_t i32)
 {
     float f32;
     memcpy(&f32, &i32, sizeof(int32_t));
     return f32;
 }
+
 #define ALL_BIT_1_32 sse2neon_tool_recast_f32(UINT32_MAX)
 #define ALL_BIT_1_64 sse2neon_tool_recast_f64(UINT64_MAX)
+
+/* Safe float/double to int32_t conversion.
+ * Returns INT32_MIN (0x80000000) for NaN, Inf, or out-of-range values,
+ * matching x86 SSE behavior for cvt* instructions which return the
+ * "integer indefinite" value for all out-of-range conversions.
+ */
+static inline int32_t sse2neon_saturate_cast_int32(double v)
+{
+    if (std::isnan(v) || std::isinf(v))
+        return INT32_MIN;
+    if (v >= static_cast<double>(INT32_MAX) + 1.0)
+        return INT32_MIN;
+    if (v < static_cast<double>(INT32_MIN))
+        return INT32_MIN;
+    return static_cast<int32_t>(v);
+}
+
+static inline int32_t sse2neon_saturate_cast_int32(float v)
+{
+    if (std::isnan(v) || std::isinf(v))
+        return INT32_MIN;
+    if (v >= static_cast<float>(INT32_MAX) + 1.0f)
+        return INT32_MIN;
+    if (v < static_cast<float>(INT32_MIN))
+        return INT32_MIN;
+    return static_cast<int32_t>(v);
+}
+
+static inline int64_t sse2neon_saturate_cast_int64(float v)
+{
+    if (std::isnan(v) || std::isinf(v))
+        return INT64_MIN;
+    if (v >= static_cast<float>(INT64_MAX))
+        return INT64_MIN;
+    if (v < static_cast<float>(INT64_MIN))
+        return INT64_MIN;
+    return static_cast<int64_t>(v);
+}
+
+static inline int64_t sse2neon_saturate_cast_int64(double v)
+{
+    if (std::isnan(v) || std::isinf(v))
+        return INT64_MIN;
+    if (v >= static_cast<double>(INT64_MAX))
+        return INT64_MIN;
+    if (v < static_cast<double>(INT64_MIN))
+        return INT64_MIN;
+    return static_cast<int64_t>(v);
+}
 
 template <typename T>
 result_t validate128(T a, T b)
@@ -116,6 +173,7 @@ result_t validate128(T a, T b)
     ASSERT_RETURN(t1[3] == t2[3]);
     return TEST_SUCCESS;
 }
+
 result_t validateInt64(__m128i a, int64_t i0, int64_t i1);
 result_t validateInt64(__m64 a, int64_t i0);
 result_t validateUInt64(__m128i a, uint64_t u0, uint64_t u1);
