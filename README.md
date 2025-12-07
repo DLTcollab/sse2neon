@@ -83,6 +83,16 @@ Earlier compiler versions contain bugs in vector instruction generation that cau
 
 4. For Windows Arm64EC, define `_DISABLE_SOFTINTRIN_=1` before including any Windows headers.
 
+5. (Optional) To reduce the header file size for your specific target architecture and accelerate compilation,
+   you can use the [unifdef](https://github.com/fanf2/unifdef) tool to remove unused conditional compilation paths.
+   For example, to generate a reduced version for AArch64:
+   ```shell
+   unifdef -DSSE2NEON_ARCH_AARCH64=1 -D__aarch64__=1\
+           -D__ARM_FEATURE_DIRECTED_ROUNDING=1 -D__ARM_FEATURE_FMA=1
+           -D__ARM_FEATURE_CRYPTO=1 -D__ARM_FEATURE_CRC32=1 -U__ARM_FEATURE_FRINT\
+           sse2neon.h > sse2neon_aarch64.h
+   ```
+
 ## Compile-time Configurations
 
 NEON trades IEEE-754 compliance for performance when handling denormals and NaNs.
