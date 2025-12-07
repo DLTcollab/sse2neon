@@ -4927,65 +4927,78 @@ FORCE_INLINE __m128d _mm_move_sd(__m128d a, __m128d b)
 // Create mask from the most significant bit of each 8-bit element in a, and
 // store the result in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_movemask_epi8
+//
+//   Input (__m128i): 16 bytes, extract bit 7 (MSB) of each
+//   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//   |0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|  byte index
+//   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//    |   ...                     |
+//   MSB                         MSB
+//    v   v v v v v v v v v v v v v v
+//   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//   |0|1|2|3|4|5|6|7|8|9|A|B|C|D|E|F|  bit position in result
+//   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+//   |<-- low byte ->|<-- high byte->|
+//
+//   Output (int): 16-bit mask where bit[i] = MSB of input byte[i]
 FORCE_INLINE int _mm_movemask_epi8(__m128i a)
 {
-    // Note: Everything will be illustrated in big-endian order.
-
-    // Starting input (only half the elements are shown):
-    // 11111111 11111111 00000000 11111111 00000000 00000000 11111111 00000000
-    // ff       ff       00       ff       00       00       ff       00
     uint8x16_t input = vreinterpretq_u8_m128i(a);
 
-    // Right-shift each 8-bit element by 7,
-    // effectively extracting the MSB into the LSB.
-    // (ff becomes a 01 | 11111111 becomes a 00000001)
+#if SSE2NEON_ARCH_AARCH64
+    // AArch64: Variable shift + horizontal add (vaddv).
+    //
+    // Step 1: Extract MSB of each byte (vshr #7: 0x80->1, 0x7F->0)
     uint8x16_t msbs = vshrq_n_u8(input, 7);
 
-    // Reinterpret 16x8-bit elements as 2x64-bit elements.
-    // (In our example, we only handle 1x64-bit element)
+    // Step 2: Shift each byte left by its bit position (0-7 per half)
+    //
+    //   msbs:     [ 1  ][ 0  ][ 1  ][ 1  ][ 0  ][ 1  ][ 0  ][ 1  ] (example)
+    //   shifts:   [ 0  ][ 1  ][ 2  ][ 3  ][ 4  ][ 5  ][ 6  ][ 7  ]
+    //               |     |     |     |     |     |     |     |
+    //              <<0   <<1   <<2   <<3   <<4   <<5   <<6   <<7
+    //               v     v     v     v     v     v     v     v
+    //   result:  [0x01][0x00][0x04][0x08][0x00][0x20][0x00][0x80]
+    //
+    //   Horizontal sum: 0x01+0x04+0x08+0x20+0x80 = 0xAD = 0b10101101
+    //   Each bit in sum corresponds to one input byte's MSB.
+    static const int8_t shift_table[16] = {0, 1, 2, 3, 4, 5, 6, 7,
+                                           0, 1, 2, 3, 4, 5, 6, 7};
+    int8x16_t shifts = vld1q_s8(shift_table);
+    uint8x16_t positioned = vshlq_u8(msbs, shifts);
+
+    // Step 3: Sum each half -> bits [7:0] and [15:8]
+    return vaddv_u8(vget_low_u8(positioned)) |
+           (vaddv_u8(vget_high_u8(positioned)) << 8);
+#else
+    // ARMv7: Shift-right-accumulate (no vaddv).
+    //
+    // Step 1: Extract MSB of each byte
+    uint8x16_t msbs = vshrq_n_u8(input, 7);
     uint64x2_t bits = vreinterpretq_u64_u8(msbs);
 
-    // The bits B are shifted to the right by C and merged with A.
+    // Step 2: Parallel bit collection via shift-right-accumulate
     //
-    // 01 01 00 01 00 00 01 00
-    //  \_ |  \_ |  \_ |  \_ |   bits = (uint64x1_t)(bits + (bits >> 7))
-    //    \|    \|    \|    \|
-    // xx 03 xx 01 xx 00 xx 02
+    //   Initial (8 bytes shown):
+    //   byte:     [  0 ][  1 ][  2 ][  3 ][  4 ][  5 ][  6 ][  7 ]
+    //   value:    [ 01 ][ 00 ][ 01 ][ 01 ][ 00 ][ 01 ][ 00 ][ 01 ]
     //
-    // 00000001 00000001 (01 01)
-    //        \_______ |
-    //                \|
-    // xxxxxxxx xxxxxx11 (xx 03)
+    //   vsra(..., 7):  add original + (original >> 7)
+    //   byte 1 gets: orig[1] + orig[0] = b1|b0 in bits [1:0]
+    //   byte 3 gets: orig[3] + orig[2] = b3|b2 in bits [1:0]
+    //   ...
+    //   Result: pairs combined into odd bytes
+    //
+    //   vsra(..., 14): combine pairs -> 4 bits in bytes 3,7
+    //   vsra(..., 28): combine all   -> 8 bits in byte 7 (actually byte 0)
     bits = vsraq_n_u64(bits, bits, 7);
-    // xx 03 xx 01 xx 00 xx 02
-    //     \____ |     \____ |   bits = (uint64x1_t)(bits + (bits >> 14))
-    //          \|          \|
-    // xx xx xx 0d xx xx xx 02
-    //
-    // 00000011 00000001 (03 01)
-    //        \\_____ ||
-    //         '----.\||
-    // xxxxxxxx xxxx1101 (xx 0d)
     bits = vsraq_n_u64(bits, bits, 14);
-    // xx xx xx 0d xx xx xx 02
-    //            \_________ |   bits = (uint64x1_t)(bits + (bits >> 28))
-    //                      \|
-    // xx xx xx xx xx xx xx d2
-    //
-    // 00001101 00000010 (0d 02)
-    //     \   \___ |  |
-    //      '---.  \|  |
-    // xxxxxxxx 11010010 (xx d2)
     bits = vsraq_n_u64(bits, bits, 28);
 
-    // Reinterpret 2x64-bit elements as 16x8-bit elements.
+    // Step 3: Extract packed result from byte 0 of each half
     uint8x16_t output = vreinterpretq_u8_u64(bits);
-
-    // Note: Little-endian would return the correct value 4b (01001011) instead.
-    int low = vgetq_lane_u8(output, 0);   // xxxxxxxx
-    int high = vgetq_lane_u8(output, 8);  // 11010010
-
-    return (high << 8) | low;  // 0000000 0000000 11010010 xxxxxxxx
+    return vgetq_lane_u8(output, 0) | (vgetq_lane_u8(output, 8) << 8);
+#endif
 }
 
 // Set each bit of mask dst based on the most significant bit of the
