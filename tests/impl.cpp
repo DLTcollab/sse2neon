@@ -2463,6 +2463,7 @@ result_t test_mm_movelh_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_movemask_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // Test 1: Random data from test framework
     const uint8_t *_a =
         reinterpret_cast<const uint8_t *>(impl.mTestIntPointer1);
     unsigned int _c = 0;
@@ -2474,32 +2475,113 @@ result_t test_mm_movemask_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     const __m64 *a = reinterpret_cast<const __m64 *>(_a);
     int c = _mm_movemask_pi8(*a);
-
     ASSERT_RETURN(static_cast<unsigned int>(c) == _c);
+
+    // Test 2: Edge cases for 64-bit movemask
+    // Use padding to ensure 8-byte alignment for each element
+    struct {
+        uint8_t bytes[8];
+        int expected;
+        int _pad;  // Padding to make struct size 16 (multiple of 8)
+    } edge_cases[] = {
+        // All zeros
+        {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0x00, 0},
+        // All ones
+        {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, 0xFF, 0},
+        // Single bit positions
+        {{0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, 0x01, 0},
+        {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80}, 0x80, 0},
+        // Alternating patterns
+        {{0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00}, 0x55, 0},
+        {{0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80}, 0xAA, 0},
+        // Low/high nibbles
+        {{0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00}, 0x0F, 0},
+        {{0x00, 0x00, 0x00, 0x00, 0x80, 0x80, 0x80, 0x80}, 0xF0, 0},
+        // Boundary values
+        {{0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F}, 0x00, 0},
+        {{0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80}, 0xFF, 0},
+    };
+
+    for (size_t i = 0; i < sizeof(edge_cases) / sizeof(edge_cases[0]); i++) {
+        __m64 vec = *reinterpret_cast<const __m64 *>(edge_cases[i].bytes);
+        int result = _mm_movemask_pi8(vec);
+        ASSERT_RETURN(result == edge_cases[i].expected);
+    }
+
     return TEST_SUCCESS;
 }
 
 result_t test_mm_movemask_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // Test 1: Random data from test framework
     const float *p = impl.mTestFloatPointer1;
     int ret = 0;
 
     const uint32_t *ip = reinterpret_cast<const uint32_t *>(p);
-    if (ip[0] & 0x80000000) {
+    if (ip[0] & 0x80000000)
         ret |= 1;
-    }
-    if (ip[1] & 0x80000000) {
+    if (ip[1] & 0x80000000)
         ret |= 2;
-    }
-    if (ip[2] & 0x80000000) {
+    if (ip[2] & 0x80000000)
         ret |= 4;
-    }
-    if (ip[3] & 0x80000000) {
+    if (ip[3] & 0x80000000)
         ret |= 8;
-    }
     __m128 a = load_m128(p);
     int val = _mm_movemask_ps(a);
-    return val == ret ? TEST_SUCCESS : TEST_FAIL;
+    ASSERT_RETURN(val == ret);
+
+    // Test 2: Edge cases with specific float patterns
+    // Using union to set exact bit patterns
+    union {
+        float f;
+        uint32_t u;
+    } conv;
+
+    struct {
+        uint32_t bits[4];
+        int expected;
+    } edge_cases[] = {
+        // All positive zeros
+        {{0x00000000, 0x00000000, 0x00000000, 0x00000000}, 0x0},
+        // All negative zeros
+        {{0x80000000, 0x80000000, 0x80000000, 0x80000000}, 0xF},
+        // Mixed: negative zero at position 0
+        {{0x80000000, 0x00000000, 0x00000000, 0x00000000}, 0x1},
+        // Mixed: negative zero at position 3
+        {{0x00000000, 0x00000000, 0x00000000, 0x80000000}, 0x8},
+        // Alternating pattern
+        {{0x80000000, 0x00000000, 0x80000000, 0x00000000}, 0x5},
+        {{0x00000000, 0x80000000, 0x00000000, 0x80000000}, 0xA},
+        // Positive infinity (MSB=0)
+        {{0x7F800000, 0x7F800000, 0x7F800000, 0x7F800000}, 0x0},
+        // Negative infinity (MSB=1)
+        {{0xFF800000, 0xFF800000, 0xFF800000, 0xFF800000}, 0xF},
+        // Positive NaN (MSB=0)
+        {{0x7FC00000, 0x7FC00000, 0x7FC00000, 0x7FC00000}, 0x0},
+        // Negative NaN (MSB=1)
+        {{0xFFC00000, 0xFFC00000, 0xFFC00000, 0xFFC00000}, 0xF},
+        // Max positive float
+        {{0x7F7FFFFF, 0x7F7FFFFF, 0x7F7FFFFF, 0x7F7FFFFF}, 0x0},
+        // Max negative float
+        {{0xFF7FFFFF, 0xFF7FFFFF, 0xFF7FFFFF, 0xFF7FFFFF}, 0xF},
+        // Smallest positive denormal
+        {{0x00000001, 0x00000001, 0x00000001, 0x00000001}, 0x0},
+        // Smallest negative denormal
+        {{0x80000001, 0x80000001, 0x80000001, 0x80000001}, 0xF},
+    };
+
+    for (size_t i = 0; i < sizeof(edge_cases) / sizeof(edge_cases[0]); i++) {
+        float floats[4];
+        for (int j = 0; j < 4; j++) {
+            conv.u = edge_cases[i].bits[j];
+            floats[j] = conv.f;
+        }
+        __m128 vec = _mm_loadu_ps(floats);
+        int result = _mm_movemask_ps(vec);
+        ASSERT_RETURN(result == edge_cases[i].expected);
+    }
+
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_mul_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
@@ -5589,25 +5671,104 @@ result_t test_mm_move_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_movemask_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // Test 1: Random data from test framework
     const int32_t *_a = impl.mTestIntPointer1;
     __m128i a = load_m128i(_a);
 
     const uint8_t *ip = reinterpret_cast<const uint8_t *>(_a);
     int ret = 0;
-    uint32_t mask = 1;
-    for (uint32_t i = 0; i < 16; i++) {
-        if (ip[i] & 0x80) {
-            ret |= mask;
-        }
-        mask = mask << 1;
+    for (int i = 0; i < 16; i++) {
+        if (ip[i] & 0x80)
+            ret |= (1 << i);
     }
     int test = _mm_movemask_epi8(a);
     ASSERT_RETURN(test == ret);
+
+    // Test 2: Canonical edge cases (explicit patterns)
+    // These test specific bit patterns that stress the implementation
+    struct {
+        uint8_t bytes[16];
+        int expected;
+    } edge_cases[] = {
+        // All zeros - no MSBs set
+        {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00},
+         0x0000},
+        // All ones - all MSBs set
+        {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+          0xFF, 0xFF, 0xFF, 0xFF, 0xFF},
+         0xFFFF},
+        // Single bit at position 0
+        {{0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00},
+         0x0001},
+        // Single bit at position 15
+        {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x80},
+         0x8000},
+        // Low 8 bits only (tests low half extraction)
+        {{0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00},
+         0x00FF},
+        // High 8 bits only (tests high half extraction)
+        {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x80, 0x80,
+          0x80, 0x80, 0x80, 0x80, 0x80},
+         0xFF00},
+        // Alternating pattern (0x5555) - tests even positions
+        {{0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80,
+          0x00, 0x80, 0x00, 0x80, 0x00},
+         0x5555},
+        // Alternating pattern (0xAAAA) - tests odd positions
+        {{0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00, 0x80, 0x00,
+          0x80, 0x00, 0x80, 0x00, 0x80},
+         0xAAAA},
+        // All 0x7F - MSB clear but other bits set
+        {{0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,
+          0x7F, 0x7F, 0x7F, 0x7F, 0x7F},
+         0x0000},
+        // Mixed values with MSB set (0x81-0x90)
+        {{0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8B,
+          0x8C, 0x8D, 0x8E, 0x8F, 0x90},
+         0xFFFF},
+        // Boundary: 0x80 exactly (minimum negative signed byte)
+        {{0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+          0x80, 0x80, 0x80, 0x80, 0x80},
+         0xFFFF},
+        // Walking bit at position 1
+        {{0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00},
+         0x0002},
+        // Walking bit at position 7 (end of low byte)
+        {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00},
+         0x0080},
+        // Walking bit at position 8 (start of high byte)
+        {{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00},
+         0x0100},
+        // Comparison result simulation (0xFF or 0x00 bytes)
+        {{0xFF, 0x00, 0xFF, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0xFF,
+          0x00, 0x00, 0x00, 0xFF, 0xFF},
+         0xC735},
+        // Nibble boundary test
+        {{0x80, 0x80, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00, 0x80, 0x80, 0x80,
+          0x80, 0x00, 0x00, 0x00, 0x00},
+         0x0F0F},
+    };
+
+    for (size_t i = 0; i < sizeof(edge_cases) / sizeof(edge_cases[0]); i++) {
+        __m128i vec = _mm_loadu_si128(
+            reinterpret_cast<const __m128i *>(edge_cases[i].bytes));
+        int result = _mm_movemask_epi8(vec);
+        ASSERT_RETURN(result == edge_cases[i].expected);
+    }
+
     return TEST_SUCCESS;
 }
 
 result_t test_mm_movemask_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
+    // Test 1: Random data from test framework
     const double *_a =
         reinterpret_cast<const double *>(impl.mTestFloatPointer1);
     int _c = 0;
@@ -5617,8 +5778,58 @@ result_t test_mm_movemask_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     __m128d a = load_m128d(_a);
     int c = _mm_movemask_pd(a);
-
     ASSERT_RETURN(c == _c);
+
+    // Test 2: Edge cases with specific double patterns
+    union {
+        double d;
+        uint64_t u;
+    } conv;
+
+    struct {
+        uint64_t bits[2];
+        int expected;
+    } edge_cases[] = {
+        // All positive zeros
+        {{0x0000000000000000ULL, 0x0000000000000000ULL}, 0x0},
+        // All negative zeros
+        {{0x8000000000000000ULL, 0x8000000000000000ULL}, 0x3},
+        // Mixed: negative zero at position 0 only
+        {{0x8000000000000000ULL, 0x0000000000000000ULL}, 0x1},
+        // Mixed: negative zero at position 1 only
+        {{0x0000000000000000ULL, 0x8000000000000000ULL}, 0x2},
+        // Positive infinity
+        {{0x7FF0000000000000ULL, 0x7FF0000000000000ULL}, 0x0},
+        // Negative infinity
+        {{0xFFF0000000000000ULL, 0xFFF0000000000000ULL}, 0x3},
+        // Positive NaN
+        {{0x7FF8000000000000ULL, 0x7FF8000000000000ULL}, 0x0},
+        // Negative NaN
+        {{0xFFF8000000000000ULL, 0xFFF8000000000000ULL}, 0x3},
+        // Max positive double
+        {{0x7FEFFFFFFFFFFFFFULL, 0x7FEFFFFFFFFFFFFFULL}, 0x0},
+        // Max negative double
+        {{0xFFEFFFFFFFFFFFFFULL, 0xFFEFFFFFFFFFFFFFULL}, 0x3},
+        // Smallest positive denormal
+        {{0x0000000000000001ULL, 0x0000000000000001ULL}, 0x0},
+        // Smallest negative denormal
+        {{0x8000000000000001ULL, 0x8000000000000001ULL}, 0x3},
+        // Mixed positive and negative
+        {{0x3FF0000000000000ULL, 0xBFF0000000000000ULL}, 0x2},  // +1.0, -1.0
+        {{0xBFF0000000000000ULL, 0x3FF0000000000000ULL}, 0x1},  // -1.0, +1.0
+    };
+
+    for (size_t i = 0; i < sizeof(edge_cases) / sizeof(edge_cases[0]); i++) {
+        double doubles[2];
+        for (int j = 0; j < 2; j++) {
+            conv.u = edge_cases[i].bits[j];
+            doubles[j] = conv.d;
+        }
+        __m128d vec = _mm_loadu_pd(doubles);
+        int result = _mm_movemask_pd(vec);
+        ASSERT_RETURN(result == edge_cases[i].expected);
+    }
+
     return TEST_SUCCESS;
 }
 
