@@ -8558,64 +8558,308 @@ static uint16_t _sse2neon_cmp_word_equal_each(__m128i a,
     return _sse2neon_vaddvq_u16(mtx);
 }
 
-#define SSE2NEON_AGGREGATE_EQUAL_ORDER_IS_UBYTE 1
-#define SSE2NEON_AGGREGATE_EQUAL_ORDER_IS_UWORD 0
+/* EQUAL_ORDERED aggregation for 8x16 (byte mode).
+ * The algorithm checks where string a appears in string b.
+ * For result bit i: AND together mtx[i][0] & mtx[i+1][1] & mtx[i+2][2] & ...
+ *
+ * Vectorization approach: transpose matrix FIRST, then apply masking to
+ * transposed matrix, then use vextq diagonal extraction.
+ * After transpose: mtx_T[j][i] = mtx[i][j] = (a[j] == b[i])
+ * vextq on mtx_T gives: result[i] = mtx_T[0][i] & mtx_T[1][i+1] & ...
+ *                                 = mtx[i][0] & mtx[i+1][1] & ... (correct!)
+ */
+static uint16_t _sse2neon_aggregate_equal_ordered_8x16(int bound,
+                                                       int la,
+                                                       int lb,
+                                                       __m128i mtx[16])
+{
+#if SSE2NEON_ARCH_AARCH64
+    uint8x16_t rows[16];
+    for (int i = 0; i < 16; i++)
+        rows[i] = vreinterpretq_u8_m128i(mtx[i]);
 
-#define SSE2NEON_AGGREGATE_EQUAL_ORDER_IMPL(size, number_of_lanes, data_type)  \
-    static uint16_t                                                            \
-    _sse2neon_aggregate_equal_ordered_##size##x##number_of_lanes(              \
-        int bound, int la, int lb, __m128i mtx[16])                            \
-    {                                                                          \
-        uint16_t res = 0;                                                      \
-        uint16_t m1 = _sse2neon_static_cast(                                   \
-            uint16_t, SSE2NEON_IIF(data_type)(0x10000, 0x100) - (1 << la));    \
-        uint##size##x8_t vec_mask = SSE2NEON_IIF(data_type)(                   \
-            vld1_u##size(_sse2neon_cmpestr_mask##size##b),                     \
-            vld1q_u##size(_sse2neon_cmpestr_mask##size##b));                   \
-        uint##size##x##number_of_lanes##_t vec1 = SSE2NEON_IIF(data_type)(     \
-            vcombine_u##size(                                                  \
-                vtst_u##size(                                                  \
-                    vdup_n_u##size(_sse2neon_static_cast(uint##size##_t, m1)), \
-                    vec_mask),                                                 \
-                vtst_u##size(vdup_n_u##size(_sse2neon_static_cast(             \
-                                 uint##size##_t, m1 >> 8)),                    \
-                             vec_mask)),                                       \
-            vtstq_u##size(                                                     \
-                vdupq_n_u##size(_sse2neon_static_cast(uint##size##_t, m1)),    \
-                vec_mask));                                                    \
-        uint##size##x##number_of_lanes##_t vec_minusone =                      \
-            vdupq_n_u##size(_sse2neon_static_cast(uint##size##_t, -1));        \
-        uint##size##x##number_of_lanes##_t vec_zero = vdupq_n_u##size(0);      \
-        for (int j = 0; j < lb; j++) {                                         \
-            mtx[j] = vreinterpretq_m128i_u##size(vbslq_u##size(                \
-                vec1, vec_minusone, vreinterpretq_u##size##_m128i(mtx[j])));   \
-        }                                                                      \
-        for (int j = lb; j < bound; j++) {                                     \
-            mtx[j] = vreinterpretq_m128i_u##size(                              \
-                vbslq_u##size(vec1, vec_minusone, vec_zero));                  \
-        }                                                                      \
-        unsigned SSE2NEON_IIF(data_type)(char, short) *ptr =                   \
-            _sse2neon_reinterpret_cast(                                        \
-                unsigned SSE2NEON_IIF(data_type)(char, short) *, mtx);         \
-        for (int i = 0; i < bound; i++) {                                      \
-            int val = 1;                                                       \
-            for (int j = 0, k = i; j < bound - i && k < bound; j++, k++)       \
-                val &= ptr[k * bound + j];                                     \
-            res += _sse2neon_static_cast(uint16_t, val << i);                  \
-        }                                                                      \
-        return res;                                                            \
+    /* Transpose the 16x16 byte matrix using hierarchical vtrn operations.
+     * After transpose: rows[j][i] = original mtx[i][j]
+     */
+    /* Level 1: Transpose 2x2 blocks of 8-bit elements */
+    for (int i = 0; i < 16; i += 2) {
+        uint8x16x2_t t = vtrnq_u8(rows[i], rows[i + 1]);
+        rows[i] = t.val[0];
+        rows[i + 1] = t.val[1];
     }
 
-/* clang-format off */
-#define SSE2NEON_GENERATE_AGGREGATE_EQUAL_ORDER(prefix) \
-    prefix##IMPL(8, 16, prefix##IS_UBYTE)               \
-    prefix##IMPL(16, 8, prefix##IS_UWORD)
-/* clang-format on */
+    /* Level 2: Transpose 2x2 blocks of 16-bit elements */
+    for (int i = 0; i < 16; i += 4) {
+        uint16x8x2_t t0 = vtrnq_u16(vreinterpretq_u16_u8(rows[i]),
+                                    vreinterpretq_u16_u8(rows[i + 2]));
+        uint16x8x2_t t1 = vtrnq_u16(vreinterpretq_u16_u8(rows[i + 1]),
+                                    vreinterpretq_u16_u8(rows[i + 3]));
+        rows[i] = vreinterpretq_u8_u16(t0.val[0]);
+        rows[i + 2] = vreinterpretq_u8_u16(t0.val[1]);
+        rows[i + 1] = vreinterpretq_u8_u16(t1.val[0]);
+        rows[i + 3] = vreinterpretq_u8_u16(t1.val[1]);
+    }
 
-SSE2NEON_GENERATE_AGGREGATE_EQUAL_ORDER(SSE2NEON_AGGREGATE_EQUAL_ORDER_)
+    /* Level 3: Transpose 2x2 blocks of 32-bit elements */
+    for (int i = 0; i < 16; i += 8) {
+        uint32x4x2_t t0 = vtrnq_u32(vreinterpretq_u32_u8(rows[i]),
+                                    vreinterpretq_u32_u8(rows[i + 4]));
+        uint32x4x2_t t1 = vtrnq_u32(vreinterpretq_u32_u8(rows[i + 1]),
+                                    vreinterpretq_u32_u8(rows[i + 5]));
+        uint32x4x2_t t2 = vtrnq_u32(vreinterpretq_u32_u8(rows[i + 2]),
+                                    vreinterpretq_u32_u8(rows[i + 6]));
+        uint32x4x2_t t3 = vtrnq_u32(vreinterpretq_u32_u8(rows[i + 3]),
+                                    vreinterpretq_u32_u8(rows[i + 7]));
+        rows[i] = vreinterpretq_u8_u32(t0.val[0]);
+        rows[i + 4] = vreinterpretq_u8_u32(t0.val[1]);
+        rows[i + 1] = vreinterpretq_u8_u32(t1.val[0]);
+        rows[i + 5] = vreinterpretq_u8_u32(t1.val[1]);
+        rows[i + 2] = vreinterpretq_u8_u32(t2.val[0]);
+        rows[i + 6] = vreinterpretq_u8_u32(t2.val[1]);
+        rows[i + 3] = vreinterpretq_u8_u32(t3.val[0]);
+        rows[i + 7] = vreinterpretq_u8_u32(t3.val[1]);
+    }
 
-#undef SSE2NEON_AGGREGATE_EQUAL_ORDER_IS_UBYTE
-#undef SSE2NEON_AGGREGATE_EQUAL_ORDER_IS_UWORD
+    /* Level 4: Swap 64-bit halves between row pairs */
+    {
+        uint8x16_t tmp;
+#define SSE2NEON_SWAP_HL_8(a, b)                       \
+    tmp = vcombine_u8(vget_low_u8(a), vget_low_u8(b)); \
+    b = vcombine_u8(vget_high_u8(a), vget_high_u8(b)); \
+    a = tmp;
+
+        SSE2NEON_SWAP_HL_8(rows[0], rows[8]);
+        SSE2NEON_SWAP_HL_8(rows[1], rows[9]);
+        SSE2NEON_SWAP_HL_8(rows[2], rows[10]);
+        SSE2NEON_SWAP_HL_8(rows[3], rows[11]);
+        SSE2NEON_SWAP_HL_8(rows[4], rows[12]);
+        SSE2NEON_SWAP_HL_8(rows[5], rows[13]);
+        SSE2NEON_SWAP_HL_8(rows[6], rows[14]);
+        SSE2NEON_SWAP_HL_8(rows[7], rows[15]);
+#undef SSE2NEON_SWAP_HL_8
+    }
+
+    /* Apply masking to TRANSPOSED matrix:
+     * - Rows j >= la: set entire row to 0xFF (needle positions beyond la)
+     * - For rows j < la: columns k >= lb set to 0x00 (force AND fail for
+     *   positions that would access haystack beyond lb)
+     *
+     * lb_valid has bits set for valid positions (0..lb-1)
+     * lb_clear has 0xFF for positions < lb, 0x00 for positions >= lb
+     */
+    uint8x16_t vec_ff = vdupq_n_u8(0xFF);
+    uint16_t lb_valid =
+        _sse2neon_static_cast(uint16_t, (1U << lb) - 1); /* e.g. lb=6: 0x003F */
+    uint8x8_t pos_mask = vld1_u8(_sse2neon_cmpestr_mask8b);
+    uint8x16_t lb_clear = vcombine_u8(
+        vtst_u8(vdup_n_u8(_sse2neon_static_cast(uint8_t, lb_valid)), pos_mask),
+        vtst_u8(vdup_n_u8(_sse2neon_static_cast(uint8_t, lb_valid >> 8)),
+                pos_mask));
+
+    for (int j = 0; j < la; j++) {
+        rows[j] = vandq_u8(rows[j], lb_clear); /* clear positions >= lb */
+    }
+    for (int j = la; j < 16; j++) {
+        rows[j] = vec_ff;
+    }
+
+    /* vextq diagonal extraction: shift row k by k, then AND all rows.
+     * result[i] = rows[0][i] & rows[1][i+1] & rows[2][i+2] & ...
+     */
+    uint8x16_t result = vec_ff;
+
+/* Shift row K by K positions, filling with 0xFF, then AND into result */
+#define SSE2NEON_VEXT_AND_8(K)                             \
+    do {                                                   \
+        uint8x16_t shifted = vextq_u8(rows[K], vec_ff, K); \
+        result = vandq_u8(result, shifted);                \
+    } while (0)
+
+    SSE2NEON_VEXT_AND_8(0);
+    SSE2NEON_VEXT_AND_8(1);
+    SSE2NEON_VEXT_AND_8(2);
+    SSE2NEON_VEXT_AND_8(3);
+    SSE2NEON_VEXT_AND_8(4);
+    SSE2NEON_VEXT_AND_8(5);
+    SSE2NEON_VEXT_AND_8(6);
+    SSE2NEON_VEXT_AND_8(7);
+    SSE2NEON_VEXT_AND_8(8);
+    SSE2NEON_VEXT_AND_8(9);
+    SSE2NEON_VEXT_AND_8(10);
+    SSE2NEON_VEXT_AND_8(11);
+    SSE2NEON_VEXT_AND_8(12);
+    SSE2NEON_VEXT_AND_8(13);
+    SSE2NEON_VEXT_AND_8(14);
+    SSE2NEON_VEXT_AND_8(15);
+
+#undef SSE2NEON_VEXT_AND_8
+
+    /* Convert result to bitmask: each lane is 0xFF (match) or 0x00 (no match).
+     * Extract MSB of each byte to form 16-bit result using _mm_movemask_epi8
+     * approach: shift right to get MSB in LSB, position each bit, sum halves.
+     */
+    uint8x16_t msbs = vshrq_n_u8(result, 7);
+    static const int8_t shift_table[16] = {0, 1, 2, 3, 4, 5, 6, 7,
+                                           0, 1, 2, 3, 4, 5, 6, 7};
+    int8x16_t shifts = vld1q_s8(shift_table);
+    uint8x16_t positioned = vshlq_u8(msbs, shifts);
+    return _sse2neon_static_cast(uint16_t,
+                                 vaddv_u8(vget_low_u8(positioned)) |
+                                     (vaddv_u8(vget_high_u8(positioned)) << 8));
+#else
+    /* ARMv7 fallback: apply masking and use scalar extraction */
+    uint16_t m1 = _sse2neon_static_cast(uint16_t, 0x10000 - (1 << la));
+    uint8x8_t vec_mask = vld1_u8(_sse2neon_cmpestr_mask8b);
+    uint8x16_t vec1 = vcombine_u8(
+        vtst_u8(vdup_n_u8(_sse2neon_static_cast(uint8_t, m1)), vec_mask),
+        vtst_u8(vdup_n_u8(_sse2neon_static_cast(uint8_t, m1 >> 8)), vec_mask));
+    uint8x16_t vec_minusone = vdupq_n_u8(0xFF);
+    uint8x16_t vec_zero = vdupq_n_u8(0);
+
+    for (int j = 0; j < lb; j++) {
+        mtx[j] = vreinterpretq_m128i_u8(
+            vbslq_u8(vec1, vec_minusone, vreinterpretq_u8_m128i(mtx[j])));
+    }
+    for (int j = lb; j < bound; j++) {
+        mtx[j] = vreinterpretq_m128i_u8(vbslq_u8(vec1, vec_minusone, vec_zero));
+    }
+
+    uint16_t res = 0;
+    unsigned char *ptr = _sse2neon_reinterpret_cast(unsigned char *, mtx);
+    for (int i = 0; i < bound; i++) {
+        int val = 1;
+        for (int j = 0, k = i; j < bound - i && k < bound; j++, k++)
+            val &= ptr[k * bound + j];
+        res += _sse2neon_static_cast(uint16_t, val << i);
+    }
+    return res;
+#endif
+}
+
+/* EQUAL_ORDERED aggregation for 16x8 (word mode).
+ * Same algorithm as 8x16 but for 16-bit elements with 8 lanes.
+ *
+ * Vectorization approach: transpose matrix FIRST, then apply masking to
+ * transposed matrix, then use vextq diagonal extraction.
+ */
+static uint16_t _sse2neon_aggregate_equal_ordered_16x8(int bound,
+                                                       int la,
+                                                       int lb,
+                                                       __m128i mtx[16])
+{
+#if SSE2NEON_ARCH_AARCH64
+    uint16x8_t rows[8];
+    for (int i = 0; i < 8; i++)
+        rows[i] = vreinterpretq_u16_m128i(mtx[i]);
+
+    /* Transpose the 8x8 word matrix using hierarchical vtrn operations.
+     * After transpose: rows[j][i] = original mtx[i][j]
+     */
+    /* Level 1: Transpose 2x2 blocks of 16-bit elements */
+    for (int i = 0; i < 8; i += 2) {
+        uint16x8x2_t t = vtrnq_u16(rows[i], rows[i + 1]);
+        rows[i] = t.val[0];
+        rows[i + 1] = t.val[1];
+    }
+
+    /* Level 2: Transpose 2x2 blocks of 32-bit elements */
+    for (int i = 0; i < 8; i += 4) {
+        uint32x4x2_t t0 = vtrnq_u32(vreinterpretq_u32_u16(rows[i]),
+                                    vreinterpretq_u32_u16(rows[i + 2]));
+        uint32x4x2_t t1 = vtrnq_u32(vreinterpretq_u32_u16(rows[i + 1]),
+                                    vreinterpretq_u32_u16(rows[i + 3]));
+        rows[i] = vreinterpretq_u16_u32(t0.val[0]);
+        rows[i + 2] = vreinterpretq_u16_u32(t0.val[1]);
+        rows[i + 1] = vreinterpretq_u16_u32(t1.val[0]);
+        rows[i + 3] = vreinterpretq_u16_u32(t1.val[1]);
+    }
+
+    /* Level 3: Swap 64-bit halves between row pairs */
+    {
+        uint16x8_t tmp;
+#define SSE2NEON_SWAP_HL_16(a, b)                         \
+    tmp = vcombine_u16(vget_low_u16(a), vget_low_u16(b)); \
+    b = vcombine_u16(vget_high_u16(a), vget_high_u16(b)); \
+    a = tmp;
+
+        SSE2NEON_SWAP_HL_16(rows[0], rows[4]);
+        SSE2NEON_SWAP_HL_16(rows[1], rows[5]);
+        SSE2NEON_SWAP_HL_16(rows[2], rows[6]);
+        SSE2NEON_SWAP_HL_16(rows[3], rows[7]);
+#undef SSE2NEON_SWAP_HL_16
+    }
+
+    /* Apply masking to TRANSPOSED matrix:
+     * - Rows j >= la: set entire row to 0xFFFF
+     * - For rows j < la: columns k >= lb set to 0x0000
+     */
+    uint16x8_t vec_ff = vdupq_n_u16(0xFFFF);
+    uint16_t lb_valid =
+        _sse2neon_static_cast(uint16_t, (1U << lb) - 1); /* e.g. lb=6: 0x003F */
+    uint16x8_t pos_mask = vld1q_u16(_sse2neon_cmpestr_mask16b);
+    uint16x8_t lb_clear = vtstq_u16(vdupq_n_u16(lb_valid), pos_mask);
+
+    for (int j = 0; j < la; j++) {
+        rows[j] = vandq_u16(rows[j], lb_clear);
+    }
+    for (int j = la; j < 8; j++) {
+        rows[j] = vec_ff;
+    }
+
+    /* vextq diagonal extraction: shift row k by k, then AND all rows */
+    uint16x8_t result = vec_ff;
+
+#define SSE2NEON_VEXT_AND_16(K)                             \
+    do {                                                    \
+        uint16x8_t shifted = vextq_u16(rows[K], vec_ff, K); \
+        result = vandq_u16(result, shifted);                \
+    } while (0)
+
+    SSE2NEON_VEXT_AND_16(0);
+    SSE2NEON_VEXT_AND_16(1);
+    SSE2NEON_VEXT_AND_16(2);
+    SSE2NEON_VEXT_AND_16(3);
+    SSE2NEON_VEXT_AND_16(4);
+    SSE2NEON_VEXT_AND_16(5);
+    SSE2NEON_VEXT_AND_16(6);
+    SSE2NEON_VEXT_AND_16(7);
+
+#undef SSE2NEON_VEXT_AND_16
+
+    /* Convert result to bitmask: each lane is 0xFFFF or 0x0000.
+     * Extract MSB of each word and form 8-bit result.
+     */
+    uint16x8_t msbs = vshrq_n_u16(result, 15);
+    uint16x8_t positioned = vmulq_u16(msbs, pos_mask);
+    return _sse2neon_static_cast(uint16_t, _sse2neon_vaddvq_u16(positioned));
+#else
+    /* ARMv7 fallback: apply masking and use scalar extraction */
+    uint16_t m1 = _sse2neon_static_cast(uint16_t, 0x100 - (1 << la));
+    uint16x8_t vec_mask = vld1q_u16(_sse2neon_cmpestr_mask16b);
+    uint16x8_t vec1 = vtstq_u16(vdupq_n_u16(m1), vec_mask);
+    uint16x8_t vec_minusone = vdupq_n_u16(0xFFFF);
+    uint16x8_t vec_zero = vdupq_n_u16(0);
+
+    for (int j = 0; j < lb; j++) {
+        mtx[j] = vreinterpretq_m128i_u16(
+            vbslq_u16(vec1, vec_minusone, vreinterpretq_u16_m128i(mtx[j])));
+    }
+    for (int j = lb; j < bound; j++) {
+        mtx[j] =
+            vreinterpretq_m128i_u16(vbslq_u16(vec1, vec_minusone, vec_zero));
+    }
+
+    uint16_t res = 0;
+    unsigned short *ptr = _sse2neon_reinterpret_cast(unsigned short *, mtx);
+    for (int i = 0; i < bound; i++) {
+        int val = 1;
+        for (int j = 0, k = i; j < bound - i && k < bound; j++, k++)
+            val &= ptr[k * bound + j];
+        res += _sse2neon_static_cast(uint16_t, val << i);
+    }
+    return res;
+#endif
+}
 
 /* clang-format off */
 #define SSE2NEON_GENERATE_CMP_EQUAL_ORDERED(prefix) \
