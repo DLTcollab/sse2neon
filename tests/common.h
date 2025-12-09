@@ -296,6 +296,10 @@ result_t validateFloatError(__m128d a, double d0, double d1, double err);
     validateUInt16(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7])
 #define VALIDATE_INT32_M128(A, B) validateInt32(A, B[0], B[1], B[2], B[3])
 #define VALIDATE_UINT32_M128(A, B) validateUInt32(A, B[0], B[1], B[2], B[3])
+#define VALIDATE_INT64_M128(A, B) validateInt64(A, B[0], B[1])
+#define VALIDATE_UINT64_M128(A, B) validateUInt64(A, B[0], B[1])
+#define VALIDATE_FLOAT_M128(A, B) validateFloat(A, B[0], B[1], B[2], B[3])
+#define VALIDATE_DOUBLE_M128(A, B) validateDouble(A, B[0], B[1])
 
 #define VALIDATE_INT8_M64(A, B) \
     validateInt8(A, B[0], B[1], B[2], B[3], B[4], B[5], B[6], B[7])
