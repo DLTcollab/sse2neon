@@ -163,6 +163,8 @@ jobs:
       - name: style check
         run: sh .ci/check-format.sh
         shell: bash
+      - name: cast macro validation
+        run: python3 .ci/check-casts.py --strict sse2neon.h
       - name: clang-tidy
         run: |
           clang-tidy-$LLVM_VERSION sse2neon.h \
