@@ -9523,6 +9523,27 @@ static const uint8_t _sse2neon_sbox[256] = SSE2NEON_AES_SBOX(SSE2NEON_AES_H0);
 static const uint8_t _sse2neon_rsbox[256] = SSE2NEON_AES_RSBOX(SSE2NEON_AES_H0);
 #undef SSE2NEON_AES_H0
 
+#if defined(__aarch64__)
+// NEON S-box lookup using 4x64-byte tables; reused by aesenc/dec/keygenassist.
+FORCE_INLINE uint8x16_t _sse2neon_aes_subbytes(uint8x16_t x)
+{
+    uint8x16_t v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_sbox), x);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x40), x - 0x40);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x80), x - 0x80);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0xc0), x - 0xc0);
+    return v;
+}
+
+FORCE_INLINE uint8x16_t _sse2neon_aes_inv_subbytes(uint8x16_t x)
+{
+    uint8x16_t v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_rsbox), x);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x40), x - 0x40);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x80), x - 0x80);
+    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0xc0), x - 0xc0);
+    return v;
+}
+#endif
+
 /* x_time function and matrix multiply function */
 #if !defined(__aarch64__)
 #define SSE2NEON_XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
@@ -9557,16 +9578,7 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
     w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
 
     /* sub bytes */
-    // Here, we separate the whole 256-bytes table into 4 64-bytes tables, and
-    // look up each of the table. After each lookup, we load the next table
-    // which locates at the next 64-bytes. In the meantime, the index in the
-    // table would be smaller than it was, so the index parameters of
-    // `vqtbx4q_u8()` need to be added the same constant as the loaded tables.
-    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_sbox), w);
-    // 'w-0x40' equals to 'vsubq_u8(w, vdupq_n_u8(0x40))'
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0xc0), w - 0xc0);
+    v = _sse2neon_aes_subbytes(w);
 
     /* mix columns */
     w = (v << 1) ^
@@ -9657,10 +9669,7 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
     w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
 
     // inverse sub bytes
-    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_rsbox), w);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0xc0), w - 0xc0);
+    v = _sse2neon_aes_inv_subbytes(w);
 
     // inverse mix columns
     // multiplying 'v' by 4 in GF(2^8)
@@ -9771,10 +9780,7 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
     w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
 
     // sub bytes
-    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_sbox), w);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0xc0), w - 0xc0);
+    v = _sse2neon_aes_subbytes(w);
 
     // add round key
     return vreinterpretq_m128i_u8(v) ^ RoundKey;
@@ -9939,10 +9945,7 @@ FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
     w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
 
     // inverse sub bytes
-    v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_rsbox), w);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x40), w - 0x40);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0x80), w - 0x80);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_rsbox + 0xc0), w - 0xc0);
+    v = _sse2neon_aes_inv_subbytes(w);
 
     // add round key
     return vreinterpretq_m128i_u8(v) ^ RoundKey;
@@ -10034,17 +10037,16 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 {
 #if defined(__aarch64__)
     uint8x16_t _a = vreinterpretq_u8_m128i(a);
-    uint8x16_t v = vqtbl4q_u8(_sse2neon_vld1q_u8_x4(_sse2neon_sbox), _a);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x40), _a - 0x40);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0x80), _a - 0x80);
-    v = vqtbx4q_u8(v, _sse2neon_vld1q_u8_x4(_sse2neon_sbox + 0xc0), _a - 0xc0);
+    uint8x16_t sub = _sse2neon_aes_subbytes(_a);
 
-    uint32x4_t v_u32 = vreinterpretq_u32_u8(v);
-    uint32x4_t ror_v = vorrq_u32(vshrq_n_u32(v_u32, 8), vshlq_n_u32(v_u32, 24));
-    uint32x4_t ror_xor_v =
-        veorq_u32(ror_v, vdupq_n_u32(_sse2neon_static_cast(uint32_t, rcon)));
+    uint32x4_t sub_u32 = vreinterpretq_u32_u8(sub);
+    uint32x4_t rot =
+        vorrq_u32(vshrq_n_u32(sub_u32, 8), vshlq_n_u32(sub_u32, 24));
+    uint32x4_t rcon_vec =
+        vdupq_n_u32(_sse2neon_static_cast(uint32_t, rcon));  // lane-wise xor
+    uint32x4_t rot_xor = veorq_u32(rot, rcon_vec);
 
-    return vreinterpretq_m128i_u32(vtrn2q_u32(v_u32, ror_xor_v));
+    return vreinterpretq_m128i_u32(vtrn2q_u32(sub_u32, rot_xor));
 
 #else /* ARMv7-A NEON implementation */
     uint32_t X1 = _mm_cvtsi128_si32(_mm_shuffle_epi32(a, 0x55));
