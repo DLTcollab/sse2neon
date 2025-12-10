@@ -8437,10 +8437,48 @@ SSE2NEON_GENERATE_CMP_EQUAL_ANY(SSE2NEON_CMP_EQUAL_ANY_)
 
 static uint16_t _sse2neon_aggregate_ranges_16x8(int la, int lb, __m128i mtx[16])
 {
-    uint16_t res = 0;
     uint16_t m = _sse2neon_static_cast(uint16_t, 1 << la) - 1;
     uint16x8_t vec =
         vtstq_u16(vdupq_n_u16(m), vld1q_u16(_sse2neon_cmpestr_mask16b));
+
+#if SSE2NEON_ARCH_AARCH64
+    /* Vectorized: process all 8 rows in parallel using vmaxvq.
+     * For RANGES mode with word elements:
+     * - Each row has 8 u16 values representing comparisons with 4 range pairs
+     * - Adjacent u16 elements [2k, 2k+1] form a range: (char >= low, char <=
+     * high)
+     * - Result bit j = 1 if any range pair matches for haystack position j
+     *
+     * Algorithm per row:
+     * 1. Mask by la validity: vand(vec, mtx[i])
+     * 2. Swap adjacent u16 pairs: vrev32 swaps within each 32-bit lane
+     * 3. Pair-AND: AND original with swapped to get [m0&m1, m0&m1, ...]
+     * 4. Horizontal OR via vmaxvq_u16 (faster than vmaxvq_u32)
+     */
+#define SSE2NEON_RANGES_MATCH16(i)                                           \
+    do {                                                                     \
+        uint16x8_t masked = vandq_u16(vec, vreinterpretq_u16_m128i(mtx[i])); \
+        uint16x8_t swapped = vrev32q_u16(masked);                            \
+        uint16x8_t pair_and = vandq_u16(masked, swapped);                    \
+        res |= (vmaxvq_u16(pair_and) ? 1U : 0U) << (i);                      \
+    } while (0)
+
+    uint16_t res = 0;
+    SSE2NEON_RANGES_MATCH16(0);
+    SSE2NEON_RANGES_MATCH16(1);
+    SSE2NEON_RANGES_MATCH16(2);
+    SSE2NEON_RANGES_MATCH16(3);
+    SSE2NEON_RANGES_MATCH16(4);
+    SSE2NEON_RANGES_MATCH16(5);
+    SSE2NEON_RANGES_MATCH16(6);
+    SSE2NEON_RANGES_MATCH16(7);
+#undef SSE2NEON_RANGES_MATCH16
+
+    /* Mask result to valid range based on lb */
+    return res & _sse2neon_static_cast(uint16_t, (1 << lb) - 1);
+#else
+    /* ARMv7 fallback: sequential loop */
+    uint16_t res = 0;
     for (int j = 0; j < lb; j++) {
         mtx[j] = vreinterpretq_m128i_u16(
             vandq_u16(vec, vreinterpretq_u16_m128i(mtx[j])));
@@ -8450,20 +8488,16 @@ static uint16_t _sse2neon_aggregate_ranges_16x8(int la, int lb, __m128i mtx[16])
             vshrq_n_u32(vreinterpretq_u32_m128i(mtx[j]), 16));
         uint32x4_t vec_res = vandq_u32(vreinterpretq_u32_m128i(mtx[j]),
                                        vreinterpretq_u32_m128i(tmp));
-#if SSE2NEON_ARCH_AARCH64
-        uint16_t t = vaddvq_u32(vec_res) ? 1 : 0;
-#else
         uint64x2_t sumh = vpaddlq_u32(vec_res);
         uint16_t t = vgetq_lane_u64(sumh, 0) + vgetq_lane_u64(sumh, 1);
-#endif
         res |= (t << j);
     }
     return res;
+#endif
 }
 
 static uint16_t _sse2neon_aggregate_ranges_8x16(int la, int lb, __m128i mtx[16])
 {
-    uint16_t res = 0;
     uint16_t m = _sse2neon_static_cast(uint16_t, (1 << la) - 1);
     uint8x8_t vec_mask = vld1_u8(_sse2neon_cmpestr_mask8b);
     uint8x8_t t_lo =
@@ -8471,6 +8505,52 @@ static uint16_t _sse2neon_aggregate_ranges_8x16(int la, int lb, __m128i mtx[16])
     uint8x8_t t_hi =
         vtst_u8(vdup_n_u8(_sse2neon_static_cast(uint8_t, m >> 8)), vec_mask);
     uint8x16_t vec = vcombine_u8(t_lo, t_hi);
+
+#if SSE2NEON_ARCH_AARCH64
+    /* Vectorized: process all 16 rows in parallel using vmaxvq.
+     * For RANGES mode with byte elements:
+     * - Each row has 16 bytes representing comparisons with 8 range pairs
+     * - Adjacent bytes [2k, 2k+1] form a range: (char >= low, char <= high)
+     * - Result bit j = 1 if any range pair matches for haystack position j
+     *
+     * Algorithm per row:
+     * 1. Mask by la validity: vand(vec, mtx[i])
+     * 2. Swap adjacent bytes: vrev16 swaps within each 16-bit lane
+     * 3. Pair-AND: AND original with swapped to get [b0&b1, b0&b1, ...]
+     * 4. Horizontal OR via vmaxvq_u8 (faster than vmaxvq_u16)
+     */
+#define SSE2NEON_RANGES_MATCH8(i)                                          \
+    do {                                                                   \
+        uint8x16_t masked = vandq_u8(vec, vreinterpretq_u8_m128i(mtx[i])); \
+        uint8x16_t swapped = vrev16q_u8(masked);                           \
+        uint8x16_t pair_and = vandq_u8(masked, swapped);                   \
+        res |= (vmaxvq_u8(pair_and) ? 1U : 0U) << (i);                     \
+    } while (0)
+
+    uint16_t res = 0;
+    SSE2NEON_RANGES_MATCH8(0);
+    SSE2NEON_RANGES_MATCH8(1);
+    SSE2NEON_RANGES_MATCH8(2);
+    SSE2NEON_RANGES_MATCH8(3);
+    SSE2NEON_RANGES_MATCH8(4);
+    SSE2NEON_RANGES_MATCH8(5);
+    SSE2NEON_RANGES_MATCH8(6);
+    SSE2NEON_RANGES_MATCH8(7);
+    SSE2NEON_RANGES_MATCH8(8);
+    SSE2NEON_RANGES_MATCH8(9);
+    SSE2NEON_RANGES_MATCH8(10);
+    SSE2NEON_RANGES_MATCH8(11);
+    SSE2NEON_RANGES_MATCH8(12);
+    SSE2NEON_RANGES_MATCH8(13);
+    SSE2NEON_RANGES_MATCH8(14);
+    SSE2NEON_RANGES_MATCH8(15);
+#undef SSE2NEON_RANGES_MATCH8
+
+    /* Mask result to valid range based on lb */
+    return res & _sse2neon_static_cast(uint16_t, (1 << lb) - 1);
+#else
+    /* ARMv7 fallback: sequential loop */
+    uint16_t res = 0;
     for (int j = 0; j < lb; j++) {
         mtx[j] = vreinterpretq_m128i_u8(
             vandq_u8(vec, vreinterpretq_u8_m128i(mtx[j])));
@@ -8484,6 +8564,7 @@ static uint16_t _sse2neon_aggregate_ranges_8x16(int la, int lb, __m128i mtx[16])
         res |= (t << j);
     }
     return res;
+#endif
 }
 
 #define SSE2NEON_CMP_RANGES_IS_BYTE 1
