@@ -1,0 +1,142 @@
+name: Performance Tier Check
+
+on:
+  pull_request:
+  workflow_run:
+    workflows: ["Performance Tier Check"]
+    types:
+      - completed
+
+jobs:
+  # Runs on PR events - checks if perf-tier.md needs updating
+  check:
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: check if sse2neon.h changed
+        id: changed
+        run: |
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q '^sse2neon\.h$'; then
+            echo "sse2neon_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "sse2neon_changed=false" >> $GITHUB_OUTPUT
+            echo "sse2neon.h not modified, skipping perf-tier check"
+          fi
+      - name: setup Python
+        if: steps.changed.outputs.sse2neon_changed == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: install dependencies
+        if: steps.changed.outputs.sse2neon_changed == 'true'
+        run: |
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y unifdef libclang-dev
+          pip install clang
+      - name: check perf-tier.md
+        if: steps.changed.outputs.sse2neon_changed == 'true'
+        id: check
+        run: |
+          if sh .ci/check-perf-tier.sh; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+      - name: save check result for comment job
+        if: steps.changed.outputs.sse2neon_changed == 'true' && steps.check.outputs.changed == 'true'
+        run: |
+          mkdir -p perf-tier-result
+          echo "${{ github.event.pull_request.number }}" > perf-tier-result/pr_number
+          echo "needs_comment" > perf-tier-result/status
+      - name: upload check result
+        if: steps.changed.outputs.sse2neon_changed == 'true' && steps.check.outputs.changed == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: perf-tier-result
+          path: perf-tier-result/
+          retention-days: 1
+
+  # Runs after check job completes - posts comment with elevated permissions
+  # This handles PRs from forks where the check job lacks write permissions
+  post-comment:
+    runs-on: ubuntu-24.04
+    if: >
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    permissions:
+      actions: read
+      pull-requests: write
+    steps:
+      - name: download artifact
+        uses: actions/download-artifact@v5
+        id: download
+        with:
+          name: perf-tier-result
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: post reminder comment
+        if: steps.download.outcome == 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Read PR number from artifact
+            const prNumber = parseInt(fs.readFileSync('pr_number', 'utf8').trim());
+            const status = fs.readFileSync('status', 'utf8').trim();
+
+            if (status !== 'needs_comment') {
+              console.log('No comment needed');
+              return;
+            }
+
+            const body = [
+              '### Performance Tier Documentation Reminder',
+              '',
+              'The `perf-tier.md` file appears to be out of sync with the current `sse2neon.h` implementation.',
+              '',
+              'This is **not an error** - just a reminder to update the documentation if your changes affect intrinsic implementations.',
+              '',
+              'To regenerate the performance tier report:',
+              '```bash',
+              'python3 scripts/gen-perf-report.py --clang-ast --weighted > perf-tier.md',
+              '```',
+              '',
+              'For detailed analysis:',
+              '```bash',
+              'python3 scripts/analyze-tiers.py --clang-ast --weighted --markdown',
+              '```'
+            ].join('\n');
+
+            // Check if we already posted this comment
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' &&
+              c.body.includes('Performance Tier Documentation Reminder')
+            );
+
+            if (!botComment) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+              console.log(`Posted comment on PR #${prNumber}`);
+            } else {
+              console.log(`Comment already exists on PR #${prNumber}`);
+            }
