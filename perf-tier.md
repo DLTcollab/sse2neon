@@ -35,9 +35,9 @@ Cycle estimates based on ARM Cortex-A72 (ARMv8-A) Software Optimization Guide.
 |--------|-------|
 | Total SSE Intrinsics | 455 |
 | Direct Mappings (T1) | 368 (80.9%) |
-| Moderate Emulation (T2-T3) | 78 (17.1%) |
-| Complex Emulation (T4) | 9 (2.0%) |
-| Avg NEON Ops/Intrinsic | 1.80 |
+| Moderate Emulation (T2-T3) | 77 (16.9%) |
+| Complex Emulation (T4) | 10 (2.2%) |
+| Avg NEON Ops/Intrinsic | 1.83 |
 
 ### Performance Tiers
 
@@ -62,6 +62,7 @@ algorithms when porting performance-critical code.
 | Intrinsic | NEON Ops | Notes |
 |-----------|----------|-------|
 | `_mm_mpsadbw_epu8` | 22 | SAD computation, very expensive |
+| `_mm_cvttpd_pi32` | 14 |  |
 | `_mm_rsqrt_ps` | 13 | Newton-Raphson refinement |
 | `_mm_sqrt_ps` | 13 | Newton-Raphson refinement |
 | `_mm_dp_ps` | 9 |  |
@@ -205,16 +206,16 @@ These intrinsics map directly to single NEON instructions:
 `_mm_store_ps1`, `_mm_storer_ps`, `_mm_test_all_zeros`, `_mm_testc_si128`
 `_mm_testz_si128`
 
-#### Tier 3 (10 intrinsics)
+#### Tier 3 (9 intrinsics)
 
-`_mm_cvtpd_pi32`, `_mm_cvttpd_pi32`, `_mm_maddubs_epi16`, `_mm_maddubs_pi16`
+`_mm_cvtpd_pi32`, `_mm_maddubs_epi16`, `_mm_maddubs_pi16`
 `_mm_movemask_epi8`, `_mm_movemask_pi8`, `_mm_movemask_ps`, `_mm_rcp_ps`
 `_mm_sad_pu8`, `_mm_test_mix_ones_zeros`
 
-#### Tier 4 (9 intrinsics)
+#### Tier 4 (10 intrinsics)
 
-`_mm_crc32_u16`, `_mm_dp_pd`, `_mm_dp_ps`, `_mm_minpos_epu16`
-`_mm_mpsadbw_epu8`, `_mm_rsqrt_ps`, `_mm_shuffle_epi8`, `_mm_shuffle_pi8`
-`_mm_sqrt_ps`
+`_mm_crc32_u16`, `_mm_cvttpd_pi32`, `_mm_dp_pd`, `_mm_dp_ps`
+`_mm_minpos_epu16`, `_mm_mpsadbw_epu8`, `_mm_rsqrt_ps`, `_mm_shuffle_epi8`
+`_mm_shuffle_pi8`, `_mm_sqrt_ps`
 
 </details>
