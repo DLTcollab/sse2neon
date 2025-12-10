@@ -9311,6 +9311,50 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
 #endif
 }
 
+/* A function-like macro to generate CRC-32C calculation using Barrett
+ * reduction.
+ *
+ * The input parameters depict as follows:
+ * - 'crc' means initial value or CRC.
+ * - 'v' means the element of input message.
+ * - 'bit' means the element size of input message (e.g., if each message is one
+ * byte then 'bit' will be 8 as 1 byte equals 8 bits.
+ *
+ * For a reminder, the CRC calculation uses bit-reflected sense.
+ *
+ * As there are two mysterious variables 'p' and 'mu', here are what they serve:
+ * 1. 'p' stands for Polynomial P(x) in CRC calculation.
+ *    As we are using CRC-32C, 'p' has the value of 0x105EC76F1 (0x1EDC6F41 in
+ * bit-reflected form).
+ * 2. 'mu' stands for the multiplicative inverse of 'p' in GF(64).
+ *    'mu' has the value of 0x1dea713f1.
+ *    (mu_{64} = \lfloor 2^{64} / P(x) \rfloor = 0x11f91caf6)
+ *    (the bit-reflected form of 0x11f91caf6 is 0x1dea713f1)
+ *
+ * The CRC value is calculated as follows:
+ * 1. Update (XOR) 'crc' with new input message element 'v'.
+ * 2. Create 'orig' and 'tmp' vector.
+ * 3. Do carry-less multiplication on 'tmp' with 'mu'.
+ * 4. Mask away the unnecessary bits of 'tmp'.
+ *    The intermediate result is stored in the lower half of vector 'tmp'.
+ * 5. Do carry-less multiplication on 'tmp' with 'p'.
+ * 6. Subtract (XOR as it is binary base) 'tmp' with 'orig'.
+ * 7. Extract the lower (in bit-reflected sense) 32 bits.
+ */
+#define SSE2NEON_CRC32C_BASE(crc, v, bit)                                                           \
+    do {                                                                                            \
+        crc ^= v;                                                                                   \
+    uint64x2_t orig = vcombine_u64(vcreate_u64((uint64_t) (crc) << (32 - (bit)), vcreate_u64(0x0)); \
+    uint64x2_t tmp = orig; \
+    uint64_t p = 0x105EC76F1; \
+    uint64_t mu = 0x1dea713f1; \
+    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu)); \
+    tmp = vandq_u64(tmp, vcombine_u64(vcreate_u64(0xFFFFFFFF), vcreate_u64(0x0))); \
+    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(p)); \
+    tmp = veorq_u64(tmp, orig); \
+    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 1);                                            \
+    } while (0)
+
 // Starting with the initial value in crc, accumulates a CRC32 value for
 // unsigned 16-bit integer v, and stores the result in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u16
@@ -9323,6 +9367,8 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
 #elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
     ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__))
     crc = __crc32ch(crc, v);
+#elif defined(__ARM_FEATURE_CRYPTO)
+    SSE2NEON_CRC32C_BASE(crc, v, 16);
 #else
     crc = _mm_crc32_u8(crc, _sse2neon_static_cast(uint8_t, v & 0xff));
     crc = _mm_crc32_u8(crc, _sse2neon_static_cast(uint8_t, (v >> 8) & 0xff));
@@ -9383,37 +9429,14 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 #elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
     ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__))
     crc = __crc32cb(crc, v);
-#else
-    crc ^= v;
-#if defined(__ARM_FEATURE_CRYPTO)
-    // Adapted from: https://mary.rs/lab/crc32/
-    // Barrent reduction
-    uint64x2_t orig =
-        vcombine_u64(vcreate_u64((uint64_t) (crc) << 24), vcreate_u64(0x0));
-    uint64x2_t tmp = orig;
-
-    // Polynomial P(x) of CRC32C
-    uint64_t p = 0x105EC76F1;
-    // Barrett Reduction (in bit-reflected form) constant mu_{64} = \lfloor
-    // 2^{64} / P(x) \rfloor = 0x11f91caf6
-    uint64_t mu = 0x1dea713f1;
-
-    // Multiply by mu_{64}
-    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu));
-    // Divide by 2^{64} (mask away the unnecessary bits)
-    tmp =
-        vandq_u64(tmp, vcombine_u64(vcreate_u64(0xFFFFFFFF), vcreate_u64(0x0)));
-    // Multiply by P(x) (shifted left by 1 for alignment reasons)
-    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(p));
-    // Subtract original from result
-    tmp = veorq_u64(tmp, orig);
-
-    // Extract the 'lower' (in bit-reflected sense) 32 bits
-    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 1);
+#elif defined(__ARM_FEATURE_CRYPTO)
+    SSE2NEON_CRC32C_BASE(crc, v, 8);
 #else  // Fall back to the generic table lookup approach
     // Adapted from: https://create.stephan-brumme.com/crc32/
     // Apply half-byte comparison algorithm for the best ratio between
     // performance and lookup table.
+
+    crc ^= v;
 
     // The lookup table just needs to store every 16th entry
     // of the standard look-up table.
@@ -9425,7 +9448,6 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 
     crc = (crc >> 4) ^ crc32_half_byte_tbl[crc & 0x0F];
     crc = (crc >> 4) ^ crc32_half_byte_tbl[crc & 0x0F];
-#endif
 #endif
     return crc;
 }
