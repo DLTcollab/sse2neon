@@ -738,6 +738,17 @@ FORCE_INLINE int _sse2neon_isinf_f64(double v)
     return (u.u & 0x7FFFFFFFFFFFFFFFULL) == 0x7FF0000000000000ULL;
 }
 
+/* Safe helper to load double[2] as float32x4_t without strict aliasing
+ * violation. Used in ARMv7 fallback paths where float64x2_t is not natively
+ * supported.
+ */
+FORCE_INLINE float32x4_t sse2neon_vld1q_f32_from_f64pair(const double *p)
+{
+    float32x4_t tmp;
+    memcpy(&tmp, p, sizeof(tmp));
+    return tmp;
+}
+
 /* Safe float/double to integer conversion with x86 SSE semantics.
  * x86 SSE returns the "integer indefinite" value (0x80000000 for int32,
  * 0x8000000000000000 for int64) for all out-of-range conversions including
@@ -3255,7 +3266,7 @@ FORCE_INLINE __m128d _mm_add_pd(__m128d a, __m128d b)
     double c[2];
     c[0] = a0 + b0;
     c[1] = a1 + b1;
-    return vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, c));
+    return sse2neon_vld1q_f32_from_f64pair(c);
 #endif
 }
 
@@ -3275,7 +3286,7 @@ FORCE_INLINE __m128d _mm_add_sd(__m128d a, __m128d b)
     double c[2];
     c[0] = a0 + b0;
     c[1] = a1;
-    return vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, c));
+    return sse2neon_vld1q_f32_from_f64pair(c);
 #endif
 }
 
@@ -4560,7 +4571,7 @@ FORCE_INLINE __m128d _mm_div_pd(__m128d a, __m128d b)
     double c[2];
     c[0] = a0 / b0;
     c[1] = a1 / b1;
-    return vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, c));
+    return sse2neon_vld1q_f32_from_f64pair(c);
 #endif
 }
 
@@ -4840,8 +4851,7 @@ FORCE_INLINE __m128d _mm_max_sd(__m128d a, __m128d b)
     a1 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 1));
     b0 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(b), 0));
     double c[2] = {a0 > b0 ? a0 : b0, a1};
-    return vreinterpretq_m128d_f32(
-        vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, c)));
+    return vreinterpretq_m128d_f32(sse2neon_vld1q_f32_from_f64pair(c));
 #endif
 }
 
@@ -4907,8 +4917,7 @@ FORCE_INLINE __m128d _mm_min_sd(__m128d a, __m128d b)
     a1 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 1));
     b0 = sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(b), 0));
     double c[2] = {a0 < b0 ? a0 : b0, a1};
-    return vreinterpretq_m128d_f32(
-        vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, c)));
+    return vreinterpretq_m128d_f32(sse2neon_vld1q_f32_from_f64pair(c));
 #endif
 }
 
@@ -5067,7 +5076,7 @@ FORCE_INLINE __m128d _mm_mul_pd(__m128d a, __m128d b)
     double c[2];
     c[0] = a0 * b0;
     c[1] = a1 * b1;
-    return vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, c));
+    return sse2neon_vld1q_f32_from_f64pair(c);
 #endif
 }
 
@@ -5297,8 +5306,7 @@ FORCE_INLINE __m128d _mm_set_pd(double e1, double e0)
     return vreinterpretq_m128d_f64(
         vld1q_f64(_sse2neon_reinterpret_cast(float64_t *, data)));
 #else
-    return vreinterpretq_m128d_f32(
-        vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, data)));
+    return vreinterpretq_m128d_f32(sse2neon_vld1q_f32_from_f64pair(data));
 #endif
 }
 
@@ -6067,7 +6075,7 @@ FORCE_INLINE __m128d _mm_sub_pd(__m128d a, __m128d b)
     double c[2];
     c[0] = a0 - b0;
     c[1] = a1 - b1;
-    return vld1q_f32(_sse2neon_reinterpret_cast(float32_t *, c));
+    return sse2neon_vld1q_f32_from_f64pair(c);
 #endif
 }
 

@@ -68,7 +68,15 @@ else
 SANITIZE_FLAGS =
 endif
 
-CXXFLAGS += -Wall -Wcast-qual -Wold-style-cast -Wconversion -I. $(ARCH_CFLAGS) -std=gnu++14 $(SANITIZE_FLAGS)
+# Strict aliasing checking: STRICT_ALIASING=1 to enable
+STRICT_ALIASING ?=
+ifneq ($(STRICT_ALIASING),)
+STRICT_ALIASING_FLAGS = -fstrict-aliasing -Wstrict-aliasing=2
+else
+STRICT_ALIASING_FLAGS =
+endif
+
+CXXFLAGS += -Wall -Wcast-qual -Wold-style-cast -Wconversion -I. $(ARCH_CFLAGS) -std=gnu++14 $(SANITIZE_FLAGS) $(STRICT_ALIASING_FLAGS)
 LDFLAGS  += -lm $(SANITIZE_FLAGS)
 OBJS = \
     tests/binding.o \
@@ -127,7 +135,11 @@ indent:
 check-ubsan: clean
 	$(MAKE) SANITIZE=undefined check
 
-.PHONY: clean check check-ubsan format floatpoint
+# Convenience target for running tests with strict aliasing checks
+check-strict-aliasing: clean
+	$(MAKE) STRICT_ALIASING=1 check
+
+.PHONY: clean check check-ubsan check-strict-aliasing format floatpoint
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(FLOATPOINT_OBJS) $(FLOATPOINT_EXEC) $(floatpoint_deps)
