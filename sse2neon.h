@@ -2371,7 +2371,7 @@ FORCE_INLINE __m128 _mm_move_ss(__m128 a, __m128 b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_movehl_ps
 FORCE_INLINE __m128 _mm_movehl_ps(__m128 a, __m128 b)
 {
-#if defined(aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     return vreinterpretq_m128_u64(
         vzip2q_u64(vreinterpretq_u64_m128(b), vreinterpretq_u64_m128(a)));
 #else
