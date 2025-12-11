@@ -203,6 +203,17 @@
 #define SSE2NEON_COMPILER_MSVC 0
 #endif
 
+/* Minimum compiler version requirements */
+#if defined(__clang__)
+#if __clang_major__ < 11
+#error "Clang versions earlier than 11 are not supported."
+#endif
+#elif defined(__GNUC__)
+#if __GNUC__ < 10
+#error "GCC versions earlier than 10 are not supported."
+#endif
+#endif
+
 /* compiler specific definitions */
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma push_macro("FORCE_INLINE")
@@ -225,10 +236,6 @@
 #define _sse2neon_unlikely(x) (x)
 #else
 #pragma message("Macro name collisions may happen with unsupported compilers.")
-#endif
-
-#if !defined(__clang__) && defined(__GNUC__) && __GNUC__ < 10
-#warning "GCC versions earlier than 10 are not supported."
 #endif
 
 #if defined(__OPTIMIZE__) && !defined(SSE2NEON_SUPPRESS_WARNINGS)
@@ -434,25 +441,14 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 
 /* "__has_builtin" can be used to query support for built-in functions
  * provided by gcc/clang and other compilers that support it.
+ * GCC 10+ and Clang 11+ have native __has_builtin support.
+ * MSVC does not provide these GCC/Clang builtins.
  */
-#ifndef __has_builtin /* GCC prior to 10 or non-clang compilers */
-/* Compatibility with gcc <= 9 */
-#if defined(__GNUC__) && (__GNUC__ <= 9)
-#define __has_builtin(x) HAS##x
-#define HAS__builtin_popcount 1
-#define HAS__builtin_popcountll 1
-
-// __builtin_shuffle introduced in GCC 4.7.0
-#if (__GNUC__ >= 5) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7))
-#define HAS__builtin_shuffle 1
-#else
-#define HAS__builtin_shuffle 0
-#endif
-
-#define HAS__builtin_shufflevector 0
-#define HAS__builtin_nontemporal_store 0
-#else
+#ifndef __has_builtin
+#if defined(_MSC_VER)
 #define __has_builtin(x) 0
+#else
+#error "Unsupported compiler: __has_builtin not available"
 #endif
 #endif
 
@@ -847,10 +843,9 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t, uint8_t);
 /* Backwards compatibility for compilers with lack of specific type support */
 
 // Older gcc does not define vld1q_u8_x4 type
-#if defined(__GNUC__) && !defined(__clang__) &&                        \
-    ((__GNUC__ <= 13 && defined(__arm__)) ||                           \
-     (__GNUC__ == 10 && __GNUC_MINOR__ < 3 && defined(__aarch64__)) || \
-     (__GNUC__ <= 9 && defined(__aarch64__)))
+#if defined(__GNUC__) && !defined(__clang__) && \
+    ((__GNUC__ <= 13 && defined(__arm__)) ||    \
+     (__GNUC__ == 10 && __GNUC_MINOR__ < 3 && defined(__aarch64__)))
 FORCE_INLINE uint8x16x4_t _sse2neon_vld1q_u8_x4(const uint8_t *p)
 {
     uint8x16x4_t ret;
