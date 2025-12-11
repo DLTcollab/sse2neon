@@ -9400,6 +9400,8 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
 #elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
     ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__))
     crc = __crc32cw(crc, v);
+#elif defined(__ARM_FEATURE_CRYPTO)
+    SSE2NEON_CRC32C_BASE(crc, v, 32);
 #else
     crc = _mm_crc32_u16(crc, _sse2neon_static_cast(uint16_t, v & 0xffff));
     crc =
