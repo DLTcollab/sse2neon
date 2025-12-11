@@ -296,7 +296,7 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 #endif
 
 #if !defined(__cplusplus)
-#error SSE2NEON only supports C++ compilation with this compiler
+#error "SSE2NEON only supports C++ compilation with this compiler"
 #endif
 
 #ifdef SSE2NEON_ALLOC_DEFINED
@@ -430,10 +430,10 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #include <math.h>
 #endif
 
-/* On ARMv7, some registers, such as PMUSERENR and PMCCNTR, are read-only
- * or even not accessible in user mode.
- * To write or access to these registers in user mode,
- * we have to perform syscall instead.
+/* On ARMv7, some registers, such as PMUSERENR and PMCCNTR, are read-only or
+ * even not accessible in user mode.
+ * To write or access to these registers in user mode, we have to perform
+ * syscall instead.
  */
 #if !SSE2NEON_ARCH_AARCH64
 #include <sys/time.h>
@@ -770,7 +770,8 @@ FORCE_INLINE int32_t _sse2neon_cvtf_s32(float v)
     if (v != v || _sse2neon_isinf_f32(v))
         return INT32_MIN;
     /* (float)INT32_MAX rounds up to 2147483648.0f, which is out of range.
-     * Use the double representation for accurate comparison. */
+     * Use the double representation for accurate comparison.
+     */
     if (v >= _sse2neon_static_cast(double, INT32_MAX) + 1.0)
         return INT32_MIN;
     if (v < _sse2neon_static_cast(double, INT32_MIN))
@@ -783,7 +784,8 @@ FORCE_INLINE int64_t _sse2neon_cvtd_s64(double v)
     if (v != v || _sse2neon_isinf_f64(v))
         return INT64_MIN;
     /* (double)INT64_MAX rounds up to 2^63 which is out of range.
-     * Any double >= 2^63 is out of range for int64. */
+     * Any double >= 2^63 is out of range for int64.
+     */
     if (v >= _sse2neon_static_cast(double, INT64_MAX))
         return INT64_MIN;
     if (v < _sse2neon_static_cast(double, INT64_MIN))
@@ -9332,7 +9334,7 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
  * As there are two mysterious variables 'p' and 'mu', here are what they serve:
  * 1. 'p' stands for Polynomial P(x) in CRC calculation.
  *    As we are using CRC-32C, 'p' has the value of 0x105EC76F1 (0x1EDC6F41 in
- * bit-reflected form).
+ *    bit-reflected form).
  * 2. 'mu' stands for the multiplicative inverse of 'p' in GF(64).
  *    'mu' has the value of 0x1dea713f1.
  *    (mu_{64} = \lfloor 2^{64} / P(x) \rfloor = 0x11f91caf6)
@@ -9343,12 +9345,12 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
  * 2. Create 'orig' and 'tmp' vector.
  *    Before creating the vectors, We store 'crc' in lower half of vector
  *    then shift left by 'bit' bits so that the result of carry-less
- * multiplication will always appear in the upper half of destination vector.
+ *    multiplication will always appear in the upper half of destination vector.
  *    Doing so can reduce some masking and subtraction operations.
  * 3. Do carry-less multiplication on the lower half of 'tmp' with 'mu'.
  * 4. Do carry-less multiplication on the upper half of 'tmp' with 'p'.
  * 5. Extract the lower (in bit-reflected sense) 32 bits in the upper half of
- * 'tmp'.
+ *    'tmp'.
  */
 #define SSE2NEON_CRC32C_BASE(crc, v, bit)                                                      \
     do {                                                                                       \
@@ -9938,11 +9940,10 @@ FORCE_INLINE uint8x16_t _sse2neon_vqtbx4q_u8(uint8x16_t acc,
 
     // Adjust indices: We want to map index 32 to index 0 of this new table.
     // To do so, we subtract 32 from all indices.
-    // NOTE: If the original index is smaller than 32,
-    // the adjusted index wraps to a huge number (larger than 31).
-    // As vtbx4_u8 (VTBX in assembly) sees such number, it preserves
-    // the result from Pass 1. Safe!
-    // Taking index 5 as example, it will become 5 - 32 = 229 (> 31).
+    // NOTE: If the original index is smaller than 32, the adjusted index wraps
+    // around due to unsigned underflow (e.g., 5 - 32 = 229).
+    // Since 229 > 31, vtbx4_u8 (VTBX) preserves the result from Pass 1.
+    // This is the intended behavior.
     uint8x16_t idx_minus_32 = vsubq_u8(idx, vdupq_n_u8(32));
     uint8x8_t idx_low_mod = vget_low_u8(idx_minus_32);
     uint8x8_t idx_high_mod = vget_high_u8(idx_minus_32);
@@ -10153,7 +10154,7 @@ FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
 
 // Assist in expanding the AES cipher key by computing steps towards generating
 // a round key for encryption cipher using data from a and an 8-bit round
-// constant specified in imm8, and store the result in dst."
+// constant specified in imm8, and store the result in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aeskeygenassist_si128
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 {
@@ -10345,10 +10346,9 @@ FORCE_INLINE uint64_t _rdtsc(void)
     uint64_t val;
 
     /* According to ARM DDI 0487F.c, from Armv8.0 to Armv8.5 inclusive, the
-     * system counter is at least 56 bits wide; from Armv8.6, the counter
-     * must be 64 bits wide.  So the system counter could be less than 64
-     * bits wide and it is attributed with the flag 'cap_user_time_short'
-     * is true.
+     * system counter is at least 56 bits wide; from Armv8.6, the counter must
+     * be 64 bits wide. So the system counter could be less than 64 bits wide
+     * and it is attributed with the flag 'cap_user_time_short' is true.
      */
 #if defined(_MSC_VER) && !defined(__clang__)
     val = _ReadStatusReg(ARM64_SYSREG(3, 3, 14, 0, 2));
