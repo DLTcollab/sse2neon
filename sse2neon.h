@@ -9334,25 +9334,25 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
  * The CRC value is calculated as follows:
  * 1. Update (XOR) 'crc' with new input message element 'v'.
  * 2. Create 'orig' and 'tmp' vector.
- * 3. Do carry-less multiplication on 'tmp' with 'mu'.
- * 4. Mask away the unnecessary bits of 'tmp'.
- *    The intermediate result is stored in the lower half of vector 'tmp'.
- * 5. Do carry-less multiplication on 'tmp' with 'p'.
- * 6. Subtract (XOR as it is binary base) 'tmp' with 'orig'.
- * 7. Extract the lower (in bit-reflected sense) 32 bits.
+ *    Before creating the vectors, We store 'crc' in lower half of vector
+ *    then shift left by 'bit' bits so that the result of carry-less
+ * multiplication will always appear in the upper half of destination vector.
+ *    Doing so can reduce some masking and subtraction operations.
+ * 3. Do carry-less multiplication on the lower half of 'tmp' with 'mu'.
+ * 4. Do carry-less multiplication on the upper half of 'tmp' with 'p'.
+ * 5. Extract the lower (in bit-reflected sense) 32 bits in the upper half of
+ * 'tmp'.
  */
-#define SSE2NEON_CRC32C_BASE(crc, v, bit)                                                           \
-    do {                                                                                            \
-        crc ^= v;                                                                                   \
-    uint64x2_t orig = vcombine_u64(vcreate_u64((uint64_t) (crc) << (32 - (bit)), vcreate_u64(0x0)); \
+#define SSE2NEON_CRC32C_BASE(crc, v, bit)                                                      \
+    do {                                                                                       \
+        crc ^= v;                                                                              \
+    uint64x2_t orig = vcombine_u64(vcreate_u64((uint64_t) (crc) << ((bit)), vcreate_u64(0x0)); \
     uint64x2_t tmp = orig; \
     uint64_t p = 0x105EC76F1; \
     uint64_t mu = 0x1dea713f1; \
     tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu)); \
-    tmp = vandq_u64(tmp, vcombine_u64(vcreate_u64(0xFFFFFFFF), vcreate_u64(0x0))); \
-    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(p)); \
-    tmp = veorq_u64(tmp, orig); \
-    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 1);                                            \
+    tmp = _sse2neon_vmull_p64(vget_high_u64(tmp), vcreate_u64(p)); \
+    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 2);                                       \
     } while (0)
 
 // Starting with the initial value in crc, accumulates a CRC32 value for
