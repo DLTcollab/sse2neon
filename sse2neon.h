@@ -4,7 +4,7 @@
 /*
  * sse2neon is freely redistributable under the MIT License.
  *
- * Copyright (c) 2015-2024 SSE2NEON Contributors.
+ * Copyright (c) 2015-2025 SSE2NEON Contributors.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -52,6 +52,10 @@
 //   Aymen Qader <aymen.qader@arm.com>
 //   Anthony Roberts <anthony.roberts@linaro.org>
 //   Sean Luchen <seanluchen@google.com>
+//   Marcin Serwin <marcin@serwin.dev>
+//   Ben Niu <beniu@microsoft.com>
+//   Even Rouault <even.rouault@spatialys.com>
+//   Marcus Buretorp <marcus.buretorp@machinegames.com>
 
 /* Tunable configurations */
 
