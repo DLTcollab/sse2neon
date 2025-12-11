@@ -515,8 +515,37 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #define _MM_DENORMALS_ZERO_ON 0x0040
 #define _MM_DENORMALS_ZERO_OFF 0x0000
 
-/* indicate immediate constant argument in a given range */
-#define __constrange(a, b) const
+/* Compile-time validation for immediate constant arguments.
+ * This macro validates that:
+ * 1. The argument is a compile-time constant (via __builtin_constant_p)
+ * 2. The argument is within the specified range [min, max]
+ *
+ * When validation fails, __builtin_unreachable() is called to trigger
+ * compiler diagnostics. This pattern follows SIMDe's approach but adapted
+ * for use within macro bodies rather than as function attributes.
+ *
+ * Usage: Place at the beginning of macro bodies that require immediate
+ * constant arguments. The macro expands to a statement, so use a semicolon:
+ *   SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);
+ */
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_constant_p) && __has_builtin(__builtin_unreachable)
+#define SSE2NEON_REQUIRE_CONST_RANGE(arg, min, max)                         \
+    (void) ((__builtin_constant_p(arg) && ((arg) < (min) || (arg) > (max))) \
+                ? (__builtin_unreachable(), 0)                              \
+                : 0)
+#endif
+#endif
+#if !defined(SSE2NEON_REQUIRE_CONST_RANGE)
+/* Fallback: no compile-time validation */
+#define SSE2NEON_REQUIRE_CONST_RANGE(arg, min, max) ((void) 0)
+#endif
+
+/* Allow users to disable constant validation if needed for testing */
+#ifdef SSE2NEON_DISABLE_CONSTANT_VALIDATION
+#undef SSE2NEON_REQUIRE_CONST_RANGE
+#define SSE2NEON_REQUIRE_CONST_RANGE(arg, min, max) ((void) 0)
+#endif
 
 /* A few intrinsics accept traditional data types like ints or floats, but
  * most operate on data types that are specific to SSE.
@@ -1242,8 +1271,8 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 #endif  // ARMv7 polyfill
 
 // C equivalent:
-//   __m128i _mm_shuffle_epi32_default(__m128i a,
-//                                     __constrange(0, 255) int imm) {
+//   __m128i _mm_shuffle_epi32_default(__m128i a, const int imm) {
+//       // imm must be a compile-time constant in range [0, 255]
 //       __m128i ret;
 //       ret[0] = a[(imm)        & 0x3];   ret[1] = a[((imm) >> 2) & 0x3];
 //       ret[2] = a[((imm) >> 4) & 0x03];  ret[3] = a[((imm) >> 6) & 0x03];
@@ -1358,8 +1387,8 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 // control in imm8, and store the results in dst.
 //
 // C equivalent:
-//   __m128 _mm_shuffle_ps_default(__m128 a, __m128 b,
-//                                 __constrange(0, 255) int imm) {
+//   __m128 _mm_shuffle_ps_default(__m128 a, __m128 b, const int imm) {
+//       // imm must be a compile-time constant in range [0, 255]
 //       __m128 ret;
 //       ret[0] = a[(imm)        & 0x3];   ret[1] = a[((imm) >> 2) & 0x3];
 //       ret[2] = b[((imm) >> 4) & 0x03];  ret[3] = b[((imm) >> 6) & 0x03];
@@ -2027,9 +2056,11 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
 // Extract a 16-bit integer from a, selected with imm8, and store the result in
 // the lower element of dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_pi16
-#define _mm_extract_pi16(a, imm)   \
-    _sse2neon_static_cast(int32_t, \
-                          vget_lane_u16(vreinterpret_u16_m64(a), (imm)))
+// imm must be a compile-time constant in range [0, 3]
+#define _mm_extract_pi16(a, imm)              \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 3), \
+     _sse2neon_static_cast(int32_t,           \
+                           vget_lane_u16(vreinterpret_u16_m64(a), (imm))))
 
 // Free aligned memory that was allocated with _mm_malloc.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_free
@@ -2115,8 +2146,10 @@ FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE(void)
 // Copy a to dst, and insert the 16-bit integer i into dst at the location
 // specified by imm8.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_insert_pi16
-#define _mm_insert_pi16(a, b, imm) \
-    vreinterpret_m64_s16(vset_lane_s16((b), vreinterpret_s16_m64(a), (imm)))
+// imm must be a compile-time constant in range [0, 3]
+#define _mm_insert_pi16(a, b, imm)            \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 3), \
+     vreinterpret_m64_s16(vset_lane_s16((b), vreinterpret_s16_m64(a), (imm))))
 
 // Load 128-bits (composed of 4 packed single-precision (32-bit) floating-point
 // elements) from memory into dst. mem_addr must be aligned on a 16-byte
@@ -2804,15 +2837,20 @@ FORCE_INLINE __m128 _mm_setzero_ps(void)
 // Shuffle 16-bit integers in a using the control in imm8, and store the results
 // in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_shuffle_pi16
+// imm must be a compile-time constant in range [0, 255]
 #ifdef _sse2neon_shuffle
-#define _mm_shuffle_pi16(a, imm)                                         \
-    vreinterpret_m64_s16(vshuffle_s16(                                   \
-        vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), ((imm) & 0x3), \
-        (((imm) >> 2) & 0x3), (((imm) >> 4) & 0x3), (((imm) >> 6) & 0x3)))
+#define _mm_shuffle_pi16(a, imm)                                           \
+    __extension__({                                                        \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                         \
+        vreinterpret_m64_s16(                                              \
+            vshuffle_s16(vreinterpret_s16_m64(a), vreinterpret_s16_m64(a), \
+                         ((imm) & 0x3), (((imm) >> 2) & 0x3),              \
+                         (((imm) >> 4) & 0x3), (((imm) >> 6) & 0x3)));     \
+    })
 #else
 #define _mm_shuffle_pi16(a, imm)                                              \
     _sse2neon_define1(                                                        \
-        __m64, a, int16x4_t ret;                                              \
+        __m64, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); int16x4_t ret;   \
         ret = vmov_n_s16(                                                     \
             vget_lane_s16(vreinterpret_s16_m64(_a), (imm) & (0x3)));          \
         ret = vset_lane_s16(                                                  \
@@ -2858,11 +2896,12 @@ FORCE_INLINE void _mm_lfence(void)
     _sse2neon_smp_mb();
 }
 
-// FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, __constrange(0,255)
-// int imm)
+// FORCE_INLINE __m128 _mm_shuffle_ps(__m128 a, __m128 b, const int imm)
+// imm must be a compile-time constant in range [0, 255]
 #ifdef _sse2neon_shuffle
 #define _mm_shuffle_ps(a, b, imm)                                              \
     __extension__({                                                            \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                             \
         float32x4_t _input1 = vreinterpretq_f32_m128(a);                       \
         float32x4_t _input2 = vreinterpretq_f32_m128(b);                       \
         float32x4_t _shuf =                                                    \
@@ -2871,63 +2910,64 @@ FORCE_INLINE void _mm_lfence(void)
         vreinterpretq_m128_f32(_shuf);                                         \
     })
 #else  // generic
-#define _mm_shuffle_ps(a, b, imm)                            \
-    _sse2neon_define2(                                       \
-        __m128, a, b, __m128 ret; switch (imm) {             \
-            case _MM_SHUFFLE(1, 0, 3, 2):                    \
-                ret = _mm_shuffle_ps_1032(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(2, 3, 0, 1):                    \
-                ret = _mm_shuffle_ps_2301(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(0, 3, 2, 1):                    \
-                ret = _mm_shuffle_ps_0321(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(2, 1, 0, 3):                    \
-                ret = _mm_shuffle_ps_2103(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(1, 0, 1, 0):                    \
-                ret = _mm_movelh_ps(_a, _b);                 \
-                break;                                       \
-            case _MM_SHUFFLE(1, 0, 0, 1):                    \
-                ret = _mm_shuffle_ps_1001(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(0, 1, 0, 1):                    \
-                ret = _mm_shuffle_ps_0101(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(3, 2, 1, 0):                    \
-                ret = _mm_shuffle_ps_3210(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(0, 0, 1, 1):                    \
-                ret = _mm_shuffle_ps_0011(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(0, 0, 2, 2):                    \
-                ret = _mm_shuffle_ps_0022(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(2, 2, 0, 0):                    \
-                ret = _mm_shuffle_ps_2200(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(3, 2, 0, 2):                    \
-                ret = _mm_shuffle_ps_3202(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(3, 2, 3, 2):                    \
-                ret = _mm_movehl_ps(_b, _a);                 \
-                break;                                       \
-            case _MM_SHUFFLE(1, 1, 3, 3):                    \
-                ret = _mm_shuffle_ps_1133(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(2, 0, 1, 0):                    \
-                ret = _mm_shuffle_ps_2010(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(2, 0, 0, 1):                    \
-                ret = _mm_shuffle_ps_2001(_a, _b);           \
-                break;                                       \
-            case _MM_SHUFFLE(2, 0, 3, 2):                    \
-                ret = _mm_shuffle_ps_2032(_a, _b);           \
-                break;                                       \
-            default:                                         \
-                ret = _mm_shuffle_ps_default(_a, _b, (imm)); \
-                break;                                       \
+#define _mm_shuffle_ps(a, b, imm)                                            \
+    _sse2neon_define2(                                                       \
+        __m128, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m128 ret; \
+        switch (imm) {                                                       \
+            case _MM_SHUFFLE(1, 0, 3, 2):                                    \
+                ret = _mm_shuffle_ps_1032(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(2, 3, 0, 1):                                    \
+                ret = _mm_shuffle_ps_2301(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(0, 3, 2, 1):                                    \
+                ret = _mm_shuffle_ps_0321(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(2, 1, 0, 3):                                    \
+                ret = _mm_shuffle_ps_2103(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(1, 0, 1, 0):                                    \
+                ret = _mm_movelh_ps(_a, _b);                                 \
+                break;                                                       \
+            case _MM_SHUFFLE(1, 0, 0, 1):                                    \
+                ret = _mm_shuffle_ps_1001(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(0, 1, 0, 1):                                    \
+                ret = _mm_shuffle_ps_0101(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(3, 2, 1, 0):                                    \
+                ret = _mm_shuffle_ps_3210(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(0, 0, 1, 1):                                    \
+                ret = _mm_shuffle_ps_0011(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(0, 0, 2, 2):                                    \
+                ret = _mm_shuffle_ps_0022(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(2, 2, 0, 0):                                    \
+                ret = _mm_shuffle_ps_2200(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(3, 2, 0, 2):                                    \
+                ret = _mm_shuffle_ps_3202(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(3, 2, 3, 2):                                    \
+                ret = _mm_movehl_ps(_b, _a);                                 \
+                break;                                                       \
+            case _MM_SHUFFLE(1, 1, 3, 3):                                    \
+                ret = _mm_shuffle_ps_1133(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(2, 0, 1, 0):                                    \
+                ret = _mm_shuffle_ps_2010(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(2, 0, 0, 1):                                    \
+                ret = _mm_shuffle_ps_2001(_a, _b);                           \
+                break;                                                       \
+            case _MM_SHUFFLE(2, 0, 3, 2):                                    \
+                ret = _mm_shuffle_ps_2032(_a, _b);                           \
+                break;                                                       \
+            default:                                                         \
+                ret = _mm_shuffle_ps_default(_a, _b, (imm));                 \
+                break;                                                       \
         } _sse2neon_return(ret);)
 #endif
 
@@ -4587,18 +4627,21 @@ FORCE_INLINE __m128d _mm_div_sd(__m128d a, __m128d b)
 // Extract a 16-bit integer from a, selected with imm8, and store the result in
 // the lower element of dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi16
-// FORCE_INLINE int _mm_extract_epi16(__m128i a, __constrange(0,8) int imm)
-#define _mm_extract_epi16(a, imm) \
-    vgetq_lane_u16(vreinterpretq_u16_m128i(a), (imm))
+// FORCE_INLINE int _mm_extract_epi16(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 7]
+#define _mm_extract_epi16(a, imm)             \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 7), \
+     vgetq_lane_u16(vreinterpretq_u16_m128i(a), (imm)))
 
 // Copy a to dst, and insert the 16-bit integer i into dst at the location
 // specified by imm8.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_insert_epi16
-// FORCE_INLINE __m128i _mm_insert_epi16(__m128i a, int b,
-//                                       __constrange(0,8) int imm)
-#define _mm_insert_epi16(a, b, imm) \
-    vreinterpretq_m128i_s16(        \
-        vsetq_lane_s16((b), vreinterpretq_s16_m128i(a), (imm)))
+// FORCE_INLINE __m128i _mm_insert_epi16(__m128i a, int b, const int imm)
+// imm must be a compile-time constant in range [0, 7]
+#define _mm_insert_epi16(a, b, imm)           \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 7), \
+     vreinterpretq_m128i_s16(                 \
+         vsetq_lane_s16((b), vreinterpretq_s16_m128i(a), (imm))))
 
 // Load 128-bits (composed of 2 packed double-precision (64-bit) floating-point
 // elements) from memory into dst. mem_addr must be aligned on a 16-byte
@@ -5458,11 +5501,12 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
 // Shuffle 32-bit integers in a using the control in imm8, and store the results
 // in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_shuffle_epi32
-// FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a,
-//                                        __constrange(0,255) int imm)
+// FORCE_INLINE __m128i _mm_shuffle_epi32(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 255]
 #if defined(_sse2neon_shuffle)
 #define _mm_shuffle_epi32(a, imm)                                            \
     __extension__({                                                          \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                           \
         int32x4_t _input = vreinterpretq_s32_m128i(a);                       \
         int32x4_t _shuf =                                                    \
             vshuffleq_s32(_input, _input, (imm) & (0x3), ((imm) >> 2) & 0x3, \
@@ -5470,77 +5514,84 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
         vreinterpretq_m128i_s32(_shuf);                                      \
     })
 #else  // generic
-#define _mm_shuffle_epi32(a, imm)                           \
-    _sse2neon_define1(                                      \
-        __m128i, a, __m128i ret; switch (imm) {             \
-            case _MM_SHUFFLE(1, 0, 3, 2):                   \
-                ret = _mm_shuffle_epi_1032(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(2, 3, 0, 1):                   \
-                ret = _mm_shuffle_epi_2301(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(0, 3, 2, 1):                   \
-                ret = _mm_shuffle_epi_0321(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(2, 1, 0, 3):                   \
-                ret = _mm_shuffle_epi_2103(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(1, 0, 1, 0):                   \
-                ret = _mm_shuffle_epi_1010(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(1, 0, 0, 1):                   \
-                ret = _mm_shuffle_epi_1001(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(0, 1, 0, 1):                   \
-                ret = _mm_shuffle_epi_0101(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(2, 2, 1, 1):                   \
-                ret = _mm_shuffle_epi_2211(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(0, 1, 2, 2):                   \
-                ret = _mm_shuffle_epi_0122(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(3, 3, 3, 2):                   \
-                ret = _mm_shuffle_epi_3332(_a);             \
-                break;                                      \
-            case _MM_SHUFFLE(0, 0, 0, 0):                   \
-                ret = _mm_shuffle_epi32_splat(_a, 0);       \
-                break;                                      \
-            case _MM_SHUFFLE(1, 1, 1, 1):                   \
-                ret = _mm_shuffle_epi32_splat(_a, 1);       \
-                break;                                      \
-            case _MM_SHUFFLE(2, 2, 2, 2):                   \
-                ret = _mm_shuffle_epi32_splat(_a, 2);       \
-                break;                                      \
-            case _MM_SHUFFLE(3, 3, 3, 3):                   \
-                ret = _mm_shuffle_epi32_splat(_a, 3);       \
-                break;                                      \
-            default:                                        \
-                ret = _mm_shuffle_epi32_default(_a, (imm)); \
-                break;                                      \
+#define _mm_shuffle_epi32(a, imm)                                           \
+    _sse2neon_define1(                                                      \
+        __m128i, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m128i ret; \
+        switch (imm) {                                                      \
+            case _MM_SHUFFLE(1, 0, 3, 2):                                   \
+                ret = _mm_shuffle_epi_1032(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(2, 3, 0, 1):                                   \
+                ret = _mm_shuffle_epi_2301(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(0, 3, 2, 1):                                   \
+                ret = _mm_shuffle_epi_0321(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(2, 1, 0, 3):                                   \
+                ret = _mm_shuffle_epi_2103(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(1, 0, 1, 0):                                   \
+                ret = _mm_shuffle_epi_1010(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(1, 0, 0, 1):                                   \
+                ret = _mm_shuffle_epi_1001(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(0, 1, 0, 1):                                   \
+                ret = _mm_shuffle_epi_0101(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(2, 2, 1, 1):                                   \
+                ret = _mm_shuffle_epi_2211(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(0, 1, 2, 2):                                   \
+                ret = _mm_shuffle_epi_0122(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(3, 3, 3, 2):                                   \
+                ret = _mm_shuffle_epi_3332(_a);                             \
+                break;                                                      \
+            case _MM_SHUFFLE(0, 0, 0, 0):                                   \
+                ret = _mm_shuffle_epi32_splat(_a, 0);                       \
+                break;                                                      \
+            case _MM_SHUFFLE(1, 1, 1, 1):                                   \
+                ret = _mm_shuffle_epi32_splat(_a, 1);                       \
+                break;                                                      \
+            case _MM_SHUFFLE(2, 2, 2, 2):                                   \
+                ret = _mm_shuffle_epi32_splat(_a, 2);                       \
+                break;                                                      \
+            case _MM_SHUFFLE(3, 3, 3, 3):                                   \
+                ret = _mm_shuffle_epi32_splat(_a, 3);                       \
+                break;                                                      \
+            default:                                                        \
+                ret = _mm_shuffle_epi32_default(_a, (imm));                 \
+                break;                                                      \
         } _sse2neon_return(ret);)
 #endif
 
 // Shuffle double-precision (64-bit) floating-point elements using the control
 // in imm8, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_shuffle_pd
+// imm8 must be a compile-time constant in range [0, 3]
 #ifdef _sse2neon_shuffle
-#define _mm_shuffle_pd(a, b, imm8)                                            \
-    vreinterpretq_m128d_s64(                                                  \
-        vshuffleq_s64(vreinterpretq_s64_m128d(a), vreinterpretq_s64_m128d(b), \
-                      (imm8) & 0x1, (((imm8) & 0x2) >> 1) + 2))
+#define _mm_shuffle_pd(a, b, imm8)                                  \
+    __extension__({                                                 \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm8, 0, 3);                   \
+        vreinterpretq_m128d_s64(vshuffleq_s64(                      \
+            vreinterpretq_s64_m128d(a), vreinterpretq_s64_m128d(b), \
+            (imm8) & 0x1, (((imm8) & 0x2) >> 1) + 2));              \
+    })
 #else
-#define _mm_shuffle_pd(a, b, imm8)                                       \
-    _mm_castsi128_pd(_mm_set_epi64x(                                     \
-        vgetq_lane_s64(vreinterpretq_s64_m128d(b), ((imm8) & 0x2) >> 1), \
-        vgetq_lane_s64(vreinterpretq_s64_m128d(a), (imm8) & 0x1)))
+#define _mm_shuffle_pd(a, b, imm8)                                        \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm8, 0, 3),                            \
+     _mm_castsi128_pd(_mm_set_epi64x(                                     \
+         vgetq_lane_s64(vreinterpretq_s64_m128d(b), ((imm8) & 0x2) >> 1), \
+         vgetq_lane_s64(vreinterpretq_s64_m128d(a), (imm8) & 0x1))))
 #endif
 
-// FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a,
-//                                          __constrange(0,255) int imm)
+// FORCE_INLINE __m128i _mm_shufflehi_epi16(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 255]
 #if defined(_sse2neon_shuffle)
 #define _mm_shufflehi_epi16(a, imm)                                           \
     __extension__({                                                           \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                            \
         int16x8_t _input = vreinterpretq_s16_m128i(a);                        \
         int16x8_t _shuf =                                                     \
             vshuffleq_s16(_input, _input, 0, 1, 2, 3, ((imm) & (0x3)) + 4,    \
@@ -5548,23 +5599,28 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
                           (((imm) >> 6) & 0x3) + 4);                          \
         vreinterpretq_m128i_s16(_shuf);                                       \
     })
-#else  // generic
-#define _mm_shufflehi_epi16(a, imm) _mm_shufflehi_epi16_function((a), (imm))
+#else
+#define _mm_shufflehi_epi16(a, imm)             \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255), \
+     _mm_shufflehi_epi16_function((a), (imm)))
 #endif
 
-// FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a,
-//                                          __constrange(0,255) int imm)
+// FORCE_INLINE __m128i _mm_shufflelo_epi16(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 255]
 #if defined(_sse2neon_shuffle)
 #define _mm_shufflelo_epi16(a, imm)                                  \
     __extension__({                                                  \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                   \
         int16x8_t _input = vreinterpretq_s16_m128i(a);               \
         int16x8_t _shuf = vshuffleq_s16(                             \
             _input, _input, ((imm) & (0x3)), (((imm) >> 2) & 0x3),   \
             (((imm) >> 4) & 0x3), (((imm) >> 6) & 0x3), 4, 5, 6, 7); \
         vreinterpretq_m128i_s16(_shuf);                              \
     })
-#else  // generic
-#define _mm_shufflelo_epi16(a, imm) _mm_shufflelo_epi16_function((a), (imm))
+#else
+#define _mm_shufflelo_epi16(a, imm)             \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255), \
+     _mm_shufflelo_epi16_function((a), (imm)))
 #endif
 
 // Shift packed 16-bit integers in a left by count while shifting in zeros, and
@@ -5643,9 +5699,10 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
 // Shift a left by imm8 bytes while shifting in zeros, and store the results in
 // dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_slli_si128
+// imm must be a compile-time constant in range [0, 255]
 #define _mm_slli_si128(a, imm)                                                \
     _sse2neon_define1(                                                        \
-        __m128i, a, int8x16_t ret;                                            \
+        __m128i, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); int8x16_t ret; \
         if (_sse2neon_unlikely((imm) == 0)) ret = vreinterpretq_s8_m128i(_a); \
         else if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);        \
         else ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(_a),        \
@@ -5725,7 +5782,8 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 // Shift packed 32-bit integers in a right by imm8 while shifting in sign bits,
 // and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_srai_epi32
-// FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, __constrange(0,255) int imm)
+// FORCE_INLINE __m128i _mm_srai_epi32(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 255]
 #define _mm_srai_epi32(a, imm)                                                \
     _sse2neon_define0(                                                        \
         __m128i, a, __m128i ret; if (_sse2neon_unlikely((imm) == 0)) {        \
@@ -5793,7 +5851,8 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 // Shift packed 32-bit integers in a right by imm8 while shifting in zeros, and
 // store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_srli_epi32
-// FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, __constrange(0,255) int imm)
+// FORCE_INLINE __m128i _mm_srli_epi32(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 255]
 #define _mm_srli_epi32(a, imm)                                                \
     _sse2neon_define0(                                                        \
         __m128i, a, __m128i ret; if (_sse2neon_unlikely((imm) & ~31)) {       \
@@ -5818,12 +5877,13 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 // Shift a right by imm8 bytes while shifting in zeros, and store the results in
 // dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_srli_si128
-#define _mm_srli_si128(a, imm)                                         \
-    _sse2neon_define1(                                                 \
-        __m128i, a, int8x16_t ret;                                     \
-        if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);      \
-        else ret = vextq_s8(vreinterpretq_s8_m128i(_a), vdupq_n_s8(0), \
-                            ((imm) > 15 ? 0 : (imm)));                 \
+// imm must be a compile-time constant in range [0, 255]
+#define _mm_srli_si128(a, imm)                                                \
+    _sse2neon_define1(                                                        \
+        __m128i, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); int8x16_t ret; \
+        if (_sse2neon_unlikely((imm) & ~15)) ret = vdupq_n_s8(0);             \
+        else ret = vextq_s8(vreinterpretq_s8_m128i(_a), vdupq_n_s8(0),        \
+                            ((imm) > 15 ? 0 : (imm)));                        \
         _sse2neon_return(vreinterpretq_m128i_s8(ret));)
 
 // Store 128-bits (composed of 2 packed double-precision (64-bit) floating-point
@@ -6558,9 +6618,11 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 // Concatenate 16-byte blocks in a and b into a 32-byte temporary result, shift
 // the result right by imm8 bytes, and store the low 16 bytes in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_alignr_epi8
+// imm must be a compile-time constant in range [0, 255]
 #if defined(__GNUC__) && !defined(__clang__)
 #define _mm_alignr_epi8(a, b, imm)                                 \
     __extension__({                                                \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                 \
         uint8x16_t _a = vreinterpretq_u8_m128i(a);                 \
         uint8x16_t _b = vreinterpretq_u8_m128i(b);                 \
         __m128i ret;                                               \
@@ -6575,16 +6637,17 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
     })
 
 #else
-#define _mm_alignr_epi8(a, b, imm)                                  \
-    _sse2neon_define2(                                              \
-        __m128i, a, b, uint8x16_t __a = vreinterpretq_u8_m128i(_a); \
-        uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;   \
-        if (_sse2neon_unlikely((imm) & ~31)) ret =                  \
-            vreinterpretq_m128i_u8(vdupq_n_u8(0));                  \
-        else if ((imm) >= 16) ret =                                 \
-            _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);       \
-        else ret = vreinterpretq_m128i_u8(                          \
-            vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0));            \
+#define _mm_alignr_epi8(a, b, imm)                                \
+    _sse2neon_define2(                                            \
+        __m128i, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); \
+        uint8x16_t __a = vreinterpretq_u8_m128i(_a);              \
+        uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret; \
+        if (_sse2neon_unlikely((imm) & ~31)) ret =                \
+            vreinterpretq_m128i_u8(vdupq_n_u8(0));                \
+        else if ((imm) >= 16) ret =                               \
+            _mm_srli_si128(_a, (imm) >= 16 ? (imm) - 16 : 0);     \
+        else ret = vreinterpretq_m128i_u8(                        \
+            vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0));          \
         _sse2neon_return(ret);)
 
 #endif
@@ -6592,9 +6655,11 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 // Concatenate 8-byte blocks in a and b into a 16-byte temporary result, shift
 // the result right by imm8 bytes, and store the low 8 bytes in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_alignr_pi8
+// imm must be a compile-time constant in range [0, 255]
 #define _mm_alignr_pi8(a, b, imm)                                           \
     _sse2neon_define2(                                                      \
-        __m64, a, b, __m64 ret; if (_sse2neon_unlikely((imm) >= 16)) {      \
+        __m64, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m64 ret;  \
+        if (_sse2neon_unlikely((imm) >= 16)) {                              \
             ret = vreinterpret_m64_s8(vdup_n_s8(0));                        \
         } else {                                                            \
             uint8x8_t tmp_low;                                              \
@@ -7116,11 +7181,11 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
 // Blend packed 16-bit integers from a and b using control mask imm8, and store
 // the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_blend_epi16
-// FORCE_INLINE __m128i _mm_blend_epi16(__m128i a, __m128i b,
-//                                      __constrange(0,255) int imm)
+// FORCE_INLINE __m128i _mm_blend_epi16(__m128i a, __m128i b, const int imm)
+// imm must be a compile-time constant in range [0, 255]
 #define _mm_blend_epi16(a, b, imm)                                           \
     _sse2neon_define2(                                                       \
-        __m128i, a, b,                                                       \
+        __m128i, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);            \
         const uint16_t _mask[8] = _sse2neon_init(                            \
             ((imm) & (1 << 0)) ? _sse2neon_static_cast(uint16_t, -1) : 0x0,  \
             ((imm) & (1 << 1)) ? _sse2neon_static_cast(uint16_t, -1) : 0x0,  \
@@ -7138,9 +7203,10 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
 // Blend packed double-precision (64-bit) floating-point elements from a and b
 // using control mask imm8, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_blend_pd
+// imm must be a compile-time constant in range [0, 3]
 #define _mm_blend_pd(a, b, imm)                                              \
     _sse2neon_define2(                                                       \
-        __m128d, a, b,                                                       \
+        __m128d, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 3);              \
         const uint64_t _mask[2] =                                            \
             _sse2neon_init(((imm) & (1 << 0)) ? ~UINT64_C(0) : UINT64_C(0),  \
                            ((imm) & (1 << 1)) ? ~UINT64_C(0) : UINT64_C(0)); \
@@ -7152,16 +7218,19 @@ FORCE_INLINE __m64 _mm_sign_pi8(__m64 _a, __m64 _b)
 // Blend packed single-precision (32-bit) floating-point elements from a and b
 // using mask, and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_blend_ps
-FORCE_INLINE __m128 _mm_blend_ps(__m128 _a, __m128 _b, const char imm8)
-{
-    const uint32_t ALIGN_STRUCT(16) data[4] = {
-        (imm8 & (1 << 0)) ? UINT32_MAX : 0, (imm8 & (1 << 1)) ? UINT32_MAX : 0,
-        (imm8 & (1 << 2)) ? UINT32_MAX : 0, (imm8 & (1 << 3)) ? UINT32_MAX : 0};
-    uint32x4_t mask = vld1q_u32(data);
-    float32x4_t a = vreinterpretq_f32_m128(_a);
-    float32x4_t b = vreinterpretq_f32_m128(_b);
-    return vreinterpretq_m128_f32(vbslq_f32(mask, b, a));
-}
+// imm8 must be a compile-time constant in range [0, 15]
+#define _mm_blend_ps(a, b, imm8)                                        \
+    _sse2neon_define2(                                                  \
+        __m128, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm8, 0, 15);        \
+        const uint32_t _mask[4] =                                       \
+            _sse2neon_init(((imm8) & (1 << 0)) ? UINT32_MAX : 0,        \
+                           ((imm8) & (1 << 1)) ? UINT32_MAX : 0,        \
+                           ((imm8) & (1 << 2)) ? UINT32_MAX : 0,        \
+                           ((imm8) & (1 << 3)) ? UINT32_MAX : 0);       \
+        uint32x4_t _mask_vec = vld1q_u32(_mask);                        \
+        float32x4_t __a = vreinterpretq_f32_m128(_a);                   \
+        float32x4_t __b = vreinterpretq_f32_m128(_b); _sse2neon_return( \
+            vreinterpretq_m128_f32(vbslq_f32(_mask_vec, __b, __a)));)
 
 // Blend packed 8-bit integers from a and b using mask, and store the results in
 // dst.
@@ -7525,26 +7594,36 @@ FORCE_INLINE __m128 _mm_dp_ps(__m128 a, __m128 b, const int imm)
 // Extract a 32-bit integer from a, selected with imm8, and store the result in
 // dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi32
-// FORCE_INLINE int _mm_extract_epi32(__m128i a, __constrange(0,4) int imm)
-#define _mm_extract_epi32(a, imm) \
-    vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm))
+// FORCE_INLINE int _mm_extract_epi32(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 3]
+#define _mm_extract_epi32(a, imm)             \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 3), \
+     vgetq_lane_s32(vreinterpretq_s32_m128i(a), (imm)))
 
 // Extract a 64-bit integer from a, selected with imm8, and store the result in
 // dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi64
-// FORCE_INLINE __int64 _mm_extract_epi64(__m128i a, __constrange(0,2) int imm)
-#define _mm_extract_epi64(a, imm) \
-    vgetq_lane_s64(vreinterpretq_s64_m128i(a), (imm))
+// FORCE_INLINE __int64 _mm_extract_epi64(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 1]
+#define _mm_extract_epi64(a, imm)             \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 1), \
+     vgetq_lane_s64(vreinterpretq_s64_m128i(a), (imm)))
 
 // Extract an 8-bit integer from a, selected with imm8, and store the result in
-// the lower element of dst. FORCE_INLINE int _mm_extract_epi8(__m128i a,
-// __constrange(0,16) int imm)
+// the lower element of dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_extract_epi8
-#define _mm_extract_epi8(a, imm) vgetq_lane_u8(vreinterpretq_u8_m128i(a), (imm))
+// FORCE_INLINE int _mm_extract_epi8(__m128i a, const int imm)
+// imm must be a compile-time constant in range [0, 15]
+#define _mm_extract_epi8(a, imm)               \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 15), \
+     vgetq_lane_u8(vreinterpretq_u8_m128i(a), (imm)))
 
 // Extracts the selected single-precision (32-bit) floating-point from a.
-// FORCE_INLINE int _mm_extract_ps(__m128 a, __constrange(0,4) int imm)
-#define _mm_extract_ps(a, imm) vgetq_lane_s32(vreinterpretq_s32_m128(a), (imm))
+// FORCE_INLINE int _mm_extract_ps(__m128 a, const int imm)
+// imm must be a compile-time constant in range [0, 3]
+#define _mm_extract_ps(a, imm)                \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 3), \
+     vgetq_lane_s32(vreinterpretq_s32_m128(a), (imm)))
 
 // Round the packed double-precision (64-bit) floating-point elements in a down
 // to an integer value, and store the results as packed double-precision
@@ -7599,28 +7678,32 @@ FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
 // Copy a to dst, and insert the 32-bit integer i into dst at the location
 // specified by imm8.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_insert_epi32
-// FORCE_INLINE __m128i _mm_insert_epi32(__m128i a, int b,
-//                                       __constrange(0,4) int imm)
-#define _mm_insert_epi32(a, b, imm) \
-    vreinterpretq_m128i_s32(        \
-        vsetq_lane_s32((b), vreinterpretq_s32_m128i(a), (imm)))
+// FORCE_INLINE __m128i _mm_insert_epi32(__m128i a, int b, const int imm)
+// imm must be a compile-time constant in range [0, 3]
+#define _mm_insert_epi32(a, b, imm)           \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 3), \
+     vreinterpretq_m128i_s32(                 \
+         vsetq_lane_s32((b), vreinterpretq_s32_m128i(a), (imm))))
 
 // Copy a to dst, and insert the 64-bit integer i into dst at the location
 // specified by imm8.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_insert_epi64
-// FORCE_INLINE __m128i _mm_insert_epi64(__m128i a, __int64 b,
-//                                       __constrange(0,2) int imm)
-#define _mm_insert_epi64(a, b, imm) \
-    vreinterpretq_m128i_s64(        \
-        vsetq_lane_s64((b), vreinterpretq_s64_m128i(a), (imm)))
+// FORCE_INLINE __m128i _mm_insert_epi64(__m128i a, __int64 b, const int imm)
+// imm must be a compile-time constant in range [0, 1]
+#define _mm_insert_epi64(a, b, imm)           \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 1), \
+     vreinterpretq_m128i_s64(                 \
+         vsetq_lane_s64((b), vreinterpretq_s64_m128i(a), (imm))))
 
 // Copy a to dst, and insert the lower 8-bit integer from i into dst at the
 // location specified by imm8.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_insert_epi8
-// FORCE_INLINE __m128i _mm_insert_epi8(__m128i a, int b,
-//                                      __constrange(0,16) int imm)
-#define _mm_insert_epi8(a, b, imm) \
-    vreinterpretq_m128i_s8(vsetq_lane_s8((b), vreinterpretq_s8_m128i(a), (imm)))
+// FORCE_INLINE __m128i _mm_insert_epi8(__m128i a, int b, const int imm)
+// imm must be a compile-time constant in range [0, 15]
+#define _mm_insert_epi8(a, b, imm)             \
+    (SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 15), \
+     vreinterpretq_m128i_s8(                   \
+         vsetq_lane_s8((b), vreinterpretq_s8_m128i(a), (imm))))
 
 // Copy a to tmp, then insert a single-precision (32-bit) floating-point
 // element from b into tmp using the control in imm8. Store tmp to dst using
