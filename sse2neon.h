@@ -190,27 +190,36 @@
  *   MSVC       |     0      |   0   |   1
  */
 #if defined(__clang__)
+/* Clang compiler detected (including Apple Clang) */
 #define SSE2NEON_COMPILER_CLANG 1
-#define SSE2NEON_COMPILER_GCC_COMPAT 1
+#define SSE2NEON_COMPILER_GCC_COMPAT 1 /* Clang supports GCC extensions */
 #if defined(_MSC_VER)
-#define SSE2NEON_COMPILER_MSVC 1 /* Clang-CL */
+#define SSE2NEON_COMPILER_MSVC 1 /* Clang-CL: Clang with MSVC on Windows */
 #else
 #define SSE2NEON_COMPILER_MSVC 0
 #endif
+/* Clang < 11 has known NEON codegen bugs (issue #622) */
 #if __clang_major__ < 11
 #error "Clang versions earlier than 11 are not supported."
 #endif
+
 #elif defined(__GNUC__)
+/* GCC compiler (only reached if not Clang, since Clang also defines __GNUC__)
+ */
 #define SSE2NEON_COMPILER_CLANG 0
 #define SSE2NEON_COMPILER_GCC_COMPAT 1
 #define SSE2NEON_COMPILER_MSVC 0
+/* GCC < 10 has incomplete ARM intrinsics support */
 #if __GNUC__ < 10
 #error "GCC versions earlier than 10 are not supported."
 #endif
+
 #elif defined(_MSC_VER)
+/* Microsoft Visual C++ (native, not Clang-CL) */
 #define SSE2NEON_COMPILER_CLANG 0
-#define SSE2NEON_COMPILER_GCC_COMPAT 0
+#define SSE2NEON_COMPILER_GCC_COMPAT 0 /* No GCC extensions available */
 #define SSE2NEON_COMPILER_MSVC 1
+
 #else
 #error "Unsupported compiler. SSE2NEON requires GCC 10+, Clang 11+, or MSVC."
 #endif
