@@ -190,6 +190,8 @@ jobs:
         shell: bash
       - name: cast macro validation
         run: python3 .ci/check-casts.py --strict sse2neon.h
+      - name: preprocessor macro hygiene
+        run: python3 .ci/check-macros.py sse2neon.h
       - name: clang-tidy
         run: |
           clang-tidy-$LLVM_VERSION sse2neon.h \

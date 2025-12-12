@@ -139,7 +139,13 @@ check-ubsan: clean
 check-strict-aliasing: clean
 	$(MAKE) STRICT_ALIASING=1 check
 
-.PHONY: clean check check-ubsan check-strict-aliasing format floatpoint
+# Check preprocessor macro hygiene (typos, consistency)
+# Inconsistent raw __aarch64__ checks are treated as errors because they
+# cause _M_ARM64/__arm64__ builds to silently use slower fallback paths.
+check-macros:
+	@python3 .ci/check-macros.py sse2neon.h
+
+.PHONY: clean check check-ubsan check-strict-aliasing check-macros format floatpoint
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(FLOATPOINT_OBJS) $(FLOATPOINT_EXEC) $(floatpoint_deps)

@@ -176,42 +176,51 @@
  *   SSE2NEON_COMPILER_CLANG      - Clang specifically (subset of GCC_COMPAT)
  */
 
+/* Compiler detection
+ *
+ * Check Clang first: it defines __GNUC__ for compatibility.
+ * Clang-CL also defines _MSC_VER for MSVC ABI compatibility.
+ *
+ * Compiler matrix:
+ *   Compiler   | GCC_COMPAT | CLANG | MSVC
+ *   -----------+------------+-------+------
+ *   GCC        |     1      |   0   |   0
+ *   Clang      |     1      |   1   |   0
+ *   Clang-CL   |     1      |   1   |   1
+ *   MSVC       |     0      |   0   |   1
+ */
+#if defined(__clang__)
+#define SSE2NEON_COMPILER_CLANG 1
+#define SSE2NEON_COMPILER_GCC_COMPAT 1
+#if defined(_MSC_VER)
+#define SSE2NEON_COMPILER_MSVC 1 /* Clang-CL */
+#else
+#define SSE2NEON_COMPILER_MSVC 0
+#endif
+#if __clang_major__ < 11
+#error "Clang versions earlier than 11 are not supported."
+#endif
+#elif defined(__GNUC__)
+#define SSE2NEON_COMPILER_CLANG 0
+#define SSE2NEON_COMPILER_GCC_COMPAT 1
+#define SSE2NEON_COMPILER_MSVC 0
+#if __GNUC__ < 10
+#error "GCC versions earlier than 10 are not supported."
+#endif
+#elif defined(_MSC_VER)
+#define SSE2NEON_COMPILER_CLANG 0
+#define SSE2NEON_COMPILER_GCC_COMPAT 0
+#define SSE2NEON_COMPILER_MSVC 1
+#else
+#error "Unsupported compiler. SSE2NEON requires GCC 10+, Clang 11+, or MSVC."
+#endif
+
 /* Architecture detection */
 #if defined(__aarch64__) || defined(__arm64__) || defined(_M_ARM64) || \
     defined(_M_ARM64EC)
 #define SSE2NEON_ARCH_AARCH64 1
 #else
 #define SSE2NEON_ARCH_AARCH64 0
-#endif
-
-/* Compiler detection */
-#if defined(__GNUC__) || defined(__clang__)
-#define SSE2NEON_COMPILER_GCC_COMPAT 1
-#else
-#define SSE2NEON_COMPILER_GCC_COMPAT 0
-#endif
-
-#if defined(__clang__)
-#define SSE2NEON_COMPILER_CLANG 1
-#else
-#define SSE2NEON_COMPILER_CLANG 0
-#endif
-
-#if defined(_MSC_VER)
-#define SSE2NEON_COMPILER_MSVC 1
-#else
-#define SSE2NEON_COMPILER_MSVC 0
-#endif
-
-/* Minimum compiler version requirements */
-#if defined(__clang__)
-#if __clang_major__ < 11
-#error "Clang versions earlier than 11 are not supported."
-#endif
-#elif defined(__GNUC__)
-#if __GNUC__ < 10
-#error "GCC versions earlier than 10 are not supported."
-#endif
 #endif
 
 /* compiler specific definitions */
@@ -234,8 +243,6 @@
 #endif
 #define _sse2neon_likely(x) (x)
 #define _sse2neon_unlikely(x) (x)
-#else
-#pragma message("Macro name collisions may happen with unsupported compilers.")
 #endif
 
 /* C language does not allow initializing a variable with a function call. */
@@ -274,13 +281,15 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
     return tmp;
 }
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-/* Definitions for _mm_{malloc,free} are provided by <malloc.h> from MSVC. */
+/* MSVC provides _mm_{malloc,free} in <malloc.h>; MinGW needs our definitions
+ * but still uses _aligned_malloc/_aligned_free from <malloc.h>.
+ */
+#if SSE2NEON_COMPILER_MSVC
 #define SSE2NEON_ALLOC_DEFINED
 #endif
 
 /* If using MSVC */
-#ifdef _MSC_VER
+#if SSE2NEON_COMPILER_MSVC
 #if defined(_M_ARM64EC)
 #define _DISABLE_SOFTINTRIN_ 1
 #endif
@@ -304,17 +313,29 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 #endif
 #endif
 
+/* MinGW uses _aligned_malloc/_aligned_free from <malloc.h> */
+#if defined(__MINGW32__)
+#include <malloc.h>
+#endif
+
+/* Statement expression helpers for macro-based intrinsics.
+ *
+ * For GCC/Clang: Uses __extension__({}) statement expressions which have
+ * natural access to all surrounding variables.
+ *
+ * For MSVC: Uses immediately-invoked lambdas. The distinction between
+ * _sse2neon_define0 ([=] capture) and _sse2neon_define1 ([] no capture)
+ * exists for lambda capture semantics, though in practice both work the
+ * same since 'imm' parameters are compile-time constants that get
+ * substituted before the lambda is created.
+ */
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #define _sse2neon_define0(type, s, body) \
     __extension__({                      \
         type _a = (s);                   \
         body                             \
     })
-#define _sse2neon_define1(type, s, body) \
-    __extension__({                      \
-        type _a = (s);                   \
-        body                             \
-    })
+#define _sse2neon_define1(type, s, body) _sse2neon_define0(type, s, body)
 #define _sse2neon_define2(type, a, b, body) \
     __extension__({                         \
         type _a = (a), _b = (b);            \
@@ -332,7 +353,7 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 #define _sse2neon_init(...) {__VA_ARGS__}
 
 /* Compiler barrier */
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
 #define SSE2NEON_BARRIER() _ReadWriteBarrier()
 #else
 #define SSE2NEON_BARRIER()                     \
@@ -365,45 +386,36 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 }
 
 /* Architecture-specific build options.
- * Note: #pragma GCC push_options is GCC-specific; Clang is explicitly excluded
- * via !defined(__clang__) checks below.
+ * #pragma GCC push_options/target are GCC-specific; Clang ignores these.
+ * MSVC on ARM always has NEON/SIMD available.
  */
-#if defined(__GNUC__)
-#if defined(__arm__) && __ARM_ARCH == 7
-/* According to ARM C Language Extensions Architecture specification,
- * __ARM_NEON is defined to a value indicating the Advanced SIMD (NEON)
- * architecture supported.
- */
+#if SSE2NEON_COMPILER_GCC_COMPAT
+#if defined(__arm__)
+/* 32-bit ARM: ARMv7-A or ARMv8-A in AArch32 mode */
 #if !defined(__ARM_NEON) || !defined(__ARM_NEON__)
 #error "You must enable NEON instructions (e.g. -mfpu=neon) to use SSE2NEON."
 #endif
-#if !defined(__clang__)
+#if !SSE2NEON_COMPILER_CLANG
 #pragma GCC push_options
+#if __ARM_ARCH >= 8
+#pragma GCC target("fpu=neon-fp-armv8")
+#else
 #pragma GCC target("fpu=neon")
 #endif
+#endif
 #elif SSE2NEON_ARCH_AARCH64
-#if !defined(__clang__) && !defined(_MSC_VER)
+#if !SSE2NEON_COMPILER_CLANG
 #pragma GCC push_options
 #pragma GCC target("+simd")
 #endif
-#elif __ARM_ARCH == 8
-#if !defined(__ARM_NEON) || !defined(__ARM_NEON__)
-#error \
-    "You must enable NEON instructions (e.g. -mfpu=neon-fp-armv8) to use SSE2NEON."
-#endif
-#if !defined(__clang__) && !defined(_MSC_VER)
-#pragma GCC push_options
-#pragma GCC target("fpu=neon-fp-armv8")
-#endif
 #else
-#error \
-    "Unsupported target. Must be either ARMv7-A+NEON or ARMv8-A \
-(you could try setting target explicitly with -march or -mcpu)"
+#error "Unsupported target. Must be ARMv7-A+NEON, ARMv8-A, or AArch64."
 #endif
 #endif
 
 #include <arm_neon.h>
-#if (!SSE2NEON_ARCH_AARCH64) && (__ARM_ARCH == 8)
+/* Include ACLE for CRC32 and other intrinsics on ARMv8+ */
+#if SSE2NEON_ARCH_AARCH64 || __ARM_ARCH >= 8
 #if defined __has_include && __has_include(<arm_acle.h>)
 #include <arm_acle.h>
 #endif
@@ -440,7 +452,7 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
  * MSVC does not provide these GCC/Clang builtins.
  */
 #ifndef __has_builtin
-#if defined(_MSC_VER)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
 #define __has_builtin(x) 0
 #else
 #error "Unsupported compiler: __has_builtin not available"
@@ -1156,7 +1168,7 @@ FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 {
     poly64_t a = vget_lane_p64(vreinterpret_p64_u64(_a), 0);
     poly64_t b = vget_lane_p64(vreinterpret_p64_u64(_b), 0);
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     __n64 a1 = {a}, b1 = {b};
     return vreinterpretq_u64_p128(vmull_p64(a1, b1));
 #else
@@ -1212,7 +1224,7 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 
     // Interleave. Using vzip1 and vzip2 prevents Clang from emitting TBL
     // instructions.
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     uint8x16_t lm_p0 = vreinterpretq_u8_u64(
         vzip1q_u64(vreinterpretq_u64_u8(l), vreinterpretq_u64_u8(m)));
     uint8x16_t lm_p1 = vreinterpretq_u8_u64(
@@ -1240,7 +1252,7 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
     uint8x16_t t2t3_l = veorq_u8(t2t3_tmp, t2t3_h);
 
     // De-interleave
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     uint8x16_t t0 = vreinterpretq_u8_u64(
         vuzp1q_u64(vreinterpretq_u64_u8(t0t1_l), vreinterpretq_u64_u8(t0t1_h)));
     uint8x16_t t1 = vreinterpretq_u8_u64(
@@ -2078,7 +2090,7 @@ FORCE_INLINE void _mm_free(void *addr)
 FORCE_INLINE uint64_t _sse2neon_get_fpcr(void)
 {
     uint64_t value;
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     value = _ReadStatusReg(ARM64_FPCR);
 #else
     __asm__ __volatile__("mrs %0, FPCR" : "=r"(value)); /* read */
@@ -2088,7 +2100,7 @@ FORCE_INLINE uint64_t _sse2neon_get_fpcr(void)
 
 FORCE_INLINE void _sse2neon_set_fpcr(uint64_t value)
 {
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     _WriteStatusReg(ARM64_FPCR, value);
 #else
     __asm__ __volatile__("msr FPCR, %0" ::"r"(value)); /* write */
@@ -2561,7 +2573,7 @@ FORCE_INLINE __m128 _mm_or_ps(__m128 a, __m128 b)
 FORCE_INLINE void _mm_prefetch(char const *p, int i)
 {
     (void) i;
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     switch (i) {
     case _MM_HINT_NTA:
         __prefetch2(p, 1);
@@ -3176,7 +3188,7 @@ FORCE_INLINE __m128i _mm_undefined_si128(void)
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
     __m128i a;
-#if defined(_MSC_VER)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     a = _mm_setzero_si128();
 #endif
     return a;
@@ -3194,7 +3206,7 @@ FORCE_INLINE __m128 _mm_undefined_ps(void)
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
     __m128 a;
-#if defined(_MSC_VER)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     a = _mm_setzero_ps();
 #endif
     return a;
@@ -3506,7 +3518,7 @@ FORCE_INLINE void _mm_clflush(void const *p)
     __builtin___clear_cache(
         _sse2neon_reinterpret_cast(char *, ptr),
         _sse2neon_reinterpret_cast(char *, ptr) + SSE2NEON_CACHELINE_SIZE);
-#elif (_MSC_VER) && SSE2NEON_INCLUDE_WINDOWS_H
+#elif SSE2NEON_COMPILER_MSVC && SSE2NEON_INCLUDE_WINDOWS_H
     FlushInstructionCache(GetCurrentProcess(), p, SSE2NEON_CACHELINE_SIZE);
 #endif
 }
@@ -5243,7 +5255,7 @@ FORCE_INLINE __m128i _mm_packus_epi16(const __m128i a, const __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_pause
 FORCE_INLINE void _mm_pause(void)
 {
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     __isb(_ARM64_BARRIER_SY);
 #else
     __asm__ __volatile__("isb\n");
@@ -6201,7 +6213,7 @@ FORCE_INLINE __m128d _mm_undefined_pd(void)
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
     __m128d a;
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     a = _mm_setzero_pd();
 #endif
     return a;
@@ -7865,7 +7877,7 @@ FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm)
     default:
 #if SSE2NEON_COMPILER_GCC_COMPAT
         __builtin_unreachable();
-#elif defined(_MSC_VER)
+#elif SSE2NEON_COMPILER_MSVC
         __assume(0);
 #endif
         break;
@@ -7891,7 +7903,7 @@ FORCE_INLINE __m128i _mm_mpsadbw_epu8(__m128i a, __m128i b, const int imm)
     default:
 #if SSE2NEON_COMPILER_GCC_COMPAT
         __builtin_unreachable();
-#elif defined(_MSC_VER)
+#elif SSE2NEON_COMPILER_MSVC
         __assume(0);
 #endif
         break;
@@ -9091,7 +9103,7 @@ FORCE_INLINE uint16_t _sse2neon_sido_negative(int res,
 
 FORCE_INLINE int _sse2neon_clz(unsigned int x)
 {
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     unsigned long cnt = 0;
     if (_BitScanReverse(&cnt, x))
         return 31 - cnt;
@@ -9103,7 +9115,7 @@ FORCE_INLINE int _sse2neon_clz(unsigned int x)
 
 FORCE_INLINE int _sse2neon_ctz(unsigned int x)
 {
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     unsigned long cnt = 0;
     if (_BitScanForward(&cnt, x))
         return cnt;
@@ -9115,7 +9127,7 @@ FORCE_INLINE int _sse2neon_ctz(unsigned int x)
 
 FORCE_INLINE int _sse2neon_ctzll(unsigned long long x)
 {
-#ifdef _MSC_VER
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     unsigned long cnt;
 #if defined(SSE2NEON_HAS_BITSCAN64)
     if (_BitScanForward64(&cnt, x))
@@ -9447,12 +9459,13 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u16
 FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
 {
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32ch %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
-    ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__))
+#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) || \
+    (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 &&      \
+     !SSE2NEON_COMPILER_CLANG)
     crc = __crc32ch(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
     SSE2NEON_CRC32C_BASE(crc, v, 16);
@@ -9468,12 +9481,13 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u32
 FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
 {
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32cw %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
-    ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__))
+#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) || \
+    (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 &&      \
+     !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cw(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
     SSE2NEON_CRC32C_BASE(crc, v, 32);
@@ -9490,11 +9504,12 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u64
 FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 {
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32cx %w[c], %w[c], %x[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__))
+#elif (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 && \
+       !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cd(_sse2neon_static_cast(uint32_t, crc), v);
 #else
     crc = _mm_crc32_u32(_sse2neon_static_cast(uint32_t, crc),
@@ -9511,12 +9526,13 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u8
 FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 {
-#if defined(__aarch64__) && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
     __asm__ __volatile__("crc32cb %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH == 8) && defined(__ARM_FEATURE_CRC32)) || \
-    ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__))
+#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) || \
+    (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 &&      \
+     !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cb(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
     SSE2NEON_CRC32C_BASE(crc, v, 8);
@@ -9634,7 +9650,7 @@ static const uint8_t _sse2neon_sbox[256] = SSE2NEON_AES_SBOX(SSE2NEON_AES_H0);
 static const uint8_t _sse2neon_rsbox[256] = SSE2NEON_AES_RSBOX(SSE2NEON_AES_H0);
 #undef SSE2NEON_AES_H0
 
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
 // NEON S-box lookup using 4x64-byte tables; reused by aesenc/dec/keygenassist.
 FORCE_INLINE uint8x16_t _sse2neon_aes_subbytes(uint8x16_t x)
 {
@@ -9656,7 +9672,7 @@ FORCE_INLINE uint8x16_t _sse2neon_aes_inv_subbytes(uint8x16_t x)
 #endif
 
 /* x_time function and matrix multiply function */
-#if !defined(__aarch64__)
+#if !SSE2NEON_ARCH_AARCH64
 #define SSE2NEON_XT(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
 #define SSE2NEON_MULTIPLY(x, y)                                  \
     (((y & 1) * x) ^ ((y >> 1 & 1) * SSE2NEON_XT(x)) ^           \
@@ -9672,7 +9688,7 @@ FORCE_INLINE uint8x16_t _sse2neon_aes_inv_subbytes(uint8x16_t x)
 // for more information.
 FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     static const uint8_t shift_rows[] = {
         0x0, 0x5, 0xa, 0xf, 0x4, 0x9, 0xe, 0x3,
         0x8, 0xd, 0x2, 0x7, 0xc, 0x1, 0x6, 0xb,
@@ -9763,7 +9779,7 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdec_si128
 FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     static const uint8_t inv_shift_rows[] = {
         0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
         0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
@@ -9878,7 +9894,7 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesenclast_si128
 FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     static const uint8_t shift_rows[] = {
         0x0, 0x5, 0xa, 0xf, 0x4, 0x9, 0xe, 0x3,
         0x8, 0xd, 0x2, 0x7, 0xc, 0x1, 0x6, 0xb,
@@ -9922,7 +9938,7 @@ FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 
 FORCE_INLINE uint8x16_t _sse2neon_vqtbl1q_u8(uint8x16_t t, uint8x16_t idx)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     return vqtbl1q_u8(t, idx);
 #else
     // Split 'idx' into two D registers.
@@ -9947,7 +9963,7 @@ FORCE_INLINE uint8x16_t _sse2neon_vqtbl1q_u8(uint8x16_t t, uint8x16_t idx)
 
 FORCE_INLINE uint8x16_t _sse2neon_vqtbl4q_u8(uint8x16x4_t t, uint8x16_t idx)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     return vqtbl4q_u8(t, idx);
 #else
     // Split 'idx' into two D registers.
@@ -9992,7 +10008,7 @@ FORCE_INLINE uint8x16_t _sse2neon_vqtbx4q_u8(uint8x16_t acc,
                                              uint8x16x4_t t,
                                              uint8x16_t idx)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     return vqtbx4q_u8(acc, t, idx);
 #else
     // Split 'acc' into two D registers.
@@ -10044,7 +10060,7 @@ FORCE_INLINE uint8x16_t _sse2neon_vqtbx4q_u8(uint8x16_t acc,
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesdeclast_si128
 FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     static const uint8_t inv_shift_rows[] = {
         0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
         0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
@@ -10089,7 +10105,7 @@ FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_aesimc_si128
 FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     static const uint8_t ror32by8[] = {
         0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
         0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
@@ -10145,7 +10161,7 @@ FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
 // for details.
 FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 {
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
     uint8x16_t _a = vreinterpretq_u8_m128i(a);
     uint8x16_t sub = _sse2neon_aes_subbytes(_a);
 
@@ -10174,7 +10190,7 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
 #undef SSE2NEON_AES_SBOX
 #undef SSE2NEON_AES_RSBOX
 
-#if defined(__aarch64__)
+#if SSE2NEON_ARCH_AARCH64
 #undef SSE2NEON_XT
 #undef SSE2NEON_MULTIPLY
 #endif
@@ -10239,7 +10255,7 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
     // AESE does ShiftRows and SubBytes on A
     uint8x16_t sb_ = vaeseq_u8(vreinterpretq_u8_m128i(a), vdupq_n_u8(0));
 
-#if !defined(_MSC_VER) || defined(__clang__)
+#if !SSE2NEON_COMPILER_MSVC || SSE2NEON_COMPILER_CLANG
     uint8x16_t dest = {
         // Undo ShiftRows step from AESE and extract X1 and X3
         sb_[0x4], sb_[0x1], sb_[0xE], sb_[0xB],  // SubBytes(X1)
@@ -10337,7 +10353,7 @@ FORCE_INLINE int _mm_popcnt_u32(unsigned int a)
 #if SSE2NEON_ARCH_AARCH64
 #if __has_builtin(__builtin_popcount)
     return __builtin_popcount(a);
-#elif defined(_MSC_VER)
+#elif SSE2NEON_COMPILER_MSVC
     return _CountOneBits(a);
 #else
     return (int) vaddlv_u8(vcnt_u8(vcreate_u8((uint64_t) a)));
@@ -10366,7 +10382,7 @@ FORCE_INLINE int64_t _mm_popcnt_u64(uint64_t a)
 #if SSE2NEON_ARCH_AARCH64
 #if __has_builtin(__builtin_popcountll)
     return __builtin_popcountll(a);
-#elif defined(_MSC_VER)
+#elif SSE2NEON_COMPILER_MSVC
     return _CountOneBits64(a);
 #else
     return (int64_t) vaddlv_u8(vcnt_u8(vcreate_u8(a)));
@@ -10428,7 +10444,7 @@ FORCE_INLINE uint64_t _rdtsc(void)
      * be 64 bits wide. So the system counter could be less than 64 bits wide
      * and it is attributed with the flag 'cap_user_time_short' is true.
      */
-#if defined(_MSC_VER) && !defined(__clang__)
+#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     val = _ReadStatusReg(ARM64_SYSREG(3, 3, 14, 0, 2));
 #else
     __asm__ __volatile__("mrs %0, cntvct_el0" : "=r"(val));
