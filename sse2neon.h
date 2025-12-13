@@ -9478,16 +9478,17 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
  * 5. Extract the lower (in bit-reflected sense) 32 bits in the upper half of
  *    'tmp'.
  */
-#define SSE2NEON_CRC32C_BASE(crc, v, bit)                                                      \
-    do {                                                                                       \
-        crc ^= v;                                                                              \
-    uint64x2_t orig = vcombine_u64(vcreate_u64((uint64_t) (crc) << ((bit)), vcreate_u64(0x0)); \
-    uint64x2_t tmp = orig; \
-    uint64_t p = 0x105EC76F1; \
-    uint64_t mu = 0x1dea713f1; \
-    tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu)); \
-    tmp = _sse2neon_vmull_p64(vget_high_u64(tmp), vcreate_u64(p)); \
-    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 2);                                       \
+#define SSE2NEON_CRC32C_BASE(crc, v, bit)                                      \
+    do {                                                                       \
+        crc ^= v;                                                              \
+        uint64x2_t orig = vcombine_u64(vcreate_u64((uint64_t) (crc) << (bit)), \
+                                       vcreate_u64(0x0));                      \
+        uint64x2_t tmp = orig;                                                 \
+        uint64_t p = 0x105EC76F1;                                              \
+        uint64_t mu = 0x1dea713f1;                                             \
+        tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu));         \
+        tmp = _sse2neon_vmull_p64(vget_high_u64(tmp), vcreate_u64(p));         \
+        crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 2);                   \
     } while (0)
 
 // Starting with the initial value in crc, accumulates a CRC32 value for
