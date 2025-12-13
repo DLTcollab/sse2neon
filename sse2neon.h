@@ -9468,16 +9468,20 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
  * 5. Extract the lower (in bit-reflected sense) 32 bits in the upper half of
  *    'tmp'.
  */
-#define SSE2NEON_CRC32C_BASE(crc, v, bit)                                                      \
-    do {                                                                                       \
-        crc ^= v;                                                                              \
-    uint64x2_t orig = vcombine_u64(vcreate_u64((uint64_t) (crc) << ((bit)), vcreate_u64(0x0)); \
+#define SSE2NEON_CRC32C_BASE(crc, v, bit, shift)                   \
+    do {                                                           \
+        crc ^= v;                                                  \
+    uint64x2_t orig = vcombine_u64(vcreate_u64( \
+                SSE2NEON_IIF(shift)( \
+                    (uint64_t) (crc) << ((bit)), \
+                    (uint64_t) (crc) \
+                   ),\, vcreate_u64(0x0)); \
     uint64x2_t tmp = orig; \
     uint64_t p = 0x105EC76F1; \
     uint64_t mu = 0x1dea713f1; \
     tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu)); \
     tmp = _sse2neon_vmull_p64(vget_high_u64(tmp), vcreate_u64(p)); \
-    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 2);                                       \
+    crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 2);           \
     } while (0)
 
 // Starting with the initial value in crc, accumulates a CRC32 value for
@@ -9494,7 +9498,7 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
      !SSE2NEON_COMPILER_CLANG)
     crc = __crc32ch(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
-    SSE2NEON_CRC32C_BASE(crc, v, 16);
+    SSE2NEON_CRC32C_BASE(crc, v, 16, 1);
 #else
     crc = _mm_crc32_u8(crc, _sse2neon_static_cast(uint8_t, v & 0xff));
     crc = _mm_crc32_u8(crc, _sse2neon_static_cast(uint8_t, (v >> 8) & 0xff));
@@ -9516,7 +9520,7 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
      !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cw(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
-    SSE2NEON_CRC32C_BASE(crc, v, 32);
+    SSE2NEON_CRC32C_BASE(crc, v, 32, 1);
 #else
     crc = _mm_crc32_u16(crc, _sse2neon_static_cast(uint16_t, v & 0xffff));
     crc =
@@ -9537,6 +9541,8 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 #elif (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 && \
        !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cd(_sse2neon_static_cast(uint32_t, crc), v);
+#elif defined(__ARM_FEATURE_CRYPTO)
+    crc = SSE2NEON_CRC32C_BASE(crc, v, 64, 0);
 #else
     crc = _mm_crc32_u32(_sse2neon_static_cast(uint32_t, crc),
                         _sse2neon_static_cast(uint32_t, v & 0xffffffff));
@@ -9561,7 +9567,7 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
      !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cb(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
-    SSE2NEON_CRC32C_BASE(crc, v, 8);
+    SSE2NEON_CRC32C_BASE(crc, v, 8, 1);
 #else  // Fall back to the generic table lookup approach
     // Adapted from: https://create.stephan-brumme.com/crc32/
     // Apply half-byte comparison algorithm for the best ratio between
