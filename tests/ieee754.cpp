@@ -1,5 +1,5 @@
 /**
- * floatpoint.cpp - IEEE-754 Floating-Point Edge Case Validation
+ * ieee754.cpp - IEEE-754 Floating-Point Edge Case Validation
  *
  * This test file systematically validates sse2neon behavior against IEEE-754
  * standards for edge cases: NaN, infinity, denormals, and signed zero.
@@ -16,8 +16,8 @@
  *   - Precise (SSE2NEON_PRECISE_* = 1): IEEE-754 compliant, matches x86 SSE
  *
  * Usage:
- *   make floatpoint && ./tests/floatpoint
- *   make FEATURE=crypto+crc floatpoint && ./tests/floatpoint
+ *   make ieee754 && ./tests/ieee754
+ *   make FEATURE=crypto+crc ieee754 && ./tests/ieee754
  *
  * Reference: IEEE 754-2008, Intel Intrinsics Guide
  */

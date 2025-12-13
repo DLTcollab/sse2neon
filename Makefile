@@ -85,37 +85,38 @@ OBJS = \
     tests/main.o
 deps := $(OBJS:%.o=%.o.d)
 
-# Floating-point edge case test objects
-FLOATPOINT_OBJS = \
-    tests/floatpoint.o \
+# IEEE-754 edge case test objects
+IEEE754_OBJS = \
+    tests/ieee754.o \
     tests/common.o \
     tests/binding.o
-floatpoint_deps := $(FLOATPOINT_OBJS:%.o=%.o.d)
+ieee754_deps := $(IEEE754_OBJS:%.o=%.o.d)
 
 .SUFFIXES: .o .cpp
 .cpp.o:
 	$(CXX) -o $@ $(CXXFLAGS) -c -MMD -MF $@.d $<
 
 EXEC = tests/main
-FLOATPOINT_EXEC = tests/floatpoint
+IEEE754_EXEC = tests/ieee754
 
 $(EXEC): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
-$(FLOATPOINT_EXEC): $(FLOATPOINT_OBJS)
+$(IEEE754_EXEC): $(IEEE754_OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
-floatpoint: $(FLOATPOINT_EXEC)
+ieee754: $(IEEE754_EXEC)
 ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
 endif
 	$(EXEC_WRAPPER) $^
 
-check: tests/main
+check: tests/main $(IEEE754_EXEC)
 ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
 endif
-	$(EXEC_WRAPPER) $^
+	$(EXEC_WRAPPER) tests/main
+	$(EXEC_WRAPPER) $(IEEE754_EXEC)
 
 CLANG_FORMAT ?= $(shell command -v clang-format-20 2>/dev/null || \
     (command -v clang-format >/dev/null 2>&1 && \
@@ -145,10 +146,10 @@ check-strict-aliasing: clean
 check-macros:
 	@python3 .ci/check-macros.py sse2neon.h
 
-.PHONY: clean check check-ubsan check-strict-aliasing check-macros format floatpoint
+.PHONY: clean check check-ubsan check-strict-aliasing check-macros indent ieee754
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
-	$(RM) $(FLOATPOINT_OBJS) $(FLOATPOINT_EXEC) $(floatpoint_deps)
+	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)
 
 -include $(deps)
--include $(floatpoint_deps)
+-include $(ieee754_deps)
