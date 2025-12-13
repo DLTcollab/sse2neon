@@ -253,6 +253,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
   intrinsics on hardware which doesn't natively support them, such as calling SSE functions on ARM.
 * [CatBoost's sse2neon](https://github.com/catboost/catboost/blob/master/library/cpp/sse/sse2neon.h)
 * [ARM\_NEON\_2\_x86\_SSE](https://github.com/intel/ARM_NEON_2_x86_SSE)
+* [neon\_sim](https://github.com/zchrissirhcz/neon_sim): ARM NEON Intrinsics implementation in C
 * [AvxToNeon](https://github.com/kunpengcompute/AvxToNeon)
 * [sse2rvv](https://github.com/FeddrickAquino/sse2rvv): C header file that converts Intel SSE intrinsics to RISC-V Vector intrinsic.
 * [sse2msa](https://github.com/i-evi/sse2msa): A C/C++ header file that converts Intel SSE intrinsics to MIPS/MIPS64 MSA intrinsics.
