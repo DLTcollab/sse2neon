@@ -33,11 +33,11 @@ Cycle estimates based on ARM Cortex-A72 (ARMv8-A) Software Optimization Guide.
 
 | Metric | Value |
 |--------|-------|
-| Total SSE Intrinsics | 455 |
-| Direct Mappings (T1) | 368 (80.9%) |
-| Moderate Emulation (T2-T3) | 77 (16.9%) |
+| Total SSE Intrinsics | 454 |
+| Direct Mappings (T1) | 368 (81.1%) |
+| Moderate Emulation (T2-T3) | 76 (16.7%) |
 | Complex Emulation (T4) | 10 (2.2%) |
-| Avg NEON Ops/Intrinsic | 1.83 |
+| Avg NEON Ops/Intrinsic | 1.82 |
 
 ### Performance Tiers
 
@@ -185,26 +185,25 @@ These intrinsics map directly to single NEON instructions:
 `_mm_unpacklo_pd`, `_mm_unpacklo_ps`, `_mm_xor_pd`, `_mm_xor_ps`
 `_mm_xor_si128`
 
-#### Tier 2 (68 intrinsics)
+#### Tier 2 (67 intrinsics)
 
-`_mm_add_ss`, `_mm_blend_ps`, `_mm_cmpnge_pd`, `_mm_cmpngt_pd`
-`_mm_cmpnle_pd`, `_mm_cmpnlt_pd`, `_mm_cmpord_pd`, `_mm_cmpord_ps`
-`_mm_cmpunord_pd`, `_mm_cmpunord_ps`, `_mm_cvtepi8_epi64`
-`_mm_cvtepu8_epi64`, `_mm_cvtpi8_ps`, `_mm_cvtpu8_ps`, `_mm_cvtsd_ss`
-`_mm_div_sd`, `_mm_hadd_epi16`, `_mm_hadd_epi32`, `_mm_hadd_pd`
-`_mm_hadd_pi16`, `_mm_hadd_pi32`, `_mm_hadd_ps`, `_mm_hadds_epi16`
-`_mm_hadds_pi16`, `_mm_hsub_epi16`, `_mm_hsub_epi32`, `_mm_hsub_pd`
-`_mm_hsub_pi16`, `_mm_hsub_pi32`, `_mm_hsub_ps`, `_mm_hsubs_epi16`
-`_mm_hsubs_pi16`, `_mm_loadr_ps`, `_mm_madd_epi16`, `_mm_maskmove_si64`
-`_mm_maskmoveu_si128`, `_mm_max_pd`, `_mm_max_ps`, `_mm_min_pd`, `_mm_min_ps`
-`_mm_movemask_pd`, `_mm_mulhi_epi16`, `_mm_set_epi16`, `_mm_set_epi32`
-`_mm_set_epi8`, `_mm_set_pd`, `_mm_set_ps`, `_mm_setr_epi16`
-`_mm_setr_epi32`, `_mm_setr_epi8`, `_mm_setr_ps`, `_mm_shuffle_ps_2001`
-`_mm_shuffle_ps_2010`, `_mm_shuffle_ps_2032`, `_mm_sign_epi16`
-`_mm_sign_epi32`, `_mm_sign_epi8`, `_mm_sign_pi16`, `_mm_sign_pi32`
-`_mm_sign_pi8`, `_mm_sra_epi16`, `_mm_sra_epi32`, `_mm_srai_epi16`
-`_mm_store_ps1`, `_mm_storer_ps`, `_mm_test_all_zeros`, `_mm_testc_si128`
-`_mm_testz_si128`
+`_mm_add_ss`, `_mm_cmpnge_pd`, `_mm_cmpngt_pd`, `_mm_cmpnle_pd`
+`_mm_cmpnlt_pd`, `_mm_cmpord_pd`, `_mm_cmpord_ps`, `_mm_cmpunord_pd`
+`_mm_cmpunord_ps`, `_mm_cvtepi8_epi64`, `_mm_cvtepu8_epi64`, `_mm_cvtpi8_ps`
+`_mm_cvtpu8_ps`, `_mm_cvtsd_ss`, `_mm_div_sd`, `_mm_hadd_epi16`
+`_mm_hadd_epi32`, `_mm_hadd_pd`, `_mm_hadd_pi16`, `_mm_hadd_pi32`
+`_mm_hadd_ps`, `_mm_hadds_epi16`, `_mm_hadds_pi16`, `_mm_hsub_epi16`
+`_mm_hsub_epi32`, `_mm_hsub_pd`, `_mm_hsub_pi16`, `_mm_hsub_pi32`
+`_mm_hsub_ps`, `_mm_hsubs_epi16`, `_mm_hsubs_pi16`, `_mm_loadr_ps`
+`_mm_madd_epi16`, `_mm_maskmove_si64`, `_mm_maskmoveu_si128`, `_mm_max_pd`
+`_mm_max_ps`, `_mm_min_pd`, `_mm_min_ps`, `_mm_movemask_pd`
+`_mm_mulhi_epi16`, `_mm_set_epi16`, `_mm_set_epi32`, `_mm_set_epi8`
+`_mm_set_pd`, `_mm_set_ps`, `_mm_setr_epi16`, `_mm_setr_epi32`
+`_mm_setr_epi8`, `_mm_setr_ps`, `_mm_shuffle_ps_2001`, `_mm_shuffle_ps_2010`
+`_mm_shuffle_ps_2032`, `_mm_sign_epi16`, `_mm_sign_epi32`, `_mm_sign_epi8`
+`_mm_sign_pi16`, `_mm_sign_pi32`, `_mm_sign_pi8`, `_mm_sra_epi16`
+`_mm_sra_epi32`, `_mm_srai_epi16`, `_mm_store_ps1`, `_mm_storer_ps`
+`_mm_test_all_zeros`, `_mm_testc_si128`, `_mm_testz_si128`
 
 #### Tier 3 (9 intrinsics)
 
