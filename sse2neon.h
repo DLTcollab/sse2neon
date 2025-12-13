@@ -232,6 +232,23 @@
 #define SSE2NEON_ARCH_AARCH64 0
 #endif
 
+/* Endianness check
+ *
+ * SSE2NEON assumes little-endian byte ordering for lane-to-memory mappings.
+ * Big-endian ARM targets would produce silently incorrect results because
+ * SSE intrinsics define lane ordering relative to little-endian memory layout.
+ *
+ * GCC/Clang define __BYTE_ORDER__. For compilers that don't (e.g., MSVC),
+ * we check for explicit big-endian ARM macros. MSVC only targets little-endian
+ * ARM, so no additional check is needed there.
+ */
+#if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__)
+#error "sse2neon requires little-endian target; big-endian is not supported"
+#elif defined(__ARMEB__) || defined(__AARCH64EB__) || \
+    defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+#error "sse2neon requires little-endian target; big-endian is not supported"
+#endif
+
 /* compiler specific definitions */
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma push_macro("FORCE_INLINE")

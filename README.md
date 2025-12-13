@@ -54,7 +54,9 @@ Enable the compile-time precision flags below when exact SSE compatibility is re
 
 ## Requirements
 
-Use GCC 10+ or Clang 11+.
+**Architecture**: Little-endian ARM only. Big-endian ARM is not supported and will produce a compile-time error.
+
+**Compilers**: Use GCC 10+ or Clang 11+.
 Earlier compiler versions contain bugs in vector instruction generation that cause incorrect assembly output for certain NEON intrinsics (e.g., `rev16`, `rev32` with invalid operand combinations).
 
 ## Usage
