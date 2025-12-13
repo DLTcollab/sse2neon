@@ -8593,7 +8593,8 @@ static uint16_t _sse2neon_aggregate_ranges_16x8(int la, int lb, __m128i mtx[16])
         uint16x8_t masked = vandq_u16(vec, vreinterpretq_u16_m128i(mtx[i])); \
         uint16x8_t swapped = vrev32q_u16(masked);                            \
         uint16x8_t pair_and = vandq_u16(masked, swapped);                    \
-        res |= (vmaxvq_u16(pair_and) ? 1U : 0U) << (i);                      \
+        res |= _sse2neon_static_cast(uint16_t,                               \
+                                     (vmaxvq_u16(pair_and) ? 1U : 0U) << i); \
     } while (0)
 
     uint16_t res = 0;
@@ -8652,12 +8653,13 @@ static uint16_t _sse2neon_aggregate_ranges_8x16(int la, int lb, __m128i mtx[16])
      * 3. Pair-AND: AND original with swapped to get [b0&b1, b0&b1, ...]
      * 4. Horizontal OR via vmaxvq_u8 (faster than vmaxvq_u16)
      */
-#define SSE2NEON_RANGES_MATCH8(i)                                          \
-    do {                                                                   \
-        uint8x16_t masked = vandq_u8(vec, vreinterpretq_u8_m128i(mtx[i])); \
-        uint8x16_t swapped = vrev16q_u8(masked);                           \
-        uint8x16_t pair_and = vandq_u8(masked, swapped);                   \
-        res |= (vmaxvq_u8(pair_and) ? 1U : 0U) << (i);                     \
+#define SSE2NEON_RANGES_MATCH8(i)                                              \
+    do {                                                                       \
+        uint8x16_t masked = vandq_u8(vec, vreinterpretq_u8_m128i(mtx[i]));     \
+        uint8x16_t swapped = vrev16q_u8(masked);                               \
+        uint8x16_t pair_and = vandq_u8(masked, swapped);                       \
+        res |= _sse2neon_static_cast(uint16_t, (vmaxvq_u8(pair_and) ? 1U : 0U) \
+                                                   << i);                      \
     } while (0)
 
     uint16_t res = 0;
