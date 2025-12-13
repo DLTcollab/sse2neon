@@ -8092,28 +8092,36 @@ FORCE_INLINE __m128 _mm_round_ps(__m128 a, int rounding)
     }
 #else
     float *v_float = _sse2neon_reinterpret_cast(float *, &a);
+    float32x4_t v = vreinterpretq_f32_m128(a);
+
+    /* Detect values safe to convert to int32. Values outside this range
+     * (including infinity, NaN, and large finite values) must be preserved
+     * as-is since integer conversion would produce undefined results. */
+    const float32x4_t max_representable = vdupq_n_f32(2147483520.0f);
+    uint32x4_t is_safe =
+        vcleq_f32(vabsq_f32(v), max_representable); /* |v| <= max int32 */
 
     if (rounding == _MM_FROUND_TO_NEAREST_INT ||
         (rounding == _MM_FROUND_CUR_DIRECTION &&
          _MM_GET_ROUNDING_MODE() == _MM_ROUND_NEAREST)) {
         uint32x4_t signmask = vdupq_n_u32(0x80000000);
-        float32x4_t half = vbslq_f32(signmask, vreinterpretq_f32_m128(a),
-                                     vdupq_n_f32(0.5f)); /* +/- 0.5 */
-        int32x4_t r_normal = vcvtq_s32_f32(vaddq_f32(
-            vreinterpretq_f32_m128(a), half)); /* round to integer: [a + 0.5]*/
-        int32x4_t r_trunc = vcvtq_s32_f32(
-            vreinterpretq_f32_m128(a)); /* truncate to integer: [a] */
+        float32x4_t half =
+            vbslq_f32(signmask, v, vdupq_n_f32(0.5f)); /* +/- 0.5 */
+        int32x4_t r_normal =
+            vcvtq_s32_f32(vaddq_f32(v, half)); /* round to integer: [a + 0.5]*/
+        int32x4_t r_trunc = vcvtq_s32_f32(v);  /* truncate to integer: [a] */
         int32x4_t plusone = vreinterpretq_s32_u32(vshrq_n_u32(
             vreinterpretq_u32_s32(vnegq_s32(r_trunc)), 31)); /* 1 or 0 */
         int32x4_t r_even = vbicq_s32(vaddq_s32(r_trunc, plusone),
                                      vdupq_n_s32(1)); /* ([a] + {0,1}) & ~1 */
         float32x4_t delta = vsubq_f32(
-            vreinterpretq_f32_m128(a),
-            vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
+            v, vcvtq_f32_s32(r_trunc)); /* compute delta: delta = (a - [a]) */
         uint32x4_t is_delta_half =
             vceqq_f32(delta, half); /* delta == +/- 0.5 */
-        return vreinterpretq_m128_f32(
-            vcvtq_f32_s32(vbslq_s32(is_delta_half, r_even, r_normal)));
+        float32x4_t rounded =
+            vcvtq_f32_s32(vbslq_s32(is_delta_half, r_even, r_normal));
+        /* Preserve original value for inputs outside int32 range */
+        return vreinterpretq_m128_f32(vbslq_f32(is_safe, rounded, v));
     } else if (rounding == _MM_FROUND_TO_NEG_INF ||
                (rounding == _MM_FROUND_CUR_DIRECTION &&
                 _MM_GET_ROUNDING_MODE() == _MM_ROUND_DOWN)) {
