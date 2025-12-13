@@ -5,6 +5,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Least-privilege permissions
+permissions:
+  contents: read
+  actions: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,7 +19,6 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        arch: [x86_64]
         cxx_compiler: [g++, clang++-18]
     steps:
       - name: checkout code
@@ -35,10 +39,7 @@ jobs:
     runs-on: windows-2022
     strategy:
       matrix:
-        arch:
-          - x86_64
-          - armv7
-          - aarch64
+        arch: [x86_64, armv7, aarch64]
     env:
       LLVM_MINGW_URL: https://github.com/mstorsjo/llvm-mingw/releases/download/20251118/llvm-mingw-20251118-msvcrt-x86_64.zip
     defaults:
@@ -62,39 +63,82 @@ jobs:
         if: matrix.arch == 'x86_64'
         run: mingw32-make check
 
-  host-arm:
+  # Native AArch64 on GitHub ARM runners - fast, no QEMU overhead
+  host-arm-native:
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        include:
+          - cxx_compiler: g++
+            feature: crypto+crc
+            strict_aliasing: false
+          - cxx_compiler: clang++-18
+            feature: crypto+crc
+            strict_aliasing: false
+          - cxx_compiler: g++
+            feature: none
+            strict_aliasing: false
+          - cxx_compiler: g++
+            feature: crypto+crc
+            strict_aliasing: true
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: install build dependencies
+        run: |
+          sudo apt-get update -q -y
+          sudo apt-get install -q -y clang-18
+      - name: build and test
+        env:
+          CXX: ${{ matrix.cxx_compiler }}
+        run: |
+          if [ "${{ matrix.strict_aliasing }}" = "true" ]; then
+            make FEATURE=${{ matrix.feature }} STRICT_ALIASING=1 check
+          else
+            make FEATURE=${{ matrix.feature }} check
+          fi
+
+  # ARMv7 requires QEMU emulation - minimize job count
+  host-arm-emulated:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        arch_with_features: [
-          {arch: armv7, feature: none, arch_cflags: none},
-          {arch: aarch64, feature: none, arch_cflags: none},
-          {arch: aarch64, feature: crypto+crc, arch_cflags: none},
-          {arch: armv7, feature: none, arch_cflags: '-mcpu=cortex-a32 -mfpu=neon-fp-armv8'}
-        ]
-        cxx_compiler: [g++, clang++-18]
+        include:
+          - arch: armv7
+            cxx_compiler: g++
+            arch_cflags: none
+            strict_aliasing: false
+          - arch: armv7
+            cxx_compiler: g++
+            arch_cflags: '-mcpu=cortex-a32 -mfpu=neon-fp-armv8'
+            strict_aliasing: false
+          - arch: armv7
+            cxx_compiler: g++
+            arch_cflags: none
+            strict_aliasing: true
     steps:
       - name: checkout code
         uses: actions/checkout@v6
       - name: build artifact
-        # The Github Action for non-x86 CPU
-        # https://github.com/uraimo/run-on-arch-action
         uses: uraimo/run-on-arch-action@v3
         with:
-          arch: ${{ matrix.arch_with_features.arch }}
+          arch: ${{ matrix.arch }}
           distro: ubuntu24.04
-          # Speed up builds by storing container images in a GitHub package registry.
           githubToken: ${{ github.token }}
           env: |
             CXX: ${{ matrix.cxx_compiler }}
-            ARCH_CFLAGS: ${{ matrix.arch_with_features.arch_cflags }}
+            ARCH_CFLAGS: ${{ matrix.arch_cflags }}
           install: |
             rm -rf /var/lib/apt/lists/*
             apt-get -o Acquire::Retries=5 update
-            apt-get -o Acquire::Retries=5 -o Dpkg::Use-Pty=0 install -y --no-install-recommends clang-18 gcc g++ make
+            apt-get -o Acquire::Retries=5 -o Dpkg::Use-Pty=0 install -y --no-install-recommends gcc g++ make
             apt-get clean && rm -rf /var/lib/apt/lists/*
           run: |
-            make FEATURE=${{ matrix.arch_with_features.feature }} check
+            if [ "${{ matrix.strict_aliasing }}" = "true" ]; then
+              make STRICT_ALIASING=1 check
+            else
+              make check
+            fi
 
   host-win-msvc:
     runs-on: windows-2022
@@ -127,49 +171,45 @@ jobs:
       - name: Run tests
         run: wine-arm64 cmd.exe /c 'Release\sse2neon.exe'
 
-  sanitizers:
-    runs-on: ubuntu-24.04
+  # Sanitizers on ARM: UBSan + ASan per IMPROVE.md H5
+  sanitizers-arm:
+    runs-on: ubuntu-24.04-arm
     strategy:
       matrix:
-        sanitizer: [undefined]
-        cxx_compiler: [g++, clang++-18]
+        include:
+          - sanitizer: undefined
+            cxx_compiler: g++
+          - sanitizer: address
+            cxx_compiler: g++
     steps:
       - name: checkout code
         uses: actions/checkout@v6
-      - name: install build dependencies
-        run: |
-          sudo apt-get update -q -y
-          sudo apt-get install -q -y clang-18
       - name: build and test with sanitizer
         env:
           CXX: ${{ matrix.cxx_compiler }}
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
-        run: make SANITIZE=${{ matrix.sanitizer }} check
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+        run: make FEATURE=crypto+crc SANITIZE=${{ matrix.sanitizer }} check
 
-  strict-aliasing:
+  # Sanitizers on x86: catch host-specific UB
+  sanitizers-x86:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        arch: [armv7, aarch64]
-        cxx_compiler: [g++, clang++-18]
+        include:
+          - sanitizer: undefined
+            cxx_compiler: g++
+          - sanitizer: address
+            cxx_compiler: g++
     steps:
       - name: checkout code
         uses: actions/checkout@v6
-      - name: build and test with strict aliasing
-        uses: uraimo/run-on-arch-action@v3
-        with:
-          arch: ${{ matrix.arch }}
-          distro: ubuntu24.04
-          githubToken: ${{ github.token }}
-          env: |
-            CXX: ${{ matrix.cxx_compiler }}
-          install: |
-            rm -rf /var/lib/apt/lists/*
-            apt-get -o Acquire::Retries=5 update
-            apt-get -o Acquire::Retries=5 -o Dpkg::Use-Pty=0 install -y --no-install-recommends clang-18 gcc g++ make
-            apt-get clean && rm -rf /var/lib/apt/lists/*
-          run: |
-            make STRICT_ALIASING=1 check
+      - name: build and test with sanitizer
+        env:
+          CXX: ${{ matrix.cxx_compiler }}
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+        run: make SANITIZE=${{ matrix.sanitizer }} check
 
   static-analysis:
     runs-on: ubuntu-24.04
