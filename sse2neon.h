@@ -978,6 +978,33 @@ FORCE_INLINE uint16_t _sse2neon_vaddvq_u16(uint16x8_t a)
 }
 #endif
 
+/* Fast "any nonzero" check for horizontal reduction in PCMPXSTR operations.
+ * These helpers are optimized for the "any match" test pattern common in
+ * string comparison intrinsics. On ARMv7, OR-based reduction is used instead
+ * of max-based reduction for slightly better performance on some cores.
+ *
+ * For NEON comparison results (0x00 or 0xFF per lane), OR-based reduction
+ * correctly detects any nonzero element because: max(a,b) > 0 IFF OR(a,b) != 0
+ */
+#if !SSE2NEON_ARCH_AARCH64
+/* ARMv7: OR-based reduction - 3 ops vs 4 ops for vpmax cascade */
+FORCE_INLINE uint32_t _sse2neon_any_nonzero_u8x16(uint8x16_t v)
+{
+    uint32x4_t as_u32 = vreinterpretq_u32_u8(v);
+    uint32x2_t or_half = vorr_u32(vget_low_u32(as_u32), vget_high_u32(as_u32));
+    uint32x2_t or_final = vorr_u32(or_half, vrev64_u32(or_half));
+    return vget_lane_u32(or_final, 0);
+}
+
+FORCE_INLINE uint32_t _sse2neon_any_nonzero_u16x8(uint16x8_t v)
+{
+    uint32x4_t as_u32 = vreinterpretq_u32_u16(v);
+    uint32x2_t or_half = vorr_u32(vget_low_u32(as_u32), vget_high_u32(as_u32));
+    uint32x2_t or_final = vorr_u32(or_half, vrev64_u32(or_half));
+    return vget_lane_u32(or_final, 0);
+}
+#endif
+
 /* Function Naming Conventions
  * The naming convention of SSE intrinsics is straightforward. A generic SSE
  * intrinsic function is given as follows:
@@ -8505,16 +8532,13 @@ static uint16_t _sse2neon_aggregate_equal_any_8x16(int la,
                       SSE2NEON_UMAXV_MATCH(14) | SSE2NEON_UMAXV_MATCH(15));
 #undef SSE2NEON_UMAXV_MATCH
 #else
-    /* ARMv7: Use pairwise max for horizontal reduction */
+    /* ARMv7: Use OR-based horizontal reduction (faster than vpmax cascade).
+     * The _sse2neon_any_nonzero_u8x16 helper uses 3 OR ops vs 4 vpmax ops.
+     */
     uint16_t res = 0;
     for (int j = 0; j < 16; j++) {
         uint8x16_t masked = vandq_u8(vec, vreinterpretq_u8_m128i(mtx[j]));
-        /* Fold 16 bytes to 8 using pairwise max */
-        uint8x8_t fold = vpmax_u8(vget_low_u8(masked), vget_high_u8(masked));
-        fold = vpmax_u8(fold, fold);
-        fold = vpmax_u8(fold, fold);
-        fold = vpmax_u8(fold, fold);
-        res |= (vget_lane_u8(fold, 0) ? 1 : 0) << j;
+        res |= (_sse2neon_any_nonzero_u8x16(masked) ? 1U : 0U) << j;
     }
 #endif
     /* Mask result to valid range based on lb */
@@ -8544,16 +8568,11 @@ static uint16_t _sse2neon_aggregate_equal_any_16x8(int la,
                       SSE2NEON_UMAXV_MATCH16(6) | SSE2NEON_UMAXV_MATCH16(7));
 #undef SSE2NEON_UMAXV_MATCH16
 #else
-    /* ARMv7: Use pairwise max for horizontal reduction */
+    /* ARMv7: Use OR-based horizontal reduction */
     uint16_t res = 0;
     for (int j = 0; j < 8; j++) {
         uint16x8_t masked = vandq_u16(vec, vreinterpretq_u16_m128i(mtx[j]));
-        /* Fold 8 u16 to 4 using pairwise max */
-        uint16x4_t fold =
-            vpmax_u16(vget_low_u16(masked), vget_high_u16(masked));
-        fold = vpmax_u16(fold, fold);
-        fold = vpmax_u16(fold, fold);
-        res |= (vget_lane_u16(fold, 0) ? 1 : 0) << j;
+        res |= (_sse2neon_any_nonzero_u16x8(masked) ? 1U : 0U) << j;
     }
 #endif
     /* Mask result to valid range based on lb */
