@@ -5144,7 +5144,7 @@ result_t test_mm_cvttps_epi32(const SSE2NEONTestImpl &impl, uint32_t iter)
     __m128 a = load_m128(_a);
     int32_t trun[4];
     for (uint32_t i = 0; i < 4; i++) {
-        trun[i] = static_cast<int32_t>(_a[i]);
+        trun[i] = sse2neon_saturate_cast_int32(_a[i]);
     }
 
     __m128i ret = _mm_cvttps_epi32(a);
