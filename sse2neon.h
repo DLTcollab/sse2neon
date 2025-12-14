@@ -544,11 +544,21 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #define _MM_ROUND_UP 0x4000
 #define _MM_ROUND_TOWARD_ZERO 0x6000
 #define _MM_ROUND_MASK 0x6000
-/* Flush zero mode macros. */
+/* Flush-to-zero (FTZ) mode macros.
+ * On x86, FTZ (MXCSR bit 15) flushes denormal outputs to zero.
+ * On ARM, FPCR/FPSCR bit 24 provides unified FZ+DAZ behavior.
+ * ARMv7 NEON: Per ARM ARM, Advanced SIMD has "Flush-to-zero mode always
+ *   enabled" - denormals flush regardless of FPSCR.FZ (some impls may vary).
+ * ARMv8: FPCR.FZ correctly controls denormal handling for NEON ops.
+ */
 #define _MM_FLUSH_ZERO_MASK 0x8000
 #define _MM_FLUSH_ZERO_ON 0x8000
 #define _MM_FLUSH_ZERO_OFF 0x0000
-/* Denormals are zeros mode macros. */
+/* Denormals-are-zero (DAZ) mode macros.
+ * On x86, DAZ (MXCSR bit 6) treats denormal inputs as zero.
+ * On ARM, setting DAZ enables the same FPCR/FPSCR bit 24 as FTZ,
+ * providing unified handling for both input and output denormals.
+ */
 #define _MM_DENORMALS_ZERO_MASK 0x0040
 #define _MM_DENORMALS_ZERO_ON 0x0040
 #define _MM_DENORMALS_ZERO_OFF 0x0000
@@ -2876,12 +2886,19 @@ FORCE_INLINE __m128 _mm_set1_ps(float _w)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_setcsr
 // The MXCSR register contains the following fields:
 // - Bits 13-14: Rounding mode
-// - Bit 15: Flush-to-zero mode
-// - Bit 6: Denormals-are-zero mode
+// - Bit 15 (FZ): Flush-to-zero mode - output denormals become zero
+// - Bit 6 (DAZ): Denormals-are-zero mode - input denormals treated as zero
 // Exception flags and masks (bits 0-5, 7-12) are not supported on ARM NEON.
-// Note: On ARM, FPCR bit 24 controls flush-to-zero for both inputs (DAZ-like)
-// and outputs (FZ-like). Setting either FZ or DAZ enables this unified
-// behavior.
+//
+// ARM Platform Limitations:
+// - ARM FPCR/FPSCR bit 24 controls a unified flush-to-zero behavior that
+//   handles both input denormals (like DAZ) and output denormals (like FZ).
+// - Setting either _MM_FLUSH_ZERO_ON or _MM_DENORMALS_ZERO_ON enables the
+//   same ARM bit 24, providing unified FZ+DAZ behavior.
+// - ARMv7 (AArch32) NEON: Per ARM ARM, Advanced SIMD has "Flush-to-zero mode
+//   always enabled" regardless of FPSCR.FZ. Some implementations may vary.
+// - ARMv8 (AArch64): The FPCR.FZ bit correctly controls denormal handling
+//   for both NEON and scalar floating-point operations.
 FORCE_INLINE void _mm_setcsr(unsigned int a)
 {
     _MM_SET_ROUNDING_MODE(a & _MM_ROUND_MASK);
@@ -2895,12 +2912,17 @@ FORCE_INLINE void _mm_setcsr(unsigned int a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_getcsr
 // The MXCSR register contains the following fields:
 // - Bits 13-14: Rounding mode
-// - Bit 15: Flush-to-zero mode
-// - Bit 6: Denormals-are-zero mode
+// - Bit 15 (FZ): Flush-to-zero mode - output denormals become zero
+// - Bit 6 (DAZ): Denormals-are-zero mode - input denormals treated as zero
 // Exception flags and masks (bits 0-5, 7-12) are not supported on ARM NEON.
-// Note: On ARM, FPCR bit 24 controls both FZ and DAZ behavior. When enabled,
-// both FZ and DAZ bits will be reported as set (cannot distinguish which was
-// originally requested).
+//
+// ARM Platform Limitations:
+// - On ARM, FPCR/FPSCR bit 24 provides unified FZ+DAZ behavior. When enabled,
+//   both _MM_FLUSH_ZERO_ON and _MM_DENORMALS_ZERO_ON bits will be reported
+//   as set (the original setting cannot be distinguished).
+// - ARMv7 (AArch32) NEON: The returned FZ/DAZ bits reflect FPSCR settings,
+//   but per ARM ARM, NEON operations always flush denormals (impl may vary).
+// - See _mm_setcsr documentation for full platform limitation details.
 FORCE_INLINE unsigned int _mm_getcsr(void)
 {
     return _MM_GET_ROUNDING_MODE() | _MM_GET_FLUSH_ZERO_MODE() |

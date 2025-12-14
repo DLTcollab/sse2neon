@@ -112,6 +112,18 @@ static inline float make_denormal(void)
     return f;
 }
 
+static inline float make_half_flt_min(void)
+{
+    /* FLT_MIN / 2 = 2^-127 (denormal), constructed via bit pattern to avoid
+     * FTZ-dependent computation. FLT_MIN = 0x00800000, so FLT_MIN/2 =
+     * 0x00400000
+     */
+    uint32_t bits = 0x00400000;
+    float f;
+    memcpy(&f, &bits, sizeof(f));
+    return f;
+}
+
 __attribute__((unused)) static inline float make_neg_denormal(void)
 {
     uint32_t bits = 0x80000001;
@@ -475,6 +487,205 @@ TEST_CASE(denormal_arithmetic)
     EXPECT_TRUE(result >= 0.0f); /* Should be non-negative */
 
     return TEST_SUCCESS;
+}
+
+/* Flush-to-Zero (FTZ) and Denormals-Are-Zero (DAZ) Mode Tests
+ *
+ * x86 MXCSR register:
+ *   - Bit 15 (FZ): Flush-to-zero - output denormals become zero
+ *   - Bit 6 (DAZ): Denormals-are-zero - input denormals treated as zero
+ *
+ * ARM FPCR/FPSCR:
+ *   - Bit 24 (FZ): Controls both flush-to-zero AND denormals-are-zero
+ *   - ARM unifies FZ and DAZ behavior into a single bit
+ *
+ * ARMv7 (AArch32) Note:
+ *   - Advanced SIMD (NEON) always operates with flush-to-zero enabled
+ *   - The FZ bit in FPSCR is ignored for NEON operations
+ *   - Denormals are always flushed to zero regardless of FPSCR settings
+ */
+TEST_CASE(ftz_output_flush)
+{
+    /* Test that output denormals are flushed to zero when FTZ is enabled */
+    unsigned int original_csr = _mm_getcsr();
+    result_t ret = TEST_SUCCESS;
+
+    /* Create a denormal by multiplying FLT_MIN by 0.5 (output becomes denormal)
+     * FLT_MIN is the smallest normal, created via bit pattern to be safe.
+     */
+    float half = 0.5f;
+    float min_normal = FLT_MIN;
+    __m128 a = _mm_set1_ps(min_normal);
+    __m128 b = _mm_set1_ps(half);
+
+    /* Enable FTZ via _mm_setcsr */
+    _mm_setcsr(
+        (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+        _MM_FLUSH_ZERO_ON);
+
+    __m128 c = _mm_mul_ps(a, b);
+    float result = extract_ps(c, 0);
+
+    /* With FTZ enabled, result should be flushed to zero (not denormal) */
+    if (result != 0.0f)
+        ret = TEST_FAIL;
+
+    /* Restore original CSR before returning */
+    _mm_setcsr(original_csr);
+
+    return ret;
+}
+
+TEST_CASE(daz_input_flush)
+{
+    /* Test that input denormals are treated as zero when DAZ is enabled */
+    unsigned int original_csr = _mm_getcsr();
+    result_t ret = TEST_SUCCESS;
+
+    float denorm = make_denormal(); /* Created via bit pattern, safe from FTZ */
+    float factor = 2.0f;
+    __m128 a = _mm_set1_ps(denorm), b = _mm_set1_ps(factor);
+
+    /* Enable DAZ via _mm_setcsr */
+    _mm_setcsr(
+        (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+        _MM_DENORMALS_ZERO_ON);
+
+    /* denorm * 2 should be 0 when input denormals are treated as zero */
+    __m128 c = _mm_mul_ps(a, b);
+    float result = extract_ps(c, 0);
+
+    /* With DAZ enabled, input denormal is treated as 0, so 0 * 2 = 0 */
+    if (result != 0.0f)
+        ret = TEST_FAIL;
+
+    /* Restore original CSR before returning */
+    _mm_setcsr(original_csr);
+
+    return ret;
+}
+
+TEST_CASE(ftz_daz_disabled)
+{
+    /* Test denormal arithmetic with FTZ and DAZ disabled
+     * Use FLT_MIN / 2 as denormal so that denormal * 2 = FLT_MIN (normal)
+     * Denormal created via bit pattern to avoid FTZ-dependent computation.
+     */
+    unsigned int original_csr = _mm_getcsr();
+    result_t ret = TEST_SUCCESS;
+
+    float factor = 2.0f;
+    float denorm = make_half_flt_min(); /* FLT_MIN / 2 via bit pattern */
+    __m128 a = _mm_set1_ps(denorm);
+    __m128 b = _mm_set1_ps(factor);
+
+    /* Disable both FTZ and DAZ */
+    _mm_setcsr(original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK));
+
+    __m128 c = _mm_mul_ps(a, b);
+    float result = extract_ps(c, 0);
+
+#if defined(__arm__)
+    /* ARMv7 (AArch32) NEON always flushes to zero regardless of FPSCR.FZ */
+    if (result != 0.0f)
+        ret = TEST_FAIL;
+#else
+    /* On x86 and AArch64 with FTZ/DAZ disabled, denormal arithmetic works
+     * normally: denormal * 2 = FLT_MIN (normal) */
+    if (result != FLT_MIN)
+        ret = TEST_FAIL;
+#endif
+
+    /* Restore original CSR before returning */
+    _mm_setcsr(original_csr);
+
+    return ret;
+}
+
+TEST_CASE(ftz_getcsr_roundtrip)
+{
+    /* Test that _mm_setcsr/_mm_getcsr correctly round-trip FTZ/DAZ bits */
+    unsigned int original_csr = _mm_getcsr();
+    result_t ret = TEST_SUCCESS;
+    unsigned int csr;
+
+    /* Test FTZ ON */
+    _mm_setcsr(
+        (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+        _MM_FLUSH_ZERO_ON);
+    csr = _mm_getcsr();
+    if ((csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_ON) {
+        printf("    FAILED: FTZ ON - FZ bit not set (line %d)\n", __LINE__);
+        ret = TEST_FAIL;
+    }
+#if defined(__aarch64__) || defined(__arm__)
+    /* On ARM, FZ and DAZ share bit 24, so enabling FZ also enables DAZ */
+    if (ret == TEST_SUCCESS &&
+        (csr & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_ON) {
+        printf("    FAILED: FTZ ON - DAZ not coupled on ARM (line %d)\n",
+               __LINE__);
+        ret = TEST_FAIL;
+    }
+#else
+    /* On x86, FZ and DAZ are separate bits */
+    if (ret == TEST_SUCCESS &&
+        (csr & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_OFF) {
+        printf("    FAILED: FTZ ON - DAZ should be off on x86 (line %d)\n",
+               __LINE__);
+        ret = TEST_FAIL;
+    }
+#endif
+
+    /* Test DAZ ON */
+    if (ret == TEST_SUCCESS) {
+        _mm_setcsr(
+            (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+            _MM_DENORMALS_ZERO_ON);
+        csr = _mm_getcsr();
+        if ((csr & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_ON) {
+            printf("    FAILED: DAZ ON - DAZ bit not set (line %d)\n",
+                   __LINE__);
+            ret = TEST_FAIL;
+        }
+#if defined(__aarch64__) || defined(__arm__)
+        /* On ARM, DAZ and FZ share bit 24, so enabling DAZ also enables FZ */
+        if (ret == TEST_SUCCESS &&
+            (csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_ON) {
+            printf("    FAILED: DAZ ON - FZ not coupled on ARM (line %d)\n",
+                   __LINE__);
+            ret = TEST_FAIL;
+        }
+#else
+        /* On x86, FZ and DAZ are separate bits */
+        if (ret == TEST_SUCCESS &&
+            (csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_OFF) {
+            printf("    FAILED: DAZ ON - FZ should be off on x86 (line %d)\n",
+                   __LINE__);
+            ret = TEST_FAIL;
+        }
+#endif
+    }
+
+    /* Test both OFF */
+    if (ret == TEST_SUCCESS) {
+        _mm_setcsr(original_csr &
+                   ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK));
+        csr = _mm_getcsr();
+        if ((csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_OFF) {
+            printf("    FAILED: both OFF - FZ not off (line %d)\n", __LINE__);
+            ret = TEST_FAIL;
+        }
+        if (ret == TEST_SUCCESS &&
+            (csr & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_OFF) {
+            printf("    FAILED: both OFF - DAZ not off (line %d)\n", __LINE__);
+            ret = TEST_FAIL;
+        }
+    }
+
+    /* Restore original CSR before returning */
+    _mm_setcsr(original_csr);
+
+    return ret;
 }
 
 /* Comparison Tests with Special Values */
@@ -1142,6 +1353,12 @@ int main(void)
 
     printf("\n--- Denormal Tests ---\n");
     RUN_TEST(denormal_arithmetic);
+
+    printf("\n--- Flush-to-Zero / Denormals-Are-Zero Tests ---\n");
+    RUN_TEST(ftz_output_flush);
+    RUN_TEST(daz_input_flush);
+    RUN_TEST(ftz_daz_disabled);
+    RUN_TEST(ftz_getcsr_roundtrip);
 
     printf("\n--- Comparison Tests ---\n");
     RUN_TEST(cmpord_ps_nan);
