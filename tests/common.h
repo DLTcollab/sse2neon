@@ -8,11 +8,24 @@
 #include "sse2neon.h"
 #elif defined(__x86_64__) || defined(__i386__)
 #include <emmintrin.h>
+#include <pmmintrin.h>
 #include <smmintrin.h>
 #include <tmmintrin.h>
 #include <wmmintrin.h>
 #include <x86intrin.h>
 #include <xmmintrin.h>
+
+// Fallback definitions for FTZ/DAZ macros if not provided by system headers
+#ifndef _MM_FLUSH_ZERO_MASK
+#define _MM_FLUSH_ZERO_MASK 0x8000
+#define _MM_FLUSH_ZERO_ON 0x8000
+#define _MM_FLUSH_ZERO_OFF 0x0000
+#endif
+#ifndef _MM_DENORMALS_ZERO_MASK
+#define _MM_DENORMALS_ZERO_MASK 0x0040
+#define _MM_DENORMALS_ZERO_ON 0x0040
+#define _MM_DENORMALS_ZERO_OFF 0x0000
+#endif
 
 // __int64 is defined in the Intrinsics Guide which maps to different datatype
 // in different data model

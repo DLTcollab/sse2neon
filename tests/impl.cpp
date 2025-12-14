@@ -2088,13 +2088,46 @@ result_t test_mm_getcsr(const SSE2NEONTestImpl &impl, uint32_t iter)
     // store original csr value for post test restoring
     unsigned int originalCsr = _mm_getcsr();
 
+    // Test rounding modes
     unsigned int roundings[] = {_MM_ROUND_TOWARD_ZERO, _MM_ROUND_DOWN,
                                 _MM_ROUND_UP, _MM_ROUND_NEAREST};
     for (size_t i = 0; i < sizeof(roundings) / sizeof(roundings[0]); i++) {
         _mm_setcsr(_mm_getcsr() | roundings[i]);
         if ((_mm_getcsr() & roundings[i]) != roundings[i]) {
+            _mm_setcsr(originalCsr);
             return TEST_FAIL;
         }
+    }
+
+    // Test flush-to-zero mode via _mm_setcsr/_mm_getcsr
+    // Note: On ARM, FPCR bit 24 controls both FZ and DAZ behavior. When either
+    // is set, both will be reported as set. We must clear both masks together
+    // to ensure bit 24 is truly cleared.
+    const unsigned int fz_daz_mask =
+        _MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK;
+    unsigned int baseCsr = originalCsr & ~fz_daz_mask;
+
+    _mm_setcsr(baseCsr | _MM_FLUSH_ZERO_ON);
+    if ((_mm_getcsr() & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_ON) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+    _mm_setcsr(baseCsr);  // Clear both FZ and DAZ
+    if ((_mm_getcsr() & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_OFF) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test denormals-are-zero mode via _mm_setcsr/_mm_getcsr
+    _mm_setcsr(baseCsr | _MM_DENORMALS_ZERO_ON);
+    if ((_mm_getcsr() & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_ON) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+    _mm_setcsr(baseCsr);  // Clear both FZ and DAZ
+    if ((_mm_getcsr() & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_OFF) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
     }
 
     // restore original csr value for remaining tests
@@ -2967,9 +3000,65 @@ result_t test_mm_set1_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateFloat(a, w, w, w, w);
 }
 
-result_t test_mm_setcsr(const SSE2NEONTestImpl &impl, uint32_t iter)
+OPTNONE result_t test_mm_setcsr(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    return test_mm_set_rounding_mode(impl, iter);
+    // Test rounding modes
+    if (test_mm_set_rounding_mode(impl, iter) != TEST_SUCCESS)
+        return TEST_FAIL;
+
+    // Test FTZ/DAZ behavior with denormal arithmetic
+    unsigned int originalCsr = _mm_getcsr();
+    __m128 ret;
+
+    // Create denormal via bit pattern to avoid FTZ-dependent computation.
+    // FLT_MIN = 2^-126 = 0x00800000, so FLT_MIN/2 = 2^-127 = 0x00400000
+    float denormal;
+    uint32_t denormal_bits = 0x00400000;
+    memcpy(&denormal, &denormal_bits, sizeof(denormal));
+
+    // Test flush-to-zero: FTZ affects OUTPUT denormals only.
+    // FLT_MIN * 0.5 = denormal output, which should be flushed to 0.
+    const unsigned int fz_daz_mask =
+        _MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK;
+    float min_normals[4] = {FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN};
+    float halves[4] = {0.5f, 0.5f, 0.5f, 0.5f};
+    _mm_setcsr((originalCsr & ~fz_daz_mask) | _MM_FLUSH_ZERO_ON);
+    ret = _mm_mul_ps(load_m128(min_normals), load_m128(halves));
+    if (validateFloat(ret, 0, 0, 0, 0) != TEST_SUCCESS) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test denormals-are-zero: DAZ affects INPUT denormals.
+    // denormal * 2 with DAZ: input treated as 0, so 0 * 2 = 0.
+    float denormals[4] = {denormal, denormal, denormal, denormal};
+    float factors[4] = {2.0f, 2.0f, 2.0f, 2.0f};
+    _mm_setcsr((originalCsr & ~fz_daz_mask) | _MM_DENORMALS_ZERO_ON);
+    ret = _mm_mul_ps(load_m128(denormals), load_m128(factors));
+    if (validateFloat(ret, 0, 0, 0, 0) != TEST_SUCCESS) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test with FTZ/DAZ off: denormal * 2 = FLT_MIN (normal number)
+    _mm_setcsr(originalCsr & ~fz_daz_mask);
+    ret = _mm_mul_ps(load_m128(denormals), load_m128(factors));
+#if defined(__arm__)
+    // AArch32 Advanced SIMD always uses Flush-to-zero regardless of FZ bit
+    if (validateFloat(ret, 0, 0, 0, 0) != TEST_SUCCESS) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+#else
+    if (validateFloat(ret, FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN) !=
+        TEST_SUCCESS) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+#endif
+
+    _mm_setcsr(originalCsr);
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_setr_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
