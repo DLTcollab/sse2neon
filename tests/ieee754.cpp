@@ -40,19 +40,20 @@ static int g_skip_count = 0;
 /* Helper macros */
 #define TEST_CASE(name) static result_t test_##name(void)
 
-#define RUN_TEST(name)                      \
-    do {                                    \
-        result_t r = test_##name();         \
-        if (r == TEST_SUCCESS) {            \
-            g_pass_count++;                 \
-            printf("  [PASS] %s\n", #name); \
-        } else if (r == TEST_UNIMPL) {      \
-            g_skip_count++;                 \
-            printf("  [SKIP] %s\n", #name); \
-        } else {                            \
-            g_fail_count++;                 \
-            printf("  [FAIL] %s\n", #name); \
-        }                                   \
+#define RUN_TEST(name)                                                        \
+    do {                                                                      \
+        result_t r = test_##name();                                           \
+        if (r == TEST_SUCCESS) {                                              \
+            g_pass_count++;                                                   \
+            printf("Test %-35s [ " COLOR_GREEN "OK" COLOR_RESET " ]\n",       \
+                   #name);                                                    \
+        } else if (r == TEST_UNIMPL) {                                        \
+            g_skip_count++;                                                   \
+            printf("Test %-35s [SKIP]\n", #name);                             \
+        } else {                                                              \
+            g_fail_count++;                                                   \
+            printf("Test %-35s [" COLOR_RED "FAIL" COLOR_RESET "]\n", #name); \
+        }                                                                     \
     } while (0)
 
 #define EXPECT_TRUE(cond)                                          \
@@ -520,7 +521,8 @@ TEST_CASE(ftz_output_flush)
 
     /* Enable FTZ via _mm_setcsr */
     _mm_setcsr(
-        (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+        (original_csr & ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                               _MM_DENORMALS_ZERO_MASK)) |
         _MM_FLUSH_ZERO_ON);
 
     __m128 c = _mm_mul_ps(a, b);
@@ -548,7 +550,8 @@ TEST_CASE(daz_input_flush)
 
     /* Enable DAZ via _mm_setcsr */
     _mm_setcsr(
-        (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+        (original_csr & ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                               _MM_DENORMALS_ZERO_MASK)) |
         _MM_DENORMALS_ZERO_ON);
 
     /* denorm * 2 should be 0 when input denormals are treated as zero */
@@ -580,7 +583,8 @@ TEST_CASE(ftz_daz_disabled)
     __m128 b = _mm_set1_ps(factor);
 
     /* Disable both FTZ and DAZ */
-    _mm_setcsr(original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK));
+    _mm_setcsr(original_csr & ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                                     _MM_DENORMALS_ZERO_MASK));
 
     __m128 c = _mm_mul_ps(a, b);
     float result = extract_ps(c, 0);
@@ -611,7 +615,8 @@ TEST_CASE(ftz_getcsr_roundtrip)
 
     /* Test FTZ ON */
     _mm_setcsr(
-        (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+        (original_csr & ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                               _MM_DENORMALS_ZERO_MASK)) |
         _MM_FLUSH_ZERO_ON);
     csr = _mm_getcsr();
     if ((csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_ON) {
@@ -639,7 +644,8 @@ TEST_CASE(ftz_getcsr_roundtrip)
     /* Test DAZ ON */
     if (ret == TEST_SUCCESS) {
         _mm_setcsr(
-            (original_csr & ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK)) |
+            (original_csr & ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                                   _MM_DENORMALS_ZERO_MASK)) |
             _MM_DENORMALS_ZERO_ON);
         csr = _mm_getcsr();
         if ((csr & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_ON) {
@@ -669,7 +675,8 @@ TEST_CASE(ftz_getcsr_roundtrip)
     /* Test both OFF */
     if (ret == TEST_SUCCESS) {
         _mm_setcsr(original_csr &
-                   ~(_MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK));
+                   ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                          _MM_DENORMALS_ZERO_MASK));
         csr = _mm_getcsr();
         if ((csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_OFF) {
             printf("    FAILED: both OFF - FZ not off (line %d)\n", __LINE__);
