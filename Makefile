@@ -132,9 +132,27 @@ indent:
 	fi
 	$(CLANG_FORMAT) -i sse2neon.h tests/*.cpp tests/*.h
 
+# Convenience target for running only main tests (skip IEEE-754)
+check-main: $(EXEC)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+endif
+	$(EXEC_WRAPPER) $(EXEC)
+
+# Convenience target for running only IEEE-754 edge case tests (skip main)
+check-ieee754: $(IEEE754_EXEC)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+endif
+	$(EXEC_WRAPPER) $(IEEE754_EXEC)
+
 # Convenience target for running tests with UBSan
 check-ubsan: clean
 	$(MAKE) SANITIZE=undefined check
+
+# Convenience target for running tests with ASan
+check-asan: clean
+	$(MAKE) SANITIZE=address check
 
 # Convenience target for running tests with strict aliasing checks
 check-strict-aliasing: clean
@@ -146,7 +164,7 @@ check-strict-aliasing: clean
 check-macros:
 	@python3 .ci/check-macros.py sse2neon.h
 
-.PHONY: clean check check-ubsan check-strict-aliasing check-macros indent ieee754
+.PHONY: clean check check-main check-ieee754 check-ubsan check-asan check-strict-aliasing check-macros indent ieee754
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)

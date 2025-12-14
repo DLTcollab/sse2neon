@@ -8588,14 +8588,15 @@ static uint16_t _sse2neon_aggregate_equal_any_8x16(int la,
     ((vmaxvq_u8(vandq_u8(vec, vreinterpretq_u8_m128i(mtx[i]))) ? 1U : 0U) \
      << (i))
     uint16_t res = _sse2neon_static_cast(
-        uint16_t, SSE2NEON_UMAXV_MATCH(0) | SSE2NEON_UMAXV_MATCH(1) |
-                      SSE2NEON_UMAXV_MATCH(2) | SSE2NEON_UMAXV_MATCH(3) |
-                      SSE2NEON_UMAXV_MATCH(4) | SSE2NEON_UMAXV_MATCH(5) |
-                      SSE2NEON_UMAXV_MATCH(6) | SSE2NEON_UMAXV_MATCH(7) |
-                      SSE2NEON_UMAXV_MATCH(8) | SSE2NEON_UMAXV_MATCH(9) |
-                      SSE2NEON_UMAXV_MATCH(10) | SSE2NEON_UMAXV_MATCH(11) |
-                      SSE2NEON_UMAXV_MATCH(12) | SSE2NEON_UMAXV_MATCH(13) |
-                      SSE2NEON_UMAXV_MATCH(14) | SSE2NEON_UMAXV_MATCH(15));
+        uint16_t, (SSE2NEON_UMAXV_MATCH(0) | SSE2NEON_UMAXV_MATCH(1) |
+                   SSE2NEON_UMAXV_MATCH(2) | SSE2NEON_UMAXV_MATCH(3) |
+                   SSE2NEON_UMAXV_MATCH(4) | SSE2NEON_UMAXV_MATCH(5) |
+                   SSE2NEON_UMAXV_MATCH(6) | SSE2NEON_UMAXV_MATCH(7) |
+                   SSE2NEON_UMAXV_MATCH(8) | SSE2NEON_UMAXV_MATCH(9) |
+                   SSE2NEON_UMAXV_MATCH(10) | SSE2NEON_UMAXV_MATCH(11) |
+                   SSE2NEON_UMAXV_MATCH(12) | SSE2NEON_UMAXV_MATCH(13) |
+                   SSE2NEON_UMAXV_MATCH(14) | SSE2NEON_UMAXV_MATCH(15)) &
+                      0xFFFFu);
 #undef SSE2NEON_UMAXV_MATCH
 #else
     /* ARMv7: Use OR-based horizontal reduction (faster than vpmax cascade).
@@ -8628,10 +8629,11 @@ static uint16_t _sse2neon_aggregate_equal_any_16x8(int la,
     ((vmaxvq_u16(vandq_u16(vec, vreinterpretq_u16_m128i(mtx[i]))) ? 1U : 0U) \
      << (i))
     uint16_t res = _sse2neon_static_cast(
-        uint16_t, SSE2NEON_UMAXV_MATCH16(0) | SSE2NEON_UMAXV_MATCH16(1) |
-                      SSE2NEON_UMAXV_MATCH16(2) | SSE2NEON_UMAXV_MATCH16(3) |
-                      SSE2NEON_UMAXV_MATCH16(4) | SSE2NEON_UMAXV_MATCH16(5) |
-                      SSE2NEON_UMAXV_MATCH16(6) | SSE2NEON_UMAXV_MATCH16(7));
+        uint16_t, (SSE2NEON_UMAXV_MATCH16(0) | SSE2NEON_UMAXV_MATCH16(1) |
+                   SSE2NEON_UMAXV_MATCH16(2) | SSE2NEON_UMAXV_MATCH16(3) |
+                   SSE2NEON_UMAXV_MATCH16(4) | SSE2NEON_UMAXV_MATCH16(5) |
+                   SSE2NEON_UMAXV_MATCH16(6) | SSE2NEON_UMAXV_MATCH16(7)) &
+                      0xFFu);
 #undef SSE2NEON_UMAXV_MATCH16
 #else
     /* ARMv7: Use OR-based horizontal reduction */

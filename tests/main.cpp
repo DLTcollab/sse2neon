@@ -14,13 +14,15 @@ int main(int /*argc*/, const char ** /*argv*/)
         // If the test fails, we will run it again so we can step into the
         // debugger and figure out why!
         if (ret == SSE2NEON::TEST_FAIL) {
-            printf("Test %-30s failed\n", SSE2NEON::instructionString[it]);
+            printf("Test %-35s [" COLOR_RED "FAIL" COLOR_RESET "]\n",
+                   SSE2NEON::instructionString[it]);
             failedCount++;
         } else if (ret == SSE2NEON::TEST_UNIMPL) {
-            printf("Test %-30s skipped\n", SSE2NEON::instructionString[it]);
+            printf("Test %-35s [SKIP]\n", SSE2NEON::instructionString[it]);
             ignoreCount++;
         } else {
-            printf("Test %-30s passed\n", SSE2NEON::instructionString[it]);
+            printf("Test %-35s [ " COLOR_GREEN "OK" COLOR_RESET " ]\n",
+                   SSE2NEON::instructionString[it]);
             passCount++;
         }
     }
