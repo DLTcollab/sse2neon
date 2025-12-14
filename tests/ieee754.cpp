@@ -179,10 +179,8 @@ static inline double extract_pd(__m128d v, int idx)
     return result[idx];
 }
 
-/* ============================================================================
- * NaN PROPAGATION TESTS
+/* NaN Propagation Tests
  * IEEE-754: Operations involving NaN should propagate NaN (with exceptions)
- * ============================================================================
  */
 
 TEST_CASE(add_ps_nan_propagation)
@@ -254,10 +252,7 @@ TEST_CASE(div_ps_nan_propagation)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * INFINITY ARITHMETIC TESTS
- * ============================================================================
- */
+/* Infinity Arithmetic Tests */
 
 TEST_CASE(add_ps_infinity)
 {
@@ -373,10 +368,8 @@ TEST_CASE(div_ps_infinity)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * SIGNED ZERO TESTS
+/* Signed Zero Tests
  * IEEE-754: +0.0 and -0.0 are equal in value but distinct in representation
- * ============================================================================
  */
 
 TEST_CASE(signed_zero_comparison)
@@ -458,10 +451,8 @@ TEST_CASE(signed_zero_mul)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * DENORMAL NUMBER TESTS
+/* Denormal Number Tests
  * Note: NEON may flush denormals to zero depending on FPSCR settings
- * ============================================================================
  */
 
 TEST_CASE(denormal_arithmetic)
@@ -486,10 +477,7 @@ TEST_CASE(denormal_arithmetic)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * COMPARISON TESTS WITH SPECIAL VALUES
- * ============================================================================
- */
+/* Comparison Tests with Special Values */
 
 TEST_CASE(cmpord_ps_nan)
 {
@@ -604,11 +592,9 @@ TEST_CASE(cmplt_ps_infinity)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * MIN/MAX TESTS
+/* Min/Max Tests
  * Note: x86 SSE min/max have specific NaN behavior that differs from IEEE-754
  * SSE: If either operand is NaN, returns the SECOND operand
- * ============================================================================
  */
 
 TEST_CASE(min_ps_nan_behavior)
@@ -714,10 +700,7 @@ TEST_CASE(max_ps_infinity)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * SQRT / RSQRT / RCP TESTS
- * ============================================================================
- */
+/* Sqrt / Rsqrt / Rcp Tests */
 
 TEST_CASE(sqrt_ps_special_values)
 {
@@ -824,10 +807,7 @@ TEST_CASE(rcp_ps_special_values)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * DOUBLE PRECISION TESTS
- * ============================================================================
- */
+/* Double Precision Tests */
 
 TEST_CASE(add_pd_nan_propagation)
 {
@@ -888,10 +868,7 @@ TEST_CASE(min_pd_nan_behavior)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * SCALAR INSTRUCTION TESTS
- * ============================================================================
- */
+/* Scalar Instruction Tests */
 
 TEST_CASE(add_ss_nan_propagation)
 {
@@ -934,10 +911,7 @@ TEST_CASE(min_ss_infinity)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * ROUNDING MODE EDGE CASES
- * ============================================================================
- */
+/* Rounding Mode Edge Cases */
 
 TEST_CASE(round_ps_special_values)
 {
@@ -996,10 +970,124 @@ TEST_CASE(ceil_ps_special_values)
     return TEST_SUCCESS;
 }
 
-/* ============================================================================
- * MAIN TEST RUNNER
- * ============================================================================
+/* Float-to-Integer Conversion Saturation Tests
+ * x86 SSE returns INT32_MIN (0x80000000, "integer indefinite") for NaN, Inf,
+ * and out-of-range values. These tests verify sse2neon matches this behavior.
  */
+
+static inline int32_t extract_epi32(__m128i v, int index)
+{
+    int32_t r[4];
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(r), v);
+    return r[index];
+}
+
+TEST_CASE(cvttps_epi32_nan)
+{
+    /* x86 returns INT32_MIN for NaN */
+    float nan = make_qnan();
+    __m128 a = _mm_set_ps(nan, nan, 1.0f, nan);
+    __m128i r = _mm_cvttps_epi32(a);
+
+    EXPECT_TRUE(extract_epi32(r, 0) == INT32_MIN);
+    EXPECT_TRUE(extract_epi32(r, 1) == 1);
+    EXPECT_TRUE(extract_epi32(r, 2) == INT32_MIN);
+    EXPECT_TRUE(extract_epi32(r, 3) == INT32_MIN);
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(cvttps_epi32_positive_overflow)
+{
+    /* x86 returns INT32_MIN for values >= 2147483648.0f */
+    __m128 a = _mm_set_ps(2147483648.0f, /* exactly INT32_MAX + 1 */
+                          2147483647.0f, /* INT32_MAX (rounds to 2^31) */
+                          4.0e9f,        /* well beyond INT32_MAX */
+                          100.0f);       /* normal value */
+    __m128i r = _mm_cvttps_epi32(a);
+
+    EXPECT_TRUE(extract_epi32(r, 0) == 100);
+    EXPECT_TRUE(extract_epi32(r, 1) == INT32_MIN); /* 4.0e9 overflows */
+    /* Note: 2147483647.0f rounds up in float representation to 2147483648.0f */
+    EXPECT_TRUE(extract_epi32(r, 2) ==
+                INT32_MIN); /* INT32_MAX in float overflows */
+    EXPECT_TRUE(extract_epi32(r, 3) == INT32_MIN); /* exact overflow boundary */
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(cvttps_epi32_negative_in_range)
+{
+    /* Negative values within INT32 range should convert correctly */
+    __m128 a = _mm_set_ps(-2147483648.0f, /* exactly INT32_MIN */
+                          -1.5f,          /* truncates to -1 */
+                          -1000000.0f,    /* -1000000 */
+                          -100.0f);       /* -100 */
+    __m128i r = _mm_cvttps_epi32(a);
+
+    EXPECT_TRUE(extract_epi32(r, 0) == -100);
+    EXPECT_TRUE(extract_epi32(r, 1) == -1000000);
+    EXPECT_TRUE(extract_epi32(r, 2) == -1); /* truncation */
+    EXPECT_TRUE(extract_epi32(r, 3) ==
+                INT32_MIN); /* exact INT32_MIN is valid */
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(cvttps_epi32_infinity)
+{
+    /* x86 returns INT32_MIN for infinity */
+    float pos_inf = make_pos_inf();
+    float neg_inf = make_neg_inf();
+    __m128 a = _mm_set_ps(neg_inf, pos_inf, 1.0f, -1.0f);
+    __m128i r = _mm_cvttps_epi32(a);
+
+    EXPECT_TRUE(extract_epi32(r, 0) == -1);
+    EXPECT_TRUE(extract_epi32(r, 1) == 1);
+    EXPECT_TRUE(extract_epi32(r, 2) == INT32_MIN); /* +Inf */
+    EXPECT_TRUE(extract_epi32(r, 3) == INT32_MIN); /* -Inf */
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(cvtps_epi32_saturation)
+{
+    /* Test _mm_cvtps_epi32 (with rounding) saturation behavior */
+    float nan = make_qnan();
+    float pos_inf = make_pos_inf();
+    __m128 a = _mm_set_ps(pos_inf, nan, 2147483648.0f, 100.5f);
+
+    _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST);
+    __m128i r = _mm_cvtps_epi32(a);
+
+    EXPECT_TRUE(extract_epi32(r, 0) == 100 || extract_epi32(r, 0) == 101);
+    EXPECT_TRUE(extract_epi32(r, 1) == INT32_MIN); /* overflow */
+    EXPECT_TRUE(extract_epi32(r, 2) == INT32_MIN); /* NaN */
+    EXPECT_TRUE(extract_epi32(r, 3) == INT32_MIN); /* +Inf */
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(cvtt_ss2si_saturation)
+{
+    /* Test scalar _mm_cvtt_ss2si saturation behavior */
+    float nan = make_qnan();
+    float pos_inf = make_pos_inf();
+
+    __m128 a_nan = _mm_set_ss(nan);
+    __m128 a_inf = _mm_set_ss(pos_inf);
+    __m128 a_overflow = _mm_set_ss(3.0e9f);
+    __m128 a_normal = _mm_set_ss(-42.7f);
+
+    EXPECT_TRUE(_mm_cvtt_ss2si(a_nan) == INT32_MIN);
+    EXPECT_TRUE(_mm_cvtt_ss2si(a_inf) == INT32_MIN);
+    EXPECT_TRUE(_mm_cvtt_ss2si(a_overflow) == INT32_MIN);
+    EXPECT_TRUE(_mm_cvtt_ss2si(a_normal) == -42);
+
+    return TEST_SUCCESS;
+}
+
+/* Main Test Runner */
 
 static void print_precision_config(void)
 {
@@ -1085,6 +1173,14 @@ int main(void)
     RUN_TEST(round_ps_special_values);
     RUN_TEST(floor_ps_special_values);
     RUN_TEST(ceil_ps_special_values);
+
+    printf("\n--- Float-to-Integer Conversion Saturation Tests ---\n");
+    RUN_TEST(cvttps_epi32_nan);
+    RUN_TEST(cvttps_epi32_positive_overflow);
+    RUN_TEST(cvttps_epi32_negative_in_range);
+    RUN_TEST(cvttps_epi32_infinity);
+    RUN_TEST(cvtps_epi32_saturation);
+    RUN_TEST(cvtt_ss2si_saturation);
 
     printf("\n===========================================\n");
     printf("Results: %d passed, %d failed, %d skipped\n", g_pass_count,
