@@ -163,6 +163,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [ART](https://github.com/dinosaure/art) is an implementation in OCaml of [Adaptive Radix Tree](https://db.in.tum.de/~leis/papers/ART.pdf) (ART).
 * [Async](https://github.com/romange/async) is a set of c++ primitives that allows efficient and rapid development in C++17 on GNU/Linux systems.
 * [avec](https://github.com/unevens/avec) is a little library for using SIMD instructions on both x86 and Arm.
+* [BARCH](https://github.com/tjizep/barch) is a low-memory, dynamically configurable, constant access time ordered cache similar to Valkey and Redis.
 * [BEAGLE](https://github.com/beagle-dev/beagle-lib) is a high-performance library that can perform the core calculations at the heart of most Bayesian and Maximum Likelihood phylogenetics packages.
 * [BitMagic](https://github.com/tlk00/BitMagic) implements compressed bit-vectors and containers (vectors) based on ideas of bit-slicing transform and Rank-Select compression, offering sets of method to architect your applications to use HPC techniques to save memory (thus be able to fit more data in one compute unit) and improve storage and traffic patterns when storing data vectors and models in files or object stores.
 * [bipartite\_motif\_finder](https://github.com/soedinglab/bipartite_motif_finder) as known as BMF (Bipartite Motif Finder) is an open source tool for finding co-occurences of sequence motifs in genomic sequences.
