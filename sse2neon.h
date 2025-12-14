@@ -5851,7 +5851,8 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 // imm must be a compile-time constant in range [0, 255]
 #define _mm_srai_epi32(a, imm)                                                \
     _sse2neon_define0(                                                        \
-        __m128i, a, __m128i ret; if (_sse2neon_unlikely((imm) == 0)) {        \
+        __m128i, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m128i ret;   \
+        if (_sse2neon_unlikely((imm) == 0)) {                                 \
             ret = _a;                                                         \
         } else if (_sse2neon_likely(0 < (imm) && (imm) < 32)) {               \
             ret = vreinterpretq_m128i_s32(                                    \
@@ -5903,14 +5904,16 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 // Shift packed 16-bit integers in a right by imm8 while shifting in zeros, and
 // store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_srli_epi16
-#define _mm_srli_epi16(a, imm)                                          \
-    _sse2neon_define0(                                                  \
-        __m128i, a, __m128i ret; if (_sse2neon_unlikely((imm) & ~15)) { \
-            ret = _mm_setzero_si128();                                  \
-        } else {                                                        \
-            ret = vreinterpretq_m128i_u16(vshlq_u16(                    \
-                vreinterpretq_u16_m128i(_a),                            \
-                vdupq_n_s16(_sse2neon_static_cast(int16_t, -(imm)))));  \
+// imm must be a compile-time constant in range [0, 255]
+#define _mm_srli_epi16(a, imm)                                              \
+    _sse2neon_define0(                                                      \
+        __m128i, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m128i ret; \
+        if (_sse2neon_unlikely((imm) & ~15)) {                              \
+            ret = _mm_setzero_si128();                                      \
+        } else {                                                            \
+            ret = vreinterpretq_m128i_u16(vshlq_u16(                        \
+                vreinterpretq_u16_m128i(_a),                                \
+                vdupq_n_s16(_sse2neon_static_cast(int16_t, -(imm)))));      \
         } _sse2neon_return(ret);)
 
 // Shift packed 32-bit integers in a right by imm8 while shifting in zeros, and
@@ -5920,7 +5923,8 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 // imm must be a compile-time constant in range [0, 255]
 #define _mm_srli_epi32(a, imm)                                                \
     _sse2neon_define0(                                                        \
-        __m128i, a, __m128i ret; if (_sse2neon_unlikely((imm) & ~31)) {       \
+        __m128i, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m128i ret;   \
+        if (_sse2neon_unlikely((imm) & ~31)) {                                \
             ret = _mm_setzero_si128();                                        \
         } else {                                                              \
             ret = vreinterpretq_m128i_u32(                                    \
@@ -5930,9 +5934,11 @@ FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 // Shift packed 64-bit integers in a right by imm8 while shifting in zeros, and
 // store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_srli_epi64
+// imm must be a compile-time constant in range [0, 255]
 #define _mm_srli_epi64(a, imm)                                                \
     _sse2neon_define0(                                                        \
-        __m128i, a, __m128i ret; if (_sse2neon_unlikely((imm) & ~63)) {       \
+        __m128i, a, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m128i ret;   \
+        if (_sse2neon_unlikely((imm) & ~63)) {                                \
             ret = _mm_setzero_si128();                                        \
         } else {                                                              \
             ret = vreinterpretq_m128i_u64(                                    \
@@ -7774,9 +7780,10 @@ FORCE_INLINE __m128 _mm_floor_ss(__m128 a, __m128 b)
 // element from b into tmp using the control in imm8. Store tmp to dst using
 // the mask in imm8 (elements are zeroed out when the corresponding bit is set).
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=insert_ps
+// imm8 must be a compile-time constant in range [0, 255]
 #define _mm_insert_ps(a, b, imm8)                                              \
     _sse2neon_define2(                                                         \
-        __m128, a, b,                                                          \
+        __m128, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm8, 0, 255);              \
         float32x4_t tmp1 =                                                     \
             vsetq_lane_f32(vgetq_lane_f32(_b, ((imm8) >> 6) & 0x3),            \
                            vreinterpretq_f32_m128(_a), 0);                     \
