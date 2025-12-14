@@ -5694,7 +5694,7 @@ FORCE_INLINE __m128i _mm_setzero_si128(void)
 FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (_sse2neon_unlikely(c & ~UINT64_C(15)))
+    if (_sse2neon_unlikely(c > 15))
         return _mm_setzero_si128();
 
     int16x8_t vc = vdupq_n_s16(_sse2neon_static_cast(int16_t, c));
@@ -5707,7 +5707,7 @@ FORCE_INLINE __m128i _mm_sll_epi16(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (_sse2neon_unlikely(c & ~UINT64_C(31)))
+    if (_sse2neon_unlikely(c > 31))
         return _mm_setzero_si128();
 
     int32x4_t vc = vdupq_n_s32(_sse2neon_static_cast(int32_t, c));
@@ -5720,7 +5720,7 @@ FORCE_INLINE __m128i _mm_sll_epi32(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_sll_epi64(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (_sse2neon_unlikely(c & ~UINT64_C(63)))
+    if (_sse2neon_unlikely(c > 63))
         return _mm_setzero_si128();
 
     int64x2_t vc = vdupq_n_s64(_sse2neon_static_cast(int64_t, c));
@@ -5812,12 +5812,12 @@ FORCE_INLINE __m128d _mm_sqrt_sd(__m128d a, __m128d b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_sra_epi16
 FORCE_INLINE __m128i _mm_sra_epi16(__m128i a, __m128i count)
 {
-    int64_t c = vgetq_lane_s64(count, 0);
-    if (_sse2neon_unlikely(c & ~15))
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
+    if (_sse2neon_unlikely(c > 15))
         return _mm_cmplt_epi16(a, _mm_setzero_si128());
     return vreinterpretq_m128i_s16(
         vshlq_s16(vreinterpretq_s16_m128i(a),
-                  vdupq_n_s16(_sse2neon_static_cast(int16_t, -c))));
+                  vdupq_n_s16(-_sse2neon_static_cast(int16_t, c))));
 }
 
 // Shift packed 32-bit integers in a right by count while shifting in sign bits,
@@ -5825,12 +5825,12 @@ FORCE_INLINE __m128i _mm_sra_epi16(__m128i a, __m128i count)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_sra_epi32
 FORCE_INLINE __m128i _mm_sra_epi32(__m128i a, __m128i count)
 {
-    int64_t c = vgetq_lane_s64(count, 0);
-    if (_sse2neon_unlikely(c & ~31))
+    uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
+    if (_sse2neon_unlikely(c > 31))
         return _mm_cmplt_epi32(a, _mm_setzero_si128());
     return vreinterpretq_m128i_s32(
         vshlq_s32(vreinterpretq_s32_m128i(a),
-                  vdupq_n_s32(_sse2neon_static_cast(int, -c))));
+                  vdupq_n_s32(-_sse2neon_static_cast(int32_t, c))));
 }
 
 // Shift packed 16-bit integers in a right by imm8 while shifting in sign
@@ -5868,7 +5868,7 @@ FORCE_INLINE __m128i _mm_srai_epi16(__m128i a, int imm)
 FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (_sse2neon_unlikely(c & ~UINT64_C(15)))
+    if (_sse2neon_unlikely(c > 15))
         return _mm_setzero_si128();
 
     int16x8_t vc = vdupq_n_s16(-_sse2neon_static_cast(int16_t, c));
@@ -5881,7 +5881,7 @@ FORCE_INLINE __m128i _mm_srl_epi16(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (_sse2neon_unlikely(c & ~UINT64_C(31)))
+    if (_sse2neon_unlikely(c > 31))
         return _mm_setzero_si128();
 
     int32x4_t vc = vdupq_n_s32(-_sse2neon_static_cast(int32_t, c));
@@ -5894,7 +5894,7 @@ FORCE_INLINE __m128i _mm_srl_epi32(__m128i a, __m128i count)
 FORCE_INLINE __m128i _mm_srl_epi64(__m128i a, __m128i count)
 {
     uint64_t c = vreinterpretq_nth_u64_m128i(count, 0);
-    if (_sse2neon_unlikely(c & ~UINT64_C(63)))
+    if (_sse2neon_unlikely(c > 63))
         return _mm_setzero_si128();
 
     int64x2_t vc = vdupq_n_s64(-_sse2neon_static_cast(int64_t, c));
