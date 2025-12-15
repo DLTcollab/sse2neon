@@ -241,3 +241,32 @@ jobs:
             --gcc-toolchain=/usr \
             -isystem /usr/aarch64-linux-gnu/include \
             -march=armv8-a+simd+crypto+crc
+
+  # iOS build verification
+  host-ios:
+    runs-on: macos-14
+    strategy:
+      matrix:
+        include:
+          - sdk: iphoneos
+            target: arm64-apple-ios14.0
+          - sdk: iphonesimulator
+            target: arm64-apple-ios15.0-simulator
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: build for iOS
+        run: |
+          echo '#include "sse2neon.h"' | xcrun --sdk ${{ matrix.sdk }} clang++ \
+            --target=${{ matrix.target }} \
+            -isysroot $(xcrun --sdk ${{ matrix.sdk }} --show-sdk-path) \
+            -std=c++14 -Wall -Wextra -Werror -Wno-unused-parameter \
+            -I. -x c++ -fsyntax-only -
+      - name: build for iOS (CRC32 enabled)
+        run: |
+          echo '#include "sse2neon.h"' | xcrun --sdk ${{ matrix.sdk }} clang++ \
+            --target=${{ matrix.target }} \
+            -isysroot $(xcrun --sdk ${{ matrix.sdk }} --show-sdk-path) \
+            -march=armv8-a+crc \
+            -std=c++14 -Wall -Wextra -Werror -Wno-unused-parameter \
+            -I. -x c++ -fsyntax-only -
