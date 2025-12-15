@@ -6,11 +6,20 @@
 #define COLOR_RED "\033[31m"
 #define COLOR_RESET "\033[0m"
 
+/* ARM64EC requires sse2neon.h to be included FIRST, before any system headers.
+ * On ARM64EC, standard C++ headers like <cmath> include <intrin.h>, which
+ * pulls in SSE headers (mmintrin.h, xmmintrin.h, etc.) that define __m128
+ * as a union type. sse2neon.h blocks these headers by pre-defining their
+ * include guards, but this only works if sse2neon.h is included first.
+ */
+#if defined(_M_ARM64EC)
+#include "sse2neon.h"
+#endif
+
 #include <climits>
 #include <cmath>
 #include <cstdint>
-#if (defined(__aarch64__) || defined(_M_ARM64) || defined(_M_ARM64EC)) || \
-    defined(__arm__)
+#if (defined(__aarch64__) || defined(_M_ARM64)) || defined(__arm__)
 #include "sse2neon.h"
 #elif defined(__x86_64__) || defined(__i386__)
 #include <emmintrin.h>

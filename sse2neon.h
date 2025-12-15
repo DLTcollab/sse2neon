@@ -232,6 +232,48 @@
 #define SSE2NEON_ARCH_AARCH64 0
 #endif
 
+/* ARM64EC Support - EXPERIMENTAL with known limitations
+ *
+ * ARM64EC is Microsoft's hybrid ABI bridging x64 and ARM64 within a single
+ * Windows process, enabling incremental migration of x64 applications to ARM64.
+ * Compiler support remains incomplete (limited LLVM/GCC coverage).
+ *
+ * Compiler behavior:
+ * - MSVC defines both _M_AMD64 and _M_ARM64EC (but NOT _M_ARM64)
+ * - Requires arm64_neon.h instead of arm_neon.h
+ *
+ * Known limitations:
+ * 1. Windows headers: SSE2NEON_INCLUDE_WINDOWS_H must be 0 (default).
+ *    Include sse2neon.h BEFORE any Windows headers to avoid type conflicts.
+ * 2. Include order: sse2neon.h must be included BEFORE <intrin.h> or any C++
+ *    standard headers that pull it in (e.g., <cmath>, <algorithm>).
+ * 3. ABI boundary: __m128/SSE types must NOT cross x64/ARM64EC module
+ *    boundaries (exports/imports) as layouts differ between ABIs.
+ *    Users needing cross-ABI SIMD interop should use MSVC's softintrin.
+ * 4. CRC32 hardware intrinsics are disabled; software fallback is used.
+ *
+ * SSE2NEON_ARM64EC is 1 when compiling for ARM64EC with MSVC, 0 otherwise.
+ * Note: clang-cl ARM64EC builds are not currently detected by this macro.
+ *
+ * Recommendation: Use native ARM64 compilation when possible.
+ */
+#if SSE2NEON_COMPILER_MSVC && defined(_M_ARM64EC)
+#define SSE2NEON_ARM64EC 1
+#else
+#define SSE2NEON_ARM64EC 0
+#endif
+
+/* Early ARM64EC + SSE2NEON_INCLUDE_WINDOWS_H check.
+ * This must come BEFORE any standard includes because <intrin.h> and other
+ * headers can trigger winnt.h, which fails with "Must define a target
+ * architecture" on ARM64EC before we could emit our own error.
+ */
+#if SSE2NEON_ARM64EC && SSE2NEON_INCLUDE_WINDOWS_H
+#error \
+    "SSE2NEON_INCLUDE_WINDOWS_H=1 is not supported on ARM64EC. " \
+    "Include <windows.h> separately AFTER sse2neon.h instead."
+#endif
+
 /* Endianness check
  *
  * SSE2NEON assumes little-endian byte ordering for lane-to-memory mappings.
@@ -288,6 +330,28 @@
 #define _sse2neon_const_cast(t, e) ((t) (e))
 #endif
 
+/* ARM64EC winnt.h workaround: define architecture macros before any headers
+ * that might include winnt.h. Windows SDK 10.0.26100.0+ requires _ARM64EC_ or
+ * _ARM64_ but MSVC 17.x only defines _M_ARM64EC.
+ */
+#if SSE2NEON_ARM64EC
+/* Warn if winnt.h was already included - the workaround won't help */
+#ifdef _WINNT_
+#pragma message( \
+    "warning: sse2neon.h included after winnt.h; ARM64EC workaround may fail")
+#endif
+/* Define _ARM64EC_ for winnt.h architecture check (kept for user detection) */
+#if !defined(_ARM64EC_)
+#define _ARM64EC_ 1
+#define _SSE2NEON_DEFINED_ARM64EC_
+#endif
+/* Define _M_ARM64 temporarily for headers that derive _ARM64_ from it */
+#if !defined(_M_ARM64)
+#define _M_ARM64 1
+#define _SSE2NEON_DEFINED_M_ARM64
+#endif
+#endif /* SSE2NEON_ARM64EC */
+
 #include <fenv.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -316,13 +380,52 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 
 /* If using MSVC */
 #if SSE2NEON_COMPILER_MSVC
-#if defined(_M_ARM64EC)
-#define _DISABLE_SOFTINTRIN_ 1
+
+/* ARM64EC SSE header blocking: pre-define include guards to prevent MSVC SSE
+ * headers (mmintrin.h, xmmintrin.h, etc.) and Windows SDK softintrin.h from
+ * loading, as their __m128 union types conflict with sse2neon's NEON types.
+ */
+#if SSE2NEON_ARM64EC || defined(_M_ARM64EC)
+/* Detect if <intrin.h> was already included - SSE types may have leaked.
+ * Check both _INTRIN_H_ and _INTRIN_H to cover different MSVC versions. */
+#if defined(_INTRIN_H_) || defined(_INTRIN_H)
+#error \
+    "sse2neon.h must be included BEFORE <intrin.h> or C++ headers on ARM64EC. " \
+    "SSE type definitions from <intrin.h> conflict with sse2neon's NEON types."
 #endif
+#define _INCLUDED_MM2
+#define _MMINTRIN_H_INCLUDED
+#define _XMMINTRIN_H_INCLUDED
+#define _EMMINTRIN_H_INCLUDED
+#define _PMMINTRIN_H_INCLUDED
+#define _TMMINTRIN_H_INCLUDED
+#define _SMMINTRIN_H_INCLUDED
+#define _NMMINTRIN_H_INCLUDED
+#define _WMMINTRIN_H_INCLUDED
+#define _IMMINTRIN_H_INCLUDED
+#define _ZMMINTRIN_H_INCLUDED
+#define _AMMINTRIN_H_INCLUDED
+/* Block Windows SDK softintrin */
+#define _SOFTINTRIN_H_
+#define _DISABLE_SOFTINTRIN_ 1
+#endif /* SSE2NEON_ARM64EC */
 #include <intrin.h>
+
+/* Windows headers inclusion.
+ * ARM64EC case is blocked by early check near SSE2NEON_ARM64EC definition.
+ */
 #if SSE2NEON_INCLUDE_WINDOWS_H
 #include <processthreadsapi.h>
 #include <windows.h>
+#endif
+
+/* Clean up _M_ARM64 (could mislead into pure ARM64 paths). Keep _ARM64EC_. */
+#ifdef _SSE2NEON_DEFINED_ARM64EC_
+#undef _SSE2NEON_DEFINED_ARM64EC_
+#endif
+#ifdef _SSE2NEON_DEFINED_M_ARM64
+#undef _M_ARM64
+#undef _SSE2NEON_DEFINED_M_ARM64
 #endif
 
 #if !defined(__cplusplus)
@@ -333,11 +436,12 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 #include <malloc.h>
 #endif
 
-#if (defined(_M_AMD64) || defined(__x86_64__)) || \
-    (defined(_M_ARM64) || defined(_M_ARM64EC) || defined(__arm64__))
+/* 64-bit bit scanning available on x64 and AArch64 (including ARM64EC) */
+#if (defined(_M_AMD64) || defined(__x86_64__)) || SSE2NEON_ARCH_AARCH64
 #define SSE2NEON_HAS_BITSCAN64
 #endif
-#endif
+
+#endif /* SSE2NEON_COMPILER_MSVC */
 
 /* MinGW uses _aligned_malloc/_aligned_free from <malloc.h> */
 #if defined(__MINGW32__)
@@ -439,7 +543,13 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #endif
 #endif
 
+/* ARM64EC: use arm64_neon.h (arm_neon.h guards with _M_ARM||_M_ARM64) */
+#if SSE2NEON_ARM64EC || defined(_M_ARM64EC)
+#include <arm64_neon.h>
+#else
 #include <arm_neon.h>
+#endif
+
 /* Include ACLE for CRC32 and other intrinsics on ARMv8+ */
 #if SSE2NEON_ARCH_AARCH64 || __ARM_ARCH >= 8
 #if defined __has_include && __has_include(<arm_acle.h>)
@@ -493,8 +603,10 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
  * argument "a" of mm_shuffle_ps that will be places in fp1 of result.
  * fp0 is the same for fp0 of result.
  */
+#ifndef _MM_SHUFFLE
 #define _MM_SHUFFLE(fp3, fp2, fp1, fp0) \
     (((fp3) << 6) | ((fp2) << 4) | ((fp1) << 2) | ((fp0)))
+#endif
 
 /**
  * MACRO for shuffle parameter for _mm_shuffle_pd().
@@ -503,7 +615,9 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
  * fp0 is a digit[01] that represents the fp from argument "a" of mm_shuffle_pd
  * that will be placed in fp0 of result.
  */
+#ifndef _MM_SHUFFLE2
 #define _MM_SHUFFLE2(fp1, fp0) (((fp1) << 1) | (fp0))
+#endif
 
 #if __has_builtin(__builtin_shufflevector)
 #define _sse2neon_shuffle(type, a, b, ...) \
@@ -533,17 +647,39 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #define _MM_FROUND_CUR_DIRECTION 0x04
 #define _MM_FROUND_NO_EXC 0x08
 #define _MM_FROUND_RAISE_EXC 0x00
+#ifndef _MM_FROUND_NINT
 #define _MM_FROUND_NINT (_MM_FROUND_TO_NEAREST_INT | _MM_FROUND_RAISE_EXC)
+#endif
+#ifndef _MM_FROUND_FLOOR
 #define _MM_FROUND_FLOOR (_MM_FROUND_TO_NEG_INF | _MM_FROUND_RAISE_EXC)
+#endif
+#ifndef _MM_FROUND_CEIL
 #define _MM_FROUND_CEIL (_MM_FROUND_TO_POS_INF | _MM_FROUND_RAISE_EXC)
+#endif
+#ifndef _MM_FROUND_TRUNC
 #define _MM_FROUND_TRUNC (_MM_FROUND_TO_ZERO | _MM_FROUND_RAISE_EXC)
+#endif
+#ifndef _MM_FROUND_RINT
 #define _MM_FROUND_RINT (_MM_FROUND_CUR_DIRECTION | _MM_FROUND_RAISE_EXC)
+#endif
+#ifndef _MM_FROUND_NEARBYINT
 #define _MM_FROUND_NEARBYINT (_MM_FROUND_CUR_DIRECTION | _MM_FROUND_NO_EXC)
+#endif
+#ifndef _MM_ROUND_NEAREST
 #define _MM_ROUND_NEAREST 0x0000
+#endif
+#ifndef _MM_ROUND_DOWN
 #define _MM_ROUND_DOWN 0x2000
+#endif
+#ifndef _MM_ROUND_UP
 #define _MM_ROUND_UP 0x4000
+#endif
+#ifndef _MM_ROUND_TOWARD_ZERO
 #define _MM_ROUND_TOWARD_ZERO 0x6000
+#endif
+#ifndef _MM_ROUND_MASK
 #define _MM_ROUND_MASK 0x6000
+#endif
 /* Flush-to-zero (FTZ) mode macros.
  * On x86, FTZ (MXCSR bit 15) flushes denormal outputs to zero.
  * On ARM, FPCR/FPSCR bit 24 provides unified FZ+DAZ behavior.
@@ -551,17 +687,29 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
  *   enabled" - denormals flush regardless of FPSCR.FZ (some impls may vary).
  * ARMv8: FPCR.FZ correctly controls denormal handling for NEON ops.
  */
+#ifndef _MM_FLUSH_ZERO_MASK
 #define _MM_FLUSH_ZERO_MASK 0x8000
+#endif
+#ifndef _MM_FLUSH_ZERO_ON
 #define _MM_FLUSH_ZERO_ON 0x8000
+#endif
+#ifndef _MM_FLUSH_ZERO_OFF
 #define _MM_FLUSH_ZERO_OFF 0x0000
+#endif
 /* Denormals-are-zero (DAZ) mode macros.
  * On x86, DAZ (MXCSR bit 6) treats denormal inputs as zero.
  * On ARM, setting DAZ enables the same FPCR/FPSCR bit 24 as FTZ,
  * providing unified handling for both input and output denormals.
  */
+#ifndef _MM_DENORMALS_ZERO_MASK
 #define _MM_DENORMALS_ZERO_MASK 0x0040
+#endif
+#ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_ON 0x0040
+#endif
+#ifndef _MM_DENORMALS_ZERO_OFF
 #define _MM_DENORMALS_ZERO_OFF 0x0000
+#endif
 
 /* Compile-time validation for immediate constant arguments.
  * This macro validates that:
@@ -1105,8 +1253,8 @@ FORCE_INLINE uint32_t _sse2neon_any_nonzero_u16x8(uint16x8_t v)
  */
 
 /* Constants for use with _mm_prefetch. */
-#if defined(_M_ARM64EC)
-/* winnt.h already defines these constants as macros, so undefine them first. */
+#if SSE2NEON_ARM64EC
+/* winnt.h defines these as macros; undef to allow our enum definition */
 #undef _MM_HINT_NTA
 #undef _MM_HINT_T0
 #undef _MM_HINT_T1
@@ -1276,8 +1424,8 @@ FORCE_INLINE __m128 _mm_shuffle_ps_2032(__m128 a, __m128 b)
 // supported by WoA has crypto extensions. If this changes in the future,
 // this can be verified via the runtime-only method of:
 // IsProcessorFeaturePresent(PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE)
-#if ((defined(_M_ARM64) || defined(_M_ARM64EC)) && !defined(__clang__)) || \
-    (defined(__ARM_FEATURE_CRYPTO) &&                                      \
+#if ((defined(_M_ARM64) || SSE2NEON_ARM64EC) && !defined(__clang__)) || \
+    (defined(__ARM_FEATURE_CRYPTO) &&                                   \
      (defined(__aarch64__) || __has_builtin(__builtin_arm_crypto_vmullp64)))
 // Wraps vmull_p64
 FORCE_INLINE uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
@@ -3287,6 +3435,7 @@ FORCE_INLINE __m128 _mm_sub_ss(__m128 a, __m128 b)
 // (32-bit) floating-point elements in row0, row1, row2, and row3, and store the
 // transposed matrix in these vectors (row0 now contains column 0, etc.).
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=MM_TRANSPOSE4_PS
+#ifndef _MM_TRANSPOSE4_PS
 #define _MM_TRANSPOSE4_PS(row0, row1, row2, row3)         \
     do {                                                  \
         float32x4x2_t ROW01 = vtrnq_f32(row0, row1);      \
@@ -3300,6 +3449,7 @@ FORCE_INLINE __m128 _mm_sub_ss(__m128 a, __m128 b)
         row3 = vcombine_f32(vget_high_f32(ROW01.val[1]),  \
                             vget_high_f32(ROW23.val[1])); \
     } while (0)
+#endif
 
 // according to the documentation, these intrinsics behave the same as the
 // non-'u' versions.  We'll just alias them here.
@@ -9632,12 +9782,12 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u16
 FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
 {
-#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32) && !SSE2NEON_ARM64EC
     __asm__ __volatile__("crc32ch %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) || \
-    (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 &&      \
+#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) ||             \
+    (SSE2NEON_COMPILER_MSVC && defined(_M_ARM64) && !SSE2NEON_ARM64EC && \
      !SSE2NEON_COMPILER_CLANG)
     crc = __crc32ch(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
@@ -9654,12 +9804,12 @@ FORCE_INLINE uint32_t _mm_crc32_u16(uint32_t crc, uint16_t v)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u32
 FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
 {
-#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32) && !SSE2NEON_ARM64EC
     __asm__ __volatile__("crc32cw %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) || \
-    (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 &&      \
+#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) ||             \
+    (SSE2NEON_COMPILER_MSVC && defined(_M_ARM64) && !SSE2NEON_ARM64EC && \
      !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cw(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
@@ -9677,11 +9827,11 @@ FORCE_INLINE uint32_t _mm_crc32_u32(uint32_t crc, uint32_t v)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u64
 FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 {
-#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32) && !SSE2NEON_ARM64EC
     __asm__ __volatile__("crc32cx %w[c], %w[c], %x[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 && \
+#elif (SSE2NEON_COMPILER_MSVC && defined(_M_ARM64) && !SSE2NEON_ARM64EC && \
        !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cd(_sse2neon_static_cast(uint32_t, crc), v);
 #elif defined(__ARM_FEATURE_CRYPTO)
@@ -9701,12 +9851,12 @@ FORCE_INLINE uint64_t _mm_crc32_u64(uint64_t crc, uint64_t v)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_crc32_u8
 FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 {
-#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32)
+#if SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_CRC32) && !SSE2NEON_ARM64EC
     __asm__ __volatile__("crc32cb %w[c], %w[c], %w[v]\n\t"
                          : [c] "+r"(crc)
                          : [v] "r"(v));
-#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) || \
-    (SSE2NEON_COMPILER_MSVC && SSE2NEON_ARCH_AARCH64 &&      \
+#elif ((__ARM_ARCH >= 8) && defined(__ARM_FEATURE_CRC32)) ||             \
+    (SSE2NEON_COMPILER_MSVC && defined(_M_ARM64) && !SSE2NEON_ARM64EC && \
      !SSE2NEON_COMPILER_CLANG)
     crc = __crc32cb(crc, v);
 #elif defined(__ARM_FEATURE_CRYPTO)
@@ -9734,8 +9884,11 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 
 /* AES */
 
-#if !defined(__ARM_FEATURE_CRYPTO) && \
-    ((!defined(_M_ARM64) && !defined(_M_ARM64EC)) || defined(__clang__))
+/* AES software fallback tables.
+ * Needed when __ARM_FEATURE_CRYPTO is not available, OR on ARM64EC where
+ * hardware crypto intrinsics may not be accessible despite the feature macro.
+ */
+#if !defined(__ARM_FEATURE_CRYPTO) || SSE2NEON_ARM64EC || defined(_M_ARM64EC)
 /* clang-format off */
 #define SSE2NEON_AES_SBOX(w)                                           \
     {                                                                  \

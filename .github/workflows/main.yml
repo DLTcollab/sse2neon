@@ -177,6 +177,335 @@ jobs:
       - name: Run tests
         run: wine-arm64 cmd.exe /c 'Release\sse2neon.exe'
 
+  # Windows ARM64EC build (hybrid x64/ARM64 mode)
+  host-win-msvc-arm64ec:
+    runs-on: windows-2022
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+
+      - name: add msbuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      # ARM64EC requires ARM64 build tools (bundled since VS 17.4)
+      # windows-2022 runner may not have them pre-installed
+      # See: https://github.com/actions/runner-images/issues/4051
+      # See: https://learn.microsoft.com/en-us/windows/arm/arm64ec-build
+      - name: install ARM64 build tools for ARM64EC support
+        shell: pwsh
+        run: |
+          Write-Host "=== Installing ARM64 build tools ==="
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          Write-Host "VS Installation Path: $vsPath"
+          $installerPath = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer"
+          & "$installerPath\vs_installer.exe" modify `
+            --installPath "$vsPath" `
+            --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 `
+            --quiet --norestart --nocache | Out-Default
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) {
+            Write-Error "Failed to install ARM64 toolset (exit code: $LASTEXITCODE)"
+            exit 1
+          }
+          Write-Host "ARM64 toolset installation completed (exit code: $LASTEXITCODE)"
+
+      - name: setup MSVC ARM64 cross-compiler
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: amd64_arm64
+
+      - name: verify ARM64 cross-compiler active
+        shell: pwsh
+        run: |
+          Write-Host "=== Toolchain Version (cl /Bv) ==="
+          cl /Bv 2>&1 | Select-Object -First 15
+          # Verify we are in ARM64 cross-compile environment
+          # ARM64EC mode is selected via msbuild Platform=ARM64EC
+          $clOutput = cl 2>&1 | Out-String
+          if ($clOutput -match "arm64") {
+            Write-Host "OK: ARM64 cross-compiler detected"
+          } else {
+            Write-Error "FAIL: Expected ARM64 cross-compiler, got different toolchain"
+            exit 1
+          }
+
+      - name: record toolchain version
+        shell: pwsh
+        run: |
+          Write-Host "=== MSVC Toolchain Info ==="
+          Write-Host "VCToolsInstallDir: $env:VCToolsInstallDir"
+          Write-Host "VCToolsVersion: $env:VCToolsVersion"
+          Write-Host "VSCMD_VER: $env:VSCMD_VER"
+
+      - name: verify ARM64EC platform in vcxproj
+        shell: pwsh
+        run: |
+          $content = Get-Content sse2neon.vcxproj -Raw
+          if ($content -match 'ARM64EC') {
+            Write-Host "OK: ARM64EC platform configuration found in vcxproj"
+          } else {
+            Write-Error "FAIL: ARM64EC platform not found in vcxproj"
+            exit 1
+          }
+
+      - name: create compile-time probe for ARM64EC NEON types
+        shell: pwsh
+        run: |
+          # Create a compile-time probe to verify ARM64EC uses NEON-based types
+          # sse2neon.h uses _DISABLE_SOFTINTRIN_ to prevent SSE type conflicts
+          # Note: Must be .cpp because sse2neon.h requires C++ for MSVC
+          @"
+          #include "sse2neon.h"
+          #include <arm64_neon.h>
+          #if !defined(_M_ARM64EC)
+          #error "Not compiling for ARM64EC"
+          #endif
+          /* Verify __m128 is NEON-based (float32x4_t), not MSVC's union type */
+          void test_neon_type(float32x4_t v) { (void)v; }
+          int main(void) {
+              __m128 x = _mm_setzero_ps();
+              test_neon_type(x);  /* Fails if __m128 is not float32x4_t */
+              return 0;
+          }
+          "@ | Out-File -FilePath ci_arm64ec_probe.cpp -Encoding utf8
+
+      - name: build ARM64EC artifact
+        run: msbuild sse2neon.vcxproj -t:rebuild -p:Configuration=Release -p:Platform=ARM64EC -p:OutDir=ARM64EC\Release\
+
+      - name: verify ARM64EC NEON types via compile-time probe
+        shell: pwsh
+        run: |
+          # Compile probe with ARM64EC target - verifies __m128 is NEON-based
+          Write-Host "=== Compiling ARM64EC NEON type probe ==="
+          cl /nologo /c /arm64EC /Zc:preprocessor /I. ci_arm64ec_probe.cpp
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "FAIL: ARM64EC NEON type probe failed - __m128 may be MSVC union type"
+            exit 1
+          }
+          Write-Host "OK: ARM64EC uses NEON-based __m128 (float32x4_t)"
+
+      - name: verify ARM64EC blocks SSE2NEON_INCLUDE_WINDOWS_H=1
+        shell: pwsh
+        run: |
+          # ARM64EC + SSE2NEON_INCLUDE_WINDOWS_H=1 is intentionally unsupported.
+          # The windows.h include chain is too deep and unpredictable to safely
+          # block all SSE type definitions on this hybrid ABI platform.
+          # This test verifies sse2neon.h correctly emits a compile error.
+          Write-Host "=== Verifying ARM64EC blocks SSE2NEON_INCLUDE_WINDOWS_H=1 ==="
+          @"
+          #define SSE2NEON_INCLUDE_WINDOWS_H 1
+          #include "sse2neon.h"
+          int main(void) { return 0; }
+          "@ | Out-File -FilePath ci_arm64ec_windows_h.cpp -Encoding utf8
+          $output = cl /nologo /c /arm64EC /Zc:preprocessor /I. ci_arm64ec_windows_h.cpp 2>&1 | Out-String
+          if ($LASTEXITCODE -eq 0) {
+            Write-Error "FAIL: Expected compile error for ARM64EC + SSE2NEON_INCLUDE_WINDOWS_H=1"
+            Write-Host "ARM64EC should block SSE2NEON_INCLUDE_WINDOWS_H=1 with #error"
+            exit 1
+          }
+          if ($output -match "SSE2NEON_INCLUDE_WINDOWS_H.*not supported.*ARM64EC") {
+            Write-Host "OK: ARM64EC correctly blocks SSE2NEON_INCLUDE_WINDOWS_H=1"
+          } else {
+            Write-Host "Compiler output: $output"
+            Write-Host "OK: Compilation failed as expected (error message may vary)"
+          }
+          exit 0
+
+      - name: verify ARM64EC PE header
+        shell: pwsh
+        run: |
+          # Confirm the built executable is ARM64EC, not plain x64 or ARM64
+          # ARM64EC binaries use machine type 8664 (AMD64) with ARM64X hybrid marker
+          # and contain .a64xrm section for ARM64EC code
+          $exe = "ARM64EC\Release\sse2neon.exe"
+          if (-not (Test-Path $exe)) {
+            Write-Error "Executable not found: $exe"
+            exit 1
+          }
+          Write-Host "=== PE Header Verification ==="
+          $output = dumpbin /headers $exe | Out-String
+          Write-Host ($output | Select-String -Pattern "machine" -Context 0,1)
+          # ARM64EC uses 8664 (AMD64) machine type with ARM64X marker
+          # Check for ARM64X indicator which confirms ARM64EC hybrid binary
+          if ($output -match 'ARM64X') {
+            Write-Host "OK: PE header confirms ARM64EC (AMD64 with ARM64X hybrid)"
+          } elseif ($output -match '\.a64xrm') {
+            # Fallback: check for ARM64EC-specific section
+            Write-Host "OK: PE header contains .a64xrm section (ARM64EC)"
+          } elseif ($output -match 'machine\s+\(AA64\)') {
+            Write-Error "FAIL: PE header shows pure ARM64 (AA64) - expected ARM64EC"
+            exit 1
+          } elseif ($output -match 'machine\s+\(8664\)' -and -not ($output -match 'ARM64')) {
+            Write-Error "FAIL: PE header shows pure AMD64 (8664) - expected ARM64EC hybrid"
+            exit 1
+          } else {
+            Write-Error "FAIL: Cannot confirm ARM64EC binary"
+            Write-Host "Full header output for diagnosis:"
+            Write-Host $output
+            exit 1
+          }
+
+      - name: compute artifact hash for integrity check
+        shell: pwsh
+        run: |
+          $exe = "ARM64EC\Release\sse2neon.exe"
+          $hash = (Get-FileHash -Path $exe -Algorithm SHA256).Hash
+          $size = (Get-Item $exe).Length
+          Write-Host "=== Artifact Integrity (build side) ==="
+          Write-Host "File: $exe"
+          Write-Host "Size: $size bytes"
+          Write-Host "SHA256: $hash"
+          # Write hash to file for automated cross-job verification
+          $hash | Out-File -FilePath "ARM64EC\Release\sse2neon.sha256" -Encoding utf8 -NoNewline
+
+      - name: upload ARM64EC artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: msvc-arm64ec-artifact
+          path: ARM64EC
+
+  # Windows ARM64 native runner for ARM64EC runtime testing
+  # Runs on Windows on Arm (WoA) without QEMU/emulation
+  # Uses GitHub's Windows ARM64 hosted runner (public preview, April 2025)
+  # See: https://github.blog/changelog/2025-04-14-windows-arm64-hosted-runners-now-available-in-public-preview/
+  test-win-arm64ec:
+    runs-on: windows-11-arm
+    needs: host-win-msvc-arm64ec
+    steps:
+      - name: download ARM64EC artifact
+        uses: actions/download-artifact@v6
+        with:
+          name: msvc-arm64ec-artifact
+          path: ARM64EC
+
+      - name: print WoA environment info
+        shell: pwsh
+        run: |
+          Write-Host "=== Windows on Arm Environment ==="
+          Write-Host "PROCESSOR_ARCHITECTURE: $env:PROCESSOR_ARCHITECTURE"
+          Write-Host "OS: $([System.Environment]::OSVersion)"
+          Write-Host "Runtime Arch: $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)"
+          Write-Host "Process Arch: $([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)"
+
+      - name: verify artifact structure and integrity
+        shell: pwsh
+        run: |
+          Write-Host "=== Artifact Contents ==="
+          Get-ChildItem -Recurse | Format-Table Mode, Length, Name
+          # download-artifact with path: ARM64EC restores original directory structure
+          $exe = "ARM64EC\Release\sse2neon.exe"
+          $hashFile = "ARM64EC\Release\sse2neon.sha256"
+          if (-not (Test-Path $exe)) {
+            Write-Error "Expected executable not found: $exe"
+            Write-Host "Available files:"
+            Get-ChildItem -Recurse -Filter "*.exe" | Format-Table FullName
+            exit 1
+          }
+          # Verify file is not empty or stale
+          $size = (Get-Item $exe).Length
+          if ($size -eq 0) {
+            Write-Error "FAIL: Executable is empty (0 bytes)"
+            exit 1
+          }
+          # Compute hash and auto-compare with build job hash file
+          $hash = (Get-FileHash -Path $exe -Algorithm SHA256).Hash
+          Write-Host "=== Artifact Integrity (test side) ==="
+          Write-Host "File: $exe"
+          Write-Host "Size: $size bytes"
+          Write-Host "SHA256: $hash"
+          if (Test-Path $hashFile) {
+            $expectedHash = (Get-Content $hashFile -Raw).Trim()
+            Write-Host "Expected: $expectedHash"
+            if ($hash -eq $expectedHash) {
+              Write-Host "OK: SHA256 matches build job"
+            } else {
+              Write-Error "FAIL: SHA256 mismatch - artifact corrupted or wrong file"
+              exit 1
+            }
+          } else {
+            Write-Host "WARN: Hash file not found, skipping auto-comparison"
+          }
+          Write-Host "OK: Executable found and verified"
+
+      - name: verify PE header on WoA
+        shell: pwsh
+        run: |
+          # Re-verify PE on ARM runner to catch wrong artifact download
+          # ARM64EC binaries use machine type 0x8664 (AMD64) with ARM64X hybrid data
+          # Check for .a64xrm section which contains ARM64EC code
+          $exe = ".\ARM64EC\Release\sse2neon.exe"
+          $bytes = [System.IO.File]::ReadAllBytes($exe)
+          # PE signature at offset in DOS header (0x3C), then +4 for machine type
+          $peOffset = [BitConverter]::ToInt32($bytes, 0x3C)
+          $machine = [BitConverter]::ToUInt16($bytes, $peOffset + 4)
+          $machineHex = "0x{0:X4}" -f $machine
+          Write-Host "=== PE Machine Type (WoA verification) ==="
+          Write-Host "Machine code: $machineHex"
+          # ARM64EC uses 0x8664 (AMD64) for x64 emulation compatibility
+          # Verify by checking for .a64xrm section name in binary
+          $content = [System.Text.Encoding]::ASCII.GetString($bytes)
+          $hasA64xrm = $content.Contains(".a64xrm")
+          if ($machine -eq 0x8664 -and $hasA64xrm) {
+            Write-Host "OK: PE confirms ARM64EC (AMD64 hybrid with .a64xrm section)"
+          } elseif ($machine -eq 0xAA64) {
+            Write-Error "FAIL: PE shows pure ARM64 (0xAA64) - expected ARM64EC"
+            exit 1
+          } elseif ($machine -eq 0x8664 -and -not $hasA64xrm) {
+            Write-Error "FAIL: PE shows pure AMD64 (0x8664) without ARM64EC sections"
+            exit 1
+          } else {
+            Write-Error "FAIL: Unknown machine type $machineHex"
+            exit 1
+          }
+
+      - name: smoke test - verify binary loads
+        id: smoke_test
+        shell: pwsh
+        run: |
+          Write-Host "=== Smoke Test: Verify ARM64EC binary can load ==="
+          $exe = ".\ARM64EC\Release\sse2neon.exe"
+          # Run briefly to verify binary loads (catches DLL/runtime issues)
+          # Kill after 500ms - we just need to confirm it started
+          $proc = Start-Process -FilePath $exe -PassThru -NoNewWindow
+          Start-Sleep -Milliseconds 500
+          if ($proc.HasExited) {
+            if ($proc.ExitCode -ne 0) {
+              Write-Error "FAIL: Binary crashed immediately (exit code: $($proc.ExitCode))"
+              exit 1
+            }
+            # Exited with 0 in <500ms = tests ran very fast, still OK
+            Write-Host "OK: Binary loaded and completed (exit code: 0)"
+          } else {
+            # Still running after 500ms = loaded successfully, kill it
+            Write-Host "OK: Binary loaded and executing - stopping smoke test"
+            $proc | Stop-Process -Force
+          }
+
+      - name: run ARM64EC tests on WoA
+        id: run_tests
+        shell: pwsh
+        run: |
+          Write-Host "=== Running ARM64EC binary on Windows on Arm (no QEMU) ==="
+          $exe = ".\ARM64EC\Release\sse2neon.exe"
+          & $exe
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Test execution failed with exit code: $LASTEXITCODE"
+            exit $LASTEXITCODE
+          }
+          Write-Host "OK: ARM64EC tests passed on WoA"
+
+      - name: diagnostic on failure
+        if: failure() && (steps.smoke_test.outcome == 'failure' || steps.run_tests.outcome == 'failure')
+        shell: pwsh
+        run: |
+          Write-Host "=== Diagnostic: VC Runtime DLLs in System32 ==="
+          Get-ChildItem "$env:SystemRoot\System32\vcruntime*.dll" -ErrorAction SilentlyContinue | Format-Table Name, Length
+          Get-ChildItem "$env:SystemRoot\System32\msvcp*.dll" -ErrorAction SilentlyContinue | Format-Table Name, Length
+          Write-Host "=== Diagnostic: where vcruntime140.dll ==="
+          where.exe vcruntime140.dll 2>&1
+          Write-Host "=== Diagnostic: System Info ==="
+          Write-Host "OS: $([System.Environment]::OSVersion)"
+          Write-Host "Processor: $env:PROCESSOR_ARCHITECTURE"
+
   # Sanitizers on ARM: UBSan + ASan per IMPROVE.md H5
   sanitizers-arm:
     runs-on: ubuntu-24.04-arm

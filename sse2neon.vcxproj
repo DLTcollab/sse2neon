@@ -150,6 +150,8 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:preprocessor</AdditionalOptions>
+      <!-- IntrinsicFunctions=true: SSE intrinsics blocked by sse2neon.h header guards,
+           so we can enable /Oi for non-SSE intrinsics (_BitScanForward64, etc.) -->
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
@@ -181,6 +183,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
+      <!-- IntrinsicFunctions=true: SSE intrinsics blocked by sse2neon.h header guards,
+           so we can enable /Oi for non-SSE intrinsics (_BitScanForward64, etc.) -->
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>

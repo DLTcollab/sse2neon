@@ -1,3 +1,9 @@
+/* ARM64EC requires sse2neon.h to be included FIRST. See common.h for details.
+ */
+#if defined(_M_ARM64EC)
+#include "sse2neon.h"
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
 #include "impl.h"
