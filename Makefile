@@ -53,7 +53,7 @@ FEATURE ?=
 ifneq ($(FEATURE),)
 ifneq ($(FEATURE),none)
 COMMA:= ,
-ARCH_CFLAGS := $(ARCH_CFLAGS)+$(subst $(COMMA),+,$(FEATURE))
+override ARCH_CFLAGS := $(ARCH_CFLAGS)+$(subst $(COMMA),+,$(FEATURE))
 endif
 endif
 
@@ -164,10 +164,53 @@ check-strict-aliasing: clean
 check-macros:
 	@python3 .ci/check-macros.py sse2neon.h
 
-.PHONY: clean check check-main check-ieee754 check-ubsan check-asan check-strict-aliasing check-macros indent ieee754
+# Differential testing objects
+DIFFERENTIAL_OBJS = \
+	tests/differential.o \
+	tests/common.o \
+	tests/binding.o
+differential_deps := $(DIFFERENTIAL_OBJS:%.o=%.o.d)
+
+DIFFERENTIAL_EXEC = tests/differential
+GOLDEN_DIR ?= golden
+
+$(DIFFERENTIAL_EXEC): $(DIFFERENTIAL_OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+# Generate golden reference data on x86
+# This target must be run on an x86 host to create reference outputs
+generate-golden: $(DIFFERENTIAL_EXEC)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	@echo "ERROR: generate-golden must be run on x86 host"
+	@echo "Use: python3 scripts/gen-golden.py on an x86 machine"
+	@exit 1
+endif
+	@mkdir -p $(GOLDEN_DIR)
+	$(DIFFERENTIAL_EXEC) --generate $(GOLDEN_DIR)
+	@echo ""
+	@echo "Golden data generated in $(GOLDEN_DIR)/"
+	@echo "Copy this directory to ARM target for verification."
+
+# Verify sse2neon against golden reference data on ARM
+# This target compares NEON implementations against x86 reference outputs
+check-differential: $(DIFFERENTIAL_EXEC)
+	@if [ ! -d "$(GOLDEN_DIR)" ]; then \
+		echo "ERROR: Golden data directory '$(GOLDEN_DIR)' not found"; \
+		echo "Generate it on x86 first with: make generate-golden"; \
+		echo "Or specify a custom path: make check-differential GOLDEN_DIR=/path/to/golden"; \
+		exit 1; \
+	fi
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+endif
+	$(EXEC_WRAPPER) $(DIFFERENTIAL_EXEC) --verify $(GOLDEN_DIR)
+
+.PHONY: clean check check-main check-ieee754 check-ubsan check-asan check-strict-aliasing check-macros check-differential generate-golden indent ieee754
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)
+	$(RM) $(DIFFERENTIAL_OBJS) $(DIFFERENTIAL_EXEC) $(differential_deps)
 
 -include $(deps)
 -include $(ieee754_deps)
+-include $(differential_deps)
