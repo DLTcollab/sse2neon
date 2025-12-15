@@ -241,6 +241,15 @@ jobs:
             --gcc-toolchain=/usr \
             -isystem /usr/aarch64-linux-gnu/include \
             -march=armv8-a+simd+crypto+crc
+      - name: uninitialized variable warnings
+        run: |
+          # Check for uninitialized variable warnings
+          COMMON="-fsyntax-only -Werror -Wuninitialized -Wall -std=gnu++14 -I. -march=armv8-a+simd+crypto+crc"
+          # GCC: -Wmaybe-uninitialized is stricter than Clang's -Wuninitialized
+          aarch64-linux-gnu-g++ $COMMON -Wmaybe-uninitialized tests/main.cpp
+          # Clang: cross-compile targeting AArch64
+          clang++-$LLVM_VERSION $COMMON --target=aarch64-linux-gnu \
+            --gcc-toolchain=/usr -isystem /usr/aarch64-linux-gnu/include tests/main.cpp
 
   # iOS build verification
   host-ios:

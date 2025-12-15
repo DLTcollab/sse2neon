@@ -76,7 +76,25 @@ else
 STRICT_ALIASING_FLAGS =
 endif
 
-CXXFLAGS += -Wall -Wcast-qual -Wold-style-cast -Wconversion -I. $(ARCH_CFLAGS) -std=gnu++14 $(SANITIZE_FLAGS) $(STRICT_ALIASING_FLAGS)
+# Check if a specific compiler flag is supported by attempting a dummy compilation.
+# Uses -Werror to catch unsupported warning flags (Clang warns but doesn't fail without it).
+# Returns the flag if supported, empty string otherwise.
+# Usage: $(call check_cxx_flag,-some-flag)
+check_cxx_flag = $(shell $(CXX) -Werror $(1) -S -o /dev/null -x c++ /dev/null 2>/dev/null && echo "$(1)")
+
+# Extra warning flags: EXTRA_WARNINGS=uninit for uninitialized variable checks
+# GCC uses -Wmaybe-uninitialized (stricter), Clang uses -Wuninitialized
+EXTRA_WARNINGS ?=
+ifneq ($(EXTRA_WARNINGS),)
+ifeq ($(EXTRA_WARNINGS),uninit)
+UNINIT_FLAGS_TO_CHECK := -Wuninitialized -Wmaybe-uninitialized
+EXTRA_WARNINGS_FLAGS := -Werror $(foreach flag,$(UNINIT_FLAGS_TO_CHECK),$(call check_cxx_flag,$(flag)))
+endif
+else
+EXTRA_WARNINGS_FLAGS =
+endif
+
+CXXFLAGS += -Wall -Wcast-qual -Wold-style-cast -Wconversion -I. $(ARCH_CFLAGS) -std=gnu++14 $(SANITIZE_FLAGS) $(STRICT_ALIASING_FLAGS) $(EXTRA_WARNINGS_FLAGS)
 LDFLAGS  += -lm $(SANITIZE_FLAGS)
 OBJS = \
     tests/binding.o \
@@ -158,6 +176,11 @@ check-asan: clean
 check-strict-aliasing: clean
 	$(MAKE) STRICT_ALIASING=1 check
 
+# Convenience target for running tests with uninitialized variable checks
+# Uses -Werror -Wuninitialized (and -Wmaybe-uninitialized on GCC)
+check-uninit: clean
+	$(MAKE) EXTRA_WARNINGS=uninit check
+
 # Check preprocessor macro hygiene (typos, consistency)
 # Inconsistent raw __aarch64__ checks are treated as errors because they
 # cause _M_ARM64/__arm64__ builds to silently use slower fallback paths.
@@ -205,7 +228,7 @@ ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 endif
 	$(EXEC_WRAPPER) $(DIFFERENTIAL_EXEC) --verify $(GOLDEN_DIR)
 
-.PHONY: clean check check-main check-ieee754 check-ubsan check-asan check-strict-aliasing check-macros check-differential generate-golden indent ieee754
+.PHONY: clean check check-main check-ieee754 check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden indent ieee754
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)
