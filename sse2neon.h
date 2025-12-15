@@ -3575,6 +3575,16 @@ FORCE_INLINE __m128i _mm_avg_epu8(__m128i a, __m128i b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_bsrli_si128
 #define _mm_bsrli_si128(a, imm) _mm_srli_si128(a, imm)
 
+/* Cast Intrinsics - Zero-Cost Type Reinterpretation
+ *
+ * The _mm_cast* intrinsics reinterpret vector types (__m128, __m128d, __m128i)
+ * without generating any instructions. These are pure type annotations that
+ * perform bitwise reinterpretation, NOT value conversion.
+ *
+ * Maps to ARM NEON vreinterpret_* / vreinterpretq_* (also zero-cost bitcasts).
+ * https://developer.arm.com/architectures/instruction-sets/intrinsics/#q=vreinterpret
+ */
+
 // Cast vector of type __m128d to type __m128. This intrinsic is only used for
 // compilation and does not generate any instructions, thus it has zero latency.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_castpd_ps
