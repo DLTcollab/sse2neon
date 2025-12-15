@@ -34,8 +34,8 @@ Cycle estimates based on ARM Cortex-A72 (ARMv8-A) Software Optimization Guide.
 | Metric | Value |
 |--------|-------|
 | Total SSE Intrinsics | 454 |
-| Direct Mappings (T1) | 368 (81.1%) |
-| Moderate Emulation (T2-T3) | 76 (16.7%) |
+| Direct Mappings (T1) | 362 (79.7%) |
+| Moderate Emulation (T2-T3) | 82 (18.1%) |
 | Complex Emulation (T4) | 10 (2.2%) |
 | Avg NEON Ops/Intrinsic | 1.82 |
 
@@ -80,7 +80,7 @@ These intrinsics map directly to single NEON instructions:
 - Comparison: `_mm_cmpeq_epi16`, `_mm_cmpeq_epi32`, `_mm_cmpeq_epi64`, `_mm_cmpeq_epi8`, `_mm_cmpeq_pd`, `_mm_cmpeq_ps`, `_mm_cmpgt_epi16`, `_mm_cmpgt_epi32`, ... (+9 more)
 - Logical: `_mm_and_pd`, `_mm_and_ps`, `_mm_and_si128`, `_mm_andnot_pd`, `_mm_andnot_ps`, `_mm_andnot_si128`, `_mm_floor_pd`, `_mm_floor_ps`, ... (+18 more)
 - Load/Store: `_mm_load1_pd`, `_mm_load1_ps`, `_mm_load_pd`, `_mm_load_ps`, `_mm_load_si128`, `_mm_loadu_ps`, `_mm_loadu_si128`, `_mm_set1_epi16`, ... (+24 more)
-- Conversion: `_mm_cvt_ps2pi`, `_mm_cvt_si2ss`, `_mm_cvt_ss2si`, `_mm_cvtepi32_ps`, `_mm_cvtps_epi32`, `_mm_cvtps_pi16`, `_mm_cvtsd_f64`, `_mm_cvtsd_si32`, ... (+12 more)
+- Conversion: `_mm_cvt_ps2pi`, `_mm_cvt_si2ss`, `_mm_cvt_ss2si`, `_mm_cvtepi32_ps`, `_mm_cvtps_epi32`, `_mm_cvtps_pi16`, `_mm_cvtsd_f64`, `_mm_cvtsd_si32`, ... (+13 more)
 - Math: `_mm_ceil_pd`, `_mm_ceil_ps`, `_mm_floor_pd`, `_mm_floor_ps`, `_mm_max_epi16`, `_mm_max_epi32`, `_mm_max_epi8`, `_mm_max_epu16`, ... (+13 more)
 
 ### Complete Tier Classification
@@ -88,7 +88,7 @@ These intrinsics map directly to single NEON instructions:
 <details>
 <summary>Click to expand full list</summary>
 
-#### Tier 1 (368 intrinsics)
+#### Tier 1 (362 intrinsics)
 
 `_mm_abs_epi16`, `_mm_abs_epi32`, `_mm_abs_epi8`, `_mm_abs_pi16`
 `_mm_abs_pi32`, `_mm_abs_pi8`, `_mm_add_epi16`, `_mm_add_epi32`
@@ -165,18 +165,16 @@ These intrinsics map directly to single NEON instructions:
 `_mm_shuffle_ps_1001`, `_mm_shuffle_ps_1010`, `_mm_shuffle_ps_1032`
 `_mm_shuffle_ps_1133`, `_mm_shuffle_ps_2103`, `_mm_shuffle_ps_2200`
 `_mm_shuffle_ps_2301`, `_mm_shuffle_ps_3202`, `_mm_shuffle_ps_3210`
-`_mm_sll_epi16`, `_mm_sll_epi32`, `_mm_sll_epi64`, `_mm_slli_epi16`
-`_mm_slli_epi32`, `_mm_slli_epi64`, `_mm_sqrt_pd`, `_mm_sqrt_sd`
-`_mm_sqrt_ss`, `_mm_srl_epi16`, `_mm_srl_epi32`, `_mm_srl_epi64`
-`_mm_store_pd`, `_mm_store_pd1`, `_mm_store_ps`, `_mm_store_sd`
-`_mm_store_si128`, `_mm_store_ss`, `_mm_storeh_pd`, `_mm_storeh_pi`
-`_mm_storel_epi64`, `_mm_storel_pd`, `_mm_storel_pi`, `_mm_storer_pd`
-`_mm_storeu_pd`, `_mm_storeu_ps`, `_mm_storeu_si128`, `_mm_storeu_si16`
-`_mm_storeu_si32`, `_mm_storeu_si64`, `_mm_stream_load_si128`
-`_mm_stream_pd`, `_mm_stream_pi`, `_mm_stream_ps`, `_mm_stream_si128`
-`_mm_stream_si32`, `_mm_stream_si64`, `_mm_sub_epi16`, `_mm_sub_epi32`
-`_mm_sub_epi64`, `_mm_sub_epi8`, `_mm_sub_pd`, `_mm_sub_ps`, `_mm_sub_sd`
-`_mm_sub_si64`, `_mm_sub_ss`, `_mm_subs_epi16`, `_mm_subs_epi8`
+`_mm_slli_epi16`, `_mm_slli_epi32`, `_mm_slli_epi64`, `_mm_sqrt_pd`
+`_mm_sqrt_sd`, `_mm_sqrt_ss`, `_mm_store_pd`, `_mm_store_pd1`, `_mm_store_ps`
+`_mm_store_sd`, `_mm_store_si128`, `_mm_store_ss`, `_mm_storeh_pd`
+`_mm_storeh_pi`, `_mm_storel_epi64`, `_mm_storel_pd`, `_mm_storel_pi`
+`_mm_storer_pd`, `_mm_storeu_pd`, `_mm_storeu_ps`, `_mm_storeu_si128`
+`_mm_storeu_si16`, `_mm_storeu_si32`, `_mm_storeu_si64`
+`_mm_stream_load_si128`, `_mm_stream_pd`, `_mm_stream_pi`, `_mm_stream_ps`
+`_mm_stream_si128`, `_mm_stream_si32`, `_mm_stream_si64`, `_mm_sub_epi16`
+`_mm_sub_epi32`, `_mm_sub_epi64`, `_mm_sub_epi8`, `_mm_sub_pd`, `_mm_sub_ps`
+`_mm_sub_sd`, `_mm_sub_si64`, `_mm_sub_ss`, `_mm_subs_epi16`, `_mm_subs_epi8`
 `_mm_subs_epu16`, `_mm_subs_epu8`, `_mm_test_all_ones`, `_mm_undefined_pd`
 `_mm_undefined_ps`, `_mm_undefined_si128`, `_mm_unpackhi_epi16`
 `_mm_unpackhi_epi32`, `_mm_unpackhi_epi64`, `_mm_unpackhi_epi8`
@@ -185,7 +183,7 @@ These intrinsics map directly to single NEON instructions:
 `_mm_unpacklo_pd`, `_mm_unpacklo_ps`, `_mm_xor_pd`, `_mm_xor_ps`
 `_mm_xor_si128`
 
-#### Tier 2 (67 intrinsics)
+#### Tier 2 (73 intrinsics)
 
 `_mm_add_ss`, `_mm_cmpnge_pd`, `_mm_cmpngt_pd`, `_mm_cmpnle_pd`
 `_mm_cmpnlt_pd`, `_mm_cmpord_pd`, `_mm_cmpord_ps`, `_mm_cmpunord_pd`
@@ -201,9 +199,11 @@ These intrinsics map directly to single NEON instructions:
 `_mm_set_pd`, `_mm_set_ps`, `_mm_setr_epi16`, `_mm_setr_epi32`
 `_mm_setr_epi8`, `_mm_setr_ps`, `_mm_shuffle_ps_2001`, `_mm_shuffle_ps_2010`
 `_mm_shuffle_ps_2032`, `_mm_sign_epi16`, `_mm_sign_epi32`, `_mm_sign_epi8`
-`_mm_sign_pi16`, `_mm_sign_pi32`, `_mm_sign_pi8`, `_mm_sra_epi16`
-`_mm_sra_epi32`, `_mm_srai_epi16`, `_mm_store_ps1`, `_mm_storer_ps`
-`_mm_test_all_zeros`, `_mm_testc_si128`, `_mm_testz_si128`
+`_mm_sign_pi16`, `_mm_sign_pi32`, `_mm_sign_pi8`, `_mm_sll_epi16`
+`_mm_sll_epi32`, `_mm_sll_epi64`, `_mm_sra_epi16`, `_mm_sra_epi32`
+`_mm_srai_epi16`, `_mm_srl_epi16`, `_mm_srl_epi32`, `_mm_srl_epi64`
+`_mm_store_ps1`, `_mm_storer_ps`, `_mm_test_all_zeros`, `_mm_testc_si128`
+`_mm_testz_si128`
 
 #### Tier 3 (9 intrinsics)
 
