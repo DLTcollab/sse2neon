@@ -270,3 +270,48 @@ jobs:
             -march=armv8-a+crc \
             -std=c++14 -Wall -Wextra -Werror -Wno-unused-parameter \
             -I. -x c++ -fsyntax-only -
+
+  # Differential Testing: Generate golden reference data on x86
+  # This captures native SSE outputs for comparison against sse2neon on ARM
+  differential-x86:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: build differential test harness (native SSE)
+        run: make tests/differential
+      - name: generate golden reference data
+        run: |
+          mkdir -p golden
+          ./tests/differential --generate golden
+          echo "Generated $(ls golden/*.golden | wc -l) golden files"
+      - name: upload golden data artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: differential-golden-data
+          path: golden/
+          retention-days: 1
+
+  # Differential Testing: Verify sse2neon against x86 golden data on ARM
+  differential-arm:
+    runs-on: ubuntu-24.04-arm
+    needs: differential-x86
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: download golden data from x86
+        uses: actions/download-artifact@v6
+        with:
+          name: differential-golden-data
+          path: golden/
+      - name: show golden data info
+        run: |
+          echo "Golden files from x86:"
+          ls -la golden/ | head -20
+          echo "Total: $(ls golden/*.golden | wc -l) files"
+      - name: build differential test harness (sse2neon)
+        run: make FEATURE=crypto+crc tests/differential
+      - name: verify sse2neon against x86 golden data
+        run: |
+          echo "Comparing sse2neon (ARM) against native SSE (x86)..."
+          ./tests/differential --verify golden/
