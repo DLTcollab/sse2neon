@@ -958,6 +958,38 @@ FORCE_INLINE uint8x16x4_t _sse2neon_vld1q_u8_x4(const uint8_t *p)
 }
 #endif
 
+/* Wrapper for vcreate_u64 to handle Apple iOS toolchain variations.
+ * On iOS, vcreate_u64 may be defined as a macro in arm_neon.h, which can
+ * cause parsing issues in complex macro expansions.
+ * This wrapper provides a function-call interface using vdup_n_u64(), which
+ * is bit-exact and avoids macro expansion pitfalls.
+ *
+ * Other AArch64 platforms (Linux, macOS, Android) use native vcreate_u64.
+ *
+ * User override: Define SSE2NEON_IOS_COMPAT=1 to enable,
+ *                or SSE2NEON_IOS_COMPAT=0 to disable.
+ */
+#if defined(__APPLE__) && SSE2NEON_ARCH_AARCH64
+#include <TargetConditionals.h>
+#endif
+
+#ifndef SSE2NEON_IOS_COMPAT
+#if defined(__APPLE__) && SSE2NEON_ARCH_AARCH64 && TARGET_OS_IOS
+#define SSE2NEON_IOS_COMPAT 1
+#else
+#define SSE2NEON_IOS_COMPAT 0
+#endif
+#endif
+
+#if SSE2NEON_IOS_COMPAT
+FORCE_INLINE uint64x1_t _sse2neon_vcreate_u64(uint64_t a)
+{
+    return vdup_n_u64(a);
+}
+#else
+#define _sse2neon_vcreate_u64(a) vcreate_u64(a)
+#endif
+
 #if !SSE2NEON_ARCH_AARCH64
 /* emulate vaddv u8 variant */
 FORCE_INLINE uint8_t _sse2neon_vaddv_u8(uint8x8_t v8)
@@ -9568,19 +9600,21 @@ FORCE_INLINE __m128i _mm_cmpgt_epi64(__m128i a, __m128i b)
  * 5. Extract the lower (in bit-reflected sense) 32 bits in the upper half of
  *    'tmp'.
  */
-#define SSE2NEON_CRC32C_BASE(crc, v, bit, shift)                            \
-    do {                                                                    \
-        crc ^= v;                                                           \
-        uint64x2_t orig =                                                   \
-            vcombine_u64(vcreate_u64(SSE2NEON_IIF(shift)(                   \
-                             (uint64_t) (crc) << (bit), (uint64_t) (crc))), \
-                         vcreate_u64(0x0));                                 \
-        uint64x2_t tmp = orig;                                              \
-        uint64_t p = 0x105EC76F1;                                           \
-        uint64_t mu = 0x1dea713f1;                                          \
-        tmp = _sse2neon_vmull_p64(vget_low_u64(tmp), vcreate_u64(mu));      \
-        tmp = _sse2neon_vmull_p64(vget_high_u64(tmp), vcreate_u64(p));      \
-        crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 2);                \
+#define SSE2NEON_CRC32C_BASE(crc, v, bit, shift)                               \
+    do {                                                                       \
+        crc ^= v;                                                              \
+        uint64x2_t orig =                                                      \
+            vcombine_u64(_sse2neon_vcreate_u64(SSE2NEON_IIF(shift)(            \
+                             (uint64_t) (crc) << (bit), (uint64_t) (crc))),    \
+                         _sse2neon_vcreate_u64(0x0));                          \
+        uint64x2_t tmp = orig;                                                 \
+        uint64_t p = 0x105EC76F1;                                              \
+        uint64_t mu = 0x1dea713f1;                                             \
+        tmp =                                                                  \
+            _sse2neon_vmull_p64(vget_low_u64(tmp), _sse2neon_vcreate_u64(mu)); \
+        tmp =                                                                  \
+            _sse2neon_vmull_p64(vget_high_u64(tmp), _sse2neon_vcreate_u64(p)); \
+        crc = vgetq_lane_u32(vreinterpretq_u32_u64(tmp), 2);                   \
     } while (0)
 
 // Starting with the initial value in crc, accumulates a CRC32 value for
