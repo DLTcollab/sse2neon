@@ -26,7 +26,6 @@
 
 namespace SSE2NEON
 {
-
 /* Define instructionString array - must match INTRIN_LIST in impl.h */
 const char *instructionString[] = {
 #define _(x) #x,
@@ -165,8 +164,44 @@ enum DiffCategory {
     DIFF_FLOAT_TOLERANCE, /* FP tolerance allowed (rsqrt, rcp approximations) */
     DIFF_NAN_HANDLING,    /* NaN propagation differs without PRECISE_MINMAX */
     DIFF_DENORMAL,        /* Denormal handling may differ (FTZ/DAZ) */
-    DIFF_SKIP,            /* Skip comparison (memory ops, side effects) */
+    DIFF_SCALAR_FALLBACK, /* ARMv7 scalar fallback (f32 tolerance) */
+    DIFF_SCALAR_FALLBACK_F64, /* ARMv7 scalar fallback (f64 tolerance) */
+    DIFF_SKIP,                /* Skip comparison (memory ops, side effects) */
 };
+
+/* Scalar Fallback Intrinsics Documentation
+ *
+ * The following intrinsics have ARMv7 scalar fallback paths that execute
+ * differently from AArch64 NEON implementations:
+ *
+ * Category: Horizontal Operations (no vaddv on ARMv7)
+ *   - _mm_dp_ps, _mm_dp_pd: Dot product uses scalar accumulation
+ *   - _mm_hadd_ps, _mm_hsub_ps: Horizontal add/sub uses NEON pairwise ops
+ *   - _mm_hadd_pd, _mm_hsub_pd: Double-precision horizontal ops
+ *   - _mm_hadd_epi16/32, _mm_hsub_epi16/32: Integer horizontal ops
+ *
+ * Category: Double-Precision (no f64 SIMD on ARMv7)
+ *   - _mm_cvttpd_pi32, _mm_cvttpd_epi32: Scalar f64→i32 conversion loop
+ *
+ * Category: Movemask (no vceqq_u64 on ARMv7)
+ *   - _mm_movemask_epi8: Different extraction path
+ *
+ * Category: String Comparison (no vmaxvq on ARMv7)
+ *   - _mm_cmpistri, _mm_cmpistrm: Sequential loop (16 iterations)
+ *   - _mm_cmpestri, _mm_cmpestrm: Scalar masking + extraction
+ *   - _mm_cmpistra/c/o/s/z, _mm_cmpestra/c/o/s/z: Flag variants
+ *
+ * Category: AES (no __ARM_FEATURE_CRYPTO on some platforms)
+ *   - _mm_aesenc_si128, _mm_aesenclast_si128: Vectorized S-box on AArch64,
+ *     scalar T-table on ARMv7 (cache-timing vulnerable)
+ *   - _mm_aesdec_si128, _mm_aesdeclast_si128: Inverse operations
+ *
+ * Category: CRC32 (no __ARM_FEATURE_CRC32)
+ *   - _mm_crc32_u8/16/32/64: Nibble-table lookup fallback
+ *
+ * To test scalar fallback paths on AArch64, compile with:
+ *   -DSSE2NEON_FORCE_SCALAR_FALLBACK=1
+ */
 
 struct IntrinsicInfo {
     InstructionTest id;
@@ -230,6 +265,20 @@ static const IntrinsicInfo known_differences[] = {
     {it_mm_get_rounding_mode, "mm_get_rounding_mode", DIFF_SKIP, 0},
     {it_mm_set_rounding_mode, "mm_set_rounding_mode", DIFF_SKIP, 0},
 
+    /* Scalar fallback intrinsics - tolerance for ARMv7 differences
+     * These may have minor FP rounding differences due to different
+     * instruction sequences on ARMv7 vs AArch64. */
+
+    /* Horizontal operations (ARMv7 uses NEON pairwise ops) */
+    {it_mm_hadd_ps, "mm_hadd_ps", DIFF_SCALAR_FALLBACK, 1e-6f},
+    {it_mm_hsub_ps, "mm_hsub_ps", DIFF_SCALAR_FALLBACK, 1e-6f},
+    {it_mm_hadd_pd, "mm_hadd_pd", DIFF_SCALAR_FALLBACK_F64, 1e-12f},
+    {it_mm_hsub_pd, "mm_hsub_pd", DIFF_SCALAR_FALLBACK_F64, 1e-12f},
+
+    /* Dot product (ARMv7 uses scalar accumulation) */
+    {it_mm_dp_ps, "mm_dp_ps", DIFF_SCALAR_FALLBACK, 1e-5f},
+    {it_mm_dp_pd, "mm_dp_pd", DIFF_SCALAR_FALLBACK_F64, 1e-12f},
+
     /* Sentinel */
     {it_last, nullptr, DIFF_NONE, 0},
 };
@@ -269,14 +318,15 @@ static bool compare_output(const OutputData &golden,
         return true;
 
     case DIFF_NAN_HANDLING:
-        /* For NaN handling differences, check if both are NaN or both match */
+        /* For NaN handling differences:
+         * - Golden NaN (any actual): pass (ARM may not propagate NaN)
+         * - Golden not NaN, actual NaN: FAIL (ARM shouldn't create NaN)
+         * - Neither NaN: require exact match */
         for (int i = 0; i < 4; i++) {
-            bool g_nan = std::isnan(golden.f32[i]);
-            bool a_nan = std::isnan(actual.f32[i]);
-            if (g_nan || a_nan) {
-                /* Allow both NaN or golden NaN with any actual value */
-                continue;
-            }
+            if (std::isnan(golden.f32[i]))
+                continue; /* x86 NaN - any ARM result OK */
+            if (std::isnan(actual.f32[i]))
+                return false; /* ARM produced unexpected NaN */
             if (golden.u32[i] != actual.u32[i])
                 return false;
         }
@@ -284,18 +334,87 @@ static bool compare_output(const OutputData &golden,
 
     case DIFF_FLOAT_TOLERANCE:
         for (int i = 0; i < 4; i++) {
-            if (std::isnan(golden.f32[i]) && std::isnan(actual.f32[i]))
+            bool g_nan = std::isnan(golden.f32[i]);
+            bool a_nan = std::isnan(actual.f32[i]);
+            if (g_nan && a_nan)
                 continue;
-            if (std::isinf(golden.f32[i]) && std::isinf(actual.f32[i])) {
+            if (g_nan != a_nan)
+                return false; /* NaN mismatch */
+            bool g_inf = std::isinf(golden.f32[i]);
+            bool a_inf = std::isinf(actual.f32[i]);
+            if (g_inf && a_inf) {
                 if ((golden.f32[i] > 0) != (actual.f32[i] > 0))
                     return false;
                 continue;
             }
+            if (g_inf != a_inf)
+                return false; /* Inf mismatch */
             float diff = std::fabs(golden.f32[i] - actual.f32[i]);
             float rel = std::fabs(golden.f32[i]) > 1e-6f
                             ? diff / std::fabs(golden.f32[i])
                             : diff;
             if (rel > tolerance && diff > tolerance)
+                return false;
+        }
+        return true;
+
+    case DIFF_SCALAR_FALLBACK:
+        /* Scalar fallback paths may have minor FP differences (f32) */
+        for (int i = 0; i < 4; i++) {
+            bool g_nan = std::isnan(golden.f32[i]);
+            bool a_nan = std::isnan(actual.f32[i]);
+            if (g_nan && a_nan)
+                continue;
+            if (g_nan != a_nan)
+                return false; /* NaN mismatch */
+            bool g_inf = std::isinf(golden.f32[i]);
+            bool a_inf = std::isinf(actual.f32[i]);
+            if (g_inf && a_inf) {
+                if ((golden.f32[i] > 0) != (actual.f32[i] > 0))
+                    return false;
+                continue;
+            }
+            if (g_inf != a_inf)
+                return false; /* Inf mismatch */
+            /* Allow both exact match and tolerance-based match */
+            if (golden.u32[i] == actual.u32[i])
+                continue;
+            float diff = std::fabs(golden.f32[i] - actual.f32[i]);
+            float rel = std::fabs(golden.f32[i]) > 1e-6f
+                            ? diff / std::fabs(golden.f32[i])
+                            : diff;
+            if (rel > tolerance && diff > tolerance)
+                return false;
+        }
+        return true;
+
+    case DIFF_SCALAR_FALLBACK_F64:
+        /* Scalar fallback paths for double-precision intrinsics */
+        for (int i = 0; i < 2; i++) {
+            bool g_nan = std::isnan(golden.f64[i]);
+            bool a_nan = std::isnan(actual.f64[i]);
+            if (g_nan && a_nan)
+                continue;
+            if (g_nan != a_nan)
+                return false; /* NaN mismatch */
+            bool g_inf = std::isinf(golden.f64[i]);
+            bool a_inf = std::isinf(actual.f64[i]);
+            if (g_inf && a_inf) {
+                if ((golden.f64[i] > 0) != (actual.f64[i] > 0))
+                    return false;
+                continue;
+            }
+            if (g_inf != a_inf)
+                return false; /* Inf mismatch */
+            /* Allow both exact match and tolerance-based match */
+            if (golden.u64[i] == actual.u64[i])
+                continue;
+            double diff = std::fabs(golden.f64[i] - actual.f64[i]);
+            double rel = std::fabs(golden.f64[i]) > 1e-12
+                             ? diff / std::fabs(golden.f64[i])
+                             : diff;
+            if (rel > static_cast<double>(tolerance) &&
+                diff > static_cast<double>(tolerance))
                 return false;
         }
         return true;
@@ -648,6 +767,163 @@ static bool execute_intrinsic(InstructionTest id,
         return true;
     case it_mm_mullo_epi32:
         out.si = _mm_mullo_epi32(a_si, b_si);
+        return true;
+
+    /* ----- Scalar fallback intrinsics -----
+     * These intrinsics have ARMv7 scalar fallback paths.
+     * Testing them ensures both AArch64 NEON and ARMv7 scalar paths work.
+     */
+
+    /* SSE3 Horizontal operations - uses NEON pairwise ops */
+    case it_mm_hadd_ps:
+        out.ps = _mm_hadd_ps(a_ps, b_ps);
+        return true;
+    case it_mm_hsub_ps:
+        out.ps = _mm_hsub_ps(a_ps, b_ps);
+        return true;
+    case it_mm_hadd_pd:
+        out.pd = _mm_hadd_pd(a_pd, b_pd);
+        return true;
+    case it_mm_hsub_pd:
+        out.pd = _mm_hsub_pd(a_pd, b_pd);
+        return true;
+
+    /* SSE3 Add/Sub */
+    case it_mm_addsub_ps:
+        out.ps = _mm_addsub_ps(a_ps, b_ps);
+        return true;
+    case it_mm_addsub_pd:
+        out.pd = _mm_addsub_pd(a_pd, b_pd);
+        return true;
+
+    /* SSSE3 Horizontal integer ops - ARMv7 uses different reduction */
+    case it_mm_hadd_epi16:
+        out.si = _mm_hadd_epi16(a_si, b_si);
+        return true;
+    case it_mm_hadd_epi32:
+        out.si = _mm_hadd_epi32(a_si, b_si);
+        return true;
+    case it_mm_hsub_epi16:
+        out.si = _mm_hsub_epi16(a_si, b_si);
+        return true;
+    case it_mm_hsub_epi32:
+        out.si = _mm_hsub_epi32(a_si, b_si);
+        return true;
+    case it_mm_hadds_epi16:
+        out.si = _mm_hadds_epi16(a_si, b_si);
+        return true;
+    case it_mm_hsubs_epi16:
+        out.si = _mm_hsubs_epi16(a_si, b_si);
+        return true;
+
+    /* SSE4.1 Dot product - ARMv7 uses scalar accumulation (no vaddvq_f32) */
+    case it_mm_dp_ps:
+        out.ps = _mm_dp_ps(a_ps, b_ps, 0xFF); /* All lanes multiply and sum */
+        return true;
+    case it_mm_dp_pd:
+        out.pd = _mm_dp_pd(a_pd, b_pd, 0x33); /* Both lanes multiply and sum */
+        return true;
+
+    /* Double-precision conversion - ARMv7 scalar fallback (no f64 SIMD) */
+    case it_mm_cvttpd_epi32:
+        out.si = _mm_cvttpd_epi32(a_pd);
+        return true;
+    case it_mm_cvttpd_pi32:
+        /* Returns __m64 (64 bits) - zero upper half for consistent comparison
+         */
+        memset(&out, 0, sizeof(out));
+        out.m64 = _mm_cvttpd_pi32(a_pd);
+        return true;
+
+    /* SSE4.1 more intrinsics */
+    case it_mm_minpos_epu16:
+        out.si = _mm_minpos_epu16(a_si);
+        return true;
+    case it_mm_mpsadbw_epu8:
+        out.si = _mm_mpsadbw_epu8(a_si, b_si, 0);
+        return true;
+
+    /* SSE4.2 String comparison - ARMv7 uses sequential loops */
+    case it_mm_cmpistrm:
+        out.si =
+            _mm_cmpistrm(a_si, b_si, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpistri:
+        out.i32[0] =
+            _mm_cmpistri(a_si, b_si, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpistra:
+        out.i32[0] =
+            _mm_cmpistra(a_si, b_si, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpistrc:
+        out.i32[0] =
+            _mm_cmpistrc(a_si, b_si, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpistro:
+        out.i32[0] =
+            _mm_cmpistro(a_si, b_si, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpistrs:
+        out.i32[0] =
+            _mm_cmpistrs(a_si, b_si, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpistrz:
+        out.i32[0] =
+            _mm_cmpistrz(a_si, b_si, _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+
+    case it_mm_cmpestrm:
+        out.si = _mm_cmpestrm(a_si, 16, b_si, 16,
+                              _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpestri:
+        out.i32[0] = _mm_cmpestri(a_si, 16, b_si, 16,
+                                  _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpestra:
+        out.i32[0] = _mm_cmpestra(a_si, 16, b_si, 16,
+                                  _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpestrc:
+        out.i32[0] = _mm_cmpestrc(a_si, 16, b_si, 16,
+                                  _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpestro:
+        out.i32[0] = _mm_cmpestro(a_si, 16, b_si, 16,
+                                  _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpestrs:
+        out.i32[0] = _mm_cmpestrs(a_si, 16, b_si, 16,
+                                  _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+    case it_mm_cmpestrz:
+        out.i32[0] = _mm_cmpestrz(a_si, 16, b_si, 16,
+                                  _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH);
+        return true;
+
+    /* SSE4.2 CRC32 - software fallback when no __ARM_FEATURE_CRC32 */
+    case it_mm_crc32_u8:
+        out.u32[0] =
+            _mm_crc32_u8(static_cast<uint32_t>(static_cast<unsigned>(ip1[0])),
+                         static_cast<uint8_t>(ip2[0]));
+        return true;
+    case it_mm_crc32_u16:
+        out.u32[0] =
+            _mm_crc32_u16(static_cast<uint32_t>(static_cast<unsigned>(ip1[0])),
+                          static_cast<uint16_t>(ip2[0]));
+        return true;
+    case it_mm_crc32_u32:
+        out.u32[0] =
+            _mm_crc32_u32(static_cast<uint32_t>(static_cast<unsigned>(ip1[0])),
+                          static_cast<uint32_t>(static_cast<unsigned>(ip2[0])));
+        return true;
+    case it_mm_crc32_u64:
+        out.u64[0] = _mm_crc32_u64(
+            static_cast<uint64_t>(static_cast<unsigned>(ip1[0])) |
+                (static_cast<uint64_t>(static_cast<unsigned>(ip1[1])) << 32),
+            static_cast<uint64_t>(static_cast<unsigned>(ip2[0])) |
+                (static_cast<uint64_t>(static_cast<unsigned>(ip2[1])) << 32));
         return true;
 
         /* AES - if available */
