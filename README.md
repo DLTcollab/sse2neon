@@ -56,8 +56,17 @@ Enable the compile-time precision flags below when exact SSE compatibility is re
 
 **Architecture**: Little-endian ARM only. Big-endian ARM is not supported and will produce a compile-time error.
 
-**Compilers**: Use GCC 10+ or Clang 11+.
-Earlier compiler versions contain bugs in vector instruction generation that cause incorrect assembly output for certain NEON intrinsics (e.g., `rev16`, `rev32` with invalid operand combinations).
+**Compilers**:
+| Compiler | Minimum Version | Notes |
+|----------|-----------------|-------|
+| GCC | 10+ | Earlier versions have vector instruction bugs |
+| Clang | 11+ | Earlier versions have vector instruction bugs |
+| MSVC | 2019+ (v142) | ARM64 and ARM64EC targets supported |
+| Apple Clang | 12+ | macOS ARM64 (Apple Silicon) |
+
+Earlier GCC/Clang versions contain bugs in vector instruction generation that cause incorrect assembly output for certain NEON intrinsics (e.g., `rev16`, `rev32` with invalid operand combinations).
+
+[ARM64EC](https://learn.microsoft.com/en-us/windows/arm/arm64ec) is a hybrid ABI allowing ARM64 code to interoperate with x64 code.
 
 ## Usage
 
@@ -83,7 +92,12 @@ Earlier compiler versions contain bugs in vector instruction generation that cau
 
    Remove `+crypto` and/or `+crc` if unsupported by your target.
 
-4. For Windows Arm64EC, define `_DISABLE_SOFTINTRIN_=1` before including any Windows headers.
+4. For Windows ARM64EC (hybrid x64/ARM64 mode):
+   - `sse2neon.h` automatically skips `<intrin.h>` when `_M_ARM64EC` is detected
+   - This avoids type conflicts between MSVC's SSE union types and sse2neon's NEON types
+   - No manual configuration needed when using MSVC with ARM64EC target
+   - Note: sse2neon's `__m128` type is not ABI-compatible with x64 code; users needing
+     cross-ABI SIMD interop should use MSVC's softintrin instead
 
 5. (Optional) To reduce the header file size for your specific target architecture and accelerate compilation,
    you can use the [unifdef](https://github.com/fanf2/unifdef) tool to remove unused conditional compilation paths.

@@ -22,6 +22,12 @@
  * Reference: IEEE 754-2008, Intel Intrinsics Guide
  */
 
+/* ARM64EC requires sse2neon.h to be included FIRST. See common.h for details.
+ */
+#if defined(_M_ARM64EC)
+#include "sse2neon.h"
+#endif
+
 #include <cfloat>
 #include <cmath>
 #include <cstdint>
