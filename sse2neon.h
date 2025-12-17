@@ -9531,7 +9531,7 @@ FORCE_INLINE int _mm_cmpestra(__m128i a,
 {
     int lb_cpy = lb;
     SSE2NEON_COMP_AGG(a, b, la, lb, imm8, CMPESTRX);
-    return !r2 & (lb_cpy > bound);
+    return !r2 & (lb_cpy >= bound);
 }
 
 // Compare packed strings in a and b with lengths la and lb using the control in
