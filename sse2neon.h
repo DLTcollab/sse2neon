@@ -6710,6 +6710,13 @@ FORCE_INLINE __m128i _mm_xor_si128(__m128i a, __m128i b)
 
 /* SSE3 */
 
+// Rounding mode note: The single-precision horizontal operations
+// (_mm_addsub_ps, _mm_hadd_ps, _mm_hsub_ps) are sensitive to rounding mode
+// on ARM. On x86, these intrinsics produce consistent results regardless of
+// MXCSR rounding mode. On ARM NEON, the current FPCR/FPSCR rounding mode
+// affects intermediate results. For consistent cross-platform behavior, call
+// _MM_SET_ROUNDING_MODE(_MM_ROUND_NEAREST) before using these intrinsics.
+
 // Alternatively add and subtract packed double-precision (64-bit)
 // floating-point elements in a to/from packed elements in b, and store the
 // results in dst.
@@ -6728,7 +6735,7 @@ FORCE_INLINE __m128d _mm_addsub_pd(__m128d a, __m128d b)
 
 // Alternatively add and subtract packed single-precision (32-bit)
 // floating-point elements in a to/from packed elements in b, and store the
-// results in dst.
+// results in dst. See SSE3 rounding mode note above.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=addsub_ps
 FORCE_INLINE __m128 _mm_addsub_ps(__m128 a, __m128 b)
 {
@@ -6767,6 +6774,7 @@ FORCE_INLINE __m128d _mm_hadd_pd(__m128d a, __m128d b)
 
 // Horizontally add adjacent pairs of single-precision (32-bit) floating-point
 // elements in a and b, and pack the results in dst.
+// See SSE3 rounding mode note above.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_hadd_ps
 FORCE_INLINE __m128 _mm_hadd_ps(__m128 a, __m128 b)
 {
@@ -6810,6 +6818,7 @@ FORCE_INLINE __m128d _mm_hsub_pd(__m128d a, __m128d b)
 
 // Horizontally subtract adjacent pairs of single-precision (32-bit)
 // floating-point elements in a and b, and pack the results in dst.
+// See SSE3 rounding mode note above.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_hsub_ps
 FORCE_INLINE __m128 _mm_hsub_ps(__m128 _a, __m128 _b)
 {
