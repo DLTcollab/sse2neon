@@ -216,6 +216,15 @@ endif
 
 # Verify sse2neon against golden reference data on ARM
 # This target compares NEON implementations against x86 reference outputs
+#
+# Scalar Fallback Coverage:
+#   The differential harness now includes intrinsics with ARMv7 scalar fallbacks:
+#   - Horizontal ops (hadd/hsub): uses shift-right-accumulate on ARMv7
+#   - Dot product (dp_ps/pd): uses scalar accumulation on ARMv7
+#   - String comparison (cmpistri/cmpistrm/etc): sequential loops on ARMv7
+#   - CRC32: software nibble-table fallback when no __ARM_FEATURE_CRC32
+#   When run on ARMv7 (via QEMU or native), these test the scalar fallback paths.
+#   When run on AArch64, they test the optimized NEON paths.
 check-differential: $(DIFFERENTIAL_EXEC)
 	@if [ ! -d "$(GOLDEN_DIR)" ]; then \
 		echo "ERROR: Golden data directory '$(GOLDEN_DIR)' not found"; \
