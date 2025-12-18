@@ -2015,10 +2015,9 @@ result_t test_mm_div_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_extract_pi16(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-    // FIXME GCC has bug on "_mm_extract_pi16" intrinsics. We will enable this
-    // test when GCC fix this bug.
-    // see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98495 for more
-    // information
+    // GCC < 11 had a bug where _mm_extract_pi16 performed sign extension
+    // instead of zero extension. Fixed in GCC 11.0. See:
+    // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=98495
 #if defined(__clang__) || defined(_MSC_VER) || \
     (!defined(__clang__) && defined(__GNUC__) && (__GNUC__ >= 11))
     uint64_t *_a = reinterpret_cast<uint64_t *>(impl.mTestIntPointer1);
