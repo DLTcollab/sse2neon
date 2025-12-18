@@ -3850,11 +3850,18 @@ FORCE_INLINE __m128d _mm_cmpeq_pd(__m128d a, __m128d b)
     return vreinterpretq_m128d_u64(
         vceqq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)));
 #else
-    // (a == b) -> (a_lo == b_lo) && (a_hi == b_hi)
-    uint32x4_t cmp =
-        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
-    uint32x4_t swapped = vrev64q_u32(cmp);
-    return vreinterpretq_m128d_u32(vandq_u32(cmp, swapped));
+    double a0 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
+    double a1 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 1));
+    double b0 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(b), 0));
+    double b1 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(b), 1));
+    uint64_t d[2];
+    d[0] = a0 == b0 ? ~UINT64_C(0) : UINT64_C(0);
+    d[1] = a1 == b1 ? ~UINT64_C(0) : UINT64_C(0);
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
 #endif
 }
 
@@ -4120,11 +4127,18 @@ FORCE_INLINE __m128d _mm_cmpneq_pd(__m128d a, __m128d b)
     return vreinterpretq_m128d_s32(vmvnq_s32(vreinterpretq_s32_u64(
         vceqq_f64(vreinterpretq_f64_m128d(a), vreinterpretq_f64_m128d(b)))));
 #else
-    // (a == b) -> (a_lo == b_lo) && (a_hi == b_hi)
-    uint32x4_t cmp =
-        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
-    uint32x4_t swapped = vrev64q_u32(cmp);
-    return vreinterpretq_m128d_u32(vmvnq_u32(vandq_u32(cmp, swapped)));
+    double a0 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
+    double a1 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 1));
+    double b0 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(b), 0));
+    double b1 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(b), 1));
+    uint64_t d[2];
+    d[0] = a0 != b0 ? ~UINT64_C(0) : UINT64_C(0);
+    d[1] = a1 != b1 ? ~UINT64_C(0) : UINT64_C(0);
+    return vreinterpretq_m128d_u64(vld1q_u64(d));
 #endif
 }
 
@@ -4449,16 +4463,11 @@ FORCE_INLINE int _mm_comieq_sd(__m128d a, __m128d b)
 #if SSE2NEON_ARCH_AARCH64
     return vgetq_lane_u64(vceqq_f64(a, b), 0) & 0x1;
 #else
-    uint32x4_t a_not_nan =
-        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(a));
-    uint32x4_t b_not_nan =
-        vceqq_u32(vreinterpretq_u32_m128d(b), vreinterpretq_u32_m128d(b));
-    uint32x4_t a_and_b_not_nan = vandq_u32(a_not_nan, b_not_nan);
-    uint32x4_t a_eq_b =
-        vceqq_u32(vreinterpretq_u32_m128d(a), vreinterpretq_u32_m128d(b));
-    uint64x2_t and_results = vandq_u64(vreinterpretq_u64_u32(a_and_b_not_nan),
-                                       vreinterpretq_u64_u32(a_eq_b));
-    return vgetq_lane_u64(and_results, 0) & 0x1;
+    double a0 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(a), 0));
+    double b0 =
+        sse2neon_recast_u64_f64(vgetq_lane_u64(vreinterpretq_u64_m128d(b), 0));
+    return a0 == b0 ? 1 : 0;
 #endif
 }
 
