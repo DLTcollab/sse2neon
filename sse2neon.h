@@ -711,6 +711,120 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #define _MM_DENORMALS_ZERO_OFF 0x0000
 #endif
 
+/* MXCSR Exception Flags - NOT EMULATED
+ *
+ * SSE provides floating-point exception flags in the MXCSR register (bits 0-5)
+ * that are NOT emulated on ARM NEON. Code relying on _mm_getcsr() to detect
+ * floating-point exceptions will silently fail to detect them.
+ *
+ * MXCSR Exception Flag Layout (x86):
+ *   Bit 0 (IE): Invalid Operation Exception    - NOT EMULATED
+ *   Bit 1 (DE): Denormal Exception             - NOT EMULATED
+ *   Bit 2 (ZE): Divide-by-Zero Exception       - NOT EMULATED
+ *   Bit 3 (OE): Overflow Exception             - NOT EMULATED
+ *   Bit 4 (UE): Underflow Exception            - NOT EMULATED
+ *   Bit 5 (PE): Precision Exception            - NOT EMULATED
+ *
+ * MXCSR Exception Mask Layout (x86):
+ *   Bits 7-12: Exception masks (mask = suppress exception)  - NOT EMULATED
+ *
+ * Why Not Emulated:
+ * - ARM NEON does not set sticky exception flags like x86 SSE
+ * - ARM FPSR (Floating-Point Status Register) has different semantics
+ * - Emulating per-operation exception tracking would require wrapping every
+ *   floating-point intrinsic with software checks, severely impacting
+ * performance
+ * - Thread-local exception state tracking would add significant complexity
+ *
+ * Impact:
+ * - Scientific computing code checking for overflow/underflow will miss events
+ * - Financial applications validating precision will not detect precision loss
+ * - Numerical code checking for invalid operations (NaN generation) won't
+ * detect them
+ *
+ * Workarounds:
+ * - Use explicit NaN/Inf checks after critical operations: isnan(), isinf()
+ * - Implement application-level range validation for overflow detection
+ * - Use higher precision arithmetic where precision loss is critical
+ *
+ * The macros below are defined for API compatibility but provide no
+ * functionality.
+ */
+
+/* Exception flag macros (MXCSR bits 0-5) - defined for API compatibility only
+ */
+#ifndef _MM_EXCEPT_INVALID
+#define _MM_EXCEPT_INVALID 0x0001
+#endif
+#ifndef _MM_EXCEPT_DENORM
+#define _MM_EXCEPT_DENORM 0x0002
+#endif
+#ifndef _MM_EXCEPT_DIV_ZERO
+#define _MM_EXCEPT_DIV_ZERO 0x0004
+#endif
+#ifndef _MM_EXCEPT_OVERFLOW
+#define _MM_EXCEPT_OVERFLOW 0x0008
+#endif
+#ifndef _MM_EXCEPT_UNDERFLOW
+#define _MM_EXCEPT_UNDERFLOW 0x0010
+#endif
+#ifndef _MM_EXCEPT_INEXACT
+#define _MM_EXCEPT_INEXACT 0x0020
+#endif
+#ifndef _MM_EXCEPT_MASK
+#define _MM_EXCEPT_MASK                                             \
+    (_MM_EXCEPT_INVALID | _MM_EXCEPT_DENORM | _MM_EXCEPT_DIV_ZERO | \
+     _MM_EXCEPT_OVERFLOW | _MM_EXCEPT_UNDERFLOW | _MM_EXCEPT_INEXACT)
+#endif
+
+/* Exception mask macros (MXCSR bits 7-12) - defined for API compatibility only
+ */
+#ifndef _MM_MASK_INVALID
+#define _MM_MASK_INVALID 0x0080
+#endif
+#ifndef _MM_MASK_DENORM
+#define _MM_MASK_DENORM 0x0100
+#endif
+#ifndef _MM_MASK_DIV_ZERO
+#define _MM_MASK_DIV_ZERO 0x0200
+#endif
+#ifndef _MM_MASK_OVERFLOW
+#define _MM_MASK_OVERFLOW 0x0400
+#endif
+#ifndef _MM_MASK_UNDERFLOW
+#define _MM_MASK_UNDERFLOW 0x0800
+#endif
+#ifndef _MM_MASK_INEXACT
+#define _MM_MASK_INEXACT 0x1000
+#endif
+#ifndef _MM_MASK_MASK
+#define _MM_MASK_MASK                                         \
+    (_MM_MASK_INVALID | _MM_MASK_DENORM | _MM_MASK_DIV_ZERO | \
+     _MM_MASK_OVERFLOW | _MM_MASK_UNDERFLOW | _MM_MASK_INEXACT)
+#endif
+
+/* Exception state accessor macros - silent stubs for API compatibility.
+ * These macros exist for API compatibility but provide NO functionality.
+ * On ARM, exception flags are never set by sse2neon intrinsics.
+ *
+ * _MM_GET_EXCEPTION_STATE() - Always returns 0 (no exceptions detected)
+ * _MM_SET_EXCEPTION_STATE() - Silently ignored (cannot clear nonexistent flags)
+ * _MM_GET_EXCEPTION_MASK()  - Always returns all-masked (0x1F80)
+ * _MM_SET_EXCEPTION_MASK()  - Silently ignored (no effect on ARM)
+ */
+#ifndef _MM_GET_EXCEPTION_STATE
+#define _MM_GET_EXCEPTION_STATE() (0)
+#endif
+#ifndef _MM_SET_EXCEPTION_STATE
+#define _MM_SET_EXCEPTION_STATE(x) ((void) (x))
+#endif
+#ifndef _MM_GET_EXCEPTION_MASK
+#define _MM_GET_EXCEPTION_MASK() (_MM_MASK_MASK)
+#endif
+#ifndef _MM_SET_EXCEPTION_MASK
+#define _MM_SET_EXCEPTION_MASK(x) ((void) (x))
+#endif
+
 /* Compile-time validation for immediate constant arguments.
  * This macro validates that:
  * 1. The argument is a compile-time constant (via __builtin_constant_p)
@@ -3064,21 +3178,22 @@ FORCE_INLINE __m128 _mm_set1_ps(float _w)
 // Set the MXCSR control and status register with the value in unsigned 32-bit
 // integer a.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_setcsr
-// The MXCSR register contains the following fields:
-// - Bits 13-14: Rounding mode
-// - Bit 15 (FZ): Flush-to-zero mode - output denormals become zero
-// - Bit 6 (DAZ): Denormals-are-zero mode - input denormals treated as zero
-// Exception flags and masks (bits 0-5, 7-12) are not supported on ARM NEON.
 //
-// ARM Platform Limitations:
-// - ARM FPCR/FPSCR bit 24 controls a unified flush-to-zero behavior that
-//   handles both input denormals (like DAZ) and output denormals (like FZ).
-// - Setting either _MM_FLUSH_ZERO_ON or _MM_DENORMALS_ZERO_ON enables the
-//   same ARM bit 24, providing unified FZ+DAZ behavior.
-// - ARMv7 (AArch32) NEON: Per ARM ARM, Advanced SIMD has "Flush-to-zero mode
-//   always enabled" regardless of FPSCR.FZ. Some implementations may vary.
-// - ARMv8 (AArch64): The FPCR.FZ bit correctly controls denormal handling
-//   for both NEON and scalar floating-point operations.
+// Supported MXCSR fields:
+// - Bits 13-14: Rounding mode (RM) - SUPPORTED via ARM FPCR/FPSCR
+// - Bit 15 (FZ): Flush-to-zero mode - SUPPORTED via ARM FPCR/FPSCR bit 24
+// - Bit 6 (DAZ): Denormals-are-zero mode - SUPPORTED (unified with FZ on ARM)
+//
+// Unsupported MXCSR fields (silently ignored):
+// - Bits 0-5: Exception flags (IE, DE, ZE, OE, UE, PE) - NOT EMULATED
+// - Bits 7-12: Exception masks - NOT EMULATED
+// See "MXCSR Exception Flags - NOT EMULATED" documentation block for details.
+//
+// ARM Platform Behavior:
+// - ARM FPCR/FPSCR bit 24 provides unified FZ+DAZ behavior. Setting either
+//   _MM_FLUSH_ZERO_ON or _MM_DENORMALS_ZERO_ON enables the same ARM bit.
+// - ARMv7 NEON: "Flush-to-zero mode always enabled" per ARM ARM (impl may vary)
+// - ARMv8: FPCR.FZ correctly controls denormal handling for NEON operations
 FORCE_INLINE void _mm_setcsr(unsigned int a)
 {
     _MM_SET_ROUNDING_MODE(a & _MM_ROUND_MASK);
@@ -3090,19 +3205,22 @@ FORCE_INLINE void _mm_setcsr(unsigned int a)
 
 // Get the unsigned 32-bit value of the MXCSR control and status register.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_getcsr
-// The MXCSR register contains the following fields:
-// - Bits 13-14: Rounding mode
-// - Bit 15 (FZ): Flush-to-zero mode - output denormals become zero
-// - Bit 6 (DAZ): Denormals-are-zero mode - input denormals treated as zero
-// Exception flags and masks (bits 0-5, 7-12) are not supported on ARM NEON.
 //
-// ARM Platform Limitations:
-// - On ARM, FPCR/FPSCR bit 24 provides unified FZ+DAZ behavior. When enabled,
-//   both _MM_FLUSH_ZERO_ON and _MM_DENORMALS_ZERO_ON bits will be reported
+// Returned MXCSR fields:
+// - Bits 13-14: Rounding mode (RM) - Reflects current ARM FPCR/FPSCR setting
+// - Bit 15 (FZ): Flush-to-zero mode - Reflects ARM FPCR/FPSCR bit 24
+// - Bit 6 (DAZ): Denormals-are-zero mode - Mirrors FZ (unified on ARM)
+//
+// Fields always returned as zero (NOT EMULATED):
+// - Bits 0-5: Exception flags - ALWAYS 0 (exceptions not tracked)
+// - Bits 7-12: Exception masks - ALWAYS 0 (use _MM_GET_EXCEPTION_MASK()
+// instead) See "MXCSR Exception Flags - NOT EMULATED" documentation block for
+// details.
+//
+// ARM Platform Behavior:
+// - When ARM FPCR/FPSCR bit 24 is enabled, both FZ and DAZ bits are reported
 //   as set (the original setting cannot be distinguished).
-// - ARMv7 (AArch32) NEON: The returned FZ/DAZ bits reflect FPSCR settings,
-//   but per ARM ARM, NEON operations always flush denormals (impl may vary).
-// - See _mm_setcsr documentation for full platform limitation details.
+// - ARMv7 NEON: Returned bits reflect FPSCR, but NEON always flushes denormals
 FORCE_INLINE unsigned int _mm_getcsr(void)
 {
     return _MM_GET_ROUNDING_MODE() | _MM_GET_FLUSH_ZERO_MODE() |

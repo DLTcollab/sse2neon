@@ -12,6 +12,7 @@
  * as a union type. sse2neon.h blocks these headers by pre-defining their
  * include guards, but this only works if sse2neon.h is included first.
  */
+
 #if defined(_M_ARM64EC)
 #include "sse2neon.h"
 #endif
@@ -40,6 +41,43 @@
 #define _MM_DENORMALS_ZERO_MASK 0x0040
 #define _MM_DENORMALS_ZERO_ON 0x0040
 #define _MM_DENORMALS_ZERO_OFF 0x0000
+#endif
+
+// Fallback definitions for exception flag macros (MXCSR bits 0-5)
+#ifndef _MM_EXCEPT_INVALID
+#define _MM_EXCEPT_INVALID 0x0001
+#define _MM_EXCEPT_DENORM 0x0002
+#define _MM_EXCEPT_DIV_ZERO 0x0004
+#define _MM_EXCEPT_OVERFLOW 0x0008
+#define _MM_EXCEPT_UNDERFLOW 0x0010
+#define _MM_EXCEPT_INEXACT 0x0020
+#define _MM_EXCEPT_MASK 0x003F
+#endif
+#ifndef _MM_MASK_INVALID
+#define _MM_MASK_INVALID 0x0080
+#define _MM_MASK_DENORM 0x0100
+#define _MM_MASK_DIV_ZERO 0x0200
+#define _MM_MASK_OVERFLOW 0x0400
+#define _MM_MASK_UNDERFLOW 0x0800
+#define _MM_MASK_INEXACT 0x1000
+#define _MM_MASK_MASK 0x1F80
+#endif
+
+// Fallback definitions for exception state/mask accessor macros (x86)
+// On x86, these read/write the actual MXCSR exception bits
+#ifndef _MM_GET_EXCEPTION_STATE
+#define _MM_GET_EXCEPTION_STATE() (_mm_getcsr() & _MM_EXCEPT_MASK)
+#endif
+#ifndef _MM_SET_EXCEPTION_STATE
+#define _MM_SET_EXCEPTION_STATE(x) \
+    _mm_setcsr((_mm_getcsr() & ~_MM_EXCEPT_MASK) | ((x) & _MM_EXCEPT_MASK))
+#endif
+#ifndef _MM_GET_EXCEPTION_MASK
+#define _MM_GET_EXCEPTION_MASK() (_mm_getcsr() & _MM_MASK_MASK)
+#endif
+#ifndef _MM_SET_EXCEPTION_MASK
+#define _MM_SET_EXCEPTION_MASK(x) \
+    _mm_setcsr((_mm_getcsr() & ~_MM_MASK_MASK) | ((x) & _MM_MASK_MASK))
 #endif
 
 // __int64 is defined in the Intrinsics Guide which maps to different datatype

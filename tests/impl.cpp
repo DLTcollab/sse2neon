@@ -2134,6 +2134,70 @@ result_t test_mm_getcsr(const SSE2NEONTestImpl &impl, uint32_t iter)
         return TEST_FAIL;
     }
 
+    // Test MXCSR exception flag macro values (API compatibility)
+    // These values must match Intel spec on all platforms.
+    if (_MM_EXCEPT_INVALID != 0x0001 || _MM_EXCEPT_DENORM != 0x0002 ||
+        _MM_EXCEPT_DIV_ZERO != 0x0004 || _MM_EXCEPT_OVERFLOW != 0x0008 ||
+        _MM_EXCEPT_UNDERFLOW != 0x0010 || _MM_EXCEPT_INEXACT != 0x0020) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+    if (_MM_EXCEPT_MASK != 0x003F) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test MXCSR exception mask macro values (API compatibility)
+    if (_MM_MASK_INVALID != 0x0080 || _MM_MASK_DENORM != 0x0100 ||
+        _MM_MASK_DIV_ZERO != 0x0200 || _MM_MASK_OVERFLOW != 0x0400 ||
+        _MM_MASK_UNDERFLOW != 0x0800 || _MM_MASK_INEXACT != 0x1000) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+    if (_MM_MASK_MASK != 0x1F80) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+#if defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || \
+    defined(_M_ARM64EC)
+    // ARM-specific tests: Exception flags and masks are NOT emulated on ARM.
+    // See "MXCSR Exception Flags - NOT EMULATED" documentation in sse2neon.h.
+
+    // Test exception state accessor macros (ARM: always returns 0)
+    // On x86, this would return actual exception flags set by FP operations.
+    unsigned int excState = _MM_GET_EXCEPTION_STATE();
+    if (excState != 0) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test that _MM_SET_EXCEPTION_STATE is a no-op (state should still be 0)
+    _MM_SET_EXCEPTION_STATE(_MM_EXCEPT_INVALID | _MM_EXCEPT_OVERFLOW);
+    excState = _MM_GET_EXCEPTION_STATE();
+    if (excState != 0) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test exception mask accessor macros (ARM: always returns _MM_MASK_MASK)
+    // On x86, this reflects which exceptions are masked (defaults to all
+    // masked).
+    unsigned int excMask = _MM_GET_EXCEPTION_MASK();
+    if (excMask != _MM_MASK_MASK) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test that _MM_SET_EXCEPTION_MASK is a no-op (mask should still be full)
+    _MM_SET_EXCEPTION_MASK(0);  // Try to unmask all exceptions
+    excMask = _MM_GET_EXCEPTION_MASK();
+    if (excMask != _MM_MASK_MASK) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+#endif  // ARM platform
+
     // restore original csr value for remaining tests
     _mm_setcsr(originalCsr);
 
