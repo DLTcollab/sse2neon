@@ -53,6 +53,16 @@ typedef int64_t ALIGN_STRUCT(1) unaligned_int64_t;
 // Functions with "test_" prefix will be called in runSingleTest.
 namespace SSE2NEON
 {
+// Inject a double-precision NaN into a float array for double-precision tests.
+// The float arrays are reinterpreted as doubles via reinterpret_cast, where two
+// adjacent floats (8 bytes) form one double: double[0] = float[0..1],
+// double[1] = float[2..3].
+static inline void inject_double_nan(float *arr, uint32_t double_idx)
+{
+    double nan_d = nan("");
+    memcpy(&arr[double_idx * 2], &nan_d, sizeof(double));
+}
+
 // Forward declaration
 class SSE2NEONTestImpl : public SSE2NEONTest
 {
@@ -175,17 +185,11 @@ public:
                 test == it_mm_comile_sd || test == it_mm_ucomile_sd ||
                 test == it_mm_comilt_sd || test == it_mm_ucomilt_sd ||
                 test == it_mm_comineq_sd || test == it_mm_ucomineq_sd) {
-                // Make sure the NaN values are included in the testing
-                // one out of four times.
+                // Inject double NaN one out of four times.
                 if ((rand() & 3) == 0) {
-                    // FIXME:
-                    // The argument "0xFFFFFFFFFFFF" is a tricky workaround to
-                    // set the NaN value for doubles. The code is not intuitive
-                    // and should be fixed in the future.
-                    uint32_t r1 = static_cast<uint32_t>((rand() & 1) << 1) + 1;
-                    uint32_t r2 = static_cast<uint32_t>((rand() & 1) << 1) + 1;
-                    mTestFloatPointer1[r1] = nanf("0xFFFFFFFFFFFF");
-                    mTestFloatPointer2[r2] = nanf("0xFFFFFFFFFFFF");
+                    uint32_t nan_idx = rand() & 1;
+                    inject_double_nan(mTestFloatPointer1, nan_idx);
+                    inject_double_nan(mTestFloatPointer2, nan_idx);
                 }
             }
 
@@ -220,17 +224,11 @@ public:
 
             if (test == it_mm_max_pd || test == it_mm_max_sd ||
                 test == it_mm_min_pd || test == it_mm_min_sd) {
-                // Make sure the NaN values are included in the testing
-                // one out of four times.
+                // Inject double NaN one out of four times.
                 if ((rand() & 3) == 0) {
-                    // FIXME:
-                    // The argument "0xFFFFFFFFFFFF" is a tricky workaround to
-                    // set the NaN value for doubles. The code is not intuitive
-                    // and should be fixed in the future.
-                    uint32_t r1 = ((rand() & 1) << 1) + 1;
-                    uint32_t r2 = ((rand() & 1) << 1) + 1;
-                    mTestFloatPointer1[r1] = nanf("0xFFFFFFFFFFFF");
-                    mTestFloatPointer2[r2] = nanf("0xFFFFFFFFFFFF");
+                    uint32_t nan_idx = rand() & 1;
+                    inject_double_nan(mTestFloatPointer1, nan_idx);
+                    inject_double_nan(mTestFloatPointer2, nan_idx);
                 }
             }
 #endif
