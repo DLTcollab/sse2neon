@@ -1,5 +1,6 @@
 # sse2neon
 ![GitHub Actions](https://github.com/DLTcollab/sse2neon/workflows/GitHub%20Actions/badge.svg)
+![SSE Coverage](https://img.shields.io/endpoint?url=https://DLTcollab.github.io/sse2neon/badge/coverage.json)
 
 A C/C++ header file that converts Intel SSE intrinsics to Arm/Aarch64 NEON intrinsics.
 
