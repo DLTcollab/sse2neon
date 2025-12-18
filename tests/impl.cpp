@@ -12879,12 +12879,45 @@ static inline uint32_t sub_word(uint32_t in)
            (static_cast<uint32_t>(crypto_aes_sbox[in & 0xff]));
 }
 
-// FIXME: improve the test case for AES-256 key expansion.
-// Reference:
-// https://github.com/randombit/botan/blob/master/src/lib/block/aes/aes_ni/aes_ni.cpp
+// AES-256 key expansion helper: expands key using aeskeygenassist result
+// For even rounds (uses RotWord+SubWord+Rcon from word[3])
+// Reference: Botan AES-NI implementation
+static inline __m128i aes_mix_key(__m128i key)
+{
+    key = _mm_xor_si128(key, _mm_slli_si128(key, 4));
+    key = _mm_xor_si128(key, _mm_slli_si128(key, 4));
+    key = _mm_xor_si128(key, _mm_slli_si128(key, 4));
+    return key;
+}
+
+static inline __m128i aes256_key_exp_even(__m128i key, __m128i assist)
+{
+    // Broadcast word[3] which contains SubWord(RotWord(X[3])) ^ Rcon
+    __m128i tmp = _mm_shuffle_epi32(assist, _MM_SHUFFLE(3, 3, 3, 3));
+    return _mm_xor_si128(aes_mix_key(key), tmp);
+}
+
+// For odd rounds (uses SubWord only from word[2], no Rcon)
+static inline __m128i aes256_key_exp_odd(__m128i key, __m128i assist)
+{
+    // Broadcast word[2] which contains SubWord(X[3])
+    __m128i tmp = _mm_shuffle_epi32(assist, _MM_SHUFFLE(2, 2, 2, 2));
+    return _mm_xor_si128(aes_mix_key(key), tmp);
+}
+
+// Validate __m128i against expected 16-byte array
+static inline bool validate_round_key_bytes(__m128i key,
+                                            const uint8_t *expected)
+{
+    alignas(16) uint8_t result[16];
+    _mm_store_si128(reinterpret_cast<__m128i *>(result), key);
+    return memcmp(result, expected, 16) == 0;
+}
+
 result_t test_mm_aeskeygenassist_si128(const SSE2NEONTestImpl &impl,
                                        uint32_t iter)
 {
+    // Part 1: Basic SubWord/RotWord validation for all Rcon values (0-255)
     const uint32_t *a = reinterpret_cast<uint32_t *>(impl.mTestIntPointer1);
     __m128i data = load_m128i(a);
     uint32_t sub_x1 = sub_word(a[1]);
@@ -12904,6 +12937,279 @@ result_t test_mm_aeskeygenassist_si128(const SSE2NEONTestImpl &impl,
 
     IMM_256_ITER
 #undef TEST_IMPL
+
+    // Part 2: NIST FIPS 197 Appendix A.3 AES-256 Key Expansion Test
+    // Reference: https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197-upd1.pdf
+    //
+    // Cipher Key (256-bit, byte array):
+    //   60 3d eb 10 15 ca 71 be 2b 73 ae f0 85 7d 77 81
+    //   1f 35 2c 07 3b 61 08 d7 2d 98 10 a3 09 14 df f4
+    //
+    // This test verifies full AES-256 key expansion using _mm_aeskeygenassist
+    // following the Botan AES-NI implementation pattern.
+
+    // NIST FIPS 197 A.3: AES-256 cipher key (32 bytes)
+    const uint8_t nist_key[32] = {
+        0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe,  // K0 bytes 0-7
+        0x2b, 0x73, 0xae, 0xf0, 0x85, 0x7d, 0x77, 0x81,  // K0 bytes 8-15
+        0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7,  // K1 bytes 0-7
+        0x2d, 0x98, 0x10, 0xa3, 0x09, 0x14, 0xdf, 0xf4   // K1 bytes 8-15
+    };
+
+    // NIST FIPS 197 A.3: Expected round keys (15 x 16 bytes)
+    // Byte arrays in memory order (as loaded by _mm_loadu_si128)
+    const uint8_t nist_round_keys[15][16] = {
+        // K0: w[0-3]
+        {0x60, 0x3d, 0xeb, 0x10, 0x15, 0xca, 0x71, 0xbe, 0x2b, 0x73, 0xae, 0xf0,
+         0x85, 0x7d, 0x77, 0x81},
+        // K1: w[4-7]
+        {0x1f, 0x35, 0x2c, 0x07, 0x3b, 0x61, 0x08, 0xd7, 0x2d, 0x98, 0x10, 0xa3,
+         0x09, 0x14, 0xdf, 0xf4},
+        // K2: w[8-11]
+        {0x9b, 0xa3, 0x54, 0x11, 0x8e, 0x69, 0x25, 0xaf, 0xa5, 0x1a, 0x8b, 0x5f,
+         0x20, 0x67, 0xfc, 0xde},
+        // K3: w[12-15]
+        {0xa8, 0xb0, 0x9c, 0x1a, 0x93, 0xd1, 0x94, 0xcd, 0xbe, 0x49, 0x84, 0x6e,
+         0xb7, 0x5d, 0x5b, 0x9a},
+        // K4: w[16-19]
+        {0xd5, 0x9a, 0xec, 0xb8, 0x5b, 0xf3, 0xc9, 0x17, 0xfe, 0xe9, 0x42, 0x48,
+         0xde, 0x8e, 0xbe, 0x96},
+        // K5: w[20-23]
+        {0xb5, 0xa9, 0x32, 0x8a, 0x26, 0x78, 0xa6, 0x47, 0x98, 0x31, 0x22, 0x29,
+         0x2f, 0x6c, 0x79, 0xb3},
+        // K6: w[24-27]
+        {0x81, 0x2c, 0x81, 0xad, 0xda, 0xdf, 0x48, 0xba, 0x24, 0x36, 0x0a, 0xf2,
+         0xfa, 0xb8, 0xb4, 0x64},
+        // K7: w[28-31]
+        {0x98, 0xc5, 0xbf, 0xc9, 0xbe, 0xbd, 0x19, 0x8e, 0x26, 0x8c, 0x3b, 0xa7,
+         0x09, 0xe0, 0x42, 0x14},
+        // K8: w[32-35]
+        {0x68, 0x00, 0x7b, 0xac, 0xb2, 0xdf, 0x33, 0x16, 0x96, 0xe9, 0x39, 0xe4,
+         0x6c, 0x51, 0x8d, 0x80},
+        // K9: w[36-39]
+        {0xc8, 0x14, 0xe2, 0x04, 0x76, 0xa9, 0xfb, 0x8a, 0x50, 0x25, 0xc0, 0x2d,
+         0x59, 0xc5, 0x82, 0x39},
+        // K10: w[40-43]
+        {0xde, 0x13, 0x69, 0x67, 0x6c, 0xcc, 0x5a, 0x71, 0xfa, 0x25, 0x63, 0x95,
+         0x96, 0x74, 0xee, 0x15},
+        // K11: w[44-47]
+        {0x58, 0x86, 0xca, 0x5d, 0x2e, 0x2f, 0x31, 0xd7, 0x7e, 0x0a, 0xf1, 0xfa,
+         0x27, 0xcf, 0x73, 0xc3},
+        // K12: w[48-51]
+        {0x74, 0x9c, 0x47, 0xab, 0x18, 0x50, 0x1d, 0xda, 0xe2, 0x75, 0x7e, 0x4f,
+         0x74, 0x01, 0x90, 0x5a},
+        // K13: w[52-55]
+        {0xca, 0xfa, 0xaa, 0xe3, 0xe4, 0xd5, 0x9b, 0x34, 0x9a, 0xdf, 0x6a, 0xce,
+         0xbd, 0x10, 0x19, 0x0d},
+        // K14: w[56-59]
+        {0xfe, 0x48, 0x90, 0xd1, 0xe6, 0x18, 0x8d, 0x0b, 0x04, 0x6d, 0xf3, 0x44,
+         0x70, 0x6c, 0x63, 0x1e},
+    };
+
+    // Load initial key halves (K0 and K1)
+    __m128i K0 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i *>(&nist_key[0]));
+    __m128i K1 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i *>(&nist_key[16]));
+
+    // Validate K0 and K1 match expected values
+    if (!validate_round_key_bytes(K0, nist_round_keys[0]))
+        return TEST_FAIL;
+    if (!validate_round_key_bytes(K1, nist_round_keys[1]))
+        return TEST_FAIL;
+
+    // AES-256 key expansion using _mm_aeskeygenassist_si128
+    // Pattern: K[2i] uses Rcon, K[2i+1] uses no Rcon
+    // Rcon values: 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40
+    __m128i K2, K3, K4, K5, K6, K7, K8, K9, K10, K11, K12, K13, K14;
+
+    // Round 2 (Rcon = 0x01)
+    K2 = aes256_key_exp_even(K0, _mm_aeskeygenassist_si128(K1, 0x01));
+    if (!validate_round_key_bytes(K2, nist_round_keys[2]))
+        return TEST_FAIL;
+
+    // Round 3 (no Rcon, SubWord only)
+    K3 = aes256_key_exp_odd(K1, _mm_aeskeygenassist_si128(K2, 0x00));
+    if (!validate_round_key_bytes(K3, nist_round_keys[3]))
+        return TEST_FAIL;
+
+    // Round 4 (Rcon = 0x02)
+    K4 = aes256_key_exp_even(K2, _mm_aeskeygenassist_si128(K3, 0x02));
+    if (!validate_round_key_bytes(K4, nist_round_keys[4]))
+        return TEST_FAIL;
+
+    // Round 5 (no Rcon)
+    K5 = aes256_key_exp_odd(K3, _mm_aeskeygenassist_si128(K4, 0x00));
+    if (!validate_round_key_bytes(K5, nist_round_keys[5]))
+        return TEST_FAIL;
+
+    // Round 6 (Rcon = 0x04)
+    K6 = aes256_key_exp_even(K4, _mm_aeskeygenassist_si128(K5, 0x04));
+    if (!validate_round_key_bytes(K6, nist_round_keys[6]))
+        return TEST_FAIL;
+
+    // Round 7 (no Rcon)
+    K7 = aes256_key_exp_odd(K5, _mm_aeskeygenassist_si128(K6, 0x00));
+    if (!validate_round_key_bytes(K7, nist_round_keys[7]))
+        return TEST_FAIL;
+
+    // Round 8 (Rcon = 0x08)
+    K8 = aes256_key_exp_even(K6, _mm_aeskeygenassist_si128(K7, 0x08));
+    if (!validate_round_key_bytes(K8, nist_round_keys[8]))
+        return TEST_FAIL;
+
+    // Round 9 (no Rcon)
+    K9 = aes256_key_exp_odd(K7, _mm_aeskeygenassist_si128(K8, 0x00));
+    if (!validate_round_key_bytes(K9, nist_round_keys[9]))
+        return TEST_FAIL;
+
+    // Round 10 (Rcon = 0x10)
+    K10 = aes256_key_exp_even(K8, _mm_aeskeygenassist_si128(K9, 0x10));
+    if (!validate_round_key_bytes(K10, nist_round_keys[10]))
+        return TEST_FAIL;
+
+    // Round 11 (no Rcon)
+    K11 = aes256_key_exp_odd(K9, _mm_aeskeygenassist_si128(K10, 0x00));
+    if (!validate_round_key_bytes(K11, nist_round_keys[11]))
+        return TEST_FAIL;
+
+    // Round 12 (Rcon = 0x20)
+    K12 = aes256_key_exp_even(K10, _mm_aeskeygenassist_si128(K11, 0x20));
+    if (!validate_round_key_bytes(K12, nist_round_keys[12]))
+        return TEST_FAIL;
+
+    // Round 13 (no Rcon)
+    K13 = aes256_key_exp_odd(K11, _mm_aeskeygenassist_si128(K12, 0x00));
+    if (!validate_round_key_bytes(K13, nist_round_keys[13]))
+        return TEST_FAIL;
+
+    // Round 14 (Rcon = 0x40)
+    K14 = aes256_key_exp_even(K12, _mm_aeskeygenassist_si128(K13, 0x40));
+    if (!validate_round_key_bytes(K14, nist_round_keys[14]))
+        return TEST_FAIL;
+
+    // Part 3: AES-256 Encryption Test with NIST FIPS 197 Appendix C.3
+    // Plaintext:  00112233445566778899aabbccddeeff
+    // Key: 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
+    // Ciphertext: 8ea2b7ca516745bfeafc49904b496089
+
+    // NIST FIPS 197 C.3 test key
+    const uint8_t enc_key[32] = {
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a,
+        0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
+        0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    };
+
+    // NIST plaintext and expected ciphertext
+    const uint8_t plaintext[16] = {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff,
+    };
+    const uint8_t expected_cipher[16] = {
+        0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf,
+        0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89,
+    };
+
+    // Expand the C.3 key
+    __m128i EK0 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i *>(&enc_key[0]));
+    __m128i EK1 =
+        _mm_loadu_si128(reinterpret_cast<const __m128i *>(&enc_key[16]));
+
+    __m128i EK[15];
+    EK[0] = EK0;
+    EK[1] = EK1;
+    EK[2] = aes256_key_exp_even(EK[0], _mm_aeskeygenassist_si128(EK[1], 0x01));
+    EK[3] = aes256_key_exp_odd(EK[1], _mm_aeskeygenassist_si128(EK[2], 0x00));
+    EK[4] = aes256_key_exp_even(EK[2], _mm_aeskeygenassist_si128(EK[3], 0x02));
+    EK[5] = aes256_key_exp_odd(EK[3], _mm_aeskeygenassist_si128(EK[4], 0x00));
+    EK[6] = aes256_key_exp_even(EK[4], _mm_aeskeygenassist_si128(EK[5], 0x04));
+    EK[7] = aes256_key_exp_odd(EK[5], _mm_aeskeygenassist_si128(EK[6], 0x00));
+    EK[8] = aes256_key_exp_even(EK[6], _mm_aeskeygenassist_si128(EK[7], 0x08));
+    EK[9] = aes256_key_exp_odd(EK[7], _mm_aeskeygenassist_si128(EK[8], 0x00));
+    EK[10] = aes256_key_exp_even(EK[8], _mm_aeskeygenassist_si128(EK[9], 0x10));
+    EK[11] = aes256_key_exp_odd(EK[9], _mm_aeskeygenassist_si128(EK[10], 0x00));
+    EK[12] =
+        aes256_key_exp_even(EK[10], _mm_aeskeygenassist_si128(EK[11], 0x20));
+    EK[13] =
+        aes256_key_exp_odd(EK[11], _mm_aeskeygenassist_si128(EK[12], 0x00));
+    EK[14] =
+        aes256_key_exp_even(EK[12], _mm_aeskeygenassist_si128(EK[13], 0x40));
+
+    // Encrypt plaintext using AES-256 (14 rounds)
+    __m128i state =
+        _mm_loadu_si128(reinterpret_cast<const __m128i *>(plaintext));
+
+    // Initial round: AddRoundKey
+    state = _mm_xor_si128(state, EK[0]);
+
+    // Rounds 1-13: SubBytes, ShiftRows, MixColumns, AddRoundKey
+    state = _mm_aesenc_si128(state, EK[1]);
+    state = _mm_aesenc_si128(state, EK[2]);
+    state = _mm_aesenc_si128(state, EK[3]);
+    state = _mm_aesenc_si128(state, EK[4]);
+    state = _mm_aesenc_si128(state, EK[5]);
+    state = _mm_aesenc_si128(state, EK[6]);
+    state = _mm_aesenc_si128(state, EK[7]);
+    state = _mm_aesenc_si128(state, EK[8]);
+    state = _mm_aesenc_si128(state, EK[9]);
+    state = _mm_aesenc_si128(state, EK[10]);
+    state = _mm_aesenc_si128(state, EK[11]);
+    state = _mm_aesenc_si128(state, EK[12]);
+    state = _mm_aesenc_si128(state, EK[13]);
+
+    // Final round: SubBytes, ShiftRows, AddRoundKey (no MixColumns)
+    state = _mm_aesenclast_si128(state, EK[14]);
+
+    // Verify ciphertext
+    uint8_t result_cipher[16];
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(result_cipher), state);
+    for (int i = 0; i < 16; i++) {
+        if (result_cipher[i] != expected_cipher[i])
+            return TEST_FAIL;
+    }
+
+    // Part 4: AES-256 Decryption Test (verify roundtrip)
+
+    // Generate decryption keys using InvMixColumns
+    __m128i DK[15];
+    DK[0] = EK[14];  // First decryption key = last encryption key
+    for (int i = 1; i < 14; i++)
+        DK[i] = _mm_aesimc_si128(EK[14 - i]);
+    DK[14] = EK[0];  // Last decryption key = first encryption key
+
+    // Decrypt ciphertext
+    state = _mm_loadu_si128(reinterpret_cast<const __m128i *>(expected_cipher));
+
+    // Initial round: AddRoundKey
+    state = _mm_xor_si128(state, DK[0]);
+
+    // Rounds 1-13: InvSubBytes, InvShiftRows, InvMixColumns, AddRoundKey
+    state = _mm_aesdec_si128(state, DK[1]);
+    state = _mm_aesdec_si128(state, DK[2]);
+    state = _mm_aesdec_si128(state, DK[3]);
+    state = _mm_aesdec_si128(state, DK[4]);
+    state = _mm_aesdec_si128(state, DK[5]);
+    state = _mm_aesdec_si128(state, DK[6]);
+    state = _mm_aesdec_si128(state, DK[7]);
+    state = _mm_aesdec_si128(state, DK[8]);
+    state = _mm_aesdec_si128(state, DK[9]);
+    state = _mm_aesdec_si128(state, DK[10]);
+    state = _mm_aesdec_si128(state, DK[11]);
+    state = _mm_aesdec_si128(state, DK[12]);
+    state = _mm_aesdec_si128(state, DK[13]);
+
+    // Final round: InvSubBytes, InvShiftRows, AddRoundKey (no InvMixColumns)
+    state = _mm_aesdeclast_si128(state, DK[14]);
+
+    // Verify decryption matches original plaintext
+    uint8_t result_plain[16];
+    _mm_storeu_si128(reinterpret_cast<__m128i *>(result_plain), state);
+    for (int i = 0; i < 16; i++) {
+        if (result_plain[i] != plaintext[i])
+            return TEST_FAIL;
+    }
+
     return TEST_SUCCESS;
 }
 
