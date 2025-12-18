@@ -651,3 +651,34 @@ jobs:
         run: |
           echo "Comparing sse2neon (ARM) against native SSE (x86)..."
           ./tests/differential --verify golden/
+
+  # Coverage verification: check intrinsic coverage against Intel reference
+  coverage:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: check intrinsic coverage
+        id: coverage
+        run: |
+          echo "=== Intrinsic Coverage Report ==="
+          python3 scripts/coverage-check.py
+          COVERAGE=$(python3 scripts/coverage-check.py --badge)
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+      - name: update coverage badge
+        if: github.ref == 'refs/heads/master'
+        run: |
+          mkdir -p badge
+          printf '{"schemaVersion":1,"label":"SSE Coverage","message":"%s%%","color":"blue"}\n' \
+            "${{ steps.coverage.outputs.coverage }}" > badge/coverage.json
+          cat badge/coverage.json
+      - name: deploy badge to GitHub Pages
+        if: github.ref == 'refs/heads/master'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./badge
+          destination_dir: badge
+          keep_files: true

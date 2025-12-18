@@ -237,7 +237,11 @@ ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 endif
 	$(EXEC_WRAPPER) $(DIFFERENTIAL_EXEC) --verify $(GOLDEN_DIR)
 
-.PHONY: clean check check-main check-ieee754 check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden indent ieee754
+# Coverage verification: compare implemented intrinsics against Intel reference
+coverage-report:
+	@python3 scripts/coverage-check.py
+
+.PHONY: clean check check-main check-ieee754 check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden coverage-report indent ieee754
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)
