@@ -3551,14 +3551,23 @@ FORCE_INLINE void _mm_storeu_si64(void *p, __m128i a)
 
 // Store 64-bits of integer data from a into memory using a non-temporal memory
 // hint.
+// Note: ARM lacks direct non-temporal store for single 64-bit value. STNP
+// requires pair stores; __builtin_nontemporal_store may generate regular store
+// on AArch64 for sub-128-bit types.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_stream_pi
 FORCE_INLINE void _mm_stream_pi(__m64 *p, __m64 a)
 {
+#if __has_builtin(__builtin_nontemporal_store)
+    __builtin_nontemporal_store(a, p);
+#else
     vst1_s64(_sse2neon_reinterpret_cast(int64_t *, p), vreinterpret_s64_m64(a));
+#endif
 }
 
 // Store 128-bits (composed of 4 packed single-precision (32-bit) floating-
 // point elements) from a into memory using a non-temporal memory hint.
+// Note: On AArch64, __builtin_nontemporal_store generates STNP (Store
+// Non-temporal Pair), providing true non-temporal hint for 128-bit stores.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_stream_ps
 FORCE_INLINE void _mm_stream_ps(float *p, __m128 a)
 {
@@ -6514,6 +6523,8 @@ FORCE_INLINE void _mm_storeu_si32(void *p, __m128i a)
 // elements) from a into memory using a non-temporal memory hint. mem_addr must
 // be aligned on a 16-byte boundary or a general-protection exception may be
 // generated.
+// Note: On AArch64, __builtin_nontemporal_store generates STNP (Store
+// Non-temporal Pair), providing true non-temporal hint for 128-bit stores.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_stream_pd
 FORCE_INLINE void _mm_stream_pd(double *p, __m128d a)
 {
@@ -6530,6 +6541,8 @@ FORCE_INLINE void _mm_stream_pd(double *p, __m128d a)
 // Store 128-bits of integer data from a into memory using a non-temporal memory
 // hint. mem_addr must be aligned on a 16-byte boundary or a general-protection
 // exception may be generated.
+// Note: On AArch64, __builtin_nontemporal_store generates STNP (Store
+// Non-temporal Pair), providing true non-temporal hint for 128-bit stores.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_stream_si128
 FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 {
@@ -6544,20 +6557,33 @@ FORCE_INLINE void _mm_stream_si128(__m128i *p, __m128i a)
 // Store 32-bit integer a into memory using a non-temporal hint to minimize
 // cache pollution. If the cache line containing address mem_addr is already in
 // the cache, the cache will be updated.
+// Note: ARM lacks non-temporal store for 32-bit scalar. STNP requires pair
+// stores; __builtin_nontemporal_store may generate regular store on AArch64.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_stream_si32
 FORCE_INLINE void _mm_stream_si32(int *p, int a)
 {
+#if __has_builtin(__builtin_nontemporal_store)
+    __builtin_nontemporal_store(a, p);
+#else
     vst1q_lane_s32(_sse2neon_reinterpret_cast(int32_t *, p), vdupq_n_s32(a), 0);
+#endif
 }
 
 // Store 64-bit integer a into memory using a non-temporal hint to minimize
 // cache pollution. If the cache line containing address mem_addr is already in
 // the cache, the cache will be updated.
+// Note: ARM lacks direct non-temporal store for single 64-bit value. STNP
+// requires pair stores; __builtin_nontemporal_store may generate regular store
+// on AArch64.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_stream_si64
 FORCE_INLINE void _mm_stream_si64(__int64 *p, __int64 a)
 {
+#if __has_builtin(__builtin_nontemporal_store)
+    __builtin_nontemporal_store(a, p);
+#else
     vst1_s64(_sse2neon_reinterpret_cast(int64_t *, p),
              vdup_n_s64(_sse2neon_static_cast(int64_t, a)));
+#endif
 }
 
 // Subtract packed 16-bit integers in b from packed 16-bit integers in a, and
@@ -8711,10 +8737,12 @@ FORCE_INLINE __m128 _mm_round_ss(__m128 a, __m128 b, int rounding)
 // Load 128-bits of integer data from memory into dst using a non-temporal
 // memory hint. mem_addr must be aligned on a 16-byte boundary or a
 // general-protection exception may be generated.
+// Note: On AArch64, __builtin_nontemporal_load generates LDNP (Load
+// Non-temporal Pair), providing true non-temporal hint for 128-bit loads.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_stream_load_si128
 FORCE_INLINE __m128i _mm_stream_load_si128(__m128i *p)
 {
-#if __has_builtin(__builtin_nontemporal_store)
+#if __has_builtin(__builtin_nontemporal_load)
     return __builtin_nontemporal_load(p);
 #else
     return vreinterpretq_m128i_s64(
