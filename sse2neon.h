@@ -3435,11 +3435,14 @@ FORCE_INLINE __m128 _mm_sqrt_ps(__m128 in)
     float32x4_t _in = vreinterpretq_f32_m128(in);
     float32x4_t recip = vrsqrteq_f32(_in);
 
-    // Test for vrsqrteq_f32(0) -> positive infinity case.
-    // Change to zero, so that s * 1/sqrt(s) result is zero too.
+    // Test for vrsqrteq_f32(0) -> infinity case (both +Inf and -Inf).
+    // vrsqrteq_f32(+0) = +Inf, vrsqrteq_f32(-0) = -Inf
+    // Change recip to zero so that s * 1/sqrt(s) preserves signed zero:
+    //   +0 * 0 = +0, -0 * 0 = -0 (IEEE-754 sign rule)
+    const uint32x4_t abs_mask = vdupq_n_u32(0x7FFFFFFF);
     const uint32x4_t pos_inf = vdupq_n_u32(0x7F800000);
     const uint32x4_t div_by_zero =
-        vceqq_u32(pos_inf, vreinterpretq_u32_f32(recip));
+        vceqq_u32(pos_inf, vandq_u32(abs_mask, vreinterpretq_u32_f32(recip)));
     recip = vreinterpretq_f32_u32(
         vandq_u32(vmvnq_u32(div_by_zero), vreinterpretq_u32_f32(recip)));
 
