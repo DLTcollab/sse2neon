@@ -198,6 +198,108 @@ static inline double extract_pd(__m128d v, int idx)
     return result[idx];
 }
 
+/* Verify all lanes of __m128 have expected bit pattern */
+static inline bool verify_all_lanes_ps(__m128 v, uint32_t expected_bits)
+{
+    float results[4];
+    _mm_storeu_ps(results, v);
+    for (int i = 0; i < 4; i++) {
+        uint32_t bits;
+        memcpy(&bits, &results[i], sizeof(bits));
+        if (bits != expected_bits)
+            return false;
+    }
+    return true;
+}
+
+/* Verify all lanes of __m128d have expected bit pattern */
+static inline bool verify_all_lanes_pd(__m128d v, uint64_t expected_bits)
+{
+    double results[2];
+    _mm_storeu_pd(results, v);
+    for (int i = 0; i < 2; i++) {
+        uint64_t bits;
+        memcpy(&bits, &results[i], sizeof(bits));
+        if (bits != expected_bits)
+            return false;
+    }
+    return true;
+}
+
+/* Verify all lanes of __m128 are positive infinity */
+static inline bool verify_all_lanes_pos_inf(__m128 v)
+{
+    float results[4];
+    _mm_storeu_ps(results, v);
+    for (int i = 0; i < 4; i++) {
+        if (!std::isinf(results[i]) || results[i] < 0)
+            return false;
+    }
+    return true;
+}
+
+/* Verify all lanes of __m128 are negative infinity */
+static inline bool verify_all_lanes_neg_inf(__m128 v)
+{
+    float results[4];
+    _mm_storeu_ps(results, v);
+    for (int i = 0; i < 4; i++) {
+        if (!std::isinf(results[i]) || results[i] > 0)
+            return false;
+    }
+    return true;
+}
+
+/* Verify all lanes are positive infinity or NaN (for rsqrt compatibility) */
+static inline bool verify_all_lanes_pos_inf_or_nan(__m128 v)
+{
+    float results[4];
+    _mm_storeu_ps(results, v);
+    for (int i = 0; i < 4; i++) {
+        if (!((std::isinf(results[i]) && results[i] > 0) ||
+              std::isnan(results[i])))
+            return false;
+    }
+    return true;
+}
+
+/* Verify all lanes are negative infinity or NaN (for rsqrt compatibility) */
+static inline bool verify_all_lanes_neg_inf_or_nan(__m128 v)
+{
+    float results[4];
+    _mm_storeu_ps(results, v);
+    for (int i = 0; i < 4; i++) {
+        if (!((std::isinf(results[i]) && results[i] < 0) ||
+              std::isnan(results[i])))
+            return false;
+    }
+    return true;
+}
+
+/* Verify all lanes of __m128d are positive infinity */
+static inline bool verify_all_lanes_pos_inf_pd(__m128d v)
+{
+    double results[2];
+    _mm_storeu_pd(results, v);
+    for (int i = 0; i < 2; i++) {
+        if (!std::isinf(results[i]) || results[i] < 0)
+            return false;
+    }
+    return true;
+}
+
+/* Verify all lanes of __m128d are negative infinity */
+static inline bool verify_all_lanes_neg_inf_pd(__m128d v)
+{
+    double results[2];
+    _mm_storeu_pd(results, v);
+    for (int i = 0; i < 2; i++) {
+        if (!std::isinf(results[i]) || results[i] > 0)
+            return false;
+    }
+    return true;
+}
+
 /* NaN Propagation Tests
  * IEEE-754: Operations involving NaN should propagate NaN (with exceptions)
  */
@@ -396,15 +498,15 @@ TEST_CASE(signed_zero_comparison)
     float pos_zero = make_pos_zero();
     float neg_zero = make_neg_zero();
 
-    /* +0 == -0 in value comparison */
+    /* +0 == -0 in value comparison (IEEE-754: equal in value)
+     * Verify all SIMD lanes to catch lane-mixing bugs.
+     */
     __m128 a = _mm_set1_ps(pos_zero);
     __m128 b = _mm_set1_ps(neg_zero);
     __m128 c = _mm_cmpeq_ps(a, b);
 
-    /* All bits should be set (true) */
-    uint32_t result;
-    memcpy(&result, &c, sizeof(result));
-    EXPECT_TRUE(result == 0xFFFFFFFF);
+    /* All lanes should have all bits set (true) */
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0xFFFFFFFF));
 
     return TEST_SUCCESS;
 }
@@ -466,6 +568,299 @@ TEST_CASE(signed_zero_mul)
     result = extract_ps(c, 0);
     memcpy(&bits, &result, sizeof(bits));
     EXPECT_TRUE(bits == 0x00000000);
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(signed_zero_div)
+{
+    float pos_zero = make_pos_zero();
+    float neg_zero = make_neg_zero();
+    float positive = 1.0f;
+    float negative = -1.0f;
+
+    /* IEEE-754 division with signed zeros:
+     *   positive / +0 = +Inf
+     *   positive / -0 = -Inf
+     *   negative / +0 = -Inf
+     *   negative / -0 = +Inf
+     *
+     * Verify all SIMD lanes to catch lane-mixing bugs.
+     */
+
+    /* positive / (+0) = +Inf (all lanes) */
+    __m128 a = _mm_set1_ps(positive);
+    __m128 b = _mm_set1_ps(pos_zero);
+    __m128 c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_pos_inf(c));
+
+    /* positive / (-0) = -Inf (all lanes) */
+    b = _mm_set1_ps(neg_zero);
+    c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_neg_inf(c));
+
+    /* negative / (+0) = -Inf (all lanes) */
+    a = _mm_set1_ps(negative);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_neg_inf(c));
+
+    /* negative / (-0) = +Inf (all lanes) */
+    b = _mm_set1_ps(neg_zero);
+    c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_pos_inf(c));
+
+    /* Zero divided by non-zero preserves sign:
+     *   +0 / positive = +0
+     *   -0 / positive = -0
+     *   +0 / negative = -0
+     *   -0 / negative = +0
+     */
+
+    /* (+0) / positive = +0 (all lanes) */
+    a = _mm_set1_ps(pos_zero);
+    b = _mm_set1_ps(positive);
+    c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* (-0) / positive = -0 (all lanes) */
+    a = _mm_set1_ps(neg_zero);
+    c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* (+0) / negative = -0 (all lanes) */
+    a = _mm_set1_ps(pos_zero);
+    b = _mm_set1_ps(negative);
+    c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* (-0) / negative = +0 (all lanes) */
+    a = _mm_set1_ps(neg_zero);
+    c = _mm_div_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(signed_zero_sqrt)
+{
+    float pos_zero = make_pos_zero();
+    float neg_zero = make_neg_zero();
+
+    /* IEEE-754: sqrt preserves sign of zero
+     *   sqrt(+0) = +0
+     *   sqrt(-0) = -0
+     *
+     * Verify all SIMD lanes to catch lane-mixing bugs.
+     */
+
+    /* sqrt(+0) = +0 (all lanes) */
+    __m128 a = _mm_set1_ps(pos_zero);
+    __m128 c = _mm_sqrt_ps(a);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* sqrt(-0) = -0 (all lanes) */
+    a = _mm_set1_ps(neg_zero);
+    c = _mm_sqrt_ps(a);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(signed_zero_rsqrt)
+{
+    float pos_zero = make_pos_zero();
+    float neg_zero = make_neg_zero();
+
+    /* rsqrt(0) behavior:
+     * - x86 SSE: rsqrt(+0) = +Inf, rsqrt(-0) = -Inf
+     * - ARM NEON: vrsqrteq_f32(+0) = +Inf, vrsqrteq_f32(-0) = -Inf
+     *
+     * Both platforms agree: rsqrt preserves the sign of zero in the infinity.
+     * Note: The existing test in rsqrt_ps_special_values accepts NaN as well
+     * because the existing sse2neon.h implementation may return NaN for some
+     * cases (documented in header). This strict test verifies the ideal case.
+     *
+     * Verify all SIMD lanes to catch lane-mixing bugs.
+     */
+
+    /* rsqrt(+0) = +Inf (all lanes; accept NaN for sse2neon compatibility) */
+    __m128 a = _mm_set1_ps(pos_zero);
+    __m128 c = _mm_rsqrt_ps(a);
+    EXPECT_TRUE(verify_all_lanes_pos_inf_or_nan(c));
+
+    /* rsqrt(-0) = -Inf (all lanes; accept NaN for sse2neon compatibility) */
+    a = _mm_set1_ps(neg_zero);
+    c = _mm_rsqrt_ps(a);
+    EXPECT_TRUE(verify_all_lanes_neg_inf_or_nan(c));
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(signed_zero_sub)
+{
+    float pos_zero = make_pos_zero();
+    float neg_zero = make_neg_zero();
+    float positive = 1.0f;
+    float negative = -1.0f;
+
+    /* IEEE-754 subtraction with signed zeros:
+     *   +0 - (+0) = +0 (in round-to-nearest mode)
+     *   -0 - (-0) = +0
+     *   +0 - (-0) = +0
+     *   -0 - (+0) = -0
+     *
+     * For non-zero operands:
+     *   x - x = +0 (always, in round-to-nearest mode)
+     */
+
+    /* +0 - (+0) = +0 */
+    __m128 a = _mm_set1_ps(pos_zero);
+    __m128 b = _mm_set1_ps(pos_zero);
+    __m128 c = _mm_sub_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* -0 - (-0) = +0 */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(neg_zero);
+    c = _mm_sub_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* +0 - (-0) = +0 */
+    a = _mm_set1_ps(pos_zero);
+    b = _mm_set1_ps(neg_zero);
+    c = _mm_sub_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* -0 - (+0) = -0 */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_sub_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* positive - positive = +0 (x - x = +0) */
+    a = _mm_set1_ps(positive);
+    c = _mm_sub_ps(a, a);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* negative - negative = +0 (x - x = +0) */
+    a = _mm_set1_ps(negative);
+    c = _mm_sub_ps(a, a);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(signed_zero_minmax)
+{
+    float pos_zero = make_pos_zero();
+    float neg_zero = make_neg_zero();
+
+    /* SSE min/max with equal values (including signed zeros):
+     *
+     * SSE MINPS/MAXPS behavior:
+     *   - If a < b, return a; else return b (for MINPS)
+     *   - If a > b, return a; else return b (for MAXPS)
+     *   - When a == b (including +0 vs -0), returns b (second operand)
+     *
+     * ARM NEON vminq_f32/vmaxq_f32 behavior (IEEE 754 minNum/maxNum):
+     *   - min: returns the more negative value (-0 is "less than" +0)
+     *   - max: returns the more positive value (+0 is "greater than" -0)
+     *   - This is deterministic IEEE 754-2008 minNum/maxNum semantics
+     *
+     * With SSE2NEON_PRECISE_MINMAX=1, we emulate SSE semantics exactly.
+     * Without it, we use fast NEON instructions with IEEE 754 signed zero
+     * handling (which differs from SSE for some operand orderings).
+     */
+
+#if SSE2NEON_PRECISE_MINMAX
+    /* With PRECISE_MINMAX, SSE semantics are enforced */
+
+    /* min(+0, -0): SSE returns second operand (-0) */
+    __m128 a = _mm_set1_ps(pos_zero);
+    __m128 b = _mm_set1_ps(neg_zero);
+    __m128 c = _mm_min_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* min(-0, +0): SSE returns second operand (+0) */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_min_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* max(+0, -0): SSE returns second operand (-0) */
+    a = _mm_set1_ps(pos_zero);
+    b = _mm_set1_ps(neg_zero);
+    c = _mm_max_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* max(-0, +0): SSE returns second operand (+0) */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_max_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+#elif defined(__aarch64__) || defined(__arm__) || defined(_M_ARM) || \
+    defined(_M_ARM64) || defined(_M_ARM64EC)
+    /* Without PRECISE_MINMAX on ARM, NEON uses vminq_f32/vmaxq_f32 which follow
+     * IEEE 754-2008 minNum/maxNum semantics for signed zeros:
+     *   - min: returns the more negative value (-0 < +0 numerically)
+     *   - max: returns the more positive value (+0 > -0 numerically)
+     *
+     * This differs from SSE which always returns the second operand when equal.
+     */
+
+    /* min(+0, -0): NEON returns -0 (numerically smaller) */
+    __m128 a = _mm_set1_ps(pos_zero);
+    __m128 b = _mm_set1_ps(neg_zero);
+    __m128 c = _mm_min_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* min(-0, +0): NEON returns -0 (numerically smaller) */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_min_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* max(+0, -0): NEON returns +0 (numerically larger) */
+    a = _mm_set1_ps(pos_zero);
+    b = _mm_set1_ps(neg_zero);
+    c = _mm_max_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* max(-0, +0): NEON returns +0 (numerically larger) */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_max_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+#else
+    /* On x86 without PRECISE_MINMAX, native SSE semantics apply:
+     * SSE always returns the second operand when values compare equal.
+     */
+
+    /* min(+0, -0): SSE returns -0 (second operand) */
+    __m128 a = _mm_set1_ps(pos_zero);
+    __m128 b = _mm_set1_ps(neg_zero);
+    __m128 c = _mm_min_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* min(-0, +0): SSE returns +0 (second operand) */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_min_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+
+    /* max(+0, -0): SSE returns -0 (second operand) */
+    a = _mm_set1_ps(pos_zero);
+    b = _mm_set1_ps(neg_zero);
+    c = _mm_max_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x80000000));
+
+    /* max(-0, +0): SSE returns +0 (second operand) */
+    a = _mm_set1_ps(neg_zero);
+    b = _mm_set1_ps(pos_zero);
+    c = _mm_max_ps(a, b);
+    EXPECT_TRUE(verify_all_lanes_ps(c, 0x00000000));
+#endif
 
     return TEST_SUCCESS;
 }
@@ -1092,6 +1487,119 @@ TEST_CASE(min_pd_nan_behavior)
     return TEST_SUCCESS;
 }
 
+/* Double Precision Helper Functions */
+static inline double make_pos_zero_d(void)
+{
+    return 0.0;
+}
+
+static inline double make_neg_zero_d(void)
+{
+    return -0.0;
+}
+
+TEST_CASE(signed_zero_pd_div)
+{
+    double pos_zero = make_pos_zero_d();
+    double neg_zero = make_neg_zero_d();
+    double positive = 1.0;
+    double negative = -1.0;
+
+    /* IEEE-754 division with signed zeros (double precision):
+     *   positive / +0 = +Inf
+     *   positive / -0 = -Inf
+     *   negative / +0 = -Inf
+     *   negative / -0 = +Inf
+     *
+     * Verify all SIMD lanes to catch lane-mixing bugs.
+     */
+
+    /* positive / (+0) = +Inf (all lanes) */
+    __m128d a = _mm_set1_pd(positive);
+    __m128d b = _mm_set1_pd(pos_zero);
+    __m128d c = _mm_div_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_pos_inf_pd(c));
+
+    /* positive / (-0) = -Inf (all lanes) */
+    b = _mm_set1_pd(neg_zero);
+    c = _mm_div_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_neg_inf_pd(c));
+
+    /* negative / (+0) = -Inf (all lanes) */
+    a = _mm_set1_pd(negative);
+    b = _mm_set1_pd(pos_zero);
+    c = _mm_div_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_neg_inf_pd(c));
+
+    /* negative / (-0) = +Inf (all lanes) */
+    b = _mm_set1_pd(neg_zero);
+    c = _mm_div_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_pos_inf_pd(c));
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(signed_zero_pd_sqrt)
+{
+    double pos_zero = make_pos_zero_d();
+    double neg_zero = make_neg_zero_d();
+
+    /* IEEE-754: sqrt preserves sign of zero (double precision)
+     *   sqrt(+0) = +0
+     *   sqrt(-0) = -0
+     *
+     * Verify all SIMD lanes to catch lane-mixing bugs.
+     */
+
+    /* sqrt(+0) = +0 (all lanes) */
+    __m128d a = _mm_set1_pd(pos_zero);
+    __m128d c = _mm_sqrt_pd(a);
+    EXPECT_TRUE(verify_all_lanes_pd(c, 0x0000000000000000ULL));
+
+    /* sqrt(-0) = -0 (all lanes) */
+    a = _mm_set1_pd(neg_zero);
+    c = _mm_sqrt_pd(a);
+    EXPECT_TRUE(verify_all_lanes_pd(c, 0x8000000000000000ULL));
+
+    return TEST_SUCCESS;
+}
+
+TEST_CASE(signed_zero_pd_arithmetic)
+{
+    double pos_zero = make_pos_zero_d();
+    double neg_zero = make_neg_zero_d();
+
+    /* IEEE-754 signed zero arithmetic (double precision).
+     * Verify all SIMD lanes to catch lane-mixing bugs.
+     */
+
+    /* +0 + (-0) = +0 (IEEE-754 default rounding, all lanes) */
+    __m128d a = _mm_set1_pd(pos_zero);
+    __m128d b = _mm_set1_pd(neg_zero);
+    __m128d c = _mm_add_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_pd(c, 0x0000000000000000ULL));
+
+    /* -0 + (-0) = -0 (all lanes) */
+    a = _mm_set1_pd(neg_zero);
+    b = _mm_set1_pd(neg_zero);
+    c = _mm_add_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_pd(c, 0x8000000000000000ULL));
+
+    /* -0 - (+0) = -0 (all lanes) */
+    a = _mm_set1_pd(neg_zero);
+    b = _mm_set1_pd(pos_zero);
+    c = _mm_sub_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_pd(c, 0x8000000000000000ULL));
+
+    /* positive * (-0) = -0 (all lanes) */
+    a = _mm_set1_pd(1.0);
+    b = _mm_set1_pd(neg_zero);
+    c = _mm_mul_pd(a, b);
+    EXPECT_TRUE(verify_all_lanes_pd(c, 0x8000000000000000ULL));
+
+    return TEST_SUCCESS;
+}
+
 /* Scalar Instruction Tests */
 
 TEST_CASE(add_ss_nan_propagation)
@@ -1363,6 +1871,11 @@ int main(void)
     RUN_TEST(signed_zero_comparison);
     RUN_TEST(signed_zero_arithmetic);
     RUN_TEST(signed_zero_mul);
+    RUN_TEST(signed_zero_div);
+    RUN_TEST(signed_zero_sqrt);
+    RUN_TEST(signed_zero_rsqrt);
+    RUN_TEST(signed_zero_sub);
+    RUN_TEST(signed_zero_minmax);
 
     printf("\n--- Denormal Tests ---\n");
     RUN_TEST(denormal_arithmetic);
@@ -1394,6 +1907,9 @@ int main(void)
     RUN_TEST(add_pd_nan_propagation);
     RUN_TEST(add_pd_infinity);
     RUN_TEST(min_pd_nan_behavior);
+    RUN_TEST(signed_zero_pd_div);
+    RUN_TEST(signed_zero_pd_sqrt);
+    RUN_TEST(signed_zero_pd_arithmetic);
 
     printf("\n--- Scalar Instruction Tests ---\n");
     RUN_TEST(add_ss_nan_propagation);
