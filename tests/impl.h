@@ -404,9 +404,11 @@
     _(mm_hsub_ps)                 \
     _(mm_lddqu_si128)             \
     _(mm_loaddup_pd)              \
+    _(mm_monitor)                 \
     _(mm_movedup_pd)              \
     _(mm_movehdup_ps)             \
     _(mm_moveldup_ps)             \
+    _(mm_mwait)                   \
     /* SSSE3 */                   \
     _(mm_abs_epi16)               \
     _(mm_abs_epi32)               \
