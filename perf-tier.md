@@ -33,11 +33,11 @@ Cycle estimates based on ARM Cortex-A72 (ARMv8-A) Software Optimization Guide.
 
 | Metric | Value |
 |--------|-------|
-| Total SSE Intrinsics | 466 |
-| Direct Mappings (T1) | 365 (78.3%) |
-| Moderate Emulation (T2-T3) | 87 (18.7%) |
+| Total SSE Intrinsics | 468 |
+| Direct Mappings (T1) | 367 (78.4%) |
+| Moderate Emulation (T2-T3) | 87 (18.6%) |
 | Complex Emulation (T4) | 14 (3.0%) |
-| Avg NEON Ops/Intrinsic | 1.97 |
+| Avg NEON Ops/Intrinsic | 1.96 |
 
 ### Performance Tiers
 
@@ -92,7 +92,7 @@ These intrinsics map directly to single NEON instructions:
 <details>
 <summary>Click to expand full list</summary>
 
-#### Tier 1 (365 intrinsics)
+#### Tier 1 (367 intrinsics)
 
 `_mm_abs_epi16`, `_mm_abs_epi32`, `_mm_abs_epi8`, `_mm_abs_pi16`
 `_mm_abs_pi32`, `_mm_abs_pi8`, `_mm_add_epi16`, `_mm_add_epi32`
@@ -148,34 +148,34 @@ These intrinsics map directly to single NEON instructions:
 `_mm_max_pu8`, `_mm_max_sd`, `_mm_max_ss`, `_mm_mfence`, `_mm_min_epi16`
 `_mm_min_epi32`, `_mm_min_epi8`, `_mm_min_epu16`, `_mm_min_epu32`
 `_mm_min_epu8`, `_mm_min_pi16`, `_mm_min_pu8`, `_mm_min_sd`, `_mm_min_ss`
-`_mm_move_epi64`, `_mm_move_sd`, `_mm_move_ss`, `_mm_movedup_pd`
-`_mm_movehdup_ps`, `_mm_movehl_ps`, `_mm_moveldup_ps`, `_mm_movelh_ps`
-`_mm_movepi64_pi64`, `_mm_movpi64_epi64`, `_mm_mul_epi32`, `_mm_mul_epu32`
-`_mm_mul_pd`, `_mm_mul_ps`, `_mm_mul_sd`, `_mm_mul_ss`, `_mm_mul_su32`
-`_mm_mulhi_epu16`, `_mm_mulhi_pu16`, `_mm_mulhrs_epi16`, `_mm_mulhrs_pi16`
-`_mm_mullo_epi16`, `_mm_mullo_epi32`, `_mm_or_pd`, `_mm_or_ps`
-`_mm_or_si128`, `_mm_packs_epi16`, `_mm_packs_epi32`, `_mm_packus_epi16`
-`_mm_packus_epi32`, `_mm_pause`, `_mm_popcnt_u32`, `_mm_popcnt_u64`
-`_mm_prefetch`, `_mm_rcp_ss`, `_mm_round_pd`, `_mm_round_ps`, `_mm_round_sd`
-`_mm_round_ss`, `_mm_rsqrt_ss`, `_mm_sad_epu8`, `_mm_set1_epi16`
-`_mm_set1_epi32`, `_mm_set1_epi64`, `_mm_set1_epi64x`, `_mm_set1_epi8`
-`_mm_set1_pd`, `_mm_set1_ps`, `_mm_set_epi64`, `_mm_set_epi64x`
-`_mm_set_ps1`, `_mm_set_sd`, `_mm_set_ss`, `_mm_setcsr`, `_mm_setr_epi64`
-`_mm_setr_pd`, `_mm_setzero_pd`, `_mm_setzero_ps`, `_mm_setzero_si128`
-`_mm_sfence`, `_mm_shuffle_epi_0101`, `_mm_shuffle_epi_0122`
-`_mm_shuffle_epi_0321`, `_mm_shuffle_epi_1001`, `_mm_shuffle_epi_1010`
-`_mm_shuffle_epi_1032`, `_mm_shuffle_epi_2103`, `_mm_shuffle_epi_2211`
-`_mm_shuffle_epi_2301`, `_mm_shuffle_epi_3332`, `_mm_shuffle_ps_0011`
-`_mm_shuffle_ps_0022`, `_mm_shuffle_ps_0101`, `_mm_shuffle_ps_0321`
-`_mm_shuffle_ps_1001`, `_mm_shuffle_ps_1010`, `_mm_shuffle_ps_1032`
-`_mm_shuffle_ps_1133`, `_mm_shuffle_ps_2103`, `_mm_shuffle_ps_2200`
-`_mm_shuffle_ps_2301`, `_mm_shuffle_ps_3202`, `_mm_shuffle_ps_3210`
-`_mm_slli_epi16`, `_mm_slli_epi32`, `_mm_slli_epi64`, `_mm_sqrt_pd`
-`_mm_sqrt_sd`, `_mm_sqrt_ss`, `_mm_store_pd`, `_mm_store_pd1`, `_mm_store_ps`
-`_mm_store_sd`, `_mm_store_si128`, `_mm_store_ss`, `_mm_storeh_pd`
-`_mm_storeh_pi`, `_mm_storel_epi64`, `_mm_storel_pd`, `_mm_storel_pi`
-`_mm_storer_pd`, `_mm_storeu_pd`, `_mm_storeu_ps`, `_mm_storeu_si128`
-`_mm_storeu_si16`, `_mm_storeu_si32`, `_mm_storeu_si64`
+`_mm_monitor`, `_mm_move_epi64`, `_mm_move_sd`, `_mm_move_ss`
+`_mm_movedup_pd`, `_mm_movehdup_ps`, `_mm_movehl_ps`, `_mm_moveldup_ps`
+`_mm_movelh_ps`, `_mm_movepi64_pi64`, `_mm_movpi64_epi64`, `_mm_mul_epi32`
+`_mm_mul_epu32`, `_mm_mul_pd`, `_mm_mul_ps`, `_mm_mul_sd`, `_mm_mul_ss`
+`_mm_mul_su32`, `_mm_mulhi_epu16`, `_mm_mulhi_pu16`, `_mm_mulhrs_epi16`
+`_mm_mulhrs_pi16`, `_mm_mullo_epi16`, `_mm_mullo_epi32`, `_mm_mwait`
+`_mm_or_pd`, `_mm_or_ps`, `_mm_or_si128`, `_mm_packs_epi16`
+`_mm_packs_epi32`, `_mm_packus_epi16`, `_mm_packus_epi32`, `_mm_pause`
+`_mm_popcnt_u32`, `_mm_popcnt_u64`, `_mm_prefetch`, `_mm_rcp_ss`
+`_mm_round_pd`, `_mm_round_ps`, `_mm_round_sd`, `_mm_round_ss`
+`_mm_rsqrt_ss`, `_mm_sad_epu8`, `_mm_set1_epi16`, `_mm_set1_epi32`
+`_mm_set1_epi64`, `_mm_set1_epi64x`, `_mm_set1_epi8`, `_mm_set1_pd`
+`_mm_set1_ps`, `_mm_set_epi64`, `_mm_set_epi64x`, `_mm_set_ps1`, `_mm_set_sd`
+`_mm_set_ss`, `_mm_setcsr`, `_mm_setr_epi64`, `_mm_setr_pd`, `_mm_setzero_pd`
+`_mm_setzero_ps`, `_mm_setzero_si128`, `_mm_sfence`, `_mm_shuffle_epi_0101`
+`_mm_shuffle_epi_0122`, `_mm_shuffle_epi_0321`, `_mm_shuffle_epi_1001`
+`_mm_shuffle_epi_1010`, `_mm_shuffle_epi_1032`, `_mm_shuffle_epi_2103`
+`_mm_shuffle_epi_2211`, `_mm_shuffle_epi_2301`, `_mm_shuffle_epi_3332`
+`_mm_shuffle_ps_0011`, `_mm_shuffle_ps_0022`, `_mm_shuffle_ps_0101`
+`_mm_shuffle_ps_0321`, `_mm_shuffle_ps_1001`, `_mm_shuffle_ps_1010`
+`_mm_shuffle_ps_1032`, `_mm_shuffle_ps_1133`, `_mm_shuffle_ps_2103`
+`_mm_shuffle_ps_2200`, `_mm_shuffle_ps_2301`, `_mm_shuffle_ps_3202`
+`_mm_shuffle_ps_3210`, `_mm_slli_epi16`, `_mm_slli_epi32`, `_mm_slli_epi64`
+`_mm_sqrt_pd`, `_mm_sqrt_sd`, `_mm_sqrt_ss`, `_mm_store_pd`, `_mm_store_pd1`
+`_mm_store_ps`, `_mm_store_sd`, `_mm_store_si128`, `_mm_store_ss`
+`_mm_storeh_pd`, `_mm_storeh_pi`, `_mm_storel_epi64`, `_mm_storel_pd`
+`_mm_storel_pi`, `_mm_storer_pd`, `_mm_storeu_pd`, `_mm_storeu_ps`
+`_mm_storeu_si128`, `_mm_storeu_si16`, `_mm_storeu_si32`, `_mm_storeu_si64`
 `_mm_stream_load_si128`, `_mm_stream_pd`, `_mm_stream_pi`, `_mm_stream_ps`
 `_mm_stream_si128`, `_mm_stream_si32`, `_mm_stream_si64`, `_mm_sub_epi16`
 `_mm_sub_epi32`, `_mm_sub_epi64`, `_mm_sub_epi8`, `_mm_sub_pd`, `_mm_sub_ps`
