@@ -122,7 +122,21 @@ Define these macros as `1` before including `sse2neon.h` to enable precise (but 
 | `SSE2NEON_PRECISE_SQRT` | Extra Newton-Raphson iteration for `_mm_sqrt_ps` and `_mm_rsqrt_ps` |
 | `SSE2NEON_PRECISE_DP` | Conditional multiplication in `_mm_dp_pd` |
 
-All flags are disabled by default to maximize performance.
+All precision flags are disabled by default to maximize performance.
+
+### MONITOR/MWAIT Policy
+
+ARM has no userspace equivalent for x86 address-range monitoring.
+`_mm_monitor` is a no-op; `_mm_mwait` behavior is controlled by `SSE2NEON_MWAIT_POLICY`:
+
+| Value | Behavior |
+|-------|----------|
+| `0` (default) | `yield` - Safe everywhere, never blocks |
+| `1` | `wfe` - Event wait, may trap in EL0 |
+| `2` | `wfi` - Interrupt wait, may trap in EL0 |
+
+Policies 1/2 do not provide "wake on store" semantics and may trap on Linux/iOS/macOS.
+See `sse2neon.h` for detailed usage guidance.
 
 ## Run Built-in Test Suite
 

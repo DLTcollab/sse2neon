@@ -8093,6 +8093,22 @@ result_t test_mm_loaddup_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
     return VALIDATE_DOUBLE_M128(ret, d);
 }
 
+result_t test_mm_monitor(const SSE2NEONTestImpl &impl, uint32_t iter)
+{
+    // _mm_monitor is a hint instruction with no visible side effects.
+    // On ARM, it's implemented as a no-op since there's no equivalent
+    // userspace address-monitoring mechanism.
+    // On x86, MONITOR requires CPL0 (kernel mode) and traps in user space.
+#if defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || \
+    defined(_M_ARM)
+    int dummy = 42;
+    _mm_monitor(&dummy, 0, 0);
+    return TEST_SUCCESS;
+#else
+    return TEST_UNIMPL;
+#endif
+}
+
 result_t test_mm_movedup_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     const double *p = reinterpret_cast<const double *>(impl.mTestFloatPointer1);
@@ -8115,6 +8131,21 @@ result_t test_mm_moveldup_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
     const float *p = impl.mTestFloatPointer1;
     __m128 a = load_m128(p);
     return validateFloat(_mm_moveldup_ps(a), p[0], p[0], p[2], p[2]);
+}
+
+result_t test_mm_mwait(const SSE2NEONTestImpl &impl, uint32_t iter)
+{
+    // _mm_mwait is a hint instruction for power-saving wait states.
+    // On ARM, it's implemented as yield (default), wfe, or wfi depending
+    // on SSE2NEON_MWAIT_POLICY. This test validates API presence.
+    // On x86, MWAIT requires CPL0 (kernel mode) and traps in user space.
+#if defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || \
+    defined(_M_ARM)
+    _mm_mwait(0, 0);
+    return TEST_SUCCESS;
+#else
+    return TEST_UNIMPL;
+#endif
 }
 
 /* SSSE3 */

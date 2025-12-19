@@ -153,6 +153,42 @@
 #define SSE2NEON_PRECISE_DP (0)
 #endif
 
+/* SSE2NEON_MWAIT_POLICY
+ * Affects: _mm_mwait
+ *
+ * Issue: x86 MONITOR/MWAIT allows a thread to sleep until a write occurs to a
+ *        monitored address range. ARM has no userspace equivalent for address-
+ *        range monitoring. _mm_monitor is a no-op; _mm_mwait can only provide
+ *        low-power wait hints without true "wake on store" semantics.
+ *
+ * Note: The x86 extensions/hints parameters (C-state hints) are ignored on ARM
+ *       as there is no architectural equivalent. No memory ordering is provided
+ *       beyond what the hint instruction itself offers.
+ *
+ * WARNING: Policies 1 and 2 (WFE/WFI) may cause issues:
+ *   - WFE: May sleep until event/interrupt; can wake spuriously. Always check
+ *          your condition in a loop. May trap in EL0 (SCTLR_EL1.nTWE).
+ *   - WFI: May trap (SIGILL) in EL0 on Linux, iOS, macOS (SCTLR_EL1.nTWI).
+ *   - Neither provides "wake on address write" semantics.
+ *
+ * Policy values:
+ *   0 (default): yield - Safe everywhere, never blocks, just a hint
+ *   1:           wfe   - Event wait, may sleep until event/interrupt
+ *   2:           wfi   - Interrupt wait, may trap in EL0 on many platforms
+ *
+ * Recommended usage:
+ *   - Policy 0: General-purpose code, spin-wait loops (safe default)
+ *   - Policy 1: Only if you control both reader/writer and use SEV/SEVL
+ *   - Policy 2: Only for bare-metal or kernel code with known OS support
+ *
+ * Migration note: Code relying on x86 MONITOR/MWAIT for lock-free waiting
+ * should migrate to proper atomics + OS wait primitives (futex, condition
+ * variables) for correct cross-platform behavior.
+ */
+#ifndef SSE2NEON_MWAIT_POLICY
+#define SSE2NEON_MWAIT_POLICY (0)
+#endif
+
 /* Enable inclusion of windows.h on MSVC platforms
  * This makes _mm_clflush functional on windows, as there is no builtin.
  */
@@ -554,7 +590,12 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #if SSE2NEON_ARCH_AARCH64 || __ARM_ARCH >= 8
 #if defined __has_include && __has_include(<arm_acle.h>)
 #include <arm_acle.h>
+#define SSE2NEON_HAS_ACLE 1
+#else
+#define SSE2NEON_HAS_ACLE 0
 #endif
+#else
+#define SSE2NEON_HAS_ACLE 0
 #endif
 
 /* Apple Silicon cache lines are double of what is commonly used by Intel, AMD
@@ -6971,6 +7012,26 @@ FORCE_INLINE __m128 _mm_hsub_ps(__m128 _a, __m128 _b)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_loaddup_pd
 #define _mm_loaddup_pd _mm_load1_pd
 
+// Sets up a linear address range to be monitored by hardware and activates the
+// monitor. The address range should be a write-back memory caching type.
+//
+// ARM implementation notes:
+// - This is a NO-OP. ARM has no userspace equivalent for "monitor a cacheline
+//   and wake on store". There is no "armed" address after calling this.
+// - The extensions and hints parameters are ignored (no architectural
+//   equivalent for x86 C-state hints on ARM).
+// - _mm_mwait provides only a low-power hint, not a monitor-armed wait.
+//
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_monitor
+FORCE_INLINE void _mm_monitor(void const *p,
+                              unsigned int extensions,
+                              unsigned int hints)
+{
+    (void) p;
+    (void) extensions;
+    (void) hints;
+}
+
 // Duplicate the low double-precision (64-bit) floating-point element from a,
 // and store the results in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_movedup_pd
@@ -7021,6 +7082,64 @@ FORCE_INLINE __m128 _mm_moveldup_ps(__m128 a)
     float ALIGN_STRUCT(16) data[4] = {a0, a0, a2, a2};
     return vreinterpretq_m128_f32(vld1q_f32(data));
 #endif
+}
+
+// Provides a hint that allows the processor to enter an implementation-
+// dependent optimized state while waiting for a memory write to the monitored
+// address range set up by _mm_monitor.
+//
+// ARM implementation notes:
+// - This is only a LOW-POWER HINT, not a monitor-armed wait. Since _mm_monitor
+//   is a no-op on ARM, there is no "armed" address range to wake on.
+// - The extensions and hints parameters are ignored (no architectural
+//   equivalent for x86 C-state hints on ARM).
+// - No memory ordering is guaranteed beyond what the hint instruction provides.
+// - WFI/WFE in EL0 may trap depending on OS configuration (Linux can trap
+//   EL0 WFI/WFE via SCTLR_EL1; iOS/macOS may also restrict these).
+//
+// Behavior controlled by SSE2NEON_MWAIT_POLICY (see top of file for details).
+// https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_mwait
+FORCE_INLINE void _mm_mwait(unsigned int extensions, unsigned int hints)
+{
+    (void) extensions;
+    (void) hints;
+
+    // ARM implementation: low-power hint via yield/wfe/wfi.
+    // x86: no-op for compilation (MONITOR/MWAIT require CPL0, trap in
+    // userspace).
+#if SSE2NEON_ARCH_AARCH64 || defined(__arm__) || defined(_M_ARM) || \
+    defined(_M_ARM64)
+    // Use MSVC intrinsics on Windows ARM, inline asm on GCC/Clang.
+    // Note: GCC's arm_acle.h may not define __yield/__wfe/__wfi on all
+    // versions.
+#if SSE2NEON_MWAIT_POLICY == 0
+    // Policy 0: yield - safe everywhere, never blocks
+#if SSE2NEON_COMPILER_MSVC
+    __yield();
+#else
+    __asm__ __volatile__("yield" ::: "memory");
+#endif
+
+#elif SSE2NEON_MWAIT_POLICY == 1
+    // Policy 1: wfe - event wait, requires SEV/SEVL, may block
+#if SSE2NEON_COMPILER_MSVC
+    __wfe();
+#else
+    __asm__ __volatile__("wfe" ::: "memory");
+#endif
+
+#elif SSE2NEON_MWAIT_POLICY == 2
+    // Policy 2: wfi - interrupt wait, may trap in EL0
+#if SSE2NEON_COMPILER_MSVC
+    __wfi();
+#else
+    __asm__ __volatile__("wfi" ::: "memory");
+#endif
+
+#else
+#error "Invalid SSE2NEON_MWAIT_POLICY value (must be 0, 1, or 2)"
+#endif
+#endif /* ARM architecture */
 }
 
 /* SSSE3 */
