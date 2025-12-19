@@ -1,6 +1,6 @@
 *.exe
 *.o
-*.gch
+*.pch
 tests/*.d
 tests/main
 gcc-arm-*
@@ -8,3 +8,6 @@ gcc-arm-*
 Debug/
 Release/
 *.vcxproj.user
+__pycache__
+expected-format
+tier_analysis_report.json
