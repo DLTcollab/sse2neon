@@ -2988,13 +2988,54 @@ result_t test_mm_sad_pu8(const SSE2NEONTestImpl &impl, uint32_t iter)
     return validateUInt16(c, d, 0, 0, 0);
 }
 
-result_t test_mm_set_flush_zero_mode(const SSE2NEONTestImpl &impl,
-                                     uint32_t iter)
+OPTNONE result_t test_mm_set_flush_zero_mode(const SSE2NEONTestImpl &impl,
+                                             uint32_t iter)
 {
-    // TODO:
-    // After the behavior of denormal number and flush zero mode is fully
-    // investigated, the testing would be added.
-    return TEST_UNIMPL;
+    // FTZ (Flush-to-Zero) affects OUTPUT denormals.
+    // FLT_MIN * 0.5 produces a denormal result which should be flushed to 0
+    // when FTZ is enabled.
+    unsigned int originalCsr = _mm_getcsr();
+    result_t res_flush_zero_on, res_flush_zero_off;
+    float min_normals[4] = {FLT_MIN, FLT_MIN, FLT_MIN, FLT_MIN};
+    float halves[4] = {0.5f, 0.5f, 0.5f, 0.5f};
+    __m128 ret;
+
+    // On ARM, FPCR bit 24 controls both FZ and DAZ. Use atomic mask operations
+    // to set/clear both flags together, matching test_mm_setcsr style.
+    const unsigned int fz_daz_mask =
+        _MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK;
+
+    // Test FTZ ON: denormal output should be flushed to 0
+    _mm_setcsr((originalCsr & ~fz_daz_mask) | _MM_FLUSH_ZERO_ON);
+    ret = _mm_mul_ps(load_m128(min_normals), load_m128(halves));
+    res_flush_zero_on = validateFloat(ret, 0, 0, 0, 0);
+    if (res_flush_zero_on == TEST_FAIL) {
+        _mm_setcsr(originalCsr);
+        return TEST_FAIL;
+    }
+
+    // Test FTZ OFF: denormal output should be preserved
+    _mm_setcsr(originalCsr & ~fz_daz_mask);
+    ret = _mm_mul_ps(load_m128(min_normals), load_m128(halves));
+#if defined(__arm__)
+    // AArch32 Advanced SIMD arithmetic always uses the Flush-to-zero setting,
+    // regardless of the value of the FZ bit.
+    res_flush_zero_off = validateFloat(ret, 0, 0, 0, 0);
+#else
+    // Build expected denormal via bit pattern to avoid compiler
+    // constant-folding FLT_MIN = 2^-126 = 0x00800000, so FLT_MIN/2 = 2^-127 =
+    // 0x00400000
+    float expected;
+    uint32_t expected_bits = 0x00400000;
+    memcpy(&expected, &expected_bits, sizeof(expected));
+    res_flush_zero_off =
+        validateFloat(ret, expected, expected, expected, expected);
+#endif
+
+    _mm_setcsr(originalCsr);
+    if (res_flush_zero_off == TEST_FAIL)
+        return TEST_FAIL;
+    return TEST_SUCCESS;
 }
 
 result_t test_mm_set_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
