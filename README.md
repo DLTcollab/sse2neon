@@ -227,6 +227,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [Krita](https://invent.kde.org/graphics/krita) is a cross-platform application that offers an end-to-end solution for creating digital art files from scratch built on the KDE and Qt frameworks.
 * [libCML](https://github.com/belosthomas/libCML) is a SLAM library and scientific tool, which include a novel fast thread-safe graph map implementation.
 * [libhdfs3](https://github.com/ClickHouse/libhdfs3) is implemented based on native Hadoop RPC protocol and Hadoop Distributed File System (HDFS), a highly fault-tolerant distributed fs, data transfer protocol.
+* [libpll-2](https://github.com/xflouris/libpll-2) is a C library for Phylogenetic Likelihood.
 * [libpostal](https://github.com/openvenues/libpostal) is a C library for parsing/normalizing street addresses around the world using statistical NLP and open data.
 * [libscapi](https://github.com/cryptobiu/libscapi) stands for the "Secure Computation API", providing  reliable, efficient, and highly flexible cryptographic infrastructure.
 * [libstreamvbyte](https://github.com/wst24365888/libstreamvbyte) is a C++ implementation of [StreamVByte](https://arxiv.org/abs/1709.08990).
@@ -255,6 +256,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [pixaccess](https://github.com/oliverue/pixaccess) provides the abstractions for integer and float bitmaps, pixels, and aliased (nearest neighbor) and anti-aliased (bi-linearly interpolated) pixel access.
 * [PlutoSDR Firmware](https://github.com/seanstone/plutosdr-fw) is the customized firmware for the [PlutoSDR](https://wiki.analog.com/university/tools/pluto) that can be used to introduce fundamentals of Software Defined Radio (SDR) or Radio Frequency (RF) or Communications as advanced topics in electrical engineering in a self or instructor lead setting.
 * [PowerToys](https://github.com/microsoft/PowerToys) is a set of utilities for power users to tune and streamline their Windows experience for greater productivity.
+* [PVFMM](https://github.com/dmalhotra/pvfmm) is a library for solving certain types of elliptic partial differential equations.
 * [Pygame](https://www.pygame.org) is cross-platform and designed to make it easy to write multimedia software, such as games, in Python.
 * [R:RandomFieldsUtils](https://cran.r-project.org/web/packages/RandomFieldsUtils) provides various utilities might be used in spatial statistics and elsewhere. (CRAN)
 * [RAxML](https://github.com/stamatak/standard-RAxML) is tool for Phylogenetic Analysis and Post-Analysis of Large Phylogenies.
@@ -264,6 +266,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [simd\_utils](https://github.com/JishinMaster/simd_utils) is a header-only library implementing common mathematical functions using SIMD intrinsics.
 * [Sire](https://github.com/OpenBioSim/sire) is a molecular modelling framework that provides extensive functionality to manipulate representations of biomolecular systems.
 * [SMhasher](https://github.com/rurban/smhasher) provides comprehensive Hash function quality and speed tests.
+* [SortMeRNA](https://github.com/sortmerna/sortmerna) is a local sequence alignment tool for filtering, mapping and clustering.
 * [SNN++](https://github.com/ianmkim/snnpp) implements a single layer non linear Spiking Neural Network for images classification and generation.
 * [Spack](https://github.com/spack/spack) is a multi-platform package manager that builds and installs multiple versions and configurations of software.
 * [SRA](https://github.com/ncbi/sra-tools) is a collection of tools and libraries for using data in the [INSDC Sequence Read Archives](https://www.ncbi.nlm.nih.gov/sra/docs/).
@@ -279,6 +282,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [Winter](https://github.com/rosenthj/Winter) is the top rated chess engine from Switzerland and has competed at top invite only computer chess events.
 * [XEVE](https://github.com/mpeg5/xeve) (eXtra-fast Essential Video Encoder) is an open sourced and fast MPEG-5 EVC encoder.
 * [XMRig](https://github.com/xmrig/xmrig) is an open source CPU miner for [Monero](https://web.getmonero.org/) cryptocurrency.
+* [xpar](https://github.com/iczelia/xpar) is an error/erasure code system guarding data integrity.
 * [xsimd](https://github.com/xtensor-stack/xsimd) provides a unified means for using SIMD intrinsics and parallelized, optimized mathematical functions.
 * [YACL](https://github.com/secretflow/yasl) is a C++ library contains modules and utilities which [SecretFlow](https://github.com/secretflow) code depends on.
 
