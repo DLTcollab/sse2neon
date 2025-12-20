@@ -3543,6 +3543,22 @@ result_t test_mm_ucomineq_ss(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_undefined_ps(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     __m128 a = _mm_undefined_ps();
+
+    // When SSE2NEON_UNDEFINED_ZERO is set or on MSVC, the value should be zero.
+    // On GCC/Clang without the flag, the value is truly undefined so we can
+    // only test that XOR-with-self produces zero.
+#if SSE2NEON_UNDEFINED_ZERO || (defined(_MSC_VER) && !defined(__clang__))
+    result_t res = validateFloat(a, 0, 0, 0, 0);
+    if (res != TEST_SUCCESS)
+        return res;
+#else
+    // Use volatile barrier to prevent compiler from optimizing away the
+    // undefined value. This forces materialization and avoids UB from
+    // reading uninitialized memory directly.
+    volatile __m128 barrier = a;
+    a = barrier;
+#endif
+
     a = _mm_xor_ps(a, a);
     return validateFloat(a, 0, 0, 0, 0);
 }
@@ -7700,6 +7716,23 @@ result_t test_mm_ucomineq_sd(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_undefined_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     __m128d a = _mm_undefined_pd();
+
+    // When SSE2NEON_UNDEFINED_ZERO is set or on MSVC, the value should be zero.
+    // On GCC/Clang without the flag, the value is truly undefined so we can
+    // only test that XOR-with-self produces zero.
+#if SSE2NEON_UNDEFINED_ZERO || (defined(_MSC_VER) && !defined(__clang__))
+    double zero[2] = {0, 0};
+    result_t res = VALIDATE_DOUBLE_M128(a, zero);
+    if (res != TEST_SUCCESS)
+        return res;
+#else
+    // Use volatile barrier to prevent compiler from optimizing away the
+    // undefined value. This forces materialization and avoids UB from
+    // reading uninitialized memory directly.
+    volatile __m128d barrier = a;
+    a = barrier;
+#endif
+
     a = _mm_xor_pd(a, a);
     double d[2] = {0, 0};
     return VALIDATE_DOUBLE_M128(a, d);
@@ -7708,6 +7741,23 @@ result_t test_mm_undefined_pd(const SSE2NEONTestImpl &impl, uint32_t iter)
 result_t test_mm_undefined_si128(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
     __m128i a = _mm_undefined_si128();
+
+    // When SSE2NEON_UNDEFINED_ZERO is set or on MSVC, the value should be zero.
+    // On GCC/Clang without the flag, the value is truly undefined so we can
+    // only test that XOR-with-self produces zero.
+#if SSE2NEON_UNDEFINED_ZERO || (defined(_MSC_VER) && !defined(__clang__))
+    int64_t zero[2] = {0, 0};
+    result_t res = VALIDATE_INT64_M128(a, zero);
+    if (res != TEST_SUCCESS)
+        return res;
+#else
+    // Use volatile barrier to prevent compiler from optimizing away the
+    // undefined value. This forces materialization and avoids UB from
+    // reading uninitialized memory directly.
+    volatile __m128i barrier = a;
+    a = barrier;
+#endif
+
     a = _mm_xor_si128(a, a);
     int64_t d[2] = {0, 0};
     return VALIDATE_INT64_M128(a, d);

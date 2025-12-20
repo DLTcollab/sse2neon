@@ -121,6 +121,7 @@ Define these macros as `1` before including `sse2neon.h` to enable precise (but 
 | `SSE2NEON_PRECISE_DIV` | Extra Newton-Raphson iteration for `_mm_rcp_ps` and `_mm_div_ps` |
 | `SSE2NEON_PRECISE_SQRT` | Extra Newton-Raphson iteration for `_mm_sqrt_ps` and `_mm_rsqrt_ps` |
 | `SSE2NEON_PRECISE_DP` | Conditional multiplication in `_mm_dp_pd` |
+| `SSE2NEON_UNDEFINED_ZERO` | Force zero for `_mm_undefined_{ps,pd,si128}` (MSVC already does this) |
 
 All precision flags are disabled by default to maximize performance.
 

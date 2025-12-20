@@ -153,6 +153,32 @@
 #define SSE2NEON_PRECISE_DP (0)
 #endif
 
+/* SSE2NEON_UNDEFINED_ZERO
+ * Affects: _mm_undefined_ps, _mm_undefined_si128, _mm_undefined_pd
+ *
+ * Issue: These intrinsics return vectors with "undefined" contents per Intel
+ *        spec. On x86, this means truly uninitialized memory (garbage values).
+ *
+ * MSVC Semantic Drift: MSVC on ARM forces zero-initialization for these
+ *        intrinsics, which differs from x86 behavior where garbage is returned.
+ *        GCC/Clang on ARM match x86 by returning uninitialized memory.
+ *
+ * This macro provides explicit control over the behavior:
+ *   Default (0): Compiler-dependent (MSVC=zero, GCC/Clang=undefined)
+ *   Enabled (1): Force zero-initialization on all compilers (safer, portable)
+ *
+ * When to enable:
+ *   - Deterministic behavior across compilers is required
+ *   - Debugging memory-related issues where undefined values cause problems
+ *   - Security-sensitive code where uninitialized memory is a concern
+ *
+ * Note: Using undefined values without first writing to them is undefined
+ * behavior. Well-formed code should not depend on either behavior.
+ */
+#ifndef SSE2NEON_UNDEFINED_ZERO
+#define SSE2NEON_UNDEFINED_ZERO (0)
+#endif
+
 /* SSE2NEON_MWAIT_POLICY
  * Affects: _mm_mwait
  *
@@ -3632,38 +3658,46 @@ FORCE_INLINE __m128 _mm_sub_ss(__m128 a, __m128 b)
 #define _mm_ucomineq_ss _mm_comineq_ss
 
 // Return vector of type __m128i with undefined elements.
+// Note: MSVC forces zero-initialization while GCC/Clang return truly undefined
+// memory. Use SSE2NEON_UNDEFINED_ZERO=1 to force zero on all compilers.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=mm_undefined_si128
 FORCE_INLINE __m128i _mm_undefined_si128(void)
 {
+#if SSE2NEON_UNDEFINED_ZERO || \
+    (SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG)
+    return _mm_setzero_si128();
+#else
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
     __m128i a;
-#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
-    a = _mm_setzero_si128();
-#endif
     return a;
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma GCC diagnostic pop
 #endif
+#endif
 }
 
 // Return vector of type __m128 with undefined elements.
+// Note: MSVC forces zero-initialization while GCC/Clang return truly undefined
+// memory. Use SSE2NEON_UNDEFINED_ZERO=1 to force zero on all compilers.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_undefined_ps
 FORCE_INLINE __m128 _mm_undefined_ps(void)
 {
+#if SSE2NEON_UNDEFINED_ZERO || \
+    (SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG)
+    return _mm_setzero_ps();
+#else
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
     __m128 a;
-#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
-    a = _mm_setzero_ps();
-#endif
     return a;
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma GCC diagnostic pop
+#endif
 #endif
 }
 
@@ -6712,20 +6746,24 @@ FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
 #define _mm_ucomineq_sd _mm_comineq_sd
 
 // Return vector of type __m128d with undefined elements.
+// Note: MSVC forces zero-initialization while GCC/Clang return truly undefined
+// memory. Use SSE2NEON_UNDEFINED_ZERO=1 to force zero on all compilers.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_undefined_pd
 FORCE_INLINE __m128d _mm_undefined_pd(void)
 {
+#if SSE2NEON_UNDEFINED_ZERO || \
+    (SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG)
+    return _mm_setzero_pd();
+#else
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
     __m128d a;
-#if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
-    a = _mm_setzero_pd();
-#endif
     return a;
 #if SSE2NEON_COMPILER_GCC_COMPAT
 #pragma GCC diagnostic pop
+#endif
 #endif
 }
 
