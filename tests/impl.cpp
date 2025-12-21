@@ -5390,10 +5390,10 @@ result_t test_mm_cvttsd_si64(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_cvttsd_si64x(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-#if defined(__clang__)
-    // The intrinsic _mm_cvttsd_si64x() does not exist in Clang
-    return TEST_UNIMPL;
-#else
+    // _mm_cvttsd_si64x is an alias defined only in sse2neon.h, not in native
+    // x86 SSE headers. Only test on ARM where sse2neon provides this macro.
+#if defined(__aarch64__) || defined(__arm__) || defined(_M_ARM64) || \
+    defined(_M_ARM64EC)
     const double *_a =
         reinterpret_cast<const double *>(impl.mTestFloatPointer1);
 
@@ -5402,6 +5402,10 @@ result_t test_mm_cvttsd_si64x(const SSE2NEONTestImpl &impl, uint32_t iter)
 
     return ret == sse2neon_saturate_cast_int64(_a[0]) ? TEST_SUCCESS
                                                       : TEST_FAIL;
+#else
+    (void) impl;
+    (void) iter;
+    return TEST_UNIMPL;
 #endif
 }
 
@@ -8341,9 +8345,6 @@ result_t test_mm_abs_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 
 result_t test_mm_alignr_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-#if defined(__clang__)
-    return TEST_UNIMPL;
-#else
     const uint8_t *_a =
         reinterpret_cast<const uint8_t *>(impl.mTestIntPointer1);
     const uint8_t *_b =
@@ -8387,14 +8388,10 @@ result_t test_mm_alignr_epi8(const SSE2NEONTestImpl &impl, uint32_t iter)
     }
 
     return VALIDATE_UINT8_M128(ret, d);
-#endif
 }
 
 result_t test_mm_alignr_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
 {
-#if defined(__clang__)
-    return TEST_UNIMPL;
-#else
     const uint8_t *_a =
         reinterpret_cast<const uint8_t *>(impl.mTestIntPointer1);
     const uint8_t *_b =
@@ -8433,7 +8430,6 @@ result_t test_mm_alignr_pi8(const SSE2NEONTestImpl &impl, uint32_t iter)
     }
 
     return VALIDATE_UINT8_M64(ret, d);
-#endif
 }
 
 result_t test_mm_hadd_epi16(const SSE2NEONTestImpl &impl, uint32_t iter)
