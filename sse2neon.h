@@ -2524,6 +2524,9 @@ FORCE_INLINE __m128 _mm_div_ss(__m128 a, __m128 b)
 
 // Free aligned memory that was allocated with _mm_malloc.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_free
+//
+// WARNING: Only use on pointers from _mm_malloc(). On Windows, passing memory
+// from malloc/calloc/new corrupts the heap. See _mm_malloc() for details.
 #if !defined(SSE2NEON_ALLOC_DEFINED)
 FORCE_INLINE void _mm_free(void *addr)
 {
@@ -2713,6 +2716,21 @@ FORCE_INLINE __m128i _mm_loadu_si64(const void *p)
 // and return a pointer to the allocated memory. _mm_free should be used to free
 // memory that is allocated with _mm_malloc.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_malloc
+//
+// Memory allocated by this function MUST be freed with _mm_free(), NOT with
+// standard free() or delete. Mixing allocators:
+//   - Windows: CORRUPTS HEAP (free on _aligned_malloc memory is invalid)
+//   - Other platforms: Works (maps to free), but pair for Windows portability
+//
+// Incorrect usage (causes memory corruption on Windows):
+//   void *ptr = _mm_malloc(1024, 16);
+//   free(ptr);  // WRONG - use _mm_free() instead
+//
+// Implementation notes:
+//   - Windows: Uses _aligned_malloc()
+//   - Other platforms: Uses posix_memalign() or malloc() for small alignments
+//
+// See also: _mm_free() for deallocation requirements.
 #if !defined(SSE2NEON_ALLOC_DEFINED)
 FORCE_INLINE void *_mm_malloc(size_t size, size_t align)
 {
