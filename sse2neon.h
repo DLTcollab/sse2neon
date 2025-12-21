@@ -7282,22 +7282,45 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_alignr_epi8
 // imm must be a compile-time constant in range [0, 255]
 #if defined(__GNUC__) && !defined(__clang__)
-#define _mm_alignr_epi8(a, b, imm)                                 \
-    __extension__({                                                \
-        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                 \
-        uint8x16_t _a = vreinterpretq_u8_m128i(a);                 \
-        uint8x16_t _b = vreinterpretq_u8_m128i(b);                 \
-        __m128i ret;                                               \
-        if (_sse2neon_unlikely((imm) & ~31))                       \
-            ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));           \
-        else if ((imm) >= 16)                                      \
-            ret = _mm_srli_si128(a, (imm) >= 16 ? (imm) - 16 : 0); \
-        else                                                       \
-            ret = vreinterpretq_m128i_u8(                          \
-                vextq_u8(_b, _a, (imm) < 16 ? (imm) : 0));         \
-        ret;                                                       \
+#define _mm_alignr_epi8(a, b, imm)                                        \
+    __extension__({                                                       \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                        \
+        __m128i _a_m128i = (a);                                           \
+        uint8x16_t _a = vreinterpretq_u8_m128i(_a_m128i);                 \
+        uint8x16_t _b = vreinterpretq_u8_m128i(b);                        \
+        __m128i ret;                                                      \
+        if (_sse2neon_unlikely((imm) & ~31))                              \
+            ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));                  \
+        else if ((imm) >= 16)                                             \
+            ret = vreinterpretq_m128i_s8(                                 \
+                vextq_s8(vreinterpretq_s8_m128i(_a_m128i), vdupq_n_s8(0), \
+                         ((imm) >= 16 && (imm) < 32) ? (imm) - 16 : 0));  \
+        else                                                              \
+            ret = vreinterpretq_m128i_u8(                                 \
+                vextq_u8(_b, _a, (imm) < 16 ? (imm) : 0));                \
+        ret;                                                              \
     })
 
+// Clang path: inline _mm_srli_si128 logic to avoid both:
+// 1. Variable shadowing: _mm_srli_si128(_a, ...) creates __m128i _a = (_a)
+// 2. Double evaluation: _mm_srli_si128((a), ...) re-evaluates macro arg
+#elif SSE2NEON_COMPILER_CLANG
+#define _mm_alignr_epi8(a, b, imm)                                   \
+    _sse2neon_define2(                                               \
+        __m128i, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);    \
+        uint8x16_t __a = vreinterpretq_u8_m128i(_a);                 \
+        uint8x16_t __b = vreinterpretq_u8_m128i(_b); __m128i ret;    \
+        if (_sse2neon_unlikely((imm) & ~31)) ret =                   \
+            vreinterpretq_m128i_u8(vdupq_n_u8(0));                   \
+        else if ((imm) >= 16) ret = vreinterpretq_m128i_s8(          \
+            vextq_s8(vreinterpretq_s8_m128i(_a), vdupq_n_s8(0),      \
+                     ((imm) >= 16 && (imm) < 32) ? (imm) - 16 : 0)); \
+        else ret = vreinterpretq_m128i_u8(                           \
+            vextq_u8(__b, __a, (imm) < 16 ? (imm) : 0));             \
+        _sse2neon_return(ret);)
+
+// MSVC path: use _a (lambda parameter) since lambda [] cannot capture (a).
+// No shadowing issue because lambda parameters shadow captures properly.
 #else
 #define _mm_alignr_epi8(a, b, imm)                                \
     _sse2neon_define2(                                            \
@@ -7318,26 +7341,39 @@ FORCE_INLINE __m64 _mm_abs_pi8(__m64 a)
 // the result right by imm8 bytes, and store the low 8 bytes in dst.
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_alignr_pi8
 // imm must be a compile-time constant in range [0, 255]
+#if defined(__GNUC__) && !defined(__clang__)
 #define _mm_alignr_pi8(a, b, imm)                                           \
-    _sse2neon_define2(                                                      \
-        __m64, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m64 ret;  \
+    __extension__({                                                         \
+        SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);                          \
+        __m64 _a = (a), _b = (b);                                           \
+        __m64 ret;                                                          \
         if (_sse2neon_unlikely((imm) >= 16)) {                              \
             ret = vreinterpret_m64_s8(vdup_n_s8(0));                        \
+        } else if ((imm) >= 8) {                                            \
+            ret = vreinterpret_m64_u8(                                      \
+                vext_u8(vreinterpret_u8_m64(_a), vdup_n_u8(0), (imm) - 8)); \
         } else {                                                            \
-            uint8x8_t tmp_low;                                              \
-            uint8x8_t tmp_high;                                             \
-            if ((imm) >= 8) {                                               \
-                const int idx = (imm) - 8;                                  \
-                tmp_low = vreinterpret_u8_m64(_a);                          \
-                tmp_high = vdup_n_u8(0);                                    \
-                ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
-            } else {                                                        \
-                const int idx = (imm);                                      \
-                tmp_low = vreinterpret_u8_m64(_b);                          \
-                tmp_high = vreinterpret_u8_m64(_a);                         \
-                ret = vreinterpret_m64_u8(vext_u8(tmp_low, tmp_high, idx)); \
-            }                                                               \
+            ret = vreinterpret_m64_u8(vext_u8(                              \
+                vreinterpret_u8_m64(_b), vreinterpret_u8_m64(_a), (imm)));  \
+        }                                                                   \
+        ret;                                                                \
+    })
+
+#else
+#define _mm_alignr_pi8(a, b, imm)                                              \
+    _sse2neon_define2(                                                         \
+        __m64, a, b, SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255); __m64 ret;     \
+        if (_sse2neon_unlikely((imm) >= 16)) {                                 \
+            ret = vreinterpret_m64_s8(vdup_n_s8(0));                           \
+        } else if ((imm) >= 8) {                                               \
+            ret = vreinterpret_m64_u8(vext_u8(vreinterpret_u8_m64(_a),         \
+                                              vdup_n_u8(0), ((imm) - 8) & 7)); \
+        } else {                                                               \
+            ret = vreinterpret_m64_u8(vext_u8(                                 \
+                vreinterpret_u8_m64(_b), vreinterpret_u8_m64(_a), (imm) & 7)); \
         } _sse2neon_return(ret);)
+
+#endif
 
 // Horizontally add adjacent pairs of 16-bit integers in a and b, and pack the
 // signed 16-bit results in dst.
