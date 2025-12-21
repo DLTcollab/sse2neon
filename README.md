@@ -125,6 +125,10 @@ Define these macros as `1` before including `sse2neon.h` to enable precise (but 
 
 All precision flags are disabled by default to maximize performance.
 
+### Memory Allocation
+
+Memory from `_mm_malloc()` must be freed with `_mm_free()`, not `free()`. Mixing allocators causes heap corruption on Windows.
+
 ### MONITOR/MWAIT Policy
 
 ARM has no userspace equivalent for x86 address-range monitoring.
