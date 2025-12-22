@@ -125,6 +125,30 @@ Define these macros as `1` before including `sse2neon.h` to enable precise (but 
 
 All precision flags are disabled by default to maximize performance.
 
+### Recommended Flag Combinations by Use Case
+
+| Use Case | Flags | Rationale |
+|----------|-------|-----------|
+| Graphics/Rendering | `MINMAX`, `SQRT` (+`DIV` if using `rcp`) | NaN handling and normalization; [Blender](https://github.com/blender/blender/blob/main/source/blender/blenlib/BLI_simd.hh) enables all three |
+| DSP/Audio | None (defaults) | Throughput over precision; inaudible differences |
+| Cryptography | None (defaults) | Integer-focused; FP precision irrelevant |
+| Scientific/Numerical | `MINMAX`, `SQRT`, `DP` | Reduces x86 divergence; see caveats below |
+| Game Physics | `MINMAX` | Prevents NaN propagation in collision detection |
+| Machine Learning | `MINMAX` for inference | NaN handling for determinism; training tolerates defaults |
+
+Flags use `SSE2NEON_PRECISE_` prefix (e.g., `MINMAX` → `SSE2NEON_PRECISE_MINMAX`).
+
+**Architecture notes**:
+- `DIV` flag affects `_mm_rcp*` (reciprocal approximation), not `_mm_div*` which uses native IEEE-754 division on ARMv8. Enable `DIV` on ARMv7 or when using reciprocal intrinsics.
+- For strict determinism, also define `SSE2NEON_UNDEFINED_ZERO=1`. Some divergences (FTZ/DAZ, NaN payloads) cannot be fully eliminated.
+
+Example configuration for graphics applications:
+```c
+#define SSE2NEON_PRECISE_MINMAX 1
+#define SSE2NEON_PRECISE_SQRT 1
+#include "sse2neon.h"
+```
+
 ### Memory Allocation
 
 Memory from `_mm_malloc()` must be freed with `_mm_free()`, not `free()`. Mixing allocators causes heap corruption on Windows.
