@@ -290,6 +290,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [Pygame](https://www.pygame.org) is cross-platform and designed to make it easy to write multimedia software, such as games, in Python.
 * [R:RandomFieldsUtils](https://cran.r-project.org/web/packages/RandomFieldsUtils) provides various utilities might be used in spatial statistics and elsewhere. (CRAN)
 * [RAxML](https://github.com/stamatak/standard-RAxML) is tool for Phylogenetic Analysis and Post-Analysis of Large Phylogenies.
+* [REDUCE](https://github.com/reduce-algebra/reduce-algebra) is an interactive system for general algebraic computations, of interest to mathematicians, scientists, and engineers.
 * [ReHLDS](https://github.com/gennadykataev/rehlds) is fully compatible with latest Half-Life Dedicated Server (HLDS) with a lot of defects and (potential) bugs fixed.
 * [rkcommon](https://github.com/ospray/rkcommon) represents a common set of C++ infrastructure and CMake utilities used by various components of [Intel oneAPI Rendering Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/rendering-toolkit.html).
 * [RPCS3](https://github.com/RPCS3/rpcs3) is the world's first free and open-source PlayStation 3 emulator/debugger, written in C++.
