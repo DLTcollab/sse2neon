@@ -348,8 +348,7 @@
  */
 #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ != __ORDER_LITTLE_ENDIAN__)
 #error "sse2neon requires little-endian target; big-endian is not supported"
-#elif defined(__ARMEB__) || defined(__AARCH64EB__) || \
-    defined(__BIG_ENDIAN__) || defined(_BIG_ENDIAN)
+#elif defined(__ARMEB__) || defined(__AARCH64EB__) || defined(__BIG_ENDIAN__)
 #error "sse2neon requires little-endian target; big-endian is not supported"
 #endif
 
