@@ -37,7 +37,7 @@ Cycle estimates based on ARM Cortex-A72 (ARMv8-A) Software Optimization Guide.
 | Direct Mappings (T1) | 367 (78.4%) |
 | Moderate Emulation (T2-T3) | 87 (18.6%) |
 | Complex Emulation (T4) | 14 (3.0%) |
-| Avg NEON Ops/Intrinsic | 1.97 |
+| Avg NEON Ops/Intrinsic | 1.89 |
 
 ### Performance Tiers
 
@@ -61,15 +61,15 @@ algorithms when porting performance-critical code.
 
 | Intrinsic | NEON Ops | Notes |
 |-----------|----------|-------|
-| `_mm_aesdec_si128` | 27 | Use HW crypto when available |
-| `_mm_aesimc_si128` | 24 | Use HW crypto when available |
 | `_mm_mpsadbw_epu8` | 22 | SAD computation, very expensive |
 | `_mm_sqrt_ps` | 15 | Newton-Raphson refinement |
 | `_mm_cvttpd_pi32` | 14 |  |
-| `_mm_aesenc_si128` | 14 | Use HW crypto when available |
 | `_mm_rsqrt_ps` | 13 | Newton-Raphson refinement |
+| `_mm_aesdec_si128` | 12 | Use HW crypto when available |
 | `_mm_dp_ps` | 9 |  |
 | `_mm_minpos_epu16` | 9 | Horizontal minimum search |
+| `_mm_aesenc_si128` | 9 | Use HW crypto when available |
+| `_mm_aesimc_si128` | 9 | Use HW crypto when available |
 | `_mm_dp_pd` | 4 |  |
 | `_mm_shuffle_epi8` | 3 |  |
 | `_mm_shuffle_pi8` | 3 |  |
