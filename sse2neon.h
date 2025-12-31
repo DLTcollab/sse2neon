@@ -10355,6 +10355,24 @@ static const uint8_t _sse2neon_sbox[256] = SSE2NEON_AES_SBOX(SSE2NEON_AES_H0);
 static const uint8_t _sse2neon_rsbox[256] = SSE2NEON_AES_RSBOX(SSE2NEON_AES_H0);
 #undef SSE2NEON_AES_H0
 
+// File-scope constants for AES permutations - hoisted from inline functions
+// to ensure single load across multiple intrinsic calls.
+// ShiftRows permutation indices for encryption
+static const uint8_t ALIGN_STRUCT(16) _sse2neon_aes_shift_rows[16] = {
+    0x0, 0x5, 0xa, 0xf, 0x4, 0x9, 0xe, 0x3,
+    0x8, 0xd, 0x2, 0x7, 0xc, 0x1, 0x6, 0xb,
+};
+// InvShiftRows permutation indices for decryption
+static const uint8_t ALIGN_STRUCT(16) _sse2neon_aes_inv_shift_rows[16] = {
+    0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
+    0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
+};
+// Rotate right by 8 bits within each 32-bit word (for MixColumns)
+static const uint8_t ALIGN_STRUCT(16) _sse2neon_aes_ror32by8[16] = {
+    0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
+    0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
+};
+
 #if SSE2NEON_ARCH_AARCH64
 // NEON S-box lookup using 4x64-byte tables; reused by aesenc/dec/keygenassist.
 // Uses vsubq_u8 instead of C++ operator- for MSVC compatibility.
@@ -10381,6 +10399,19 @@ FORCE_INLINE uint8x16_t _sse2neon_aes_inv_subbytes(uint8x16_t x)
                    vsubq_u8(x, vdupq_n_u8(0xc0)));
     return v;
 }
+
+// AES xtime: multiply by {02} in GF(2^8) with reduction polynomial 0x11b
+// Uses signed comparison to generate mask: if MSB set, XOR with 0x1b
+FORCE_INLINE uint8x16_t _sse2neon_aes_xtime(uint8x16_t v)
+{
+    // Arithmetic right shift by 7 gives 0xFF for bytes >= 0x80, 0x00 otherwise
+    uint8x16_t mask =
+        vreinterpretq_u8_s8(vshrq_n_s8(vreinterpretq_s8_u8(v), 7));
+    // AND with reduction polynomial 0x1b
+    uint8x16_t reduced = vandq_u8(mask, vdupq_n_u8(0x1b));
+    // Shift left and XOR with reduction
+    return veorq_u8(vshlq_n_u8(v, 1), reduced);
+}
 #endif
 
 /* x_time function and matrix multiply function */
@@ -10401,30 +10432,27 @@ FORCE_INLINE uint8x16_t _sse2neon_aes_inv_subbytes(uint8x16_t x)
 FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 {
 #if SSE2NEON_ARCH_AARCH64
-    static const uint8_t shift_rows[] = {
-        0x0, 0x5, 0xa, 0xf, 0x4, 0x9, 0xe, 0x3,
-        0x8, 0xd, 0x2, 0x7, 0xc, 0x1, 0x6, 0xb,
-    };
-    static const uint8_t ror32by8[] = {
-        0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
-        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
-    };
-
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);
 
     /* shift rows */
-    w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
+    w = vqtbl1q_u8(w, vld1q_u8(_sse2neon_aes_shift_rows));
 
     /* sub bytes */
     v = _sse2neon_aes_subbytes(w);
 
-    /* mix columns */
-    w = veorq_u8(vshlq_n_u8(v, 1),
-                 vreinterpretq_u8_s8(vandq_s8(
-                     vshrq_n_s8(vreinterpretq_s8_u8(v), 7), vdupq_n_s8(0x1b))));
+    /* mix columns:
+     * MixColumns multiplies each column by the matrix:
+     *   [02 03 01 01]
+     *   [01 02 03 01]
+     *   [01 01 02 03]
+     *   [03 01 01 02]
+     * Using: out = xtime(v) ^ ror8(xtime(v)^v) ^ rot16(v)
+     */
+    w = _sse2neon_aes_xtime(v);  // w = v * {02}
     w = veorq_u8(w, vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(v))));
-    w = veorq_u8(w, vqtbl1q_u8(veorq_u8(v, w), vld1q_u8(ror32by8)));
+    w = veorq_u8(w,
+                 vqtbl1q_u8(veorq_u8(v, w), vld1q_u8(_sse2neon_aes_ror32by8)));
 
     /* add round key */
     return vreinterpretq_m128i_u8(
@@ -10492,41 +10520,34 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
 FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
 {
 #if SSE2NEON_ARCH_AARCH64
-    static const uint8_t inv_shift_rows[] = {
-        0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
-        0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
-    };
-    static const uint8_t ror32by8[] = {
-        0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
-        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
-    };
-
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);
 
     // inverse shift rows
-    w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
+    w = vqtbl1q_u8(w, vld1q_u8(_sse2neon_aes_inv_shift_rows));
 
     // inverse sub bytes
     v = _sse2neon_aes_inv_subbytes(w);
 
-    // inverse mix columns
-    // multiplying 'v' by 4 in GF(2^8)
-    w = veorq_u8(vshlq_n_u8(v, 1),
-                 vreinterpretq_u8_s8(vandq_s8(
-                     vshrq_n_s8(vreinterpretq_s8_u8(v), 7), vdupq_n_s8(0x1b))));
-    w = veorq_u8(vshlq_n_u8(w, 1),
-                 vreinterpretq_u8_s8(vandq_s8(
-                     vshrq_n_s8(vreinterpretq_s8_u8(w), 7), vdupq_n_s8(0x1b))));
+    /* inverse mix columns:
+     * InvMixColumns multiplies each column by the matrix:
+     *   [0E 0B 0D 09]
+     *   [09 0E 0B 0D]
+     *   [0D 09 0E 0B]
+     *   [0B 0D 09 0E]
+     * Computed as: v*{04} ^ v ^ rotate(v*{04}, 16) then standard MixColumns
+     */
+    // v*{04} = xtime(xtime(v))
+    w = _sse2neon_aes_xtime(v);
+    w = _sse2neon_aes_xtime(w);
     v = veorq_u8(v, w);
     v = veorq_u8(v, vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(w))));
 
-    // multiplying 'v' by 2 in GF(2^8)
-    w = veorq_u8(vshlq_n_u8(v, 1),
-                 vreinterpretq_u8_s8(vandq_s8(
-                     vshrq_n_s8(vreinterpretq_s8_u8(v), 7), vdupq_n_s8(0x1b))));
+    // Apply standard MixColumns to transformed v
+    w = _sse2neon_aes_xtime(v);
     w = veorq_u8(w, vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(v))));
-    w = veorq_u8(w, vqtbl1q_u8(veorq_u8(v, w), vld1q_u8(ror32by8)));
+    w = veorq_u8(w,
+                 vqtbl1q_u8(veorq_u8(v, w), vld1q_u8(_sse2neon_aes_ror32by8)));
 
     // add round key
     return vreinterpretq_m128i_u8(
@@ -10613,16 +10634,11 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
 FORCE_INLINE __m128i _mm_aesenclast_si128(__m128i a, __m128i RoundKey)
 {
 #if SSE2NEON_ARCH_AARCH64
-    static const uint8_t shift_rows[] = {
-        0x0, 0x5, 0xa, 0xf, 0x4, 0x9, 0xe, 0x3,
-        0x8, 0xd, 0x2, 0x7, 0xc, 0x1, 0x6, 0xb,
-    };
-
     uint8x16_t v;
     uint8x16_t w = vreinterpretq_u8_m128i(a);
 
-    // shift rows
-    w = vqtbl1q_u8(w, vld1q_u8(shift_rows));
+    // shift rows - use file-scope constant
+    w = vqtbl1q_u8(w, vld1q_u8(_sse2neon_aes_shift_rows));
 
     // sub bytes
     v = _sse2neon_aes_subbytes(w);
@@ -10780,14 +10796,11 @@ FORCE_INLINE uint8x16_t _sse2neon_vqtbx4q_u8(uint8x16_t acc,
 FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 {
 #if SSE2NEON_ARCH_AARCH64
-    static const uint8_t inv_shift_rows[] = {
-        0x0, 0xd, 0xa, 0x7, 0x4, 0x1, 0xe, 0xb,
-        0x8, 0x5, 0x2, 0xf, 0xc, 0x9, 0x6, 0x3,
-    };
-
     uint8x16_t v;
-    uint8x16_t w = vreinterpretq_u8_m128i(a);  // inverse shift rows
-    w = vqtbl1q_u8(w, vld1q_u8(inv_shift_rows));
+    uint8x16_t w = vreinterpretq_u8_m128i(a);
+
+    // inverse shift rows - use file-scope constant
+    w = vqtbl1q_u8(w, vld1q_u8(_sse2neon_aes_inv_shift_rows));
 
     // inverse sub bytes
     v = _sse2neon_aes_inv_subbytes(w);
@@ -10826,29 +10839,21 @@ FORCE_INLINE __m128i _mm_aesdeclast_si128(__m128i a, __m128i RoundKey)
 FORCE_INLINE __m128i _mm_aesimc_si128(__m128i a)
 {
 #if SSE2NEON_ARCH_AARCH64
-    static const uint8_t ror32by8[] = {
-        0x1, 0x2, 0x3, 0x0, 0x5, 0x6, 0x7, 0x4,
-        0x9, 0xa, 0xb, 0x8, 0xd, 0xe, 0xf, 0xc,
-    };
     uint8x16_t v = vreinterpretq_u8_m128i(a);
     uint8x16_t w;
 
-    // multiplying 'v' by 4 in GF(2^8)
-    w = veorq_u8(vshlq_n_u8(v, 1),
-                 vreinterpretq_u8_s8(vandq_s8(
-                     vshrq_n_s8(vreinterpretq_s8_u8(v), 7), vdupq_n_s8(0x1b))));
-    w = veorq_u8(vshlq_n_u8(w, 1),
-                 vreinterpretq_u8_s8(vandq_s8(
-                     vshrq_n_s8(vreinterpretq_s8_u8(w), 7), vdupq_n_s8(0x1b))));
+    /* InvMixColumns: same algorithm as in _mm_aesdec_si128 */
+    // v*{04} = xtime(xtime(v))
+    w = _sse2neon_aes_xtime(v);
+    w = _sse2neon_aes_xtime(w);
     v = veorq_u8(v, w);
     v = veorq_u8(v, vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(w))));
 
-    // multiplying 'v' by 2 in GF(2^8)
-    w = veorq_u8(vshlq_n_u8(v, 1),
-                 vreinterpretq_u8_s8(vandq_s8(
-                     vshrq_n_s8(vreinterpretq_s8_u8(v), 7), vdupq_n_s8(0x1b))));
+    // Apply standard MixColumns pattern
+    w = _sse2neon_aes_xtime(v);
     w = veorq_u8(w, vreinterpretq_u8_u16(vrev32q_u16(vreinterpretq_u16_u8(v))));
-    w = veorq_u8(w, vqtbl1q_u8(veorq_u8(v, w), vld1q_u8(ror32by8)));
+    w = veorq_u8(w,
+                 vqtbl1q_u8(veorq_u8(v, w), vld1q_u8(_sse2neon_aes_ror32by8)));
     return vreinterpretq_m128i_u8(w);
 
 #else /* ARMv7-A NEON implementation */

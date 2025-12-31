@@ -117,6 +117,13 @@ NAN_OBJS = \
     tests/binding.o
 nan_deps := $(NAN_OBJS:%.o=%.o.d)
 
+# AES-NI validation test objects
+AES_OBJS = \
+    tests/aes.o \
+    tests/common.o \
+    tests/binding.o
+aes_deps := $(AES_OBJS:%.o=%.o.d)
+
 .SUFFIXES: .o .cpp
 .cpp.o:
 	$(CXX) -o $@ $(CXXFLAGS) -c -MMD -MF $@.d $<
@@ -124,6 +131,7 @@ nan_deps := $(NAN_OBJS:%.o=%.o.d)
 EXEC = tests/main
 IEEE754_EXEC = tests/ieee754
 NAN_EXEC = tests/nan
+AES_EXEC = tests/aes
 
 $(EXEC): $(OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
@@ -132,6 +140,9 @@ $(IEEE754_EXEC): $(IEEE754_OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 $(NAN_EXEC): $(NAN_OBJS)
+	$(CXX) $(LDFLAGS) -o $@ $^
+
+$(AES_EXEC): $(AES_OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^
 
 ieee754: $(IEEE754_EXEC)
@@ -146,13 +157,20 @@ ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 endif
 	$(EXEC_WRAPPER) $^
 
-check: tests/main $(IEEE754_EXEC) $(NAN_EXEC)
+aes: $(AES_EXEC)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+endif
+	$(EXEC_WRAPPER) $^
+
+check: tests/main $(IEEE754_EXEC) $(NAN_EXEC) $(AES_EXEC)
 ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
 endif
 	$(EXEC_WRAPPER) tests/main
 	$(EXEC_WRAPPER) $(IEEE754_EXEC)
 	$(EXEC_WRAPPER) $(NAN_EXEC)
+	$(EXEC_WRAPPER) $(AES_EXEC)
 
 CLANG_FORMAT ?= $(shell command -v clang-format-20 2>/dev/null || \
     (command -v clang-format >/dev/null 2>&1 && \
@@ -188,6 +206,13 @@ ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
 endif
 	$(EXEC_WRAPPER) $(NAN_EXEC)
+
+# Convenience target for running only AES validation tests (skip main)
+check-aes: $(AES_EXEC)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) -c sse2neon.h
+endif
+	$(EXEC_WRAPPER) $(AES_EXEC)
 
 # Convenience target for running tests with UBSan
 check-ubsan: clean
@@ -266,14 +291,16 @@ endif
 coverage-report:
 	@python3 scripts/coverage-check.py
 
-.PHONY: clean check check-main check-ieee754 check-nan check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden coverage-report indent ieee754 nan
+.PHONY: clean check check-main check-ieee754 check-nan check-aes check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden coverage-report indent ieee754 nan aes
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)
 	$(RM) $(NAN_OBJS) $(NAN_EXEC) $(nan_deps)
+	$(RM) $(AES_OBJS) $(AES_EXEC) $(aes_deps)
 	$(RM) $(DIFFERENTIAL_OBJS) $(DIFFERENTIAL_EXEC) $(differential_deps)
 
 -include $(deps)
 -include $(ieee754_deps)
 -include $(nan_deps)
+-include $(aes_deps)
 -include $(differential_deps)
