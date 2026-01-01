@@ -508,7 +508,7 @@ jobs:
           Write-Host "OS: $([System.Environment]::OSVersion)"
           Write-Host "Processor: $env:PROCESSOR_ARCHITECTURE"
 
-  # Sanitizers on ARM: UBSan + ASan per IMPROVE.md H5
+  # Sanitizers on ARM: UBSan + ASan
   sanitizers-arm:
     runs-on: ubuntu-24.04-arm
     strategy:
@@ -539,6 +539,30 @@ jobs:
           UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
         run: make SANITIZE=${{ matrix.sanitizer }} check
+
+  # Fuzz testing on ARM: libFuzzer with ASan/UBSan
+  # Only runs on native ARM64 (no QEMU) with clang (libFuzzer requirement)
+  fuzz-arm:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: install clang
+        run: |
+          # clang-18 is in 'universe' repository on Ubuntu 24.04
+          sudo add-apt-repository -y -n universe
+          sudo apt-get -o Acquire::Retries=5 update -q -y
+          sudo apt-get -o Acquire::Retries=5 install -q -y --no-install-recommends clang-18
+      - name: build and run fuzzer
+        env:
+          CXX: clang++-18
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+        run: |
+          # Build fuzzer with crypto+crc extensions for full coverage
+          make FEATURE=crypto+crc FUZZ_CXX=clang++-18 tests/fuzz
+          # Run for 30 seconds in CI (verbose mode for logs)
+          make FUZZ_TIME=30 fuzz-verbose
 
   static-analysis:
     runs-on: ubuntu-24.04
