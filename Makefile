@@ -291,13 +291,84 @@ endif
 coverage-report:
 	@python3 scripts/coverage-check.py
 
-.PHONY: clean check check-main check-ieee754 check-nan check-aes check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden coverage-report indent ieee754 nan aes
+# Fuzzing configuration
+FUZZ_EXEC = tests/fuzz
+FUZZ_TIME ?= 90
+FUZZ_ARGS ?=
+FUZZ_CORPUS ?= fuzz_corpus
+
+# Detect if clang is available for fuzzing (libFuzzer requires clang)
+FUZZ_CXX := $(shell command -v clang++ 2>/dev/null)
+
+# Fuzzer build flags
+# Note: libFuzzer is built into clang on Linux but may require separate
+# installation on macOS (install via: brew install llvm)
+FUZZ_CXXFLAGS = -g -O1 -fsanitize=fuzzer,address,undefined -fno-omit-frame-pointer
+# Enable crypto extensions for AES and CLMUL testing on AArch64
+FUZZ_ARCH_FLAGS := $(ARCH_CFLAGS)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64))
+FUZZ_ARCH_FLAGS := -march=armv8-a+fp+simd+crypto+crc
+endif
+FUZZ_CXXFLAGS += -Wall -Wno-unused-function -I. $(FUZZ_ARCH_FLAGS) -std=gnu++14
+
+# On macOS, prefer Homebrew LLVM if available (has libFuzzer built-in)
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+HOMEBREW_LLVM_DIR := $(shell \
+    if [ -d /opt/homebrew/opt/llvm ]; then echo /opt/homebrew/opt/llvm; \
+    elif [ -d /usr/local/opt/llvm ]; then echo /usr/local/opt/llvm; \
+    fi)
+ifneq ($(HOMEBREW_LLVM_DIR),)
+FUZZ_CXX := $(HOMEBREW_LLVM_DIR)/bin/clang++
+# Use Homebrew LLVM's libc++ to avoid ABI mismatch with libFuzzer
+FUZZ_CXXFLAGS += -L$(HOMEBREW_LLVM_DIR)/lib/c++ -Wl,-rpath,$(HOMEBREW_LLVM_DIR)/lib/c++
+FUZZ_CXXFLAGS += -L$(HOMEBREW_LLVM_DIR)/lib -Wl,-rpath,$(HOMEBREW_LLVM_DIR)/lib
+endif
+endif
+
+# Build the fuzzer binary
+$(FUZZ_EXEC): tests/fuzz.cpp sse2neon.h
+	@if [ -z "$(FUZZ_CXX)" ]; then \
+		echo "Error: clang++ is required for fuzzing (libFuzzer support)"; \
+		echo "On macOS: brew install llvm"; \
+		echo "On Linux: apt install clang (or equivalent)"; \
+		exit 1; \
+	fi
+	@echo "Building fuzzer with: $(FUZZ_CXX)"
+	$(FUZZ_CXX) $(FUZZ_CXXFLAGS) -o $@ tests/fuzz.cpp || { \
+		echo ""; \
+		echo "Build failed. If libFuzzer is missing:"; \
+		echo "  macOS: brew install llvm"; \
+		echo "  Linux: Should work with clang 11+"; \
+		exit 1; \
+	}
+
+# Run fuzzer with progress bar (interactive mode)
+# Usage: make fuzz [FUZZ_TIME=60] [FUZZ_ARGS="-max_len=1024"]
+fuzz: $(FUZZ_EXEC)
+	@mkdir -p $(FUZZ_CORPUS)
+	./scripts/fuzz-progress.sh $(FUZZ_EXEC) $(FUZZ_TIME) $(FUZZ_CORPUS) $(FUZZ_ARGS)
+
+# Run fuzzer in verbose mode (raw libFuzzer output)
+# Useful for debugging or CI/CD environments
+fuzz-verbose: $(FUZZ_EXEC)
+	@mkdir -p $(FUZZ_CORPUS)
+	$(FUZZ_EXEC) -max_total_time=$(FUZZ_TIME) $(FUZZ_CORPUS) $(FUZZ_ARGS)
+
+# Clean fuzzer artifacts
+fuzz-clean:
+	$(RM) $(FUZZ_EXEC)
+	$(RM) -r $(FUZZ_CORPUS)
+	$(RM) crash-* leak-* timeout-* oom-*
+
+.PHONY: clean check check-main check-ieee754 check-nan check-aes check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden coverage-report indent ieee754 nan aes fuzz fuzz-verbose fuzz-clean
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)
 	$(RM) $(NAN_OBJS) $(NAN_EXEC) $(nan_deps)
 	$(RM) $(AES_OBJS) $(AES_EXEC) $(aes_deps)
 	$(RM) $(DIFFERENTIAL_OBJS) $(DIFFERENTIAL_EXEC) $(differential_deps)
+	$(RM) $(FUZZ_EXEC)
 
 -include $(deps)
 -include $(ieee754_deps)
