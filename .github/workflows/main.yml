@@ -580,6 +580,80 @@ jobs:
           clang++-$LLVM_VERSION $COMMON --target=aarch64-linux-gnu \
             --gcc-toolchain=/usr -isystem /usr/aarch64-linux-gnu/include tests/main.cpp
 
+  # Android NDK build verification (arm64-v8a)
+  # Uses NDK toolchain for full build including linking
+  host-android-ndk:
+    runs-on: ubuntu-24.04
+    env:
+      NDK_VERSION: r29
+      NDK_ROOT: ${{ github.workspace }}/android-ndk
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v6
+      - name: cache Android NDK toolchain
+        id: cache-ndk
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NDK_ROOT }}
+          key: android-ndk-toolchain-${{ env.NDK_VERSION }}
+      - name: extract NDK toolchain
+        if: steps.cache-ndk.outputs.cache-hit != 'true'
+        run: |
+          # Download NDK and extract toolchain (sysroot + clang + runtime libs)
+          NDK_URL="https://dl.google.com/android/repository/android-ndk-${NDK_VERSION}-linux.zip"
+          echo "Downloading Android NDK ${NDK_VERSION}..."
+          curl -L -o ndk.zip "$NDK_URL"
+          # Extract toolchain directory (includes clang, sysroot, runtime libs)
+          unzip -q ndk.zip "android-ndk-${NDK_VERSION}/toolchains/llvm/prebuilt/linux-x86_64/*"
+          mkdir -p "$NDK_ROOT"
+          mv "android-ndk-${NDK_VERSION}/toolchains/llvm/prebuilt/linux-x86_64"/* "$NDK_ROOT/"
+          rm -rf "android-ndk-${NDK_VERSION}" ndk.zip
+          echo "NDK toolchain size: $(du -sh "$NDK_ROOT" | cut -f1)"
+      - name: verify toolchain
+        run: |
+          echo "=== NDK Toolchain Info ==="
+          "$NDK_ROOT/bin/clang++" --version | head -2
+          ls -la "$NDK_ROOT/bin/" | grep -E 'aarch64.*clang' | head -3
+      - name: build for Android arm64-v8a (API 21)
+        run: |
+          # API 21 = Android 5.0 Lollipop (minimum arm64 support)
+          CXX="$NDK_ROOT/bin/aarch64-linux-android21-clang++"
+          echo '#include "sse2neon.h"' | $CXX \
+            -std=c++14 -Wall -Wextra -Werror -Wno-unused-parameter \
+            -I. -x c++ -fsyntax-only -
+          echo "OK: sse2neon.h compiles for Android arm64-v8a (API 21)"
+      - name: build for Android arm64-v8a (API 28, crypto+crc)
+        run: |
+          # API 28 = Android 9 Pie (common modern baseline)
+          CXX="$NDK_ROOT/bin/aarch64-linux-android28-clang++"
+          echo '#include "sse2neon.h"' | $CXX \
+            -march=armv8-a+crypto+crc \
+            -std=c++14 -Wall -Wextra -Werror -Wno-unused-parameter \
+            -I. -x c++ -fsyntax-only -
+          echo "OK: sse2neon.h compiles for Android arm64-v8a (API 28, crypto+crc)"
+      - name: build static test harness for Android
+        run: |
+          echo "Building static test harness..."
+          CXX="$NDK_ROOT/bin/aarch64-linux-android28-clang++"
+          # Static linking avoids bionic dynamic linker dependency for QEMU execution
+          $CXX \
+            -march=armv8-a+crypto+crc \
+            -std=c++14 -O2 -Wall -Wextra -Werror -Wno-unused-parameter \
+            -I. -static \
+            -o sse2neon-android-test \
+            tests/main.cpp tests/impl.cpp tests/common.cpp tests/binding.cpp
+          file sse2neon-android-test
+          echo "OK: Static test harness built for Android arm64-v8a"
+      - name: install QEMU for ARM64
+        run: |
+          sudo apt-get -o Acquire::Retries=5 update -q -y
+          sudo apt-get -o Acquire::Retries=5 install -q -y --no-install-recommends qemu-user-static
+      - name: run tests via QEMU
+        run: |
+          echo "Running Android ARM64 tests via QEMU..."
+          qemu-aarch64-static ./sse2neon-android-test
+          echo "OK: All tests passed on Android arm64-v8a (QEMU)"
+
   # iOS build verification
   host-ios:
     runs-on: macos-14
