@@ -1359,7 +1359,7 @@ FORCE_INLINE uint16_t _sse2neon_vaddvq_u16(uint16x8_t a)
     uint64x2_t n = vpaddlq_u32(m);
     uint64x1_t o = vget_low_u64(n) + vget_high_u64(n);
 
-    return vget_lane_u32((uint32x2_t) o, 0);
+    return vget_lane_u32(vreinterpret_u32_u64(o), 0);
 }
 #else
 // Wraps vaddvq_u16
@@ -4710,8 +4710,10 @@ FORCE_INLINE __m128d _mm_cvtepi32_pd(__m128i a)
     return vreinterpretq_m128d_f64(
         vcvtq_f64_s64(vmovl_s32(vget_low_s32(vreinterpretq_s32_m128i(a)))));
 #else
-    double a0 = (double) vgetq_lane_s32(vreinterpretq_s32_m128i(a), 0);
-    double a1 = (double) vgetq_lane_s32(vreinterpretq_s32_m128i(a), 1);
+    double a0 = _sse2neon_static_cast(
+        double, vgetq_lane_s32(vreinterpretq_s32_m128i(a), 0));
+    double a1 = _sse2neon_static_cast(
+        double, vgetq_lane_s32(vreinterpretq_s32_m128i(a), 1));
     return _mm_set_pd(a1, a0);
 #endif
 }
@@ -8526,7 +8528,7 @@ FORCE_INLINE __m128i _mm_minpos_epu16(__m128i a)
     int i;
     for (i = 0; i < 8; i++) {
         if (min == vgetq_lane_u16(_a, 0)) {
-            idx = (uint16_t) i;
+            idx = _sse2neon_static_cast(uint16_t, i);
             break;
         }
         _a = vreinterpretq_u16_s8(
@@ -10459,9 +10461,11 @@ FORCE_INLINE __m128i _mm_aesenc_si128(__m128i a, __m128i RoundKey)
         veorq_u8(w, vreinterpretq_u8_m128i(RoundKey)));
 
 #else /* ARMv7-A implementation for a table-based AES */
-#define SSE2NEON_AES_B2W(b0, b1, b2, b3)                 \
-    (((uint32_t) (b3) << 24) | ((uint32_t) (b2) << 16) | \
-     ((uint32_t) (b1) << 8) | (uint32_t) (b0))
+#define SSE2NEON_AES_B2W(b0, b1, b2, b3)           \
+    ((_sse2neon_static_cast(uint32_t, b3) << 24) | \
+     (_sse2neon_static_cast(uint32_t, b2) << 16) | \
+     (_sse2neon_static_cast(uint32_t, b1) << 8) |  \
+     _sse2neon_static_cast(uint32_t, b0))
 // multiplying 'x' by 2 in GF(2^8)
 #define SSE2NEON_AES_F2(x) ((x << 1) ^ (((x >> 7) & 1) * 0x011b /* WPOLY */))
 // multiplying 'x' by 3 in GF(2^8)
@@ -10555,9 +10559,11 @@ FORCE_INLINE __m128i _mm_aesdec_si128(__m128i a, __m128i RoundKey)
 
 #else /* ARMv7-A implementation using inverse T-tables */
     // GF(2^8) multiplication helpers for InvMixColumns coefficients
-#define SSE2NEON_AES_DEC_B2W(b0, b1, b2, b3)             \
-    (((uint32_t) (b3) << 24) | ((uint32_t) (b2) << 16) | \
-     ((uint32_t) (b1) << 8) | (uint32_t) (b0))
+#define SSE2NEON_AES_DEC_B2W(b0, b1, b2, b3)       \
+    ((_sse2neon_static_cast(uint32_t, b3) << 24) | \
+     (_sse2neon_static_cast(uint32_t, b2) << 16) | \
+     (_sse2neon_static_cast(uint32_t, b1) << 8) |  \
+     _sse2neon_static_cast(uint32_t, b0))
     // xtime: multiply by 2 in GF(2^8), using 0x011b to clear bit 8
 #define SSE2NEON_AES_DEC_X2(x) ((x << 1) ^ (((x >> 7) & 1) * 0x011b))
     // multiply by 4 in GF(2^8)
@@ -10994,7 +11000,8 @@ FORCE_INLINE __m128i _mm_aeskeygenassist_si128(__m128i a, const int rcon)
         sb_[0xC], sb_[0x9], sb_[0x6], sb_[0x3],  // SubBytes(X3)
         sb_[0x9], sb_[0x6], sb_[0x3], sb_[0xC],  // ROT(SubBytes(X3))
     };
-    uint32x4_t r = {0, (unsigned) rcon, 0, (unsigned) rcon};
+    uint32x4_t r = {0, _sse2neon_static_cast(unsigned, rcon), 0,
+                    _sse2neon_static_cast(unsigned, rcon)};
     return vreinterpretq_m128i_u8(dest) ^ vreinterpretq_m128i_u32(r);
 #else
     // We have to do this hack because MSVC is strictly adhering to the CPP
