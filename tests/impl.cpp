@@ -12436,7 +12436,7 @@ static test_mm_cmpistrm_sword_data_t
         {
             {-39, -10, 17, 89, 998, 1000, 1234, 4566},
             {-40, -52, -39, -29, 100, 1024, 4565, 4600},
-            IMM_SWORD_RANGES_BIT,
+            IMM_SWORD_RANGES_UNIT,
             {0, 0, -1, -1, 0, 0, -1, 0},
         },
         {
