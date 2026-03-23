@@ -489,10 +489,6 @@ FORCE_INLINE int64_t sse2neon_recast_f64_s64(double val)
 #undef _SSE2NEON_DEFINED_M_ARM64
 #endif
 
-#if !defined(__cplusplus)
-#error "SSE2NEON only supports C++ compilation with this compiler"
-#endif
-
 #ifdef SSE2NEON_ALLOC_DEFINED
 #include <malloc.h>
 #endif
