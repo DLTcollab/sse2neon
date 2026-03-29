@@ -350,6 +350,7 @@ Open source projects using `sse2neon` for Arm/Aarch64 support (partial list):
 * [Benchmarking and Testing of Qualcomm Snapdragon System-on-Chip for JPL Space Applications and Missions](https://ieeexplore.ieee.org/abstract/document/9843518)
 * [Spotlight: Petrobras Speeds Up Linear Solvers for Reservoir Simulation Using NVIDIA Grace CPU](https://developer.nvidia.com/blog/spotlight-petrobras-accelerates-linear-solvers-for-reservoir-simulation-using-nvidia-grace-cpu/)
 * [Application porting to Windows on Snapdragon, using the sse2neon header file](https://www.qualcomm.com/developer/blog/2024/10/applications-porting-windows-on-snapdragon-sse2neon-header-file-part-1)
+* [So, you want to port your C/C++ project to Windows on Arm?](https://www.linaro.org/blog/so-you-want-to-port-your-c-c-project-to-windows-on-arm/)
 
 ## Licensing
 
