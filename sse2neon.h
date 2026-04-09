@@ -1733,6 +1733,27 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 }
 #endif  // ARMv7 polyfill
 
+
+#if SSE2NEON_COMPILER_GCC_COMPAT || defined(__cplusplus)
+#define _sse2neon_vgetq_lane_s32 vgetq_lane_s32
+#else
+// this inline macro is used as a wrapper around vgetq_lane_s32 to ensure its
+// second argument is a compile time constant.
+FORCE_INLINE int32_t _sse2neon_vgetq_lane_s32(int32x4_t vec, int lane)
+{
+    switch (lane) {
+    case 0:
+        return vgetq_lane_s32(vec, 0);
+    case 1:
+        return vgetq_lane_s32(vec, 1);
+    case 2:
+        return vgetq_lane_s32(vec, 2);
+    default:  // case 3
+        return vgetq_lane_s32(vec, 3);
+    }
+}
+#endif
+
 // C equivalent:
 //   __m128i _mm_shuffle_epi32_default(__m128i a, const int imm) {
 //       // imm must be a compile-time constant in range [0, 255]
@@ -1741,17 +1762,20 @@ static uint64x2_t _sse2neon_vmull_p64(uint64x1_t _a, uint64x1_t _b)
 //       ret[2] = a[((imm) >> 4) & 0x03];  ret[3] = a[((imm) >> 6) & 0x03];
 //       return ret;
 //   }
-#define _mm_shuffle_epi32_default(a, imm)                                   \
-    vreinterpretq_m128i_s32(vsetq_lane_s32(                                 \
-        vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 6) & 0x3),     \
-        vsetq_lane_s32(                                                     \
-            vgetq_lane_s32(vreinterpretq_s32_m128i(a), ((imm) >> 4) & 0x3), \
-            vsetq_lane_s32(vgetq_lane_s32(vreinterpretq_s32_m128i(a),       \
-                                          ((imm) >> 2) & 0x3),              \
-                           vmovq_n_s32(vgetq_lane_s32(                      \
-                               vreinterpretq_s32_m128i(a), (imm) & (0x3))), \
-                           1),                                              \
-            2),                                                             \
+#define _mm_shuffle_epi32_default(a, imm)                            \
+    vreinterpretq_m128i_s32(vsetq_lane_s32(                          \
+        _sse2neon_vgetq_lane_s32(vreinterpretq_s32_m128i(a),         \
+                                 ((imm) >> 6) & 0x3),                \
+        vsetq_lane_s32(                                              \
+            _sse2neon_vgetq_lane_s32(vreinterpretq_s32_m128i(a),     \
+                                     ((imm) >> 4) & 0x3),            \
+            vsetq_lane_s32(                                          \
+                _sse2neon_vgetq_lane_s32(vreinterpretq_s32_m128i(a), \
+                                         ((imm) >> 2) & 0x3),        \
+                vmovq_n_s32(_sse2neon_vgetq_lane_s32(                \
+                    vreinterpretq_s32_m128i(a), (imm) & (0x3))),     \
+                1),                                                  \
+            2),                                                      \
         3))
 
 // Takes the upper 64 bits of a and places it in the low end of the result
@@ -1859,16 +1883,55 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
 //   }
 //
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_mm_shuffle_ps
+
+#if SSE2NEON_COMPILER_GCC_COMPAT || defined(__cplusplus)
+#define _sse2neon_vgetq_lane_f32 vgetq_lane_f32
+#define _sse2neon_vsetq_lane_f32 vsetq_lane_f32
+#else
+// these inline macros are used as a wrappers to ensure the lane argument is a
+// compile time constant.
+FORCE_INLINE float32_t _sse2neon_vgetq_lane_f32(float32x4_t vec, int lane)
+{
+    switch (lane) {
+    case 0:
+        return vgetq_lane_f32(vec, 0);
+    case 1:
+        return vgetq_lane_f32(vec, 1);
+    case 2:
+        return vgetq_lane_f32(vec, 2);
+    default:  // case 3
+        return vgetq_lane_f32(vec, 3);
+    }
+}
+FORCE_INLINE float32x4_t _sse2neon_vsetq_lane_f32(float32_t value,
+                                                  float32x4_t vec,
+                                                  int lane)
+{
+    switch (lane) {
+    case 0:
+        return vsetq_lane_f32(value, vec, 0);
+    case 1:
+        return vsetq_lane_f32(value, vec, 1);
+    case 2:
+        return vsetq_lane_f32(value, vec, 2);
+    default:  // case 3
+        return vsetq_lane_f32(value, vec, 3);
+    }
+}
+#endif
+
 #define _mm_shuffle_ps_default(a, b, imm)                                      \
     vreinterpretq_m128_f32(vsetq_lane_f32(                                     \
-        vgetq_lane_f32(vreinterpretq_f32_m128(b), ((imm) >> 6) & 0x3),         \
+        _sse2neon_vgetq_lane_f32(vreinterpretq_f32_m128(b),                    \
+                                 ((imm) >> 6) & 0x3),                          \
         vsetq_lane_f32(                                                        \
-            vgetq_lane_f32(vreinterpretq_f32_m128(b), ((imm) >> 4) & 0x3),     \
-            vsetq_lane_f32(                                                    \
-                vgetq_lane_f32(vreinterpretq_f32_m128(a), ((imm) >> 2) & 0x3), \
-                vmovq_n_f32(                                                   \
-                    vgetq_lane_f32(vreinterpretq_f32_m128(a), (imm) & (0x3))), \
-                1),                                                            \
+            _sse2neon_vgetq_lane_f32(vreinterpretq_f32_m128(b),                \
+                                     ((imm) >> 4) & 0x3),                      \
+            vsetq_lane_f32(_sse2neon_vgetq_lane_f32(vreinterpretq_f32_m128(a), \
+                                                    ((imm) >> 2) & 0x3),       \
+                           vmovq_n_f32(_sse2neon_vgetq_lane_f32(               \
+                               vreinterpretq_f32_m128(a), (imm) & (0x3))),     \
+                           1),                                                 \
             2),                                                                \
         3))
 
@@ -1890,14 +1953,35 @@ FORCE_INLINE __m128i _mm_shuffle_epi_3332(__m128i a)
                              3);                                              \
         _sse2neon_return(vreinterpretq_m128i_s16(ret));)
 #else
+
+// this inline macro is used as a wrapper around vget_lane_s16 to ensure its
+// second argument is a compile time constant.
+FORCE_INLINE int16_t _sse2neon_vget_lane_s16(int16x4_t vec, int lane)
+{
+    switch (lane) {
+    case 0:
+        return vget_lane_s16(vec, 0);
+    case 1:
+        return vget_lane_s16(vec, 1);
+    case 2:
+        return vget_lane_s16(vec, 2);
+    default:  // case 3
+        return vget_lane_s16(vec, 3);
+    }
+}
+
 FORCE_INLINE __m128i _mm_shufflelo_epi16_function(__m128i a, int imm)
 {
     int16x8_t ret = vreinterpretq_s16_m128i(a);
     int16x4_t lowBits = vget_low_s16(ret);
-    ret = vsetq_lane_s16(vget_lane_s16(lowBits, (imm) & (0x3)), ret, 0);
-    ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 2) & 0x3), ret, 1);
-    ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 4) & 0x3), ret, 2);
-    ret = vsetq_lane_s16(vget_lane_s16(lowBits, ((imm) >> 6) & 0x3), ret, 3);
+    ret =
+        vsetq_lane_s16(_sse2neon_vget_lane_s16(lowBits, (imm) & (0x3)), ret, 0);
+    ret = vsetq_lane_s16(_sse2neon_vget_lane_s16(lowBits, ((imm) >> 2) & 0x3),
+                         ret, 1);
+    ret = vsetq_lane_s16(_sse2neon_vget_lane_s16(lowBits, ((imm) >> 4) & 0x3),
+                         ret, 2);
+    ret = vsetq_lane_s16(_sse2neon_vget_lane_s16(lowBits, ((imm) >> 6) & 0x3),
+                         ret, 3);
     return vreinterpretq_m128i_s16(ret);
 }
 #endif
@@ -1924,10 +2008,14 @@ FORCE_INLINE __m128i _mm_shufflehi_epi16_function(__m128i a, int imm)
 {
     int16x8_t ret = vreinterpretq_s16_m128i(a);
     int16x4_t highBits = vget_high_s16(ret);
-    ret = vsetq_lane_s16(vget_lane_s16(highBits, (imm) & (0x3)), ret, 4);
-    ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 2) & 0x3), ret, 5);
-    ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 4) & 0x3), ret, 6);
-    ret = vsetq_lane_s16(vget_lane_s16(highBits, ((imm) >> 6) & 0x3), ret, 7);
+    ret = vsetq_lane_s16(_sse2neon_vget_lane_s16(highBits, (imm) & (0x3)), ret,
+                         4);
+    ret = vsetq_lane_s16(_sse2neon_vget_lane_s16(highBits, ((imm) >> 2) & 0x3),
+                         ret, 5);
+    ret = vsetq_lane_s16(_sse2neon_vget_lane_s16(highBits, ((imm) >> 4) & 0x3),
+                         ret, 6);
+    ret = vsetq_lane_s16(_sse2neon_vget_lane_s16(highBits, ((imm) >> 6) & 0x3),
+                         ret, 7);
     return vreinterpretq_m128i_s16(ret);
 }
 #endif
@@ -3394,13 +3482,17 @@ FORCE_INLINE __m64 _mm_shuffle_pi16(__m64 a, int imm)
 {
     SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);
     int16x4_t ret;
-    ret = vmov_n_s16(vget_lane_s16(vreinterpret_s16_m64(a), (imm) & (0x3)));
+    ret = vmov_n_s16(
+        _sse2neon_vget_lane_s16(vreinterpret_s16_m64(a), (imm) & (0x3)));
     ret = vset_lane_s16(
-        vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 2) & 0x3), ret, 1);
+        _sse2neon_vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 2) & 0x3),
+        ret, 1);
     ret = vset_lane_s16(
-        vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 4) & 0x3), ret, 2);
+        _sse2neon_vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 4) & 0x3),
+        ret, 2);
     ret = vset_lane_s16(
-        vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 6) & 0x3), ret, 3);
+        _sse2neon_vget_lane_s16(vreinterpret_s16_m64(a), ((imm) >> 6) & 0x3),
+        ret, 3);
     return vreinterpret_m64_s16(ret);
 }
 #endif
@@ -6423,6 +6515,80 @@ FORCE_INLINE __m128i _mm_slli_epi64(__m128i a, int imm)
                             (((imm) <= 0 || (imm) > 15) ? 0 : (16 - (imm)))); \
         _sse2neon_return(vreinterpretq_m128i_s8(ret));)
 #else
+
+#define _sse2neon_vextq_s8_case_helper(val) \
+    case val:                               \
+        return vextq_s8(a, b, val)
+
+FORCE_INLINE int8x16_t _sse2neon_vextq_s8(int8x16_t a, int8x16_t b, int c)
+{
+    switch (c) {
+        _sse2neon_vextq_s8_case_helper(0);
+        _sse2neon_vextq_s8_case_helper(1);
+        _sse2neon_vextq_s8_case_helper(2);
+        _sse2neon_vextq_s8_case_helper(3);
+        _sse2neon_vextq_s8_case_helper(4);
+        _sse2neon_vextq_s8_case_helper(5);
+        _sse2neon_vextq_s8_case_helper(6);
+        _sse2neon_vextq_s8_case_helper(7);
+        _sse2neon_vextq_s8_case_helper(8);
+        _sse2neon_vextq_s8_case_helper(9);
+        _sse2neon_vextq_s8_case_helper(10);
+        _sse2neon_vextq_s8_case_helper(11);
+        _sse2neon_vextq_s8_case_helper(12);
+        _sse2neon_vextq_s8_case_helper(13);
+        _sse2neon_vextq_s8_case_helper(14);
+    default:  // case 15
+        return vextq_s8(a, b, 15);
+    }
+}
+
+#define _sse2neon_vextq_u8_case_helper(val) \
+    case val:                               \
+        return vextq_u8(a, b, val)
+
+FORCE_INLINE uint8x16_t _sse2neon_vextq_u8(uint8x16_t a, uint8x16_t b, int c)
+{
+    switch (c) {
+        _sse2neon_vextq_u8_case_helper(0);
+        _sse2neon_vextq_u8_case_helper(1);
+        _sse2neon_vextq_u8_case_helper(2);
+        _sse2neon_vextq_u8_case_helper(3);
+        _sse2neon_vextq_u8_case_helper(4);
+        _sse2neon_vextq_u8_case_helper(5);
+        _sse2neon_vextq_u8_case_helper(6);
+        _sse2neon_vextq_u8_case_helper(7);
+        _sse2neon_vextq_u8_case_helper(8);
+        _sse2neon_vextq_u8_case_helper(9);
+        _sse2neon_vextq_u8_case_helper(10);
+        _sse2neon_vextq_u8_case_helper(11);
+        _sse2neon_vextq_u8_case_helper(12);
+        _sse2neon_vextq_u8_case_helper(13);
+        _sse2neon_vextq_u8_case_helper(14);
+    default:  // case 15
+        return vextq_u8(a, b, 15);
+    }
+}
+
+#define _sse2neon_vext_u8_case_helper(val) \
+    case val:                              \
+        return vext_u8(a, b, val)
+
+FORCE_INLINE uint8x8_t _sse2neon_vext_u8(uint8x8_t a, uint8x8_t b, int c)
+{
+    switch (c) {
+        _sse2neon_vext_u8_case_helper(0);
+        _sse2neon_vext_u8_case_helper(1);
+        _sse2neon_vext_u8_case_helper(2);
+        _sse2neon_vext_u8_case_helper(3);
+        _sse2neon_vext_u8_case_helper(4);
+        _sse2neon_vext_u8_case_helper(5);
+        _sse2neon_vext_u8_case_helper(6);
+    default:  // case 7
+        return vext_u8(a, b, 7);
+    }
+}
+
 FORCE_INLINE __m128i _mm_slli_si128(__m128i a, int imm)
 {
     SSE2NEON_REQUIRE_CONST_RANGE(imm, 0, 255);
@@ -6432,8 +6598,8 @@ FORCE_INLINE __m128i _mm_slli_si128(__m128i a, int imm)
     else if (_sse2neon_unlikely(imm & ~15))
         ret = vdupq_n_s8(0);
     else
-        ret = vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(a),
-                       ((imm <= 0 || imm > 15) ? 0 : (16 - imm)));
+        ret = _sse2neon_vextq_s8(vdupq_n_s8(0), vreinterpretq_s8_m128i(a),
+                                 ((imm <= 0 || imm > 15) ? 0 : (16 - imm)));
     return vreinterpretq_m128i_s8(ret);
 }
 #endif
@@ -6681,8 +6847,8 @@ FORCE_INLINE __m128i _mm_srli_si128(__m128i a, int imm)
     if (_sse2neon_unlikely(imm & ~15))
         ret = vdupq_n_s8(0);
     else
-        ret = vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0),
-                       (imm > 15 ? 0 : imm));
+        ret = _sse2neon_vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0),
+                                 (imm > 15 ? 0 : imm));
     return vreinterpretq_m128i_s8(ret);
 }
 #endif
@@ -7594,10 +7760,11 @@ FORCE_INLINE __m128i _mm_alignr_epi8(__m128i a, __m128i b, int imm)
         ret = vreinterpretq_m128i_u8(vdupq_n_u8(0));
     else if (imm >= 16)
         ret = vreinterpretq_m128i_s8(
-            vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0),
-                     (imm >= 16 && imm < 32) ? imm - 16 : 0));
+            _sse2neon_vextq_s8(vreinterpretq_s8_m128i(a), vdupq_n_s8(0),
+                               (imm >= 16 && imm < 32) ? imm - 16 : 0));
     else
-        ret = vreinterpretq_m128i_u8(vextq_u8(ub, ua, imm < 16 ? imm : 0));
+        ret = vreinterpretq_m128i_u8(
+            _sse2neon_vextq_u8(ub, ua, imm < 16 ? imm : 0));
     return ret;
 }
 #endif
@@ -7645,11 +7812,11 @@ FORCE_INLINE __m64 _mm_alignr_pi8(__m64 a, __m64 b, int imm)
     if (_sse2neon_unlikely(imm >= 16)) {
         ret = vreinterpret_m64_s8(vdup_n_s8(0));
     } else if (imm >= 8) {
-        ret = vreinterpret_m64_u8(
-            vext_u8(vreinterpret_u8_m64(a), vdup_n_u8(0), (imm - 8) & 7));
+        ret = vreinterpret_m64_u8(_sse2neon_vext_u8(
+            vreinterpret_u8_m64(a), vdup_n_u8(0), (imm - 8) & 7));
     } else {
-        ret = vreinterpret_m64_u8(
-            vext_u8(vreinterpret_u8_m64(b), vreinterpret_u8_m64(a), imm & 7));
+        ret = vreinterpret_m64_u8(_sse2neon_vext_u8(
+            vreinterpret_u8_m64(b), vreinterpret_u8_m64(a), imm & 7));
     }
     return ret;
 }
@@ -8768,9 +8935,9 @@ FORCE_INLINE __m128 _mm_insert_ps(__m128 a, __m128 b, int imm8)
     float32x4_t fa = vreinterpretq_f32_m128(a);
     float32x4_t fb = vreinterpretq_f32_m128(b);
     float32x4_t tmp1 =
-        vsetq_lane_f32(vgetq_lane_f32(fb, (imm8 >> 6) & 0x3), fa, 0);
-    float32x4_t tmp2 =
-        vsetq_lane_f32(vgetq_lane_f32(tmp1, 0), fa, (imm8 >> 4) & 0x3);
+        vsetq_lane_f32(_sse2neon_vgetq_lane_f32(fb, (imm8 >> 6) & 0x3), fa, 0);
+    float32x4_t tmp2 = _sse2neon_vsetq_lane_f32(vgetq_lane_f32(tmp1, 0), fa,
+                                                (imm8 >> 4) & 0x3);
     const uint32_t data[4] = {
         (imm8 & (1 << 0)) ? UINT32_MAX : 0,
         (imm8 & (1 << 1)) ? UINT32_MAX : 0,
