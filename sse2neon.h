@@ -755,7 +755,9 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #endif
 /* Flush-to-zero (FTZ) mode macros.
  * On x86, FTZ (MXCSR bit 15) flushes denormal outputs to zero.
- * On ARM, FPCR/FPSCR bit 24 provides unified FZ+DAZ behavior.
+ * On ARM without FEAT_AFP: FPCR.FZ (bit 24) flushes both inputs and outputs.
+ * On ARM with FEAT_AFP (ARMv8.7+): FPCR.FZ flushes only outputs when AH=1,
+ *   allowing independent control of input (FIZ) and output (FZ) flushing.
  * ARMv7 NEON: Per ARM ARM, Advanced SIMD has "Flush-to-zero mode always
  *   enabled" - denormals flush regardless of FPSCR.FZ (some impls may vary).
  * ARMv8: FPCR.FZ correctly controls denormal handling for NEON ops.
@@ -771,8 +773,10 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #endif
 /* Denormals-are-zero (DAZ) mode macros.
  * On x86, DAZ (MXCSR bit 6) treats denormal inputs as zero.
- * On ARM, setting DAZ enables the same FPCR/FPSCR bit 24 as FTZ,
- * providing unified handling for both input and output denormals.
+ * On ARM without FEAT_AFP: setting DAZ enables FPCR.FZ (bit 24), which also
+ *   affects outputs - the best approximation available pre-ARMv8.7.
+ * On ARM with FEAT_AFP (ARMv8.7+): DAZ is mapped to FPCR.FIZ (bit 0) with
+ *   FPCR.AH (bit 1) set, giving true input-only denormal flushing.
  */
 #ifndef _MM_DENORMALS_ZERO_MASK
 #define _MM_DENORMALS_ZERO_MASK 0x0040
@@ -1456,7 +1460,14 @@ enum _mm_hint {
 
 // The bit field mapping to the FPCR(floating-point control register)
 typedef struct {
+#if defined(__ARM_FEATURE_AFP)
+    // FEAT_AFP (ARMv8.7+): independent input/output denormal flush control
+    uint16_t bit0_fiz : 1;  // bit 0: FIZ - Flush Inputs to Zero
+    uint16_t bit1_ah : 1;   // bit 1: AH  - Alternate Handling
+    uint16_t res0 : 14;     // bits 2-15
+#else
     uint16_t res0;
+#endif
     uint8_t res1 : 6;
     uint8_t bit22 : 1;
     uint8_t bit23 : 1;
@@ -3310,6 +3321,11 @@ FORCE_INLINE void _sse2neon_mm_set_flush_zero_mode(unsigned int flag)
 #endif
 
     r.field.bit24 = (flag & _MM_FLUSH_ZERO_MASK) == _MM_FLUSH_ZERO_ON;
+#if defined(__ARM_FEATURE_AFP)
+    // With FEAT_AFP, AH=1 makes FZ flush outputs only (correct FTZ semantics).
+    // Keep AH set if either FZ or FIZ is active.
+    r.field.bit1_ah = r.field.bit24 | r.field.bit0_fiz;
+#endif
 
 #if SSE2NEON_ARCH_AARCH64
     _sse2neon_set_fpcr(r.value);
@@ -3387,7 +3403,8 @@ FORCE_INLINE __m128 _mm_set1_ps(float _w)
 // Supported MXCSR fields:
 // - Bits 13-14: Rounding mode (RM) - SUPPORTED via ARM FPCR/FPSCR
 // - Bit 15 (FZ): Flush-to-zero mode - SUPPORTED via ARM FPCR/FPSCR bit 24
-// - Bit 6 (DAZ): Denormals-are-zero mode - SUPPORTED (unified with FZ on ARM)
+// - Bit 6 (DAZ): Denormals-are-zero mode - SUPPORTED independently via
+//   FPCR.FIZ+AH on FEAT_AFP (ARMv8.7+), or unified with FZ on older ARM.
 //
 // Unsupported MXCSR fields (silently ignored):
 // - Bits 0-5: Exception flags (IE, DE, ZE, OE, UE, PE) - NOT EMULATED
@@ -3395,17 +3412,32 @@ FORCE_INLINE __m128 _mm_set1_ps(float _w)
 // See "MXCSR Exception Flags - NOT EMULATED" documentation block for details.
 //
 // ARM Platform Behavior:
-// - ARM FPCR/FPSCR bit 24 provides unified FZ+DAZ behavior. Setting either
-//   _MM_FLUSH_ZERO_ON or _MM_DENORMALS_ZERO_ON enables the same ARM bit.
+// - Without FEAT_AFP: FPCR.FZ is set if either FTZ or DAZ is requested
+//   (unified, slightly over-approximates when only one flag is set).
+// - With FEAT_AFP (ARMv8.7+): FTZ maps to FPCR.FZ and DAZ maps to FPCR.FIZ,
+//   both requiring FPCR.AH=1 for correct output-only / input-only semantics.
 // - ARMv7 NEON: "Flush-to-zero mode always enabled" per ARM ARM (impl may vary)
-// - ARMv8: FPCR.FZ correctly controls denormal handling for NEON operations
 FORCE_INLINE void _mm_setcsr(unsigned int a)
 {
     _MM_SET_ROUNDING_MODE(a & _MM_ROUND_MASK);
-    // ARM FPCR.bit24 handles both FZ and DAZ - set if either is requested
+#if defined(__ARM_FEATURE_AFP)
+    // FEAT_AFP: set FZ and FIZ independently; AH=1 enables output-only FZ and
+    // input-only FIZ semantics.
+    union {
+        fpcr_bitfield field;
+        uint64_t value;
+    } r;
+    r.value = _sse2neon_get_fpcr();
+    r.field.bit24 = (a & _MM_FLUSH_ZERO_MASK) == _MM_FLUSH_ZERO_ON;
+    r.field.bit0_fiz = (a & _MM_DENORMALS_ZERO_MASK) == _MM_DENORMALS_ZERO_ON;
+    r.field.bit1_ah = r.field.bit24 | r.field.bit0_fiz;
+    _sse2neon_set_fpcr(r.value);
+#else
+    // Without FEAT_AFP: FPCR.FZ handles both; set if either flag is requested.
     _MM_SET_FLUSH_ZERO_MODE(
         (a & _MM_FLUSH_ZERO_MASK) |
         ((a & _MM_DENORMALS_ZERO_MASK) ? _MM_FLUSH_ZERO_ON : 0));
+#endif
 }
 
 // Get the unsigned 32-bit value of the MXCSR control and status register.
@@ -3413,8 +3445,9 @@ FORCE_INLINE void _mm_setcsr(unsigned int a)
 //
 // Returned MXCSR fields:
 // - Bits 13-14: Rounding mode (RM) - Reflects current ARM FPCR/FPSCR setting
-// - Bit 15 (FZ): Flush-to-zero mode - Reflects ARM FPCR/FPSCR bit 24
-// - Bit 6 (DAZ): Denormals-are-zero mode - Mirrors FZ (unified on ARM)
+// - Bit 15 (FZ): Flush-to-zero mode - Reflects FPCR.FZ (bit 24)
+// - Bit 6 (DAZ): Denormals-are-zero mode - Reflects FPCR.FIZ (FEAT_AFP) or
+//   mirrors FZ (pre-ARMv8.7 fallback)
 //
 // Fields always returned as zero (NOT EMULATED):
 // - Bits 0-5: Exception flags - ALWAYS 0 (exceptions not tracked)
@@ -3423,13 +3456,25 @@ FORCE_INLINE void _mm_setcsr(unsigned int a)
 // details.
 //
 // ARM Platform Behavior:
-// - When ARM FPCR/FPSCR bit 24 is enabled, both FZ and DAZ bits are reported
-//   as set (the original setting cannot be distinguished).
+// - With FEAT_AFP: FZ and DAZ are read back independently from FPCR.FZ and
+//   FPCR.FIZ, faithfully reflecting what was set.
+// - Without FEAT_AFP: When FPCR.FZ is enabled, both FZ and DAZ bits are
+//   reported as set (the original setting cannot be distinguished).
 // - ARMv7 NEON: Returned bits reflect FPSCR, but NEON always flushes denormals
 FORCE_INLINE unsigned int _mm_getcsr(void)
 {
+#if defined(__ARM_FEATURE_AFP)
+    union {
+        fpcr_bitfield field;
+        uint64_t value;
+    } r;
+    r.value = _sse2neon_get_fpcr();
+    return _MM_GET_ROUNDING_MODE() | (r.field.bit24 ? _MM_FLUSH_ZERO_ON : 0) |
+           (r.field.bit0_fiz ? _MM_DENORMALS_ZERO_ON : 0);
+#else
     return _MM_GET_ROUNDING_MODE() | _MM_GET_FLUSH_ZERO_MODE() |
            _MM_GET_DENORMALS_ZERO_MODE();
+#endif
 }
 
 // Set packed single-precision (32-bit) floating-point elements in dst with the
@@ -11602,7 +11647,12 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_denormals_zero_mode(void)
     __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
+#if defined(__ARM_FEATURE_AFP)
+    // With FEAT_AFP, DAZ is represented by FIZ (input flush), not FZ.
+    return r.field.bit0_fiz ? _MM_DENORMALS_ZERO_ON : _MM_DENORMALS_ZERO_OFF;
+#else
     return r.field.bit24 ? _MM_DENORMALS_ZERO_ON : _MM_DENORMALS_ZERO_OFF;
+#endif
 }
 
 // Count the number of bits set to 1 in unsigned 32-bit integer a, and
@@ -11683,7 +11733,15 @@ FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
     __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
 #endif
 
+#if defined(__ARM_FEATURE_AFP)
+    // With FEAT_AFP, DAZ maps to FIZ (input-only flush). AH=1 is required for
+    // both FZ and FIZ to operate in their independent output/input modes.
+    r.field.bit0_fiz =
+        (flag & _MM_DENORMALS_ZERO_MASK) == _MM_DENORMALS_ZERO_ON;
+    r.field.bit1_ah = r.field.bit0_fiz | r.field.bit24;
+#else
     r.field.bit24 = (flag & _MM_DENORMALS_ZERO_MASK) == _MM_DENORMALS_ZERO_ON;
+#endif
 
 #if SSE2NEON_ARCH_AARCH64
     _sse2neon_set_fpcr(r.value);
