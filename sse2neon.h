@@ -5779,9 +5779,17 @@ FORCE_INLINE int _mm_movemask_epi8(__m128i a)
     // Step 1: Extract MSB of each byte as 0x00 or 0xFF
     int8x16_t mask = vshrq_n_s8(vreinterpretq_s8_u8(input), 7);
     // Step 2: Apply powers of 2 (1, 2, 4, 8, 16, 32, 64, 128)
-    static const uint8_t w[16] = {1, 2, 4, 8, 16, 32, 64, 128,
-                                  1, 2, 4, 8, 16, 32, 64, 128};
-    uint8x16_t weighted = vandq_u8(vreinterpretq_u8_s8(mask), vld1q_u8(w));
+    // Generate 0x8040201008040201 purely in core registers
+    uint32_t lo = 0x08040201;
+    uint32_t hi = 0x80402010;
+#if defined(__GNUC__) || defined(__clang__)
+    // Optimization barrier to prevent compiler from converting this to a memory load
+    __asm__("" : "+r"(lo), "+r"(hi));
+#endif
+    // Move from core registers directly into NEON without touching L1 cache
+    uint32x2_t half = vset_lane_u32(hi, vdup_n_u32(lo), 1);
+    uint8x16_t w = vreinterpretq_u8_u32(vcombine_u32(half, half));
+    uint8x16_t weighted = vandq_u8(vreinterpretq_u8_s8(mask), w);
     // Step 3: Pairwise add to accumulate the bits
     uint8x8_t p = vpadd_u8(vget_low_u8(weighted), vget_high_u8(weighted));
     p = vpadd_u8(p, p);
