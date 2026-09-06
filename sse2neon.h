@@ -413,7 +413,6 @@
 #endif
 #endif /* SSE2NEON_ARM64EC */
 
-#include <fenv.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -2658,23 +2657,42 @@ FORCE_INLINE void _mm_free(void *addr)
 }
 #endif
 
-FORCE_INLINE uint64_t _sse2neon_get_fpcr(void)
+/* The AArch64 FPCR and the AArch32 FPSCR agree on the layout of every field
+ * sse2neon touches, but differ in width and in how they are accessed. The
+ * accessors below hide that difference so callers never need to branch on the
+ * architecture.
+ */
+#if SSE2NEON_ARCH_AARCH64
+typedef uint64_t _sse2neon_fpcr_t;
+#else
+typedef uint32_t _sse2neon_fpcr_t;
+#endif
+
+FORCE_INLINE _sse2neon_fpcr_t _sse2neon_get_fpcr(void)
 {
-    uint64_t value;
+    _sse2neon_fpcr_t value;
+#if SSE2NEON_ARCH_AARCH64
 #if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     value = _ReadStatusReg(ARM64_FPCR);
 #else
     __asm__ __volatile__("mrs %0, FPCR" : "=r"(value)); /* read */
 #endif
+#else
+    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(value)); /* read */
+#endif
     return value;
 }
 
-FORCE_INLINE void _sse2neon_set_fpcr(uint64_t value)
+FORCE_INLINE void _sse2neon_set_fpcr(_sse2neon_fpcr_t value)
 {
+#if SSE2NEON_ARCH_AARCH64
 #if SSE2NEON_COMPILER_MSVC && !SSE2NEON_COMPILER_CLANG
     _WriteStatusReg(ARM64_FPCR, value);
 #else
     __asm__ __volatile__("msr FPCR, %0" ::"r"(value)); /* write */
+#endif
+#else
+    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(value)); /* write */
 #endif
 }
 
@@ -2686,18 +2704,10 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode(void)
 {
     union {
         fpcr_bitfield field;
-#if SSE2NEON_ARCH_AARCH64
-        uint64_t value;
-#else
-        uint32_t value;
-#endif
+        _sse2neon_fpcr_t value;
     } r;
 
-#if SSE2NEON_ARCH_AARCH64
     r.value = _sse2neon_get_fpcr();
-#else
-    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
-#endif
 
     return r.field.bit24 ? _MM_FLUSH_ZERO_ON : _MM_FLUSH_ZERO_OFF;
 }
@@ -2708,20 +2718,25 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_flush_zero_mode(void)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_GET_ROUNDING_MODE
 FORCE_INLINE unsigned int _MM_GET_ROUNDING_MODE(void)
 {
-    const int mask = FE_TONEAREST | FE_DOWNWARD | FE_UPWARD | FE_TOWARDZERO;
-    switch (fegetround() & mask) {
-    case FE_TONEAREST:
+    // Read FPCR/FPSCR directly rather than going through <fenv.h>, so that the
+    // header does not leak the FE_* macros into everything that includes it.
+    union {
+        fpcr_bitfield field;
+        _sse2neon_fpcr_t value;
+    } r;
+
+    r.value = _sse2neon_get_fpcr();
+
+    // FPCR.RMode occupies bits [23:22]: 0b00 nearest, 0b01 toward +infinity,
+    // 0b10 toward -infinity, 0b11 toward zero.
+    switch ((r.field.bit23 << 1) | r.field.bit22) {
+    case 0:
         return _MM_ROUND_NEAREST;
-    case FE_DOWNWARD:
-        return _MM_ROUND_DOWN;
-    case FE_UPWARD:
+    case 1:
         return _MM_ROUND_UP;
-    case FE_TOWARDZERO:
-        return _MM_ROUND_TOWARD_ZERO;
+    case 2:
+        return _MM_ROUND_DOWN;
     default:
-        // fegetround() must return _MM_ROUND_NEAREST, _MM_ROUND_DOWN,
-        // _MM_ROUND_UP, _MM_ROUND_TOWARD_ZERO on success. all the other error
-        // cases we treat them as FE_TOWARDZERO (truncate).
         return _MM_ROUND_TOWARD_ZERO;
     }
 }
@@ -3296,26 +3311,14 @@ FORCE_INLINE void _sse2neon_mm_set_flush_zero_mode(unsigned int flag)
     // regardless of the value of the FZ bit.
     union {
         fpcr_bitfield field;
-#if SSE2NEON_ARCH_AARCH64
-        uint64_t value;
-#else
-        uint32_t value;
-#endif
+        _sse2neon_fpcr_t value;
     } r;
 
-#if SSE2NEON_ARCH_AARCH64
     r.value = _sse2neon_get_fpcr();
-#else
-    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
-#endif
 
     r.field.bit24 = (flag & _MM_FLUSH_ZERO_MASK) == _MM_FLUSH_ZERO_ON;
 
-#if SSE2NEON_ARCH_AARCH64
     _sse2neon_set_fpcr(r.value);
-#else
-    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r)); /* write */
-#endif
 }
 
 // Set packed single-precision (32-bit) floating-point elements in dst with the
@@ -3342,26 +3345,39 @@ FORCE_INLINE __m128 _mm_set_ps1(float _w)
 // https://www.intel.com/content/www/us/en/docs/intrinsics-guide/index.html#text=_MM_SET_ROUNDING_MODE
 FORCE_INLINE void _MM_SET_ROUNDING_MODE(int rounding)
 {
+    // Write FPCR/FPSCR directly rather than going through <fenv.h>, so that the
+    // header does not leak the FE_* macros into everything that includes it.
+    union {
+        fpcr_bitfield field;
+        _sse2neon_fpcr_t value;
+    } r;
+
+    r.value = _sse2neon_get_fpcr();
+
+    // FPCR.RMode occupies bits [23:22]. Anything that is not one of the four
+    // documented modes is treated as truncation, matching the previous
+    // behaviour of this function.
     switch (rounding) {
-    case _MM_ROUND_NEAREST:
-        rounding = FE_TONEAREST;
+    case _MM_ROUND_NEAREST: /* 0b00 */
+        r.field.bit22 = 0;
+        r.field.bit23 = 0;
         break;
-    case _MM_ROUND_DOWN:
-        rounding = FE_DOWNWARD;
+    case _MM_ROUND_UP: /* 0b01, toward +infinity */
+        r.field.bit22 = 1;
+        r.field.bit23 = 0;
         break;
-    case _MM_ROUND_UP:
-        rounding = FE_UPWARD;
+    case _MM_ROUND_DOWN: /* 0b10, toward -infinity */
+        r.field.bit22 = 0;
+        r.field.bit23 = 1;
         break;
-    case _MM_ROUND_TOWARD_ZERO:
-        rounding = FE_TOWARDZERO;
-        break;
+    case _MM_ROUND_TOWARD_ZERO: /* 0b11 */
     default:
-        // rounding must be _MM_ROUND_NEAREST, _MM_ROUND_DOWN, _MM_ROUND_UP,
-        // _MM_ROUND_TOWARD_ZERO. all the other invalid values we treat them as
-        // FE_TOWARDZERO (truncate).
-        rounding = FE_TOWARDZERO;
+        r.field.bit22 = 1;
+        r.field.bit23 = 1;
+        break;
     }
-    fesetround(rounding);
+
+    _sse2neon_set_fpcr(r.value);
 }
 
 // Copy single-precision (32-bit) floating-point element a to the lower element
@@ -11576,18 +11592,10 @@ FORCE_INLINE unsigned int _sse2neon_mm_get_denormals_zero_mode(void)
 {
     union {
         fpcr_bitfield field;
-#if SSE2NEON_ARCH_AARCH64
-        uint64_t value;
-#else
-        uint32_t value;
-#endif
+        _sse2neon_fpcr_t value;
     } r;
 
-#if SSE2NEON_ARCH_AARCH64
     r.value = _sse2neon_get_fpcr();
-#else
-    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
-#endif
 
     return r.field.bit24 ? _MM_DENORMALS_ZERO_ON : _MM_DENORMALS_ZERO_OFF;
 }
@@ -11657,26 +11665,14 @@ FORCE_INLINE void _sse2neon_mm_set_denormals_zero_mode(unsigned int flag)
     // regardless of the value of the FZ bit.
     union {
         fpcr_bitfield field;
-#if SSE2NEON_ARCH_AARCH64
-        uint64_t value;
-#else
-        uint32_t value;
-#endif
+        _sse2neon_fpcr_t value;
     } r;
 
-#if SSE2NEON_ARCH_AARCH64
     r.value = _sse2neon_get_fpcr();
-#else
-    __asm__ __volatile__("vmrs %0, FPSCR" : "=r"(r.value)); /* read */
-#endif
 
     r.field.bit24 = (flag & _MM_DENORMALS_ZERO_MASK) == _MM_DENORMALS_ZERO_ON;
 
-#if SSE2NEON_ARCH_AARCH64
     _sse2neon_set_fpcr(r.value);
-#else
-    __asm__ __volatile__("vmsr FPSCR, %0" ::"r"(r)); /* write */
-#endif
 }
 
 // Return the current 64-bit value of the processor's time-stamp counter.
