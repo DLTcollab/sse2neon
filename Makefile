@@ -441,9 +441,25 @@ ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
 endif
 	$(EXEC_WRAPPER) $^ $(BENCH_ARGS)
 
-bench: bench-movemask
+# EQUAL_ANY string-comparison benchmark
+#
+# Built from the same source with and without SVE=1 to compare the two paths;
+# see the header comment in tests/bench_cmpistr.cpp.
+BENCH_CMPISTR_SRC = tests/bench_cmpistr.cpp
+BENCH_CMPISTR_EXEC = tests/bench_cmpistr
 
-.PHONY: clean check check-main check-ieee754 check-nan check-aes check-sve check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden coverage-report indent ieee754 nan aes fuzz fuzz-verbose fuzz-clean bench bench-movemask
+$(BENCH_CMPISTR_EXEC): $(BENCH_CMPISTR_SRC) sse2neon.h
+	$(CXX) -O2 $(ARCH_CFLAGS) $(CXXFLAGS) $(BENCHMARK_CXXFLAGS) -I. -std=gnu++14 $(LDFLAGS) -o $@ $< $(BENCHMARK_LDFLAGS)
+
+bench-cmpistr: $(BENCH_CMPISTR_EXEC)
+ifeq ($(processor),$(filter $(processor),aarch64 arm64 arm armv7l))
+	$(CC) $(ARCH_CFLAGS) $(SVE_FLAGS) -c sse2neon.h
+endif
+	$(EXEC_WRAPPER) $^ $(BENCH_ARGS)
+
+bench: bench-movemask bench-cmpistr
+
+.PHONY: clean check check-main check-ieee754 check-nan check-aes check-sve check-ubsan check-asan check-strict-aliasing check-uninit check-macros check-differential generate-golden coverage-report indent ieee754 nan aes fuzz fuzz-verbose fuzz-clean bench bench-movemask bench-cmpistr
 clean:
 	$(RM) $(OBJS) $(EXEC) $(deps) sse2neon.h.gch
 	$(RM) $(IEEE754_OBJS) $(IEEE754_EXEC) $(ieee754_deps)
@@ -452,6 +468,7 @@ clean:
 	$(RM) $(DIFFERENTIAL_OBJS) $(DIFFERENTIAL_EXEC) $(differential_deps)
 	$(RM) $(FUZZ_EXEC)
 	$(RM) $(BENCH_MOVEMASK_EXEC)
+	$(RM) $(BENCH_CMPISTR_EXEC)
 
 -include $(deps)
 -include $(ieee754_deps)
