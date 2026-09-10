@@ -1024,8 +1024,20 @@ TEST_CASE(ftz_getcsr_roundtrip)
         printf("    FAILED: FTZ ON - FZ bit not set (line %d)\n", __LINE__);
         ret = TEST_FAIL;
     }
-#if defined(__aarch64__) || defined(__arm__)
-    /* On ARM, FZ and DAZ share bit 24, so enabling FZ also enables DAZ */
+#if defined(__ARM_FEATURE_AFP)
+    /* With FEAT_AFP, FZ and DAZ are independent; setting FTZ should NOT set
+     * DAZ */
+    if (ret == TEST_SUCCESS &&
+        (csr & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_OFF) {
+        printf(
+            "    FAILED: FTZ ON - DAZ should be independent on AFP (line "
+            "%d)\n",
+            __LINE__);
+        ret = TEST_FAIL;
+    }
+#elif defined(__aarch64__) || defined(__arm__)
+    /* Without FEAT_AFP, ARM FZ and DAZ share bit 24, so enabling FZ also
+     * enables DAZ */
     if (ret == TEST_SUCCESS &&
         (csr & _MM_DENORMALS_ZERO_MASK) != _MM_DENORMALS_ZERO_ON) {
         printf("    FAILED: FTZ ON - DAZ not coupled on ARM (line %d)\n",
@@ -1054,8 +1066,20 @@ TEST_CASE(ftz_getcsr_roundtrip)
                    __LINE__);
             ret = TEST_FAIL;
         }
-#if defined(__aarch64__) || defined(__arm__)
-        /* On ARM, DAZ and FZ share bit 24, so enabling DAZ also enables FZ */
+#if defined(__ARM_FEATURE_AFP)
+        /* With FEAT_AFP, FZ and DAZ are independent; setting DAZ should NOT
+         * set FTZ */
+        if (ret == TEST_SUCCESS &&
+            (csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_OFF) {
+            printf(
+                "    FAILED: DAZ ON - FZ should be independent on AFP (line "
+                "%d)\n",
+                __LINE__);
+            ret = TEST_FAIL;
+        }
+#elif defined(__aarch64__) || defined(__arm__)
+        /* Without FEAT_AFP, ARM DAZ and FZ share bit 24, so enabling DAZ also
+         * enables FZ */
         if (ret == TEST_SUCCESS &&
             (csr & _MM_FLUSH_ZERO_MASK) != _MM_FLUSH_ZERO_ON) {
             printf("    FAILED: DAZ ON - FZ not coupled on ARM (line %d)\n",
@@ -1095,6 +1119,104 @@ TEST_CASE(ftz_getcsr_roundtrip)
 
     return ret;
 }
+
+#if defined(__ARM_FEATURE_AFP)
+/* With FEAT_AFP, FTZ (output flush) and DAZ (input flush) are independent.
+ * These tests verify the correct separation that pre-ARMv8.7 ARM could not
+ * provide. They are compiled only when __ARM_FEATURE_AFP is defined, which
+ * requires -march=armv8.7-a (or newer) at compile time. */
+
+TEST_CASE(afp_ftz_only_no_input_flush)
+{
+    /* FTZ-only: denormal *inputs* must NOT be flushed to zero.
+     * Operation: denorm * 2.0 should give a non-zero result (the denormal is
+     * used as-is), whereas DAZ would treat the input as 0 giving 0 * 2 = 0.
+     */
+    unsigned int original_csr = _mm_getcsr();
+    result_t ret = TEST_SUCCESS;
+
+    float denorm = make_denormal();
+    float factor = 2.0f;
+    __m128 a = _mm_set1_ps(denorm);
+    __m128 b = _mm_set1_ps(factor);
+
+    /* Enable FTZ only, DAZ off */
+    _mm_setcsr(
+        (original_csr & ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                               _MM_DENORMALS_ZERO_MASK)) |
+        _MM_FLUSH_ZERO_ON);
+
+    __m128 c = _mm_mul_ps(a, b);
+    float result = extract_ps(c, 0);
+
+    /* denorm * 2 = a slightly larger denormal - still non-zero (FTZ only
+     * flushes outputs, and denorm*2 is still denormal so it IS flushed to 0).
+     * Actually denorm*2 IS a denormal output, so FTZ will flush it to 0.
+     * The real test: the *input* denorm was not silently zeroed before the
+     * multiply. We verify this by checking that the computation ran (FTZ
+     * flushes the output to 0, not because DAZ zeroed the input).
+     * Use denorm * 1.0: the output equals the input, which FTZ flushes to 0,
+     * but the path taken is different from DAZ (input zeroed -> 0 * 1 = 0).
+     * To distinguish FTZ-only from DAZ: use make_half_flt_min() * 2 = FLT_MIN
+     * (normal output), which should NOT be flushed by FTZ. */
+    float denorm2 = make_half_flt_min(); /* 2^-127, a denormal */
+    __m128 a2 = _mm_set1_ps(denorm2);
+    __m128 b2 = _mm_set1_ps(2.0f);
+    __m128 c2 = _mm_mul_ps(a2, b2);
+    float result2 = extract_ps(c2, 0);
+
+    /* denorm2 * 2 = FLT_MIN (a normal number), so FTZ must NOT flush it.
+     * If DAZ had zeroed the input we would get 0 * 2 = 0 instead. */
+    if (result2 != FLT_MIN) {
+        printf(
+            "    FAILED: FTZ-only input not preserved: got %e, want %e "
+            "(line %d)\n",
+            (double) result2, (double) FLT_MIN, __LINE__);
+        ret = TEST_FAIL;
+    }
+    (void) result;
+
+    _mm_setcsr(original_csr);
+    return ret;
+}
+
+TEST_CASE(afp_daz_only_no_output_flush)
+{
+    /* DAZ-only: denormal *outputs* must NOT be flushed to zero.
+     * Operation: FLT_MIN * 0.5 produces a denormal output. With FTZ that would
+     * be flushed to 0. With DAZ-only it must remain as the denormal value.
+     */
+    unsigned int original_csr = _mm_getcsr();
+    result_t ret = TEST_SUCCESS;
+
+    float min_normal = FLT_MIN;
+    float half = 0.5f;
+    __m128 a = _mm_set1_ps(min_normal);
+    __m128 b = _mm_set1_ps(half);
+
+    /* Enable DAZ only, FTZ off */
+    _mm_setcsr(
+        (original_csr & ~static_cast<unsigned>(_MM_FLUSH_ZERO_MASK |
+                                               _MM_DENORMALS_ZERO_MASK)) |
+        _MM_DENORMALS_ZERO_ON);
+
+    __m128 c = _mm_mul_ps(a, b);
+    float result = extract_ps(c, 0);
+
+    /* FLT_MIN * 0.5 = FLT_MIN/2 (a denormal). The input FLT_MIN is normal so
+     * DAZ does not affect it. Without FTZ the denormal output must survive. */
+    float expected = make_half_flt_min();
+    if (result != expected) {
+        printf(
+            "    FAILED: DAZ-only output flushed: got %e, want %e (line %d)\n",
+            (double) result, (double) expected, __LINE__);
+        ret = TEST_FAIL;
+    }
+
+    _mm_setcsr(original_csr);
+    return ret;
+}
+#endif /* __ARM_FEATURE_AFP */
 
 /* Comparison Tests with Special Values */
 
@@ -1885,6 +2007,10 @@ int main(void)
     RUN_TEST(daz_input_flush);
     RUN_TEST(ftz_daz_disabled);
     RUN_TEST(ftz_getcsr_roundtrip);
+#if defined(__ARM_FEATURE_AFP)
+    RUN_TEST(afp_ftz_only_no_input_flush);
+    RUN_TEST(afp_daz_only_no_output_flush);
+#endif
 
     printf("\n--- Comparison Tests ---\n");
     RUN_TEST(cmpord_ps_nan);
