@@ -10791,8 +10791,14 @@ FORCE_INLINE uint32_t _mm_crc32_u8(uint32_t crc, uint8_t v)
 /* AES software fallback tables.
  * Needed when __ARM_FEATURE_CRYPTO is not available, OR on ARM64EC where
  * hardware crypto intrinsics may not be accessible despite the feature macro.
+ *
+ * Exception: MSVC targeting native ARM64 never defines __ARM_FEATURE_CRYPTO,
+ * but every WoA processor has the crypto extensions (see
+ * _sse2neon_vmull_p64), so it uses the hardware path instead.
  */
-#if !defined(__ARM_FEATURE_CRYPTO) || SSE2NEON_ARM64EC || defined(_M_ARM64EC)
+#if (!defined(__ARM_FEATURE_CRYPTO) &&              \
+     (!defined(_M_ARM64) || defined(__clang__))) || \
+    SSE2NEON_ARM64EC || defined(_M_ARM64EC)
 /* clang-format off */
 #define SSE2NEON_AES_SBOX(w)                                           \
     {                                                                  \
