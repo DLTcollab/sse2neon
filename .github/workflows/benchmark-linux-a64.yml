@@ -56,3 +56,92 @@ jobs:
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
+
+  # NEON against SVE2 for the one relation SVE2 MATCH computes directly.
+  # Both numbers come from the same source built twice on the same runner, so
+  # the comparison is not across machines or across thermal states.
+  cmpistr-sve2:
+    name: Compare NEON and SVE2 for EQUAL_ANY on Linux A64
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          # scipy and numpy are what benchmark/tools/compare.py runs its
+          # U-test with; without them it refuses to report.
+          sudo apt-get install -y g++ cmake python3-numpy python3-scipy
+
+      - name: Require SVE2 on the runner
+        run: |
+          grep -m1 '^Features' /proc/cpuinfo
+          if ! grep -qw sve2 /proc/cpuinfo; then
+            echo "ERROR: runner reports no SVE2; both builds would be NEON"
+            exit 1
+          fi
+
+      - name: Cache Benchmark library
+        uses: actions/cache@v4
+        with:
+          path: benchmark
+          key: ${{ runner.os }}-googlebenchmark-a64-v1.8.3
+
+      - name: Build Google Benchmark
+        run: |
+          if [ ! -d "benchmark/build" ]; then
+            git clone --branch v1.8.3 --depth 1 https://github.com/google/benchmark.git
+            cd benchmark
+            cmake -E make_directory "build"
+            cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_TESTING=OFF -DBENCHMARK_ENABLE_LTO=true ..
+            cmake --build "build" --config Release
+          fi
+
+      # clean between the two, because the flags change and the executable's
+      # timestamp does not.
+      - name: Benchmark the NEON path
+        env:
+          LD_LIBRARY_PATH: ./benchmark/build/src
+        run: |
+          make clean
+          make bench-cmpistr CXX=g++ \
+            BENCHMARK_CXXFLAGS="-I./benchmark/include" \
+            BENCHMARK_LDFLAGS="-L./benchmark/build/src -lbenchmark -lpthread -lrt" \
+            BENCH_ARGS="--benchmark_format=json --benchmark_out=$PWD/neon.json"
+
+      - name: Benchmark the SVE2 path
+        env:
+          LD_LIBRARY_PATH: ./benchmark/build/src
+        run: |
+          make clean
+          make bench-cmpistr SVE=1 FEATURE=sve2 CXX=g++ \
+            BENCHMARK_CXXFLAGS="-I./benchmark/include" \
+            BENCHMARK_LDFLAGS="-L./benchmark/build/src -lbenchmark -lpthread -lrt" \
+            BENCH_ARGS="--benchmark_format=json --benchmark_out=$PWD/sve2.json"
+          count=$(objdump -d tests/bench_cmpistr | grep -cE '\bmatch[[:space:]]+p[0-9]' || true)
+          echo "MATCH instructions in tests/bench_cmpistr: $count"
+          if [ "$count" -eq 0 ]; then
+            echo "ERROR: no MATCH instruction; this run measured the NEON path twice"
+            exit 1
+          fi
+
+      - name: Report the comparison
+        run: |
+          python3 benchmark/tools/compare.py --no-color benchmarks neon.json sve2.json | tee compare.txt
+          {
+            echo '### `_SIDD_CMP_EQUAL_ANY`: NEON vs SVE2'
+            echo
+            echo 'Same source, same runner, built twice. Negative means SVE2 is faster.'
+            echo
+            echo '```'
+            cat compare.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload benchmark JSON
+        uses: actions/upload-artifact@v5
+        with:
+          name: cmpistr-neon-vs-sve2
+          path: |
+            neon.json
+            sve2.json

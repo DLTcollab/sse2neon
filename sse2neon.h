@@ -222,6 +222,30 @@
 #define SSE2NEON_INCLUDE_WINDOWS_H (0)
 #endif
 
+/* SSE2NEON_ENABLE_SVE
+ * Affects: _mm_cmpistr* / _mm_cmpestr* using _SIDD_CMP_EQUAL_ANY
+ *
+ * Opt-in Arm SVE2 code paths. Disabled by default: the NEON implementations
+ * stay the default on every target, and setting this on a build without SVE2
+ * silently keeps them, so the flag is safe to define globally.
+ *
+ * Default (0): NEON only
+ * Enabled (1): use SVE2 where it is a measured win, and only where the
+ *              compiler also reports __ARM_FEATURE_SVE2, as -march=armv8-a+sve2
+ *              does
+ *
+ * Fixed vector length: the __m128 family is a 128-bit contract, so these
+ * paths use fixed-width predicates (svptrue_pat_b8(SV_VL16) and friends)
+ * instead of vector-length-agnostic loops. They are written with sizeless SVE
+ * types only, so they stay correct at any hardware vector length; a header
+ * cannot impose -msve-vector-bits (a global ABI flag) on its users, and that
+ * option would additionally make the code undefined on any machine whose
+ * vector length is not exactly the value it names.
+ */
+#ifndef SSE2NEON_ENABLE_SVE
+#define SSE2NEON_ENABLE_SVE (0)
+#endif
+
 /* Consolidated Platform Detection
  *
  * These macros simplify platform-specific code throughout the header by
@@ -627,6 +651,17 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 #endif
 #else
 #define SSE2NEON_HAS_ACLE 0
+#endif
+
+/* Opt-in SVE2 support. Requires SSE2NEON_ENABLE_SVE=1 from the user, an
+ * AArch64 target, and a compiler reporting __ARM_FEATURE_SVE2. When any of
+ * those is missing the NEON paths are used unchanged.
+ */
+#if SSE2NEON_ENABLE_SVE && SSE2NEON_ARCH_AARCH64 && defined(__ARM_FEATURE_SVE2)
+#include <arm_sve.h>
+#define SSE2NEON_HAS_SVE2 1
+#else
+#define SSE2NEON_HAS_SVE2 0
 #endif
 
 /* Apple Silicon cache lines are double of what is commonly used by Intel, AMD
@@ -9659,6 +9694,92 @@ static const uint8_t ALIGN_STRUCT(16) _sse2neon_cmpestr_mask8b[16] = {
             SSE2NEON_CAT(SSE2NEON_NUMBER_OF_LANES_, type), la, lb, mtx);       \
     }
 
+#if SSE2NEON_HAS_SVE2
+/* SVE2 fast path for _SIDD_CMP_EQUAL_ANY.
+ *
+ * Result bit j is set when b[j] equals any of a[0..la), for j < lb. The NEON
+ * path builds a 16x16 comparison matrix and reduces it row by row; SVE2 MATCH
+ * computes the whole relation in one instruction, because it compares each
+ * element of its first operand against every element in the corresponding
+ * 128-bit segment of its second.
+ *
+ * MATCH always scans that full segment, so a's lanes at and beyond la must
+ * not be able to produce a hit. Filling them with a[0] is safe: a[0] is
+ * itself a valid element, so any match it creates is one MATCH would have
+ * reported anyway. la == 0 leaves no element to replicate and is handled
+ * before the comparison.
+ *
+ * MATCH is defined for 8- and 16-bit elements only, which is exactly the byte
+ * and word forms required here.
+ */
+static uint16_t _sse2neon_cmp_byte_equal_any(__m128i a,
+                                             int la,
+                                             __m128i b,
+                                             int lb)
+{
+    if (la == 0)
+        return 0;
+
+    /* __m128i is a NEON type; move it into an SVE register through memory.
+     * The NEON-SVE bridge (svset_neonq) would avoid the round trip but is not
+     * available on every supported compiler.
+     */
+    uint8_t abuf[16], bbuf[16];
+    vst1q_u8(abuf, vreinterpretq_u8_m128i(a));
+    vst1q_u8(bbuf, vreinterpretq_u8_m128i(b));
+
+    svbool_t pg = svptrue_pat_b8(SV_VL16);
+    svuint8_t za = svld1_u8(pg, abuf);
+    svuint8_t zb = svld1_u8(pg, bbuf);
+
+    svbool_t pa = svwhilelt_b8_s32(0, la);
+    svuint8_t za_valid = svsel_u8(pa, za, svdup_lane_u8(za, 0));
+
+    /* The governing predicate clears result lanes j >= lb. */
+    svbool_t pb = svwhilelt_b8_s32(0, lb);
+    svbool_t match = svmatch_u8(pb, zb, za_valid);
+
+    /* Predicate -> 16-bit mask. svaddv_u8 returns uint8_t, so weight lane j
+     * by 1 << (j & 7) and reduce the two halves separately.
+     */
+    svbool_t pg_lo = svptrue_pat_b8(SV_VL8);
+    svbool_t pg_hi = svbic_b_z(pg, pg, pg_lo);
+    svuint8_t weight =
+        svlsl_u8_x(pg, svdup_n_u8(1), svand_n_u8_x(pg, svindex_u8(0, 1), 7));
+    svuint8_t bits = svsel_u8(match, weight, svdup_n_u8(0));
+
+    return _sse2neon_static_cast(
+        uint16_t, svaddv_u8(pg_lo, bits) | (svaddv_u8(pg_hi, bits) << 8));
+}
+
+static uint16_t _sse2neon_cmp_word_equal_any(__m128i a,
+                                             int la,
+                                             __m128i b,
+                                             int lb)
+{
+    if (la == 0)
+        return 0;
+
+    uint16_t abuf[8], bbuf[8];
+    vst1q_u16(abuf, vreinterpretq_u16_m128i(a));
+    vst1q_u16(bbuf, vreinterpretq_u16_m128i(b));
+
+    svbool_t pg = svptrue_pat_b16(SV_VL8);
+    svuint16_t za = svld1_u16(pg, abuf);
+    svuint16_t zb = svld1_u16(pg, bbuf);
+
+    svbool_t pa = svwhilelt_b16_s32(0, la);
+    svuint16_t za_valid = svsel_u16(pa, za, svdup_lane_u16(za, 0));
+
+    svbool_t pb = svwhilelt_b16_s32(0, lb);
+    svbool_t match = svmatch_u16(pb, zb, za_valid);
+
+    /* Eight lanes weigh at most 0xff in total, so one reduction suffices. */
+    svuint16_t weight = svlsl_u16_x(pg, svdup_n_u16(1), svindex_u16(0, 1));
+    return _sse2neon_static_cast(
+        uint16_t, svaddv_u16(pg, svsel_u16(match, weight, svdup_n_u16(0))));
+}
+#else
 static uint16_t _sse2neon_aggregate_equal_any_8x16(int la,
                                                    int lb,
                                                    __m128i mtx[16])
@@ -9750,6 +9871,7 @@ static uint16_t _sse2neon_aggregate_equal_any_16x8(int la,
 /* clang-format on */
 
 SSE2NEON_GENERATE_CMP_EQUAL_ANY(SSE2NEON_CMP_EQUAL_ANY_)
+#endif /* SSE2NEON_HAS_SVE2 */
 
 static uint16_t _sse2neon_aggregate_ranges_16x8(int la, int lb, __m128i mtx[16])
 {
